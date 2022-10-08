@@ -8,7 +8,7 @@ import { get, set } from 'idb-keyval';
 // import logo from './logo.svg';
 import './App.css';
 
-const code = `
+const defaultCode = `
 Javascript code to find all hyperlinks in a page is
 \`\`\`javascript
 
@@ -18,7 +18,7 @@ console.log(languages)
 
 function App() {
   const [filename, _setFilename] = useState('')
-  const [codeValue, setCodeValue] = useState(code);
+  const [codeValue, setCodeValue] = useState(defaultCode);
 
   window.addEventListener("hashchange", function(e){
     _setFilename(window.location.hash.substring(1))
