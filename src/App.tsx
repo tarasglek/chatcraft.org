@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Editor from "react-simple-code-editor";
+import OpenAI from "openai-api";
 import {highlight, languages} from 'prismjs'
 import "prismjs/themes/prism.css";
 import "prismjs/components/prism-markdown"
@@ -14,12 +15,25 @@ Javascript code to find all hyperlinks in a page is
 
 `;
 
-console.log(languages)
+// console.log(languages)
+const SETTING_OPENAIKEY = '#openai-api-key'
 
 function App() {
   const [filename, _setFilename] = useState('')
   const [codeValue, setCodeValue] = useState(defaultCode);
-
+  const [openaiKey, setOpenaiKey] = useState('')
+  // per https://devtrium.com/posts/async-functions-useeffect
+  useEffect(() => {
+    (async () => {
+      if (openaiKey)
+        return
+      let key = await get(SETTING_OPENAIKEY)
+      if (key) {
+        setOpenaiKey(key)
+      }
+    })()
+  }, [])
+  console.log("key", openaiKey)
   window.addEventListener("hashchange", function(e){
     _setFilename(window.location.hash.substring(1))
   });
@@ -30,6 +44,39 @@ function App() {
     _setFilename(filename)
   }
 
+  async function clickChangeAPIKey() {
+    promptOpenAIAPIKey()
+  }
+
+  async function promptOpenAIAPIKey(msg?: string) {
+    let newKey = prompt(msg || "Enter your OpenAI API key", openaiKey)
+    if (!newKey)
+      return
+    set(SETTING_OPENAIKEY, newKey)
+    setOpenaiKey(newKey)
+  }
+  async function run() {
+    const openai = new OpenAI(openaiKey);
+    try {
+      const gptResponse = await openai.complete({
+        engine: 'text-davinci-002',
+        prompt: codeValue,
+        maxTokens: 256,
+        temperature: 0.7,
+        topP: 1,
+        presencePenalty: 0,
+        frequencyPenalty: 0,
+        bestOf: 1,
+        n: 1,
+        stream: false,
+        // stop: ['\n', "testing"]
+      });
+      setCodeValue(codeValue + gptResponse.data.choices[0].text);
+    } catch (e) {
+      promptOpenAIAPIKey("Rest call to OpenAI failed. You probably need set or change your API key. Please enter your API key.")
+      console.log(e)
+    }
+  }
   function promptSaveAs() {
     let newHash = prompt('How would you like to name you workspace', 'workspace')
     if (newHash)
@@ -42,7 +89,7 @@ function App() {
 
   return (
     <div> 
-      <div><strong style={{paddingRight:'1em'}}>{filename}</strong><button onClick={promptSaveAs}>Save As</button></div>
+      <div><strong style={{paddingRight:'1em'}}>{filename}</strong><button onClick={promptSaveAs}>Save As</button><button onClick={clickChangeAPIKey}>{openaiKey?'Change':'Set'} OpeanAI API key</button></div>
       <Editor autoFocus
       value={codeValue}
       onValueChange={code => setCodeValue(code)}
@@ -56,6 +103,7 @@ function App() {
         outline: 0
       }}
     />
+    <div><button onClick={run}>Run</button></div>
   </div>
   );
 }
