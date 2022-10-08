@@ -5,7 +5,6 @@ import {highlight, languages} from 'prismjs'
 import "prismjs/themes/prism.css";
 import "prismjs/components/prism-markdown"
 import { get, set } from 'idb-keyval';
-
 // import logo from './logo.svg';
 import './App.css';
 
@@ -15,33 +14,45 @@ Javascript code to find all hyperlinks in a page is
 
 `;
 
-// console.log(languages)
 const SETTING_OPENAIKEY = '#openai-api-key'
+const SETTING_SAVED_FILES = '#saved_files'
 
 function App() {
-  const [filename, _setFilename] = useState('')
-  const [codeValue, setCodeValue] = useState(defaultCode);
+  const [filename, _setFilename] = useState('')  
+  const [codeValue, _setCodeValue] = useState(defaultCode);
   const [openaiKey, setOpenaiKey] = useState('')
+  const [loadedSettings, setLoadedSettings] = useState(false)
+  const [savedFiles, setSavedFiles] = useState(new Set<string>())
   // per https://devtrium.com/posts/async-functions-useeffect
   useEffect(() => {
     (async () => {
-      if (openaiKey)
-        return
       let key = await get(SETTING_OPENAIKEY)
       if (key) {
         setOpenaiKey(key)
       }
+      let savedFiles = await get(SETTING_SAVED_FILES)
+      if (savedFiles) {
+        setSavedFiles(savedFiles)
+      }
+      let filename = window.location.hash.substring(1)
+      if (filename == "") {
+        filename = "Untitled"
+      }
+      setFilename(filename)
     })()
-  }, [])
-  console.log("key", openaiKey)
-  window.addEventListener("hashchange", function(e){
-    _setFilename(window.location.hash.substring(1))
-  });
-  
+  }, [loadedSettings])
+
   function setFilename(filename: string) {
+    console.log(["setFilename", filename])
     filename.replaceAll('#', '')
     window.location.hash = filename
     _setFilename(filename)
+    if (!loadedSettings || savedFiles.has(filename)) {
+      return
+    }
+    savedFiles.add(filename)
+    return set(SETTING_SAVED_FILES, savedFiles)
+
   }
 
   async function clickChangeAPIKey() {
@@ -71,28 +82,28 @@ function App() {
         stream: false,
         // stop: ['\n', "testing"]
       });
-      setCodeValue(codeValue + gptResponse.data.choices[0].text);
+      _setCodeValue(codeValue + gptResponse.data.choices[0].text);
     } catch (e) {
       promptOpenAIAPIKey("Rest call to OpenAI failed. You probably need set or change your API key. Please enter your API key.")
-      console.log(e)
     }
   }
-  function promptSaveAs() {
-    let newHash = prompt('How would you like to name you workspace', 'workspace')
-    if (newHash)
-      setFilename(newHash)
-  }
-
-  if (filename === '') {
-    setFilename('Untitled')
+  async function promptSaveAs() {
+    let newFilename = prompt('How would you like to name you workspace', 'workspace')
+    if (!newFilename)
+      return
+    setFilename(newFilename)
   }
 
   return (
     <div> 
-      <div><strong style={{paddingRight:'1em'}}>{filename}</strong><button onClick={promptSaveAs}>Save As</button><button onClick={clickChangeAPIKey}>{openaiKey?'Change':'Set'} OpeanAI API key</button></div>
+      <div>
+        <select value={filename} onChange={e => setFilename(e.target.value)}>
+          {[...savedFiles.values()].map((filename) => <option value={filename} key={filename}>{filename}</option>)}
+        </select>
+        <button onClick={promptSaveAs}>Save As</button><button onClick={clickChangeAPIKey}>{openaiKey?'Change':'Set'} OpeanAI API key</button></div>
       <Editor autoFocus
       value={codeValue}
-      onValueChange={code => setCodeValue(code)}
+      onValueChange={code => _setCodeValue(code)}
       highlight={code => highlight(code, languages.markdown, 'markdown')}
       padding={10}
       textareaId="codeArea"
