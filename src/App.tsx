@@ -1,25 +1,42 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from "react";
+import Editor from "react-simple-code-editor";
+import {highlight, languages} from 'prismjs'
+import "prismjs/themes/prism.css";
+import "prismjs/components/prism-markdown"
+// import logo from './logo.svg';
 import './App.css';
 
+const code = `function add(a, b) {
+  return a + b;
+}
+
+const a = 123;
+`;
+
+console.log(languages)
+
 function App() {
+  const [codeValue, setCodeValue] = useState(code);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <div> 
+    <Editor
+    value={codeValue}
+    onValueChange={code => setCodeValue(code)}
+    highlight={code => {
+      let x = highlight(code, languages.markdown, 'markdown');
+      return x;
+      }
+   }
+    padding={10}
+    textareaId="codeArea"
+    className="editor"
+    style={{
+      fontFamily: '"Fira code", "Fira Mono", monospace',
+      fontSize: 18,
+      outline: 0
+    }}
+  />
+  </div>
   );
 }
 
