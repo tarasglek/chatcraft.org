@@ -121,13 +121,10 @@ function Code() {
     if (!saveAs) {
       saveAs = filename
     }
-    console.log("checkpointCode", saveAs)
     let oldVer = state.savedFiles.get(saveAs) || 0
     let nextVer = oldVer + (incrementVersion ? 1 : 0)
-    console.log("checkpointCode from", oldVer, nextVer)
     let key = calcCodeKey(saveAs, nextVer)
     await set(key, state.code)
-    console.log("checkpointCode saved", key, state.code)
     state.savedFiles.set(saveAs, nextVer)
     await flushSavedFiles()
   }
