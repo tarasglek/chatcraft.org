@@ -47,12 +47,11 @@ function App() {
     filename.replaceAll('#', '')
     window.location.hash = filename
     _setFilename(filename)
-    if (!loadedSettings || savedFiles.has(filename)) {
+    if (savedFiles.has(filename)) {
       return
     }
     savedFiles.add(filename)
     return set(SETTING_SAVED_FILES, savedFiles)
-
   }
 
   async function clickChangeAPIKey() {
