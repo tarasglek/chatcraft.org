@@ -148,7 +148,7 @@ function Code() {
     <p>This tool needs an OpenAI API key, instructions to get OpenAI key are:</p>
     <ol>
     <li>Register at OpenAI.com</li>
-    <li>Go to your account settings</li>
+    <li>Go to your account settings, "View API Keys"</li>
     <li>Copy your OpenAI API key</li>
     <li>Click 'Set OpenAI API key' below and paste your key in</li>
     </ol>
