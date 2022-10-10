@@ -1,13 +1,8 @@
 .App {
   text-align: center;
 }
-
-button {
-  min-width: 100px;
-  min-height: 30px;
-}
  
-.App-logo {not
+.App-logo {
   height: 40vmin;
   pointer-events: none;
 }
