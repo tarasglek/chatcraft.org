@@ -24,6 +24,7 @@ const SETTING_OPENAIKEY = '#openai-api-key'
 const SETTING_SAVED_FILES = '#saved_files'
 interface State {
   code: string;
+  modelResponse: string;
   openaiToken: string;
   loaded: boolean;
   savedFiles: Map<string, number>;
@@ -32,6 +33,7 @@ function Code() {
   const [state, setState] = useState<State>(
     {
       code: '',
+      modelResponse: '',
       openaiToken: '',
       loaded: false,
       savedFiles: new Map<string, number>(),
@@ -61,13 +63,21 @@ function Code() {
         state.savedFiles.set(filename, 0)
         await flushSavedFiles()
       }
-      let codeKey = calcCodeKey(filename, state.savedFiles.get(filename)!)
+      let codeVer = state.savedFiles.get(filename)!
+      let codeKey = calcCodeKey(filename, codeVer)
       let code = await get(codeKey)
       if (!code) {
         code = defaultCode
         await set(codeKey, code)
       }
       state.code = code
+      // same as above but for modelResponse
+      let modelResponseKey = calcResponseKey(filename, codeVer)
+      let modelResponse = await get(modelResponseKey)
+      if (!modelResponse) {
+        modelResponse = ''
+      }
+      state.modelResponse = modelResponse
       state.loaded = true
       setState({...state})
     })()
@@ -75,6 +85,19 @@ function Code() {
 
   async function clickChangeAPIKey() {
     promptOpenAIAPIKey()
+  }
+
+  function highlightWithModelResponse(code: string): string {
+    let _highlight = (s: string) => highlight(s, languages.markdown, 'markdown')
+    let highlighted = _highlight(code)
+    //compute prior dom
+    if (state.modelResponse.length) {
+      let priorHighlighted = _highlight(state.code)
+      let commonLength = 0
+      for (commonLength = 0; highlighted[commonLength] === priorHighlighted[commonLength]; commonLength++);
+      return highlighted.slice(0, commonLength) + "<span style='background-color: #d2f4d3'>" + highlighted.slice(commonLength) + "</span>"
+    }
+    return highlighted
   }
 
   async function promptOpenAIAPIKey(msg?: string) {
@@ -104,7 +127,7 @@ function Code() {
         stream: false,
         // stop: ['\n', "testing"]
       });
-      state.code += gptResponse.data.choices[0].text;
+      state.modelResponse = gptResponse.data.choices[0].text;
       setState({...state})
     } catch (e) {
       promptOpenAIAPIKey("Rest call to OpenAI failed. You probably need set or change your API key. Please enter your API key.")
@@ -113,6 +136,7 @@ function Code() {
   }
 
   let calcCodeKey = (filename:string, version:number) => '#code-'+ filename + '-' + version
+  let calcResponseKey = (filename:string, version:number) => '#resp-'+ filename + '-' + version
 
   /**
    * Todo: optimize if no delta between adjacent vers
@@ -126,6 +150,7 @@ function Code() {
     let key = calcCodeKey(saveAs, nextVer)
     await set(key, state.code)
     state.savedFiles.set(saveAs, nextVer)
+    await set(calcResponseKey(saveAs, nextVer), state.modelResponse)
     await flushSavedFiles()
   }
 
@@ -143,6 +168,16 @@ function Code() {
       switchFilename(newFilename)
     }
   }
+
+  function onCodeChange(code: string) {
+    // editing code with a response integrates the model response
+    if (state.modelResponse.length) {
+      state.modelResponse = ''
+    }
+    state.code = code
+    setState({...state})
+  }
+
   let tokenInstructions = state.openaiToken != '' ? <span/> : (
     <div>
     <p>This tool needs an OpenAI API key, instructions to get OpenAI key are:</p>
@@ -162,16 +197,17 @@ function Code() {
         {[...state.savedFiles.keys()].map((filename) => <option value={filename} key={filename}>{filename}</option>)}
       </select>
       <button onClick={promptSaveAs}>Save As</button><button onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</button></div>
-    <Editor autoFocus
-    value={state.code}
-    onValueChange={code => {state.code = code; setState({...state})}}
-    highlight={code => highlight(code, languages.markdown, 'markdown')}
+    <Editor
+    id="editor"
+    autoFocus
+    value={state.code + state.modelResponse}
+    onValueChange={onCodeChange}
+    highlight={highlightWithModelResponse}
     padding={10}
-    textareaId="codeArea"
     className="editor"
+    textareaId="txtCodeArea"
     style={{
       fontFamily: '"Fira code", "Fira Mono", monospace',
-      fontSize: 18,
       outline: 0
     }}
   />
