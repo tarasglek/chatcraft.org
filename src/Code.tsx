@@ -10,9 +10,13 @@ import {
   useParams,
   useNavigate
 } from "react-router-dom";
+import { Button, Select } from 'antd';
 import { get, set } from 'idb-keyval';
+
 // import logo from './logo.svg';
 import './App.css';
+import 'antd/dist/antd.css'
+const { Option } = Select;
 
 const defaultCode = `
 Javascript code to find all hyperlinks in a page is
@@ -193,10 +197,10 @@ function Code() {
     <div> 
       { tokenInstructions }
     <div>
-      <select value={filename} onChange={e => {saveCode();switchFilename(e.target.value)}}>
-        {[...state.savedFiles.keys()].map((filename) => <option value={filename} key={filename}>{filename}</option>)}
-      </select>
-      <button onClick={promptSaveAs}>Save As</button><button onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</button></div>
+      <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => {saveCode();switchFilename(value)}}>
+        {[...state.savedFiles.keys()].map((filename) => <Option value={filename}>{filename}</Option>)}
+      </Select>
+      <Button onClick={promptSaveAs}>Save As</Button><Button onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button></div>
     <Editor
     id="editor"
     autoFocus
@@ -211,7 +215,7 @@ function Code() {
       outline: 0
     }}
   />
-  <div><button onClick={run} disabled={isWaitingForResponse || state.openaiToken == ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</button> Version: {state.savedFiles.get(filename)}</div>
+  <div><Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken == ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button> Version: {state.savedFiles.get(filename)}</div>
 </div>
   );
   return state.loaded ? app : <div>Loading...</div>;
