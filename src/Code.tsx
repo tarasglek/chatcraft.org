@@ -200,7 +200,7 @@ function Code() {
       <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => {saveCode();switchFilename(value)}}>
         {[...state.savedFiles.keys()].map((filename) => <Option value={filename}>{filename}</Option>)}
       </Select>
-      <Button onClick={promptSaveAs}>Save As</Button><Button onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button></div>
+      <Button onClick={promptSaveAs}>Save As</Button><Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button></div>
     <Editor
     id="editor"
     autoFocus
