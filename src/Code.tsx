@@ -154,6 +154,10 @@ function Code() {
   }
   async function run() {
     setIsWaitingForResponse(true)
+    // flatten the code
+    if (state.modelResponse.length) {
+      onCodeChange(state.code + state.modelResponse)
+    }
     state.code = state.code.trim()
     await saveCode(filename, true)
     const openai = new OpenAI(state.openaiToken);
