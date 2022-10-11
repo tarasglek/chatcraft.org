@@ -6,16 +6,18 @@ import "prismjs/themes/prism.css";
 import "prismjs/components/prism-markdown"
 import "prismjs/components/prism-python"
 import "prismjs/components/prism-sql"
+import "prismjs/components/prism-css"
 import {
   useParams,
   useNavigate
 } from "react-router-dom";
-import { Button, Select } from 'antd';
+import { Button, Col, Pagination, Row, Select } from 'antd';
 import { get, set } from 'idb-keyval';
 
 // import logo from './logo.svg';
-import './App.css';
 import 'antd/dist/antd.css'
+import './App.css';
+
 const { Option } = Select;
 
 const defaultCode = `
@@ -32,7 +34,21 @@ interface State {
   openaiToken: string;
   loaded: boolean;
   savedFiles: Map<string, number>;
+  showingVersion: number;
 }
+
+function removeBadAntDesignCSS() {
+  for (let i = 0; i < document.styleSheets.length; i++) {
+    let sheet = document.styleSheets[i]
+    for (let j = 0; j < sheet.cssRules.length; j++) {
+      let rule = sheet.cssRules[j]
+      if ((rule as any).selectorText === '::selection') {
+        sheet.deleteRule(j)
+      }
+    }
+  }
+}
+
 function Code() {
   const [state, setState] = useState<State>(
     {
@@ -41,10 +57,12 @@ function Code() {
       openaiToken: '',
       loaded: false,
       savedFiles: new Map<string, number>(),
+      showingVersion: -1
     });
   const _navigate = useNavigate();
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   let filename = useParams().id!;
+  window.document.title = filename + ' ' + window.location.hostname
   async function flushSavedFiles () {
     let oldSavedFiles = await get(SETTING_SAVED_FILES)
     if (oldSavedFiles) {
@@ -70,6 +88,7 @@ function Code() {
   // per https://devtrium.com/posts/async-functions-useeffect
   useEffect(() => {
     (async () => {
+      state.showingVersion = -1
       let key = await get(SETTING_OPENAIKEY)
       if (key) {
         state.openaiToken = key
@@ -86,7 +105,7 @@ function Code() {
         state.savedFiles.set(filename, 0)
         await flushSavedFiles()
       }
-      let codeVer = state.savedFiles.get(filename) || 0
+      let codeVer = getMaxFileVersion()
       let codeKey = calcCodeKey(filename, codeVer)
       let code = await get(codeKey)
       if (!code) {
@@ -103,6 +122,7 @@ function Code() {
       state.modelResponse = modelResponse
       state.loaded = true
       setState({...state})
+      removeBadAntDesignCSS()
     })()
   }, [filename])
 
@@ -149,10 +169,11 @@ function Code() {
         bestOf: 1,
         n: 1,
         stream: false,
-        // stop: ['\n', "testing"]
+        // stop: ['```']
       });
       state.modelResponse = gptResponse.data.choices[0].text;
       setState({...state})
+      saveCode()
     } catch (e) {
       promptOpenAIAPIKey("Rest call to OpenAI failed. You probably need set or change your API key. Please enter your API key.")
     }
@@ -171,6 +192,7 @@ function Code() {
     }
     // synchronize (might be other tabs that updated state since)
     await flushSavedFiles()
+    state.showingVersion = -1
     let oldVer = state.savedFiles.get(saveAs) || 0
     let nextVer = oldVer + (incrementVersion ? 1 : 0)
     let key = calcCodeKey(saveAs, nextVer)
@@ -199,7 +221,35 @@ function Code() {
     if (state.modelResponse.length) {
       state.modelResponse = ''
     }
+    state.showingVersion = -1
     state.code = code
+    setState({...state})
+  }
+
+  function getMaxFileVersion() {
+    let ret = state.savedFiles.get(filename) || 0
+    return ret
+  }
+
+  function getHistoricVersionShown() {
+    return state.showingVersion == -1 ? getMaxFileVersion() : state.showingVersion
+  }
+
+  async function showHistoricVersion(version: number) {
+    state.showingVersion = version
+    let codeKey = calcCodeKey(filename, version)
+    let code = await get(codeKey)
+    if (!code) {
+      code = defaultCode
+    }
+    state.code = code
+    // same as above but for modelResponse
+    let modelResponseKey = calcResponseKey(filename, version)
+    let modelResponse = await get(modelResponseKey)
+    if (!modelResponse) {
+      modelResponse = ''
+    }
+    state.modelResponse = modelResponse
     setState({...state})
   }
 
@@ -214,32 +264,49 @@ function Code() {
     </ol>
     </div>
     )
-  let app = (
-    <div> 
-      { tokenInstructions }
-    <div>
-      <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => {saveCode();switchFilename(value)}}>
-        {[...state.savedFiles.keys()].map((filename) => <Option key={filename} value={filename}>{filename}</Option>)}
-      </Select>
-      <Button onClick={promptSaveAs}>Save As</Button><Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button></div>
-    <Editor
-    id="editor"
-    autoFocus
-    value={state.code + state.modelResponse}
-    onValueChange={onCodeChange}
-    highlight={highlightWithModelResponse}
-    padding={10}
-    className="editor"
-    textareaId="txtCodeArea"
-    style={{
-      fontFamily: '"Fira code", "Fira Mono", monospace',
-      outline: 0
-    }}
-  />
-  <div><Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken == ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button> Version: {state.savedFiles.get(filename) || 0}</div>
-</div>
-  );
-  return state.loaded ? app : <div>Loading...</div>;
-}
+    let app = (
+      <>
+        { tokenInstructions }
+        <Row>
+          <Col>
+            <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => {saveCode();switchFilename(value)}}>
+            {[...state.savedFiles.keys()].map((filename) => <Option key={filename} value={filename}>{filename}</Option>)}
+            </Select>
+          </Col>
+          <Col>
+            <Button onClick={promptSaveAs}>Save As</Button>
+          </Col>
+          <Col>
+          <Pagination
+            defaultPageSize={1}
+            size="small"
+            current={getHistoricVersionShown()}
+            total={getMaxFileVersion()}
+            onChange={(page, pageNumber)=>showHistoricVersion(page)}/>
+          </Col>
+          <Col>
+            <Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button>
+          </Col>
+        </Row>
+      <Editor
+      id="editor"
+      autoFocus
+      value={state.code + state.modelResponse}
+      onValueChange={onCodeChange}
+      highlight={highlightWithModelResponse}
+      padding={10}
+      className="editor"
+      textareaId="txtCodeArea"
+      style={{
+        fontFamily: '"Fira code", "Fira Mono", monospace',
+        outline: 0
+      }}
+      />
+      <div><Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken == ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button>
+      </div>
+      </>
+      );
+      return state.loaded ? app : <div>Loading...</div>;
+    }
 
-export default Code;
+    export default Code;
