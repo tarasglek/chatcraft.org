@@ -46,6 +46,25 @@ function Code() {
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   let filename = useParams().id!;
   async function flushSavedFiles () {
+    let oldSavedFiles = await get(SETTING_SAVED_FILES)
+    if (oldSavedFiles) {
+      // iterate over state.savedFiles and oldSavedFiles
+      // if the key is in both, take the max of the two values
+      let modified = false
+      for (let [key, oldValue] of oldSavedFiles) {
+        oldValue = oldValue || 0
+        if (state.savedFiles.get(key) !== oldValue) {
+          modified = true
+          state.savedFiles.set(key, Math.max(oldValue, state.savedFiles.get(key) || 0))
+        } else {
+          modified = true
+          state.savedFiles.set(key, oldValue)
+        }
+      }
+      if (modified) {
+        setState({...state})
+      }
+    }
     return set (SETTING_SAVED_FILES, state.savedFiles)
   }
   // per https://devtrium.com/posts/async-functions-useeffect
@@ -67,7 +86,7 @@ function Code() {
         state.savedFiles.set(filename, 0)
         await flushSavedFiles()
       }
-      let codeVer = state.savedFiles.get(filename)!
+      let codeVer = state.savedFiles.get(filename) || 0
       let codeKey = calcCodeKey(filename, codeVer)
       let code = await get(codeKey)
       if (!code) {
@@ -115,6 +134,7 @@ function Code() {
   }
   async function run() {
     setIsWaitingForResponse(true)
+    state.code = state.code.trim()
     await saveCode(filename, true)
     const openai = new OpenAI(state.openaiToken);
     try {
@@ -149,13 +169,14 @@ function Code() {
     if (!saveAs) {
       saveAs = filename
     }
+    // synchronize (might be other tabs that updated state since)
+    await flushSavedFiles()
     let oldVer = state.savedFiles.get(saveAs) || 0
     let nextVer = oldVer + (incrementVersion ? 1 : 0)
     let key = calcCodeKey(saveAs, nextVer)
     await set(key, state.code)
     state.savedFiles.set(saveAs, nextVer)
     await set(calcResponseKey(saveAs, nextVer), state.modelResponse)
-    await flushSavedFiles()
   }
 
   function switchFilename(filename: string) {
@@ -198,7 +219,7 @@ function Code() {
       { tokenInstructions }
     <div>
       <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => {saveCode();switchFilename(value)}}>
-        {[...state.savedFiles.keys()].map((filename) => <Option value={filename}>{filename}</Option>)}
+        {[...state.savedFiles.keys()].map((filename) => <Option key={filename} value={filename}>{filename}</Option>)}
       </Select>
       <Button onClick={promptSaveAs}>Save As</Button><Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button></div>
     <Editor
@@ -215,7 +236,7 @@ function Code() {
       outline: 0
     }}
   />
-  <div><Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken == ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button> Version: {state.savedFiles.get(filename)}</div>
+  <div><Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken == ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button> Version: {state.savedFiles.get(filename) || 0}</div>
 </div>
   );
   return state.loaded ? app : <div>Loading...</div>;
