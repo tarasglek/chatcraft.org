@@ -129,6 +129,21 @@ function Code() {
     })()
   }, [filename])
 
+  // save code as it changes
+  // delay saving by 1 second
+  useEffect(() => {
+    let timeout: any
+    if (state.loaded) {
+      timeout = setTimeout(async () => {
+      saveCode()
+      }, 1000)
+    }
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [state.code])
+
+
   async function clickChangeAPIKey() {
     promptOpenAIAPIKey()
   }
