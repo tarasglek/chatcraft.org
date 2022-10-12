@@ -8,6 +8,8 @@ import "prismjs/components/prism-python"
 import "prismjs/components/prism-sql"
 import "prismjs/components/prism-css"
 import "prismjs/components/prism-graphql"
+import "prismjs/components/prism-json"
+import "prismjs/components/prism-yaml"
 import {
   useParams,
   useNavigate
