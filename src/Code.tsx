@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import Editor from "react-simple-code-editor";
 import OpenAI from "openai-api";
-import {highlight, languages} from 'prismjs'
+import Prism  from 'prismjs'
 import "prismjs/themes/prism.css";
 import "prismjs/components/prism-markdown"
 import "prismjs/components/prism-python"
 import "prismjs/components/prism-sql"
 import "prismjs/components/prism-css"
+import "prismjs/components/prism-graphql"
 import {
   useParams,
   useNavigate
@@ -131,7 +132,7 @@ function Code() {
   }
 
   function highlightWithModelResponse(code: string): string {
-    let _highlight = (s: string) => highlight(s, languages.markdown, 'markdown')
+    let _highlight = (s: string) => Prism.highlight(s, Prism.languages.markdown, 'markdown')
     let highlighted = _highlight(code)
     //compute prior dom
     if (state.modelResponse.length) {
