@@ -1,5 +1,13 @@
+
 /** hello world cloudflare function in typescript */
-export async function onRequest(context) {
+export async function onRequest(context: {
+  request: Request;
+  env: { [key: string]: string };
+  params: { [key: string]: string };
+  waitUntil: (promise: Promise<any>) => void;
+  next: () => Promise<void>;
+  data: { [key: string]: any };
+}) {
   // Contents of context object
   const {
     request, // same as existing Worker API
@@ -10,6 +18,5 @@ export async function onRequest(context) {
     data, // arbitrary space for passing data between middlewares
   } = context;
 
-  const str = JSON.stringify(env, null, 2);
-  return new Response(`Hello, world!\n\n${str}`);
+  return new Response(`Hello, world! ${request.url} ${request.method}`);
 }
