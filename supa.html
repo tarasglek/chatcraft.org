@@ -1,0 +1,50 @@
+<html>
+
+<body>
+    <h1>My First Heading</h1>
+    <p>My first paragraph.</p>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const { createClient } = supabase
+        const _supabase = createClient(
+            'https://nlinballxabddqvmfiqc.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saW5iYWxseGFiZGRxdm1maXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjU1OTQ2MTksImV4cCI6MTk4MTE3MDYxOX0.HdIauGMRvfBSxJhp5SZnfgNDH1vM1SlIk4RuzkNbiTo'
+        )
+        async function info() {
+            const { data: { user } } = await _supabase.auth.getUser()
+            console.log(user)
+            console.log(JSON.stringify(user))
+            const { userData, _ } = await supabase.auth.getSession()
+            console.log(userData)
+            console.log(JSON.stringify(userData))
+        }
+
+        /**
+         * python3 commandline to launch http server over current dir:
+         * python3 -m http.server
+         */
+        async function signInWithGitHub() {
+            const { data, error } = await _supabase.auth.signInWithOAuth({
+                provider: 'github',
+
+            },
+                {
+                    redirectTo: '' + window.location
+                })
+            // log supabase authenticated username
+            console.log(data)
+            console.log(_supabase.auth)
+            console.log(_supabase.auth.user)
+            info()
+            // console.log(_supabase.auth.user())
+        }
+        // anonymous function that gets called on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            info()  
+        })
+    </script>
+    <!-- button that calls signInWithGitHub() -->
+    <button onclick="signInWithGitHub()">Sign in with GitHub</button>
+</body>
+
+</html>
