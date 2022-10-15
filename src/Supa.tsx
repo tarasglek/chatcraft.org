@@ -18,7 +18,7 @@ async function getUsername() {
 const LOCAL_STORAGE_REDIRECT = "supabase.redirect"
 export async function login() {
     let location = window.location.toString()
-    localStorage.setItem(LOCAL_STORAGE_REDIRECT, location)
+    localStorage.setItem(LOCAL_STORAGE_REDIRECT, currentHashRouterLocation())
     return supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
@@ -28,13 +28,28 @@ export async function login() {
 }
 
 export async function logout() {
-    console.log('logout')
     return supabase.auth.signOut()
 }
 
 export interface Session {
     username?: string
     savedURL?: string
+}
+
+function currentHashRouterLocation() {
+    return window.location.hash.substring(1)
+}
+
+export function getRedirectURL(defaultURL: string) {
+    let savedURLinStorage = localStorage.getItem(LOCAL_STORAGE_REDIRECT)
+    if (savedURLinStorage) {
+        if (currentHashRouterLocation() == savedURLinStorage) {
+            localStorage.removeItem(LOCAL_STORAGE_REDIRECT)
+            return defaultURL
+        }
+        return savedURLinStorage
+    }
+    return defaultURL
 }
 
 export function useSession(): Session {
@@ -51,17 +66,7 @@ export function useSession(): Session {
         fetchUser()
         // register and unregister callback to update user when auth changes
         let {data} = supabase.auth.onAuthStateChange(async (e, session) => {
-            console.log('auth state changed', e, session)
-
-            if (e == 'SIGNED_IN') {
-                let savedURL = localStorage.getItem(LOCAL_STORAGE_REDIRECT)
-                if (savedURL) {
-                    localStorage.removeItem(LOCAL_STORAGE_REDIRECT)
-                    console.log('redirecting to "' + savedURL + '"')
-                    // window.history.pushState({}, '', savedURL)
-                    // setSavedURL(savedURL)
-                }
-            }            
+            // console.log('auth state changed', e, session)
             fetchUser()
         })
         return () => {
