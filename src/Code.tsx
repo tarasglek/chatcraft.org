@@ -15,9 +15,8 @@ import {
   useParams,
   useNavigate
 } from "react-router-dom";
-import { Avatar, Button, Col, Pagination, Row, Select } from 'antd';
+import { Button, Col, Pagination, Row, Select } from 'antd';
 import { get, set } from 'idb-keyval';
-import { UserOutlined } from '@ant-design/icons';
 
 // import logo from './logo.svg';
 import 'antd/dist/antd.css'
@@ -145,7 +144,7 @@ function Code({ session }: CodeProps) {
   // delay saving by 1 second
   useEffect(() => {
     let timeout: any
-    if (state.loaded && state.showingVersion === -1) {
+    if (state.loaded) {
       timeout = setTimeout(async () => {
       saveCode()
       }, 1000)
@@ -153,7 +152,7 @@ function Code({ session }: CodeProps) {
     return () => {
       clearTimeout(timeout)
     }
-  }, [state.code, state.showingVersion])
+  }, [state.code, state.loaded, saveCode])
 
 
   async function clickChangeAPIKey() {
@@ -225,6 +224,10 @@ function Code({ session }: CodeProps) {
   async function saveCode(saveAs?: string, incrementVersion?: boolean) {
     if (!saveAs) {
       saveAs = filename
+      // !saveAs && showingVersion !== -1 means we are showing an old version, nothing to save
+      if (state.showingVersion !== -1) {
+        return
+      }
     }
     // synchronize (might be other tabs that updated state since)
     await flushSavedFiles()
@@ -236,7 +239,7 @@ function Code({ session }: CodeProps) {
     state.savedFiles.set(saveAs, nextVer)
     let modelKey = calcResponseKey(saveAs, nextVer)
     await set(modelKey, state.modelResponse)
-    console.log('saved code', codeKey, modelKey)
+    // console.log('saved code', codeKey, modelKey)
   }
 
   function switchFilename(filename: string) {
@@ -260,7 +263,7 @@ function Code({ session }: CodeProps) {
     // editing code with a response merges the model response
     if (state.modelResponse.length) {
       state.modelResponse = ''
-      // bump version once edit response
+      // bumping version here, saves model response in history view
       saveCode(filename, true)
     }
 
@@ -273,7 +276,7 @@ function Code({ session }: CodeProps) {
   }
 
   function getHistoricVersionShown() {
-    return state.showingVersion == -1 ? getMaxFileVersion() : state.showingVersion
+    return state.showingVersion === -1 ? getMaxFileVersion() : state.showingVersion
   }
 
   async function showHistoricVersion(version: number) {
@@ -294,7 +297,10 @@ function Code({ session }: CodeProps) {
     setState({...state})
   }
 
-  let tokenInstructions = state.openaiToken != '' ? <span/> : (
+  async function share() {
+  }
+
+  let tokenInstructions = state.openaiToken !== '' ? <span/> : (
     <div>
     <p>This tool needs an OpenAI API key, instructions to get OpenAI key are:</p>
     <ol>
@@ -316,6 +322,9 @@ function Code({ session }: CodeProps) {
           </Col>
           <Col>
             <Button onClick={promptSaveAs}>Save As</Button>
+          </Col>
+          <Col>
+            <Button onClick={share} disabled={!!!session.username}>Share</Button>
           </Col>
           <Col span={18}>
           <Pagination
@@ -348,7 +357,7 @@ function Code({ session }: CodeProps) {
         outline: 0
       }}
       />
-      <div><Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken == ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button>
+      <div><Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken === ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button>
       </div>
       </>
       );
