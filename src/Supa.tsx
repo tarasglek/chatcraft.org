@@ -16,13 +16,18 @@ async function getUsername() {
 }
 
 const LOCAL_STORAGE_REDIRECT = "supabase.redirect"
-export async function login() {
+
+/**
+ * Supabase doesn't return is to correct hash when we come back from github
+ * so we have to save it in local storage and then can use it as default redirect
+ */
+export async function login(defaultRedirect: string) {
     let location = window.location.toString()
-    localStorage.setItem(LOCAL_STORAGE_REDIRECT, currentHashRouterLocation())
+    localStorage.setItem(LOCAL_STORAGE_REDIRECT, defaultRedirect)
     return supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-        redirectTo: '' + location
+        redirectTo: location
         }
     })
 }
@@ -36,20 +41,19 @@ export interface Session {
     savedURL?: string
 }
 
-function currentHashRouterLocation() {
-    return window.location.hash.substring(1)
-}
-
 export function getRedirectURL(defaultURL: string) {
     let savedURLinStorage = localStorage.getItem(LOCAL_STORAGE_REDIRECT)
     if (savedURLinStorage) {
-        if (currentHashRouterLocation() == savedURLinStorage) {
-            localStorage.removeItem(LOCAL_STORAGE_REDIRECT)
-            return defaultURL
-        }
         return savedURLinStorage
     }
     return defaultURL
+}
+
+/** clear redirect url from local storage once we have used it */
+export function clearRedirectURL(redirectURL: string) {
+    if (redirectURL === localStorage.getItem(LOCAL_STORAGE_REDIRECT)) {
+        localStorage.removeItem(LOCAL_STORAGE_REDIRECT)
+    }
 }
 
 export function useSession(): Session {

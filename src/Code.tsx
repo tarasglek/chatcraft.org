@@ -59,6 +59,10 @@ type CodeProps = {
   session: Supa.Session;
 };
 
+function currentHashState() {
+  return window.location.hash.substring(1)
+}
+
 function Code({ session }: CodeProps) {
   const [state, setState] = useState<State>(
     {
@@ -98,6 +102,7 @@ function Code({ session }: CodeProps) {
   // per https://devtrium.com/posts/async-functions-useeffect
   useEffect(() => {
     (async () => {
+      Supa.clearRedirectURL(currentHashState())
       state.showingVersion = -1
       let key = await get(SETTING_OPENAIKEY)
       if (key) {
@@ -140,7 +145,7 @@ function Code({ session }: CodeProps) {
   // delay saving by 1 second
   useEffect(() => {
     let timeout: any
-    if (state.loaded) {
+    if (state.loaded && state.showingVersion === -1) {
       timeout = setTimeout(async () => {
       saveCode()
       }, 1000)
@@ -148,7 +153,7 @@ function Code({ session }: CodeProps) {
     return () => {
       clearTimeout(timeout)
     }
-  }, [state.code])
+  }, [state.code, state.showingVersion])
 
 
   async function clickChangeAPIKey() {
@@ -184,7 +189,8 @@ function Code({ session }: CodeProps) {
       onCodeChange(state.code + state.modelResponse)
     }
     state.code = state.code.trim()
-    await saveCode(filename, true)
+    // save prompt
+    await saveCode()
     const openai = new OpenAI(state.openaiToken);
     try {
       const gptResponse = await openai.complete({
@@ -202,6 +208,7 @@ function Code({ session }: CodeProps) {
       });
       state.modelResponse = gptResponse.data.choices[0].text;
       setState({...state})
+      // save code in same record
       saveCode()
     } catch (e) {
       promptOpenAIAPIKey("Rest call to OpenAI failed. You probably need set or change your API key. Please enter your API key.")
@@ -224,10 +231,12 @@ function Code({ session }: CodeProps) {
     state.showingVersion = -1
     let oldVer = state.savedFiles.get(saveAs) || 0
     let nextVer = oldVer + (incrementVersion ? 1 : 0)
-    let key = calcCodeKey(saveAs, nextVer)
-    await set(key, state.code)
+    let codeKey = calcCodeKey(saveAs, nextVer)
+    await set(codeKey, state.code)
     state.savedFiles.set(saveAs, nextVer)
-    await set(calcResponseKey(saveAs, nextVer), state.modelResponse)
+    let modelKey = calcResponseKey(saveAs, nextVer)
+    await set(modelKey, state.modelResponse)
+    console.log('saved code', codeKey, modelKey)
   }
 
   function switchFilename(filename: string) {
@@ -246,12 +255,15 @@ function Code({ session }: CodeProps) {
   }
 
   function onCodeChange(code: string) {
-    // editing code with a response integrates the model response
-    if (state.modelResponse.length) {
-      state.modelResponse = ''
-    }
     state.showingVersion = -1
     state.code = code
+    // editing code with a response merges the model response
+    if (state.modelResponse.length) {
+      state.modelResponse = ''
+      // bump version once edit response
+      saveCode(filename, true)
+    }
+
     setState({...state})
   }
 
@@ -318,7 +330,7 @@ function Code({ session }: CodeProps) {
           </Col>
           <Col>
             {
-              session.username ?<Button onClick={Supa.logout}>Logout</Button>: <Button onClick={Supa.login}>Login</Button>
+              session.username ?<Button onClick={Supa.logout}>Logout</Button>: <Button onClick={_ => Supa.login(currentHashState())}>Login</Button>
             }
           </Col>
         </Row>
