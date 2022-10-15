@@ -15,12 +15,14 @@ import {
   useParams,
   useNavigate
 } from "react-router-dom";
-import { Button, Col, Pagination, Row, Select } from 'antd';
+import { Avatar, Button, Col, Pagination, Row, Select } from 'antd';
 import { get, set } from 'idb-keyval';
+import { UserOutlined } from '@ant-design/icons';
 
 // import logo from './logo.svg';
 import 'antd/dist/antd.css'
 import './App.css';
+import * as Supa from './Supa'
 
 const { Option } = Select;
 
@@ -53,7 +55,11 @@ function removeBadAntDesignCSS() {
   }
 }
 
-function Code() {
+type CodeProps = {
+  session: Supa.Session;
+};
+
+function Code({ session }: CodeProps) {
   const [state, setState] = useState<State>(
     {
       code: '',
@@ -290,7 +296,7 @@ function Code() {
     let app = (
       <>
         { tokenInstructions }
-        <Row>
+        <Row justify="space-around" align="middle">
           <Col>
             <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => {saveCode();switchFilename(value)}}>
             {[...state.savedFiles.keys()].map((filename) => <Option key={filename} value={filename}>{filename}</Option>)}
@@ -299,7 +305,7 @@ function Code() {
           <Col>
             <Button onClick={promptSaveAs}>Save As</Button>
           </Col>
-          <Col>
+          <Col span={18}>
           <Pagination
             defaultPageSize={1}
             size="small"
@@ -309,6 +315,11 @@ function Code() {
           </Col>
           <Col>
             <Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button>
+          </Col>
+          <Col>
+            {
+              session.username ?<Button onClick={Supa.logout}>Logout</Button>: <Button onClick={Supa.login}>Login</Button>
+            }
           </Col>
         </Row>
       <Editor
