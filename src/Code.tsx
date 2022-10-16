@@ -295,13 +295,12 @@ function Code({ session }: CodeProps) {
     <li>Register at OpenAI.com</li>
     <li>Go to your account settings, "View API Keys"</li>
     <li>Copy your OpenAI API key</li>
-    <li>Click 'Set OpenAI API key' below and paste your key in</li>
+    <li>Click <Button onClick={clickChangeAPIKey} type="primary">Set OpenAI API key</Button> and paste your key in</li>
     </ol>
     </div>
     )
     let app = (
       <>
-        { tokenInstructions }
         <Row justify="space-around" align="middle">
           <Col>
             <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => { saveCurrentThenOpenFile(value) }}>
@@ -314,23 +313,31 @@ function Code({ session }: CodeProps) {
           <Col>
             <Button onClick={share} disabled={!!!session.username}>Share</Button>
           </Col>
-          <Col span={18}>
+          <Col span={10}>
+          {
+            getMaxFileVersion() <= 1 ? <></> : (
           <Pagination
             defaultPageSize={1}
             size="small"
             current={getVersionToDisplay()}
             total={getMaxFileVersion()}
-            onChange={(page, _)=>showVersion(page)}/>
+            onChange={(page, _)=>showVersion(page)}/> )
+          }
           </Col>
-          <Col>
+          {/* <Col>
             <Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button>
-          </Col>
+          </Col> */}
           <Col>
             {
               session.username ?<Button onClick={Supa.logout}>Logout</Button>: <Button onClick={_ => Supa.login(currentHashState())}>Login</Button>
             }
           </Col>
         </Row>
+        <Row>
+        { tokenInstructions }
+        </Row>
+        <Row>
+          <Col span={24}>
       <Editor
       id="editor"
       autoFocus
@@ -345,8 +352,11 @@ function Code({ session }: CodeProps) {
         outline: 0
       }}
       />
-      <div><Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken === ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button>
-      </div>
+      </Col>
+      </Row>
+      <Row>
+        <Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken === ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button>
+      </Row>
       </>
       );
       return state.loaded ? app : <div>Loading...</div>;
