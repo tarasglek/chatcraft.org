@@ -71,6 +71,9 @@ export function useSession(): Session {
         if (info) {
             setUsername(info.username)
             setUserId(info.userId)
+        } else {
+            setUsername(undefined)
+            setUserId(undefined)
         }
     }
 

@@ -246,7 +246,7 @@ function Code({ session }: CodeProps) {
   }
 
   function switchFilename(filename: string) {
-    _navigate('/' + filename)
+    _navigate('/edit/' + filename)
   }
 
   /**
@@ -318,7 +318,8 @@ function Code({ session }: CodeProps) {
       .insert({
         prompt: state.code,
         model_response: state.modelResponse,
-        user_uuid: session.userId
+        name: filename,
+        user_uuid: session.userId,
       })
       .select()
     if (error) {
@@ -329,7 +330,7 @@ function Code({ session }: CodeProps) {
       return
     }
     let uuid = data[0].uuid
-    let url = window.location.origin + '/shared/' + uuid
+    let url = window.location.origin + '/#/shared/' + uuid
     prompt("Share link", url)
   }
 

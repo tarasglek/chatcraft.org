@@ -13,11 +13,11 @@ function App() {
    * so we have to save it in local storage and then redirect to it
    * using the Navigate component below
    */
-  let redirectURL = Supa.getRedirectURL("/Untitled")
+  let redirectURL = Supa.getRedirectURL("/edit/Untitled")
   return (
   <HashRouter>
   <Routes>
-    <Route path="/:id" element={<Code session={Supa.useSession()}/>}/>
+    <Route path="/edit/:id" element={<Code session={Supa.useSession()}/>}/>
     <Route path="*" element={<Navigate to={redirectURL} replace />} />
   </Routes>
   </HashRouter>
