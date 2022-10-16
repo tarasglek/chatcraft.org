@@ -13,7 +13,8 @@ import "prismjs/components/prism-yaml"
 import "prismjs/components/prism-typescript"
 import {
   useParams,
-  useNavigate
+  useNavigate,
+  useSearchParams
 } from "react-router-dom";
 import { Button, Col, Pagination, Row, Select } from 'antd';
 import { get, set } from 'idb-keyval';
@@ -74,6 +75,9 @@ function Code({ session }: CodeProps) {
     });
   const _navigate = useNavigate();
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
+  let [searchParams, setSearchParams] = useSearchParams();
+
+  console.log(JSON.stringify(searchParams))
   let filename = useParams().id!;
   window.document.title = filename + ' ' + window.location.hostname
   async function flushSavedFiles () {
@@ -146,13 +150,13 @@ function Code({ session }: CodeProps) {
     let timeout: any
     if (state.loaded) {
       timeout = setTimeout(async () => {
-      saveCode()
+        saveCode()
       }, 1000)
     }
     return () => {
       clearTimeout(timeout)
     }
-  }, [state.code, state.loaded, saveCode])
+  }, [state.code])
 
 
   async function clickChangeAPIKey() {
@@ -279,8 +283,21 @@ function Code({ session }: CodeProps) {
     return state.showingVersion === -1 ? getMaxFileVersion() : state.showingVersion
   }
 
+  function showingLatestVersion() {
+    return state.showingVersion === -1 || state.showingVersion === getMaxFileVersion()
+  }
+
   async function showHistoricVersion(version: number) {
     state.showingVersion = version
+
+    if (showingLatestVersion()) {
+      searchParams.delete('version')
+    } else {
+      searchParams.set('version', String(version))
+    }
+    setSearchParams(searchParams, {replace: true})
+
+    // todo refactor this code to happen in setEffect elsewhere
     let codeKey = calcCodeKey(filename, version)
     let code = await get(codeKey)
     if (!code) {
