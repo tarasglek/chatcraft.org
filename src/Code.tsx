@@ -17,7 +17,7 @@ import {
   useNavigate,
   useSearchParams
 } from "react-router-dom";
-import { Button, Col, Pagination, Row, Select } from 'antd';
+import { Button, Col, Divider, Pagination, Popover, Row, Select, Space } from 'antd';
 import { get, set } from 'idb-keyval';
 
 // import logo from './logo.svg';
@@ -277,7 +277,7 @@ function Code({ session }: CodeProps) {
     }
     let uuid = data[0].uuid
     let url = window.location.origin + '/#/shared/' + uuid
-    prompt("Share link", url)
+    prompt("You can copy and share link the link below:", url)
   }
 
   async function saveCurrentThenOpenFile(newFilename: string) {
@@ -288,9 +288,13 @@ function Code({ session }: CodeProps) {
     switchFilename(newFilename)
   }
 
+  function login() {
+    return Supa.login(currentHashState())
+  }
+
   let tokenInstructions = state.openaiToken !== '' ? <span/> : (
     <div>
-    <p>This tool needs an OpenAI API key, instructions to get OpenAI key are:</p>
+    <Divider orientation="left">This tool needs an OpenAI API key, instructions to get OpenAI key are:</Divider>
     <ol>
     <li>Register at OpenAI.com</li>
     <li>Go to your account settings, "View API Keys"</li>
@@ -299,21 +303,20 @@ function Code({ session }: CodeProps) {
     </ol>
     </div>
     )
+    let loggedIn = !!session.username
+    let shareButton =  <Button onClick={share} disabled={!loggedIn}>Share</Button>
     let app = (
       <>
-        <Row justify="space-around" align="middle">
-          <Col>
+        <Row gutter={8} justify="start" align="middle" >
+          <Col  >
             <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => { saveCurrentThenOpenFile(value) }}>
             {[...state.savedFiles.keys()].map((filename) => <Option key={filename} value={filename}>{filename}</Option>)}
             </Select>
           </Col>
           <Col>
-            <Button onClick={promptSaveAs}>Save As</Button>
+            <Button onClick={promptSaveAs} >Save As</Button>
           </Col>
-          <Col>
-            <Button onClick={share} disabled={!!!session.username}>Share</Button>
-          </Col>
-          <Col span={10}>
+          <Col >
           {
             getMaxFileVersion() <= 1 ? <></> : (
           <Pagination
@@ -321,17 +324,35 @@ function Code({ session }: CodeProps) {
             size="small"
             current={getVersionToDisplay()}
             total={getMaxFileVersion()}
-            onChange={(page, _)=>showVersion(page)}/> )
+            onChange={(page, _)=>showVersion(page)}
+            /> )
           }
+          </Col>
+          <Col>
+          {
+           loggedIn ? shareButton : (
+            <Popover content={<>Please <Button onClick={login} type="primary">login via Github</Button> to be able to share a link. </>} title="Please Login">
+            <Button onClick={login}>Share</Button>
+          </Popover>
+           )
+
+          }
+          </Col>
+          <Col >
+
+          </Col>
+          <Col> {
+              loggedIn ? (
+            <Button onClick={Supa.logout}>
+          Logout
+            </Button>
+              ) : <></>
+            }
           </Col>
           {/* <Col>
             <Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button>
           </Col> */}
-          <Col>
-            {
-              session.username ?<Button onClick={Supa.logout}>Logout</Button>: <Button onClick={_ => Supa.login(currentHashState())}>Login</Button>
-            }
-          </Col>
+
         </Row>
         <Row>
         { tokenInstructions }
