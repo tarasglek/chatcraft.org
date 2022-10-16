@@ -117,7 +117,7 @@ function Code({ session }: CodeProps) {
   // delay saving by 1 second
   useEffect(() => {
     let timeout: any
-    if (state.loaded) {
+    if (showingLatestVersion()) {
       timeout = setTimeout(async () => {
         saveCode()
       }, 1000)
@@ -199,6 +199,9 @@ function Code({ session }: CodeProps) {
         return
       }
     }
+    if (filename == saveAs && !showingLatestVersion()) {
+      console.error('saving old version!')
+    }
     setLatestVersion()
     // synchronize (might be other tabs that updated state since)
     await flushSavedFiles()
@@ -212,10 +215,10 @@ function Code({ session }: CodeProps) {
   /**
    * save code as new filename, then navigate to new filename
    */
-  function promptSaveAs() {
+  async function promptSaveAs() {
     let newFilename = prompt("Save as", filename)
     if (newFilename) {
-      saveCode(newFilename, true)
+      await saveCode(newFilename, true)
       switchFilename(newFilename)
     }
   }
@@ -277,6 +280,14 @@ function Code({ session }: CodeProps) {
     prompt("Share link", url)
   }
 
+  async function saveCurrentThenOpenFile(newFilename: string) {
+    console.log('saveCurrentThenOpenFile', newFilename)
+    if (showingLatestVersion()) {
+      await saveCode();
+    }
+    switchFilename(newFilename)
+  }
+
   let tokenInstructions = state.openaiToken !== '' ? <span/> : (
     <div>
     <p>This tool needs an OpenAI API key, instructions to get OpenAI key are:</p>
@@ -293,7 +304,7 @@ function Code({ session }: CodeProps) {
         { tokenInstructions }
         <Row justify="space-around" align="middle">
           <Col>
-            <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => {saveCode();switchFilename(value)}}>
+            <Select dropdownMatchSelectWidth={false} value={filename} onChange={value => { saveCurrentThenOpenFile(value) }}>
             {[...state.savedFiles.keys()].map((filename) => <Option key={filename} value={filename}>{filename}</Option>)}
             </Select>
           </Col>
