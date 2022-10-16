@@ -5,6 +5,7 @@ import {
   Routes,
 } from "react-router-dom";
 import Code from './Code'
+import Shared from './Shared'
 import * as Supa from './Supa'
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
   return (
   <HashRouter>
   <Routes>
+    <Route path="/shared/:id" element={<Shared/>}/>
     <Route path="/edit/:id" element={<Code session={Supa.useSession()}/>}/>
     <Route path="*" element={<Navigate to={redirectURL} replace />} />
   </Routes>
