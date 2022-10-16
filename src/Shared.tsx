@@ -18,7 +18,7 @@ export default function Shared() {
             setCode(JSON.stringify(data[0], null, 2))
 
             let prompt = data[0].prompt as string
-            let response = data[0].response as string
+            let response = data[0].model_response as string
             let filename = data[0].name as string
             let savedFiles = await LocalState.loadSavedFiles()
 

@@ -51,7 +51,6 @@ export async function saveCode(savedFiles: SavedFiles, saveAs: string, prompt: s
     if (incrementVersion) {
         return flushSavedFiles(savedFiles)
     }
-    console.log('saved code', saveAs, codeKey, modelKey)
 }
 
 export async function loadPromptAndResponse(savedFiles: SavedFiles, name: string, defaultPrompt: string, version?: number) {
@@ -64,7 +63,6 @@ export async function loadPromptAndResponse(savedFiles: SavedFiles, name: string
         loadVer = savedFiles.get(name) || 0
     }
     let [prompt, response] = await Promise.all([get(calcCodeKey(name, loadVer)), get(calcResponseKey(name, loadVer))])
-    console.log(`savedFiles.get(${loadVer})=`, JSON.stringify(prompt))
     return {
         prompt: prompt ?? defaultPrompt as string,
         response: response ?? '' as string
