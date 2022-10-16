@@ -40,7 +40,6 @@ interface State {
   openaiToken: string;
   loaded: boolean;
   savedFiles: Map<string, number>;
-  showingVersion: number;
 }
 
 function removeBadAntDesignCSS() {
@@ -71,7 +70,6 @@ function Code({ session }: CodeProps) {
       openaiToken: '',
       loaded: false,
       savedFiles: new Map<string, number>(),
-      showingVersion: -1
     });
   const _navigate = useNavigate();
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
@@ -85,28 +83,35 @@ function Code({ session }: CodeProps) {
       setState({...state})
     }
   }
+
+  function getVersionToDisplay() {
+    let paramVersion = searchParams.get('version')
+    if (paramVersion) {
+      return parseInt(paramVersion)
+    }
+    return getMaxFileVersion()
+  }
+
   // per https://devtrium.com/posts/async-functions-useeffect
   useEffect(() => {
     (async () => {
       Supa.clearRedirectURL(currentHashState())
-      state.showingVersion = -1
-      let key = await get(SETTING_OPENAIKEY)
-      if (key) {
-        state.openaiToken = key
-      }
       state.savedFiles = await LocalState.loadSavedFiles()
+
+      state.openaiToken = await get(SETTING_OPENAIKEY) ?? ''
       if (!state.savedFiles.has(filename)) {
         state.savedFiles.set(filename, 0)
         await flushSavedFiles()
       }
-      let saved = await LocalState.loadPromptAndResponse(state.savedFiles, filename, defaultCode)
+      let saved = await LocalState.loadPromptAndResponse(state.savedFiles, filename, defaultCode, getVersionToDisplay())
       state.code = saved.prompt
       state.modelResponse = saved.response
       state.loaded = true
       setState({...state})
+      // todo move this so it only happens once
       removeBadAntDesignCSS()
     })()
-  }, [filename])
+  }, [filename, searchParams])
 
   // save code as it changes
   // delay saving by 1 second
@@ -189,13 +194,13 @@ function Code({ session }: CodeProps) {
   async function saveCode(saveAs?: string, incrementVersion?: boolean) {
     if (!saveAs) {
       saveAs = filename
-      // !saveAs && showingVersion !== -1 means we are showing an old version, nothing to save
-      if (state.showingVersion !== -1) {
+      // !saveAs && we are showing an old version, nothing to save
+      if (!showingLatestVersion()) {
         return
       }
     }
+    setLatestVersion()
     // synchronize (might be other tabs that updated state since)
-    state.showingVersion = -1
     await flushSavedFiles()
     return LocalState.saveCode(state.savedFiles, saveAs, state.code, state.modelResponse, incrementVersion)
   }
@@ -216,7 +221,7 @@ function Code({ session }: CodeProps) {
   }
 
   function onCodeChange(code: string) {
-    state.showingVersion = -1
+    setLatestVersion()
     state.code = code
     // editing code with a response merges the model response
     if (state.modelResponse.length) {
@@ -233,29 +238,22 @@ function Code({ session }: CodeProps) {
     return ret
   }
 
-  function getHistoricVersionShown() {
-    return state.showingVersion === -1 ? getMaxFileVersion() : state.showingVersion
-  }
-
   function showingLatestVersion() {
-    return state.showingVersion === -1 || state.showingVersion === getMaxFileVersion()
+    return getVersionToDisplay() == getMaxFileVersion()
   }
 
-  async function showHistoricVersion(version: number) {
-    state.showingVersion = version
+  function setLatestVersion() {
+    showVersion(getMaxFileVersion())
+  }
 
-    if (showingLatestVersion()) {
+  // this trigers a re-render
+  async function showVersion(version: number) {
+    if (version == getMaxFileVersion()) {
       searchParams.delete('version')
     } else {
       searchParams.set('version', String(version))
     }
     setSearchParams(searchParams, {replace: true})
-
-    // todo refactor this code to happen in setEffect on top
-    let saved = await LocalState.loadPromptAndResponse(state.savedFiles, filename, defaultCode, version)
-    state.code = saved.prompt
-    state.modelResponse = saved.response
-    setState({...state})
   }
 
   async function share() {
@@ -309,9 +307,9 @@ function Code({ session }: CodeProps) {
           <Pagination
             defaultPageSize={1}
             size="small"
-            current={getHistoricVersionShown()}
+            current={getVersionToDisplay()}
             total={getMaxFileVersion()}
-            onChange={(page, pageNumber)=>showHistoricVersion(page)}/>
+            onChange={(page, _)=>showVersion(page)}/>
           </Col>
           <Col>
             <Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button>
