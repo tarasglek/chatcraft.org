@@ -77,7 +77,6 @@ function Code({ session }: CodeProps) {
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   let [searchParams, setSearchParams] = useSearchParams();
 
-  console.log(JSON.stringify(searchParams))
   let filename = useParams().id!;
   window.document.title = filename + ' ' + window.location.hostname
   async function flushSavedFiles () {
@@ -315,6 +314,23 @@ function Code({ session }: CodeProps) {
   }
 
   async function share() {
+    let {data, error} = await Supa.supabase.from('shared')
+      .insert({
+        prompt: state.code,
+        model_response: state.modelResponse,
+        user_uuid: session.userId
+      })
+      .select()
+    if (error) {
+      console.log('error:', error)
+      return
+    }
+    if (!data) {
+      return
+    }
+    let uuid = data[0].uuid
+    let url = window.location.origin + '/shared/' + uuid
+    prompt("Share link", url)
   }
 
   let tokenInstructions = state.openaiToken !== '' ? <span/> : (

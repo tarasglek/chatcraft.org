@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import {createClient} from '@supabase/supabase-js'
 
-const supabase = createClient(
+export const supabase = createClient(
     'https://nlinballxabddqvmfiqc.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saW5iYWxseGFiZGRxdm1maXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjU1OTQ2MTksImV4cCI6MTk4MTE3MDYxOX0.HdIauGMRvfBSxJhp5SZnfgNDH1vM1SlIk4RuzkNbiTo'
 )
@@ -10,7 +10,10 @@ const supabase = createClient(
 async function getUsername() {
     let {data} = await supabase.auth.getSession()
     if (data.session) {
-        return data.session.user.user_metadata.user_name
+        return {
+            userId: data.session.user.id,
+            username: data.session.user.user_metadata.user_name
+        }
     }
     return null
 }
@@ -39,6 +42,7 @@ export async function logout() {
 export interface Session {
     username?: string
     savedURL?: string
+    userId?: string
 }
 
 export function getRedirectURL(defaultURL: string) {
@@ -57,12 +61,17 @@ export function clearRedirectURL(redirectURL: string) {
 }
 
 export function useSession(): Session {
-    let [user, setUser] = useState<string | undefined>(undefined)
+    let [username, setUsername] = useState<string | undefined>(undefined)
+    let [userId, setUserId] = useState<string | undefined>(undefined)
     let [savedURL, setSavedURL] = useState<string | undefined>(undefined)
 
     
     async function fetchUser() {
-        setUser(await getUsername())
+        let info = await getUsername()
+        if (info) {
+            setUsername(info.username)
+            setUserId(info.userId)
+        }
     }
 
     useEffect(() => {
@@ -78,7 +87,8 @@ export function useSession(): Session {
         }
     }, [])
     return {
-        username: user,
+        username: username,
+        userId: userId,
         savedURL: savedURL
     }
 }
