@@ -11,6 +11,7 @@ import "prismjs/components/prism-graphql"
 import "prismjs/components/prism-json"
 import "prismjs/components/prism-yaml"
 import "prismjs/components/prism-typescript"
+import * as LocalState from "./LocalState";
 import {
   useParams,
   useNavigate,
@@ -33,7 +34,6 @@ Javascript code to find all hyperlinks in a page is
 `;
 
 const SETTING_OPENAIKEY = '#openai-api-key'
-const SETTING_SAVED_FILES = '#saved_files'
 interface State {
   code: string;
   modelResponse: string;
@@ -80,26 +80,10 @@ function Code({ session }: CodeProps) {
   let filename = useParams().id!;
   window.document.title = filename + ' ' + window.location.hostname
   async function flushSavedFiles () {
-    let oldSavedFiles = await get(SETTING_SAVED_FILES)
-    if (oldSavedFiles) {
-      // iterate over state.savedFiles and oldSavedFiles
-      // if the key is in both, take the max of the two values
-      let modified = false
-      for (let [key, oldValue] of oldSavedFiles) {
-        oldValue = oldValue || 0
-        if (state.savedFiles.get(key) !== oldValue) {
-          modified = true
-          state.savedFiles.set(key, Math.max(oldValue, state.savedFiles.get(key) || 0))
-        } else {
-          modified = true
-          state.savedFiles.set(key, oldValue)
-        }
-      }
-      if (modified) {
-        setState({...state})
-      }
+    let modified = await LocalState.flushSavedFiles(state.savedFiles)
+    if (modified) {
+      setState({...state})
     }
-    return set (SETTING_SAVED_FILES, state.savedFiles)
   }
   // per https://devtrium.com/posts/async-functions-useeffect
   useEffect(() => {
@@ -110,33 +94,14 @@ function Code({ session }: CodeProps) {
       if (key) {
         state.openaiToken = key
       }
-      let savedFiles = await get(SETTING_SAVED_FILES)
-      if (savedFiles) {
-        state.savedFiles = savedFiles
-      }
-      if (!savedFiles) {
-        await flushSavedFiles()
-        savedFiles = state.savedFiles
-      }
+      state.savedFiles = await LocalState.loadSavedFiles()
       if (!state.savedFiles.has(filename)) {
         state.savedFiles.set(filename, 0)
         await flushSavedFiles()
       }
-      let codeVer = getMaxFileVersion()
-      let codeKey = calcCodeKey(filename, codeVer)
-      let code = await get(codeKey)
-      if (!code) {
-        code = defaultCode
-        await set(codeKey, code)
-      }
-      state.code = code
-      // same as above but for modelResponse
-      let modelResponseKey = calcResponseKey(filename, codeVer)
-      let modelResponse = await get(modelResponseKey)
-      if (!modelResponse) {
-        modelResponse = ''
-      }
-      state.modelResponse = modelResponse
+      let saved = await LocalState.loadPromptAndResponse(state.savedFiles, filename, defaultCode)
+      state.code = saved.prompt
+      state.modelResponse = saved.response
       state.loaded = true
       setState({...state})
       removeBadAntDesignCSS()
@@ -218,9 +183,6 @@ function Code({ session }: CodeProps) {
     setIsWaitingForResponse(false)
   }
 
-  let calcCodeKey = (filename:string, version:number) => '#code-'+ filename + '-' + version
-  let calcResponseKey = (filename:string, version:number) => '#resp-'+ filename + '-' + version
-
   /**
    * Todo: optimize if no delta between adjacent vers
    */
@@ -233,16 +195,9 @@ function Code({ session }: CodeProps) {
       }
     }
     // synchronize (might be other tabs that updated state since)
-    await flushSavedFiles()
     state.showingVersion = -1
-    let oldVer = state.savedFiles.get(saveAs) || 0
-    let nextVer = oldVer + (incrementVersion ? 1 : 0)
-    let codeKey = calcCodeKey(saveAs, nextVer)
-    await set(codeKey, state.code)
-    state.savedFiles.set(saveAs, nextVer)
-    let modelKey = calcResponseKey(saveAs, nextVer)
-    await set(modelKey, state.modelResponse)
-    // console.log('saved code', codeKey, modelKey)
+    await flushSavedFiles()
+    return LocalState.saveCode(state.savedFiles, saveAs, state.code, state.modelResponse, incrementVersion)
   }
 
   function switchFilename(filename: string) {
@@ -296,20 +251,10 @@ function Code({ session }: CodeProps) {
     }
     setSearchParams(searchParams, {replace: true})
 
-    // todo refactor this code to happen in setEffect elsewhere
-    let codeKey = calcCodeKey(filename, version)
-    let code = await get(codeKey)
-    if (!code) {
-      code = defaultCode
-    }
-    state.code = code
-    // same as above but for modelResponse
-    let modelResponseKey = calcResponseKey(filename, version)
-    let modelResponse = await get(modelResponseKey)
-    if (!modelResponse) {
-      modelResponse = ''
-    }
-    state.modelResponse = modelResponse
+    // todo refactor this code to happen in setEffect on top
+    let saved = await LocalState.loadPromptAndResponse(state.savedFiles, filename, defaultCode, version)
+    state.code = saved.prompt
+    state.modelResponse = saved.response
     setState({...state})
   }
 
