@@ -24,6 +24,7 @@ import { get, set } from 'idb-keyval';
 import 'antd/dist/antd.css'
 import './App.css';
 import * as Supa from './Supa'
+import html2canvas from 'html2canvas';
 
 const { Option } = Select;
 
@@ -292,6 +293,27 @@ function Code({ session }: CodeProps) {
     return Supa.login(currentHashState())
   }
 
+  // 800px by 418px
+  // https://github.com/supabase/supabase/issues/7252
+  // https://stackoverflow.com/questions/6887183/how-to-take-screenshot-of-a-div-with-javascript
+  async function screenshot() {
+    let e = document.getElementById('editor') as any
+    e.style.width = '800px'
+    e.style.height = '418px'
+    e.scrollTop = e.scrollHeight;
+    let t = document.getElementById('txtCodeArea') as any
+    let oldvisibility = t.style.visibility
+    t.style.visibility = "hidden"
+    let canvas = await html2canvas(e);
+    // window.open(canvas.toDataURL('image/png'));
+    // canvas.toBlob(function(blob) {
+    //   saveAs(blob, "Dashboard.png"); 
+    // });
+    document.body.appendChild(canvas);
+    t.style.visibility = oldvisibility
+    // e.style.width = ''
+  }
+
   let tokenInstructions = state.openaiToken !== '' ? <span/> : (
     <div>
     <Divider orientation="left">This tool needs an OpenAI API key, instructions to get OpenAI key are:</Divider>
@@ -329,6 +351,9 @@ function Code({ session }: CodeProps) {
           }
           </Col>
           <Col>
+            <Button onClick={screenshot}>Screenshot</Button>
+          </Col>
+          <Col>
           {
            loggedIn ? shareButton : (
             <Popover content={<>Please <Button onClick={login} type="primary">login via Github</Button> to be able to share a link. </>} title="Please Login">
@@ -341,6 +366,9 @@ function Code({ session }: CodeProps) {
           <Col >
 
           </Col>
+          <Col>
+            <Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button>
+          </Col>
           <Col> {
               loggedIn ? (
             <Button onClick={Supa.logout}>
@@ -349,9 +377,7 @@ function Code({ session }: CodeProps) {
               ) : <></>
             }
           </Col>
-          {/* <Col>
-            <Button type={state.openaiToken.length ? "default":"primary"} onClick={clickChangeAPIKey}>{state.openaiToken?'Change':'Set'} OpenAI API key</Button>
-          </Col> */}
+
 
         </Row>
         <Row>
