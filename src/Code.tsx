@@ -293,13 +293,14 @@ function Code({ session }: CodeProps) {
     return Supa.login(currentHashState())
   }
 
-  // 800px by 418px
+  // 800px by 418px for twitter cards
+  // 633 × 850 pixels for twitter screenshots
   // https://github.com/supabase/supabase/issues/7252
   // https://stackoverflow.com/questions/6887183/how-to-take-screenshot-of-a-div-with-javascript
   async function screenshot() {
     let e = document.getElementById('editor') as any
-    e.style.width = '800px'
-    e.style.height = '418px'
+    e.style.width = '633px'
+    e.style.height = '850px'
     e.scrollTop = e.scrollHeight;
     let t = document.getElementById('txtCodeArea') as any
     let oldvisibility = t.style.visibility
