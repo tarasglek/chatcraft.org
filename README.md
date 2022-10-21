@@ -1,3 +1,15 @@
+### TODO
+Currently we save prompt text and model response as 2 key/values.
+Should switch to array form and try to present context re what was written by model.
+
+Eg have text for a human-entered prompt would be:
+`code = [['human', 'complete prompt here']]`
+
+Code after model response would be:
+`code = [['human', 'complete prompt here']['model', 'complete response here']]`
+
+If we edit the response, it should split it into 3 entries:
+`code = [['human', 'complete prompt here']['model', 'complete response ']['human', 'got text inserted '],['model', 'here']]`
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
