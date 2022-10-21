@@ -267,8 +267,9 @@ function Code({ session }: CodeProps) {
         model_response: state.modelResponse,
         name: filename,
         user_uuid: session.userId,
+        screenshot: await screenshot(),
       })
-      .select()
+      .select('uuid')
     if (error) {
       console.log('error:', error)
       return
@@ -297,6 +298,7 @@ function Code({ session }: CodeProps) {
   // 633 × 850 pixels for twitter screenshots
   // https://github.com/supabase/supabase/issues/7252
   // https://stackoverflow.com/questions/6887183/how-to-take-screenshot-of-a-div-with-javascript
+  // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL
   async function screenshot() {
     let e = document.getElementById('editor') as any
     e.style.width = '633px'
@@ -310,9 +312,18 @@ function Code({ session }: CodeProps) {
     // canvas.toBlob(function(blob) {
     //   saveAs(blob, "Dashboard.png"); 
     // });
-    document.body.appendChild(canvas);
+    // document.body.appendChild(canvas);
     t.style.visibility = oldvisibility
-    // e.style.width = ''
+
+    let imgData = canvas.toDataURL()
+    e.style.width = ''
+    e.style.height = ''
+    return imgData
+    // let {data, error} = await Supa.supabase.from('blobs')
+    // .upsert({
+    //   uuid: "d630b956-ee25-4c17-8d1c-abdacbdfe7f2",
+    //   data: imgData,
+    // }).select()
   }
 
   let tokenInstructions = state.openaiToken !== '' ? <span/> : (
