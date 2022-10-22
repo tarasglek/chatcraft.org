@@ -18,5 +18,5 @@ export async function onRequest(context: {
     data, // arbitrary space for passing data between middlewares
   } = context;
 
-  return new Response(`Hello, world! ${request.url} ${request.method}`);
+  return new Response(`Hello, world! ${request.url} ${request.method} ${JSON.stringify(data)}`);
 }

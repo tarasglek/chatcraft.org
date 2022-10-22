@@ -51,6 +51,7 @@
     ]
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^3.18.0",
     "@types/prismjs": "^1.26.0"
   }
 }
