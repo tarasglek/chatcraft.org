@@ -17,8 +17,11 @@ function App() {
 
   let redirectURL = Supa.getRedirectURL("/edit/Untitled")
   let redirect = <Navigate to={redirectURL} replace />
+
+  // console.log(window.location.href)
   if (window.location.pathname != "/") {
     redirect = <>Redirect</>
+    window.location.href = window.location.href.replace('/shared/','#/shared/')
   }
   return (
   <HashRouter>
