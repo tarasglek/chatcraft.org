@@ -14,13 +14,18 @@ function App() {
    * so we have to save it in local storage and then redirect to it
    * using the Navigate component below
    */
+
   let redirectURL = Supa.getRedirectURL("/edit/Untitled")
+  let redirect = <Navigate to={redirectURL} replace />
+  if (window.location.pathname != "/") {
+    redirect = <>Redirect</>
+  }
   return (
   <HashRouter>
   <Routes>
     <Route path="/shared/:id" element={<Shared/>}/>
     <Route path="/edit/:id" element={<Code session={Supa.useSession()}/>}/>
-    <Route path="*" element={<Navigate to={redirectURL} replace />} />
+    <Route path="*" element={redirect} />
   </Routes>
   </HashRouter>
   );

@@ -278,7 +278,7 @@ function Code({ session }: CodeProps) {
       return
     }
     let uuid = data[0].uuid
-    let url = window.location.origin + '/#/shared/' + uuid
+    let url = window.location.origin + '/shared/' + uuid
     prompt("You can copy and share link the link below:", url)
   }
 
@@ -301,8 +301,8 @@ function Code({ session }: CodeProps) {
   // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL
   async function screenshot() {
     let e = document.getElementById('editor') as any
-    e.style.width = '633px'
-    e.style.height = '850px'
+    e.style.width = '800px'
+    e.style.height = '418px'
     e.scrollTop = e.scrollHeight;
     let t = document.getElementById('txtCodeArea') as any
     let oldvisibility = t.style.visibility
