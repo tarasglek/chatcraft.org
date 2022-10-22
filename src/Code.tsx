@@ -182,7 +182,7 @@ function Code({ session }: CodeProps) {
       state.modelResponse = gptResponse.data.choices[0].text;
       setState({...state})
       // save code in same record
-      saveCode()
+      await saveCode()
     } catch (e) {
       promptOpenAIAPIKey("Rest call to OpenAI failed. You probably need set or change your API key. Please enter your API key.")
     }
@@ -203,10 +203,11 @@ function Code({ session }: CodeProps) {
     if (filename == saveAs && !showingLatestVersion()) {
       console.error('saving old version!')
     }
-    setLatestVersion()
     // synchronize (might be other tabs that updated state since)
     await flushSavedFiles()
-    return LocalState.saveCode(state.savedFiles, saveAs, state.code, state.modelResponse, incrementVersion)
+    let ret = LocalState.saveCode(state.savedFiles, saveAs, state.code, state.modelResponse, incrementVersion)
+    setLatestVersion()
+    return ret
   }
 
   function switchFilename(filename: string) {
@@ -224,14 +225,13 @@ function Code({ session }: CodeProps) {
     }
   }
 
-  function onCodeChange(code: string) {
-    setLatestVersion()
+  async function onCodeChange(code: string) {
     state.code = code
     // editing code with a response merges the model response
-    if (state.modelResponse.length) {
+    if (state.modelResponse.length || !showingLatestVersion()) {
       state.modelResponse = ''
       // bumping version here, saves model response in history view
-      saveCode(filename, true)
+      await saveCode(filename, true)
     }
 
     setState({...state})
