@@ -167,7 +167,7 @@ function Code({ session }: CodeProps) {
     const openai = new OpenAI(state.openaiToken);
     try {
       const gptResponse = await openai.complete({
-        engine: 'text-davinci-002',
+        engine: 'text-davinci-003',
         prompt: state.code,
         maxTokens: 256,
         temperature: 0.7,
