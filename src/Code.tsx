@@ -326,6 +326,8 @@ function Code({ session }: CodeProps) {
     // }).select()
   }
 
+  const isMac = navigator.userAgent.indexOf("Mac OS X") !== -1
+  let run_tooltip = (isMac ? "⌘" : 'Ctrl') + ` + Enter`
   let tokenInstructions = state.openaiToken !== '' ? <span/> : (
     <div>
     <Divider orientation="left">This tool needs an OpenAI API key, instructions to get OpenAI key are:</Divider>
@@ -406,6 +408,11 @@ function Code({ session }: CodeProps) {
       padding={10}
       className="editor"
       textareaId="txtCodeArea"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)){
+          run()
+        }
+      }}
       style={{
         fontFamily: '"Fira code", "Fira Mono", monospace',
         outline: 0
@@ -414,7 +421,8 @@ function Code({ session }: CodeProps) {
       </Col>
       </Row>
       <Row>
-        <Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken === ''}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button>
+        <Button type="primary" onClick={run} disabled={isWaitingForResponse || state.openaiToken === ''}
+        title={run_tooltip}>{isWaitingForResponse ? 'Waiting for openai response...' : 'Run'}</Button>
       </Row>
       </>
       );
