@@ -118,8 +118,8 @@ function App() {
     }
 
     setLoading(true);
-    const context = [...messages, { role: "user", content: userInput }] as ChatCompletionRequestMessage[];
-    setMessages(context);
+    const allMessages = [...messages, { role: "user", content: userInput }] as ChatCompletionRequestMessage[];
+    setMessages(allMessages);
 
     const configuration = new Configuration({
       apiKey: openai_api_key,
@@ -131,7 +131,7 @@ function App() {
       //   role: ChatCompletionRequestMessageRoleEnum.System,
       //   content: "",
       // },
-      ...context
+      ...allMessages
     ]
     if (lastMsgMode) {
       //trim messages to last 1
@@ -151,7 +151,7 @@ function App() {
       return handleError();
     }
     setMessages([
-      ...messagesToSend,
+      ...allMessages,
       response as any,
     ]);
     // console.log(response, messages )
