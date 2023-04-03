@@ -8,7 +8,6 @@ body {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem;
 }
 
 .header {
@@ -136,12 +135,10 @@ body {
 
 .usermessage {
   background: #0e1524;
-  padding: 1.5rem;
   color: #ECECF1;
 }
 
 .usermessagewaiting{
-  padding: 1.5rem;
   color: #ECECF1;
   background: linear-gradient(to left, #0e1524, #172036, #0e1524);
   background-size: 200% 200%;
@@ -162,7 +159,6 @@ body {
 
 .apimessage {
   background: #1d2333;
-  padding: 1.5rem;
   color: #ECECF1;
   animation: fadein 0.5s;
 }

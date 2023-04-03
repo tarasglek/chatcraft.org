@@ -55,6 +55,7 @@ function App() {
   const [messages, setMessages] = useState([
     { role: "assistant", content: "Hi there! How can I help?" },
   ]);
+  const [lastMsgMode, setLastMsgMode] = useState(false);
   const [openai_api_key, set_openai_api_key] = useState(() => {
     // getting stored value
     const saved = localStorage.getItem("openai_api_key");
@@ -71,7 +72,7 @@ function App() {
     }
     return ''
   });
-
+  const [selectedGPT, setSelectedGPT] = useState('gpt-3.5-turbo');
   const messageListRef = useRef<HTMLDivElement>(null);
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -108,18 +109,23 @@ function App() {
     });
 
     const openai = new OpenAIApi(configuration);
+    let messagesToSend = [
+      {
+        role: ChatCompletionRequestMessageRoleEnum.System,
+        content: "You are a helpful assistant.",
+      },
+      ...context
+    ]
+    if (lastMsgMode) {
+      //trim messages to last 1
+      messagesToSend = messagesToSend.slice(-2)
+    }
     // Send chat history to API
     const completion = await openai.createChatCompletion({
       // Downgraded to GPT-3.5 due to high traffic. Sorry for the inconvenience.
       // If you have access to GPT-4, simply change the model to "gpt-4"
-      model: "gpt-4",
-      messages: [
-        {
-          role: ChatCompletionRequestMessageRoleEnum.System,
-          content: "You are a helpful assistant.",
-        },
-        ...context
-      ],
+      model: selectedGPT,
+      messages: messagesToSend,
       temperature: 0,
     });
     let response: ChatCompletionResponseMessage | undefined = completion.data.choices[0].message
@@ -128,10 +134,10 @@ function App() {
       return handleError();
     }
     setMessages((prevMessages) => [
-      ...prevMessages,
+      ...messagesToSend,
       response as any,
     ]);
-    console.log(response, messages )
+    // console.log(response, messages )
     setLoading(false);
   };
 
@@ -162,20 +168,6 @@ function App() {
 
   return (
     <>
-      <div className="topnav">
-        <div className="navlogo">
-          {/* <Link href="/">Chat UI</Link> */}
-        </div>
-        <div className="navlinks">
-          <a
-            href="https://platform.openai.com/docs/models/gpt-4"
-            target="_blank"
-          >
-            Docs
-          </a>
-
-        </div>
-      </div>
       <main className="main">
         <div className="cloud">
           <div ref={messageListRef} className="messagelist">
@@ -265,14 +257,22 @@ function App() {
               </button>
             </form>
           </div>
-          <div className="footer">
-            <p>
-              Powered by{" "}
-              <a href="https://openai.com/" target="_blank">
-                OpenAI
-              </a>
-              .
-            </p>
+          <div>
+            <label>
+              <input
+                type="checkbox"
+                checked={lastMsgMode}
+                onChange={(event) => setLastMsgMode(event.target.checked) }
+              />
+              Last-message-context-only mode. &nbsp;
+            </label>
+            <label>
+            Model: &nbsp;
+            <select id="gpt-select" value={selectedGPT} onChange={event => setSelectedGPT(event.target.value)}>
+              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-3.5-turbo">chatgpt</option>
+            </select>
+            </label>
           </div>
         </div>
       </main>
