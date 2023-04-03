@@ -168,9 +168,7 @@ function App() {
 
   return (
     <>
-      <main className="main">
-        <div className="cloud">
-          <div ref={messageListRef} className="messagelist">
+          <div ref={messageListRef} className="messagelist w_fill">
             {messages.map((message, index) => {
               return (
                 // The latest message sent by the user will be animated while waiting for a response
@@ -213,9 +211,7 @@ function App() {
                 </div>
               );
             })}
-          </div>
         </div>
-        <div className="center">
           <div className="cloudform">
             <form onSubmit={handleSubmit}>
               <textarea
@@ -274,8 +270,6 @@ function App() {
             </select>
             </label>
           </div>
-        </div>
-      </main>
     </>
   );
 }
