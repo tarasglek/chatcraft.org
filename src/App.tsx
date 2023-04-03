@@ -15,61 +15,41 @@ interface MarkdownWithMermaidProps {
 
 const MarkdownWithMermaid: React.FC<MarkdownWithMermaidProps> = ({ children }) => {
   return (
-    <ReactMarkdown linkTarget={"_blank"}>
-    {children}
-    </ReactMarkdown>);
+    // <ReactMarkdown linkTarget={"_blank"} children={children}/>
+    <ReactMarkdown
+    children={children}
+    components={{
+      code({node, inline, className, children, ...props}) {
+        const match = /language-(\w+)/.exec(className || '');
+        if (match) {
+          console.log('language', match[1])
+          if (match[1] === 'mermaid') {
+            return (
+              <>
+              <div className="mermaid">
+              { children }
+              </div>
+              <code className={className} {...props}>
+              {children}
+              </code>
+              </>
+              )
+            }
+          }
+        return (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        )
+      }
+    }}
+  />
+  )
 };
-{/* <div className="mermaid">
-{ "graph LR\nA-->B" }
-</div> */}
 
-// export const MarkdownWithMermaid: React.FC<{}> = ({ children }) => {
-//   return (
-//     <ReactMarkdown
-//       source={markdown}
-//       renderers={{
-//         code: ({ language, value }) => {
-//           if (language === 'mermaid') {
-//             return (
-//               <div>
-//                 <Mermaid chart={value} />
-//                 <pre>{value}</pre>
-//               </div>
-//             );
-//           }
-//           // render other code blocks as usual
-//         },
-//       }}
-//     />
-//   );
-// };
 function App() {
   const [count, setCount] = useState(0)
 
-  // return (
-  //   <div className="App">
-  //     <div>
-  //       <a href="https://vitejs.dev" target="_blank">
-  //         <img src={viteLogo} className="logo" alt="Vite logo" />
-  //       </a>
-  //       <a href="https://reactjs.org" target="_blank">
-  //         <img src={reactLogo} className="logo react" alt="React logo" />
-  //       </a>
-  //     </div>
-  //     <h1>Vite + React</h1>
-  //     <div className="card">
-  //       <button onClick={() => setCount((count) => count + 1)}>
-  //         count is {count}
-  //       </button>
-  //       <p>
-  //         Edit <code>src/App.tsx</code> and save to test HMR
-  //       </p>
-  //     </div>
-  //     <p className="read-the-docs">
-  //       Click on the Vite and React logos to learn more
-  //     </p>
-  //   </div>
-  // )
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([
@@ -105,9 +85,12 @@ function App() {
     if (textAreaRef.current) {
       textAreaRef.current.focus();
     }
-    (window as any).mermaid.contentLoaded();
+    // refresh mermaid svgs
   }, [messages]);
 
+  useEffect(() => {
+    (window as any).mermaid.contentLoaded();
+  })
   // Handle form submission
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
