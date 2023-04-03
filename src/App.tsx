@@ -1,7 +1,48 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import ReactMarkdown from "react-markdown";
 import './App.css'
+import {
+  Configuration,
+  OpenAIApi,
+  ChatCompletionRequestMessageRoleEnum,
+  ChatCompletionRequestMessage,
+  ChatCompletionResponseMessage,} from "openai";
 
+
+interface MarkdownWithMermaidProps {
+  children: string;
+}
+
+const MarkdownWithMermaid: React.FC<MarkdownWithMermaidProps> = ({ children }) => {
+  return (
+    <ReactMarkdown linkTarget={"_blank"}>
+    {children}
+    </ReactMarkdown>);
+};
+{/* <div className="mermaid">
+{ "graph LR\nA-->B" }
+</div> */}
+
+// export const MarkdownWithMermaid: React.FC<{}> = ({ children }) => {
+//   return (
+//     <ReactMarkdown
+//       source={markdown}
+//       renderers={{
+//         code: ({ language, value }) => {
+//           if (language === 'mermaid') {
+//             return (
+//               <div>
+//                 <Mermaid chart={value} />
+//                 <pre>{value}</pre>
+//               </div>
+//             );
+//           }
+//           // render other code blocks as usual
+//         },
+//       }}
+//     />
+//   );
+// };
 function App() {
   const [count, setCount] = useState(0)
 
@@ -34,6 +75,22 @@ function App() {
   const [messages, setMessages] = useState([
     { role: "assistant", content: "Hi there! How can I help?" },
   ]);
+  const [openai_api_key, set_openai_api_key] = useState(() => {
+    // getting stored value
+    const saved = localStorage.getItem("openai_api_key");
+    if (!saved || saved.length === 0) {
+      // get it from user via input func
+      const key = prompt("Please enter your OpenAI API key");
+      // save it
+      if (key) {
+        localStorage.setItem("openai_api_key", JSON.stringify(key));
+        return key
+      }
+    } else {
+      return JSON.parse(saved)
+    }
+    return ''
+  });
 
   const messageListRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +105,7 @@ function App() {
     if (textAreaRef.current) {
       textAreaRef.current.focus();
     }
+    (window as any).mermaid.contentLoaded();
   }, [messages]);
 
   // Handle form submission
@@ -59,36 +117,38 @@ function App() {
     }
 
     setLoading(true);
-    const context = [...messages, { role: "user", content: userInput }];
+    const context = [...messages, { role: "user", content: userInput }] as ChatCompletionRequestMessage[];
     setMessages(context);
 
-    // Send chat history to API
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ messages: context }),
+    const configuration = new Configuration({
+      apiKey: openai_api_key,
     });
 
-    // Reset user input
-    setUserInput("");
+    const openai = new OpenAIApi(configuration);
+    // Send chat history to API
+    const completion = await openai.createChatCompletion({
+      // Downgraded to GPT-3.5 due to high traffic. Sorry for the inconvenience.
+      // If you have access to GPT-4, simply change the model to "gpt-4"
+      model: "gpt-4",
+      messages: [
+        {
+          role: ChatCompletionRequestMessageRoleEnum.System,
+          content: "You are a helpful assistant.",
+        },
+        ...context
+      ],
+      temperature: 0,
+    });
+    let response: ChatCompletionResponseMessage | undefined = completion.data.choices[0].message
 
-    let data: any = undefined;
-    try {
-      data = await response.json();
-    } catch (err) {
+    if (!response) {
+      return handleError();
     }
-
-    if (!data) {
-      handleError();
-      return;
-    }
-
     setMessages((prevMessages) => [
       ...prevMessages,
-      { role: "assistant", content: data.result.content },
+      response as any,
     ]);
+    console.log(response, messages )
     setLoading(false);
   };
 
@@ -171,12 +231,9 @@ function App() {
                   )}
                   <div className="markdownanswer">
                     {/* Messages are being rendered in Markdown format */}
-                    <ReactMarkdown linkTarget={"_blank"}>
+                    <MarkdownWithMermaid>
                       {message.content}
-                    </ReactMarkdown>
-                    <div className="mermaid">
-                    { "graph LR\nA-->B" }
-                    </div>
+                    </MarkdownWithMermaid>
                   </div>
                 </div>
               );
