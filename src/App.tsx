@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { FormEvent, Key, useEffect, useRef, useState } from 'react'
 import ReactMarkdown from "react-markdown";
 import './App.css'
 import {
@@ -52,9 +52,26 @@ function App() {
 
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hi there! How can I help?" },
-  ]);
+  const initialMessages: ChatCompletionRequestMessage[] = [
+    { role: "assistant", content: "I am a helpful assistant! How can I help?" },
+  ]
+  const [messages, _setMessages] = useState(() => {
+    // getting stored value
+    const saved = localStorage.getItem("messages");
+    if (!saved) {
+      return initialMessages
+    } else {
+      try {
+        return JSON.parse(saved)
+      } catch (e) {
+        return initialMessages
+      }
+    }
+  });
+  const setMessages = (messages: ChatCompletionRequestMessage[]) => {
+    localStorage.setItem("messages", JSON.stringify(messages));
+    _setMessages(messages)
+  }
   const [lastMsgMode, setLastMsgMode] = useState(false);
   const [openai_api_key, set_openai_api_key] = useState(() => {
     // getting stored value
@@ -110,10 +127,10 @@ function App() {
 
     const openai = new OpenAIApi(configuration);
     let messagesToSend = [
-      {
-        role: ChatCompletionRequestMessageRoleEnum.System,
-        content: "You are a helpful assistant.",
-      },
+      // {
+      //   role: ChatCompletionRequestMessageRoleEnum.System,
+      //   content: "",
+      // },
       ...context
     ]
     if (lastMsgMode) {
@@ -133,7 +150,7 @@ function App() {
     if (!response) {
       return handleError();
     }
-    setMessages((prevMessages) => [
+    setMessages([
       ...messagesToSend,
       response as any,
     ]);
@@ -143,7 +160,7 @@ function App() {
 
 
   // Prevent blank submissions and allow for multiline input
-  const handleEnter = (e: KeyboardEvent) => {
+  const handleEnter = (e: any) => {
     if (e.key === "Enter" && userInput) {
       if (!e.shiftKey && userInput) {
         handleSubmit(e as any);
@@ -155,8 +172,8 @@ function App() {
 
     // Handle errors
     const handleError = () => {
-      setMessages((prevMessages) => [
-        ...prevMessages,
+      setMessages([
+        ...messages,
         {
           role: "assistant",
           content: "Oops! There seems to be an error. Please try again.",
@@ -169,7 +186,7 @@ function App() {
   return (
     <>
           <div ref={messageListRef} className="messagelist w_fill">
-            {messages.map((message, index) => {
+            {messages.map((message: ChatCompletionRequestMessage, index: number) => {
               return (
                 // The latest message sent by the user will be animated while waiting for a response
                 <div
@@ -269,6 +286,7 @@ function App() {
               <option value="gpt-3.5-turbo">chatgpt</option>
             </select>
             </label>
+            <button onClick={_ => setMessages(initialMessages)}>Clear Chat</button>
           </div>
     </>
   );
