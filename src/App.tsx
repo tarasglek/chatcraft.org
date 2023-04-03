@@ -48,8 +48,7 @@ const MarkdownWithMermaid: React.FC<MarkdownWithMermaidProps> = ({ children }) =
 };
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  const [mouseOverMessageIndex, setMouseOverMessageIndex] = useState(-1)
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const initialMessages: ChatCompletionRequestMessage[] = [
@@ -201,7 +200,7 @@ function App() {
                       : "usermessage"
                   }
                 >
-                  {/* Display the correct icon depending on the message type */}
+                  <div onMouseOver={_ => setMouseOverMessageIndex(index)} onMouseOut={_ => setMouseOverMessageIndex(-1)} className="msgmenu">
                     <img
                       src={`/${message.role}.png`}
                       alt={message.role}
@@ -209,6 +208,15 @@ function App() {
                       height="30"
                       className={message.role}
                     />
+                    {mouseOverMessageIndex === index && (<button onClick={
+                      _ => {
+                        const newMessages = [...messages]
+                        newMessages.splice(index, 1)
+                        setMessages(newMessages)
+                        setMouseOverMessageIndex(-1)
+                      }
+                    }>X</button>)}
+                  </div>
                   <div className="markdownanswer">
                     {/* Messages are being rendered in Markdown format */}
                     <MarkdownWithMermaid>
