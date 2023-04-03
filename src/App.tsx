@@ -202,23 +202,13 @@ function App() {
                   }
                 >
                   {/* Display the correct icon depending on the message type */}
-                  {message.role === "assistant" ? (
                     <img
-                      src="/openai.png"
-                      alt="AI"
+                      src={`/${message.role}.png`}
+                      alt={message.role}
                       width="30"
                       height="30"
-                      className="boticon"
+                      className={message.role}
                     />
-                  ) : (
-                    <img
-                      src="/usericon.png"
-                      alt="Me"
-                      width="30"
-                      height="30"
-                      className="usericon"
-                    />
-                  )}
                   <div className="markdownanswer">
                     {/* Messages are being rendered in Markdown format */}
                     <MarkdownWithMermaid>
