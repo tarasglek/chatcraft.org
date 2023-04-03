@@ -234,9 +234,6 @@ function App() {
                 onKeyDown={handleEnter}
                 ref={textAreaRef}
                 autoFocus={true}
-                rows={1}
-                maxLength={512}
-
                 id="userInput"
                 name="userInput"
                 placeholder={
@@ -246,11 +243,7 @@ function App() {
                 onChange={(e) => setUserInput(e.target.value)}
                 className="textarea"
               />
-              <button
-                type="submit"
-                disabled={loading}
-                className="generatebutton"
-              >
+              <button type="submit" disabled={loading} className="generatebutton" >
                 {loading ? (
                   <div className="loadingwheel">
                     Loading...
@@ -270,16 +263,12 @@ function App() {
           </div>
           <div>
             <label>
-              <input
-                type="checkbox"
-                checked={lastMsgMode}
-                onChange={(event) => setLastMsgMode(event.target.checked) }
-              />
+              <input type="checkbox" checked={lastMsgMode} onChange={(event) => setLastMsgMode(event.target.checked) } />
               Last-message-context-only mode. &nbsp;
             </label>
             <label>
             Model: &nbsp;
-            <select id="gpt-select" value={selectedGPT} onChange={event => setSelectedGPT(event.target.value)}>
+            <select id="gpt-select" value={selectedGPT} onChange={event => setSelectedGPT(event.target.value)} disabled={loading}>
               <option value="gpt-4">GPT-4</option>
               <option value="gpt-3.5-turbo">chatgpt</option>
             </select>
