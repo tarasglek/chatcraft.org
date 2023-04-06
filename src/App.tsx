@@ -218,14 +218,20 @@ function App() {
                       height="30"
                       className={message.role}
                     />
-                    {mouseOverMessageIndex === index && (<button onClick={
+                    {mouseOverMessageIndex === index && (
+                    <div
+                    onClick={
                       _ => {
                         const newMessages = [...messages]
                         newMessages.splice(index, 1)
                         setMessages(newMessages)
                         setMouseOverMessageIndex(-1)
                       }
-                    }>X</button>)}
+                    }
+                    style={{width: '30px', height: '30px', fontSize: '20px', backgroundColor: 'red', color: 'white', border: 'none', cursor: 'pointer', textAlign: 'center'}}
+                    >X
+                    </div>
+                    )}
                   </div>
                   <div className="markdownanswer">
                     {/* Messages are being rendered in Markdown format */}
