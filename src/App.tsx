@@ -108,6 +108,16 @@ function App() {
   useEffect(() => {
     (window as any).mermaid.contentLoaded();
   })
+  // expand textarea
+  // https://stackoverflow.com/questions/30050605/display-all-textarea-rows-without-scrolling
+  useEffect(() => {
+    let textArea = textAreaRef.current
+    if (textArea) {
+      textArea.style.height = '1px'
+      if (textArea.scrollHeight > textArea.clientHeight) {
+        textArea.style.height = `${textArea.scrollHeight}px`;
+      }
+    }}, [userInput])
   // Handle form submission
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

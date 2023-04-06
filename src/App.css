@@ -65,15 +65,15 @@ body {
 
 .textarea {
   position: relative;
-  resize: none;
   font-size: 1.1rem;
-  padding: 1rem 2rem 1rem 2rem;
+  padding: 1rem 1rem 1rem 1rem;
   width: 100%;
   border-radius: 0.5rem;
   border: 1px solid #30373d;
   background: #0e1524;
   color: #ECECF1;
   outline: none;
+  overflow-y: none;
 }
 
 .textarea:disabled {
