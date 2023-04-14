@@ -106,7 +106,10 @@ function App() {
   }, [messages]);
 
   useEffect(() => {
-    (window as any).mermaid.contentLoaded();
+    let mermaid = (window as any).mermaid
+    if (mermaid) {
+      mermaid.contentLoaded();
+    }
   })
   // expand textarea
   // https://stackoverflow.com/questions/30050605/display-all-textarea-rows-without-scrolling
