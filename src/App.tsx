@@ -1,5 +1,4 @@
 import { FormEvent, Key, useEffect, useRef, useState } from 'react'
-import ReactMarkdown from "react-markdown";
 import './App.css'
 import {
   Configuration,
@@ -7,45 +6,7 @@ import {
   ChatCompletionRequestMessageRoleEnum,
   ChatCompletionRequestMessage,
   ChatCompletionResponseMessage,} from "openai";
-
-
-interface MarkdownWithMermaidProps {
-  children: string;
-}
-
-const MarkdownWithMermaid: React.FC<MarkdownWithMermaidProps> = ({ children }) => {
-  return (
-    // <ReactMarkdown linkTarget={"_blank"} children={children}/>
-    <ReactMarkdown
-    children={children}
-    components={{
-      code({node, inline, className, children, ...props}) {
-        const match = /language-(\w+)/.exec(className || '');
-        if (match) {
-          console.log('language', match[1])
-          if (match[1] === 'mermaid') {
-            return (
-              <>
-              <div className="mermaid">
-              { children }
-              </div>
-              <code className={className} {...props}>
-              {children}
-              </code>
-              </>
-              )
-            }
-          }
-        return (
-          <code className={className} {...props}>
-            {children}
-          </code>
-        )
-      }
-    }}
-  />
-  )
-};
+import { MarkdownWithMermaid } from './MarkdownWithMermaid';
 
 function App() {
   const [mouseOverMessageIndex, setMouseOverMessageIndex] = useState(-1)
