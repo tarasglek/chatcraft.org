@@ -63,7 +63,7 @@
 .htmlPreview {
   display: block;
   width: 80%;
-  height: 80%;
+  height: 80vh;
   margin-bottom: 1em;
   margin-top: 1em;
 }
