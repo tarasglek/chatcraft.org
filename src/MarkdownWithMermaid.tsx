@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
 interface MarkdownWithMermaidProps {
@@ -5,6 +6,12 @@ interface MarkdownWithMermaidProps {
 }
 
 export const MarkdownWithMermaid: React.FC<MarkdownWithMermaidProps> = ({ children }) => {
+  useEffect(() => {
+    let mermaid = (window as any).mermaid
+    if (mermaid) {
+      mermaid.contentLoaded();
+    }
+  })
   return (
     // <ReactMarkdown linkTarget={"_blank"} children={children}/>
     <ReactMarkdown

@@ -66,12 +66,6 @@ function App() {
     // refresh mermaid svgs
   }, [messages]);
 
-  useEffect(() => {
-    let mermaid = (window as any).mermaid
-    if (mermaid) {
-      mermaid.contentLoaded();
-    }
-  })
   // expand textarea
   // https://stackoverflow.com/questions/30050605/display-all-textarea-rows-without-scrolling
   useEffect(() => {
@@ -216,7 +210,7 @@ function App() {
                 onChange={(e) => setUserInput(e.target.value)}
               />
               <button type="submit" disabled={loading} className="send-button" >
-              Send
+              {!loading ? "Send" : "..."}
               </button>
           </div>
             </form>
