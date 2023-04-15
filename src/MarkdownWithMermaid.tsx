@@ -13,10 +13,10 @@ function lazyLoadMermaidAndRenderThem() {
     const src = scriptTag.getAttribute('src');
     if (src && src.includes(mermaid_js)) {
       let mermaid = (window as any).mermaid;
-      console.log("found mermaid script tag")
+      // console.log("found mermaid script tag")
       if (mermaid) {
         mermaid.contentLoaded();
-        console.log("mermaid contentLoaded()")
+        // console.log("mermaid contentLoaded()")
       }
       return
     }
@@ -25,38 +25,38 @@ function lazyLoadMermaidAndRenderThem() {
   scriptTag.src = mermaid_js
   scriptTag.onload = lazyLoadMermaidAndRenderThem;
   document.body.appendChild(scriptTag);
-  console.log("mermaid script tag appended")
+  // console.log("mermaid script tag appended")
 }
 
 export const MarkdownWithMermaid: React.FC<MarkdownWithMermaidProps> = ({ children }) => {
   return (
-    // <ReactMarkdown linkTarget={"_blank"} children={children}/>
     <ReactMarkdown
     children={children}
     components={{
       code({node, inline, className, children, ...props}) {
-        const match = /language-(\w+)/.exec(className || '');
-        let code = (
+        let prefix = <></>
+        if (className === 'language-mermaid') {
+          useEffect(() => {
+            lazyLoadMermaidAndRenderThem()
+          })
+          prefix = (
+            <div className="mermaid">
+            { children }
+            </div>
+            )
+        } else if (className === 'language-html') {
+          prefix = (
+            <iframe className="htmlPreview" srcDoc={children as any}></iframe>
+          )
+        }
+        return (
+          <>
+          {prefix}
           <code className={className} {...props}>
           {children}
           </code>
+          </>
         )
-        if (match) {
-          if (match[1] === 'mermaid') {
-            useEffect(() => {
-              lazyLoadMermaidAndRenderThem()
-            })
-            return (
-              <>
-              <div className="mermaid">
-              { children }
-              </div>
-              {code}
-              </>
-              )
-            }
-          }
-        return code
       }
     }}
   />

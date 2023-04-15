@@ -60,6 +60,14 @@
   margin-left: 1em;
 }
 
+.htmlPreview {
+  display: block;
+  width: 80%;
+  height: 80%;
+  margin-bottom: 1em;
+  margin-top: 1em;
+}
+
 /* Dark mode styles */
 @media (prefers-color-scheme: dark) {
   body {
