@@ -158,23 +158,15 @@ function App() {
 
   return (
     <>
-          <div ref={messageListRef} className="messagelist w_fill">
+          <div ref={messageListRef} className="message-view">
             {messages.map((message: ChatCompletionRequestMessage, index: number) => {
               return (
                 // The latest message sent by the user will be animated while waiting for a response
                 <div
                   key={index}
-                  className={
-                    message.role === "user" &&
-                    loading &&
-                    index === messages.length - 1
-                      ? "usermessagewaiting"
-                      : message.role === "assistant"
-                      ? "apimessage"
-                      : "usermessage"
-                  }
+                  className="message"
                 >
-                  <div onMouseOver={_ => setMouseOverMessageIndex(index)} onMouseOut={_ => setMouseOverMessageIndex(-1)} className="msgmenu">
+                  <div onMouseOver={_ => setMouseOverMessageIndex(index)} onMouseOut={_ => setMouseOverMessageIndex(-1)} className="avatar">
                     <img
                       src={`/${message.role}.png`}
                       alt={message.role}
@@ -197,7 +189,7 @@ function App() {
                     </div>
                     )}
                   </div>
-                  <div className="markdownanswer">
+                  <div className="message-text">
                     {/* Messages are being rendered in Markdown format */}
                     <MarkdownWithMermaid>
                       {message.content}
@@ -207,9 +199,10 @@ function App() {
               );
             })}
         </div>
-          <div className="cloudform">
             <form onSubmit={handleSubmit}>
+          <div className="input-container">
               <textarea
+                className="input-text"
                 disabled={loading}
                 onKeyDown={handleEnter}
                 ref={textAreaRef}
@@ -221,26 +214,12 @@ function App() {
                 }
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                className="textarea"
               />
-              <button type="submit" disabled={loading} className="generatebutton" >
-                {loading ? (
-                  <div className="loadingwheel">
-                    Loading...
-                  </div>
-                ) : (
-                  // Send icon SVG in input field
-                  <svg
-                    viewBox="0 0 20 20"
-                    className="svgicon"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                  </svg>
-                )}
+              <button type="submit" disabled={loading} className="send-button" >
+              Send
               </button>
-            </form>
           </div>
+            </form>
           <div>
             <label>
               <input type="checkbox" checked={lastMsgMode} onChange={(event) => setLastMsgMode(event.target.checked) } />
