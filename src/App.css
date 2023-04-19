@@ -1,4 +1,3 @@
-
 .chat-container {
   display: flex;
   flex-direction: column;
@@ -111,10 +110,10 @@
   }
 
   .send-button {
-      background-color: #0099ff;
+    background-color: #0099ff;
   }
 
   .send-button:hover {
-      background-color: #007acc;
+    background-color: #007acc;
   }
 }
