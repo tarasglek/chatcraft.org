@@ -3,6 +3,7 @@ import './App.css'
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { MarkdownWithMermaid } from './MarkdownWithMermaid';
 import { AIChatMessage, BaseChatMessage, HumanChatMessage } from 'langchain/schema';
+import { CallbackManager } from "langchain/callbacks";
 
 function obj2msg(obj: { role: string, content: string }): BaseChatMessage {
   console.log(obj.role)
@@ -112,9 +113,28 @@ function App() {
       //trim messages to last 1
       messagesToSend = messagesToSend.slice(-2)
     }
-    // Send chat history to API
-    const chat = new ChatOpenAI({ openAIApiKey:openai_api_key, temperature: 0 }, );
 
+    let emptyResponse = new AIChatMessage('')
+    setMessages([
+      ...allMessages,
+      emptyResponse,
+    ]);
+    let streamHandler = async (token: string) => {
+      emptyResponse.text += token
+      setMessages([ ...allMessages, emptyResponse ])
+    }
+    // Send chat history to API
+    const chat = new ChatOpenAI(
+      {
+        openAIApiKey:openai_api_key,
+        temperature: 0,
+        streaming: true,
+        modelName: selectedGPT,
+        callbackManager: CallbackManager.fromHandlers({
+          handleLLMNewToken: streamHandler,
+        }),
+      },
+    );
     let response = await chat.call(messagesToSend)
     setMessages([
       ...allMessages,
