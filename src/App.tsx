@@ -1,9 +1,13 @@
-import { FormEvent, Key, useEffect, useRef, useState } from "react";
-import "./App.css";
+import { useEffect, useRef, useState } from "react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
-import { MarkdownWithMermaid } from "./MarkdownWithMermaid";
 import { AIChatMessage, BaseChatMessage, HumanChatMessage } from "langchain/schema";
 import { CallbackManager } from "langchain/callbacks";
+import { Box, Flex, IconButton, Text, useDisclosure } from "@chakra-ui/react";
+import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
+
+import "./App.css";
+import PromptForm from "./components/PromptForm";
+import MessageView from "./components/MessageView";
 
 function obj2msg(obj: { role: string; content: string }): BaseChatMessage {
   console.log(obj.role);
@@ -22,14 +26,14 @@ function msg2obj(msg: BaseChatMessage): { role: string; content: string } {
   }
 }
 
+const initialMessages: BaseChatMessage[] = [
+  new AIChatMessage("I am a helpful assistant! How can I help?"),
+];
+
 function App() {
-  const [mouseOverMessageIndex, setMouseOverMessageIndex] = useState(-1);
-  const [userInput, setUserInput] = useState("");
+  const { isOpen: isExpanded, onToggle } = useDisclosure();
   const [loading, setLoading] = useState(false);
-  const initialMessages: BaseChatMessage[] = [
-    new AIChatMessage("I am a helpful assistant! How can I help?"),
-  ];
-  const [messages, _setMessages] = useState(() => {
+  const [messages, _setMessages] = useState<BaseChatMessage[]>(() => {
     // getting stored value
     const saved = localStorage.getItem("messages");
     if (!saved) {
@@ -46,8 +50,7 @@ function App() {
     localStorage.setItem("messages", JSON.stringify(messages.map(msg2obj)));
     _setMessages(messages);
   };
-  const [lastMsgMode, setLastMsgMode] = useState(false);
-  const [openai_api_key, set_openai_api_key] = useState(() => {
+  const [openai_api_key] = useState(() => {
     // getting stored value
     const saved = localStorage.getItem("openai_api_key");
     if (!saved || saved.length === 0) {
@@ -63,10 +66,7 @@ function App() {
     }
     return "";
   });
-  const [selectedGPT, setSelectedGPT] = useState("gpt-3.5-turbo");
   const messageListRef = useRef<HTMLDivElement>(null);
-
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto scroll chat to bottom
   useEffect(() => {
@@ -74,33 +74,12 @@ function App() {
       const messageList = messageListRef.current;
       messageList.scrollTop = messageList.scrollHeight;
     }
-    if (textAreaRef.current) {
-      textAreaRef.current.focus();
-    }
-    // refresh mermaid svgs
   }, [messages]);
 
-  // expand textarea
-  // https://stackoverflow.com/questions/30050605/display-all-textarea-rows-without-scrolling
-  useEffect(() => {
-    let textArea = textAreaRef.current;
-    if (textArea) {
-      textArea.style.height = "1px";
-      if (textArea.scrollHeight > textArea.clientHeight) {
-        textArea.style.height = `${textArea.scrollHeight}px`;
-      }
-    }
-  }, [userInput]);
-  // Handle form submission
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    if (userInput.trim() === "") {
-      return;
-    }
-
+  // Handle prompt form submission
+  const onPrompt = async (prompt: string, model: GptModel, lastMsgMode: boolean) => {
     setLoading(true);
-    const allMessages = [...messages, new HumanChatMessage(userInput)];
+    const allMessages = [...messages, new HumanChatMessage(prompt)];
     setMessages(allMessages);
 
     let messagesToSend = [
@@ -126,7 +105,7 @@ function App() {
       openAIApiKey: openai_api_key,
       temperature: 0,
       streaming: true,
-      modelName: selectedGPT,
+      modelName: model,
       callbackManager: CallbackManager.fromHandlers({
         handleLLMNewToken: streamHandler,
       }),
@@ -137,120 +116,54 @@ function App() {
     setLoading(false);
   };
 
-  // Prevent blank submissions and allow for multiline input
-  const handleEnter = (e: any) => {
-    if (e.key === "Enter" && userInput) {
-      if (!e.shiftKey && userInput) {
-        handleSubmit(e as any);
-      }
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-    }
-  };
-
-  // Handle errors
-  const handleError = () => {
-    setMessages([
-      ...messages,
-      new AIChatMessage("Oops! There seems to be an error. Please try again."),
-    ]);
-    setLoading(false);
-    setUserInput("");
-  };
+  // Remove a message from the list when the user requests it
+  function onRemoveMessage(index: number) {
+    const newMessages = [...messages];
+    newMessages.splice(index, 1);
+    setMessages(newMessages);
+  }
 
   return (
-    <>
-      <div ref={messageListRef} className="message-view">
-        {messages.map((message: BaseChatMessage, index: number) => {
-          return (
-            // The latest message sent by the user will be animated while waiting for a response
-            <div key={index} className="message">
-              <div
-                onMouseOver={(_) => setMouseOverMessageIndex(index)}
-                onMouseOut={(_) => setMouseOverMessageIndex(-1)}
-                className="avatar"
-              >
-                <img
-                  src={`/${message._getType()}.png`}
-                  alt={message._getType()}
-                  width="30"
-                  height="30"
-                  className={message._getType()}
-                />
-                {mouseOverMessageIndex === index && (
-                  <div
-                    onClick={(_) => {
-                      const newMessages = [...messages];
-                      newMessages.splice(index, 1);
-                      setMessages(newMessages);
-                      setMouseOverMessageIndex(-1);
-                    }}
-                    style={{
-                      width: "30px",
-                      height: "30px",
-                      fontSize: "20px",
-                      backgroundColor: "red",
-                      color: "white",
-                      border: "none",
-                      cursor: "pointer",
-                      textAlign: "center",
-                    }}
-                  >
-                    X
-                  </div>
-                )}
-              </div>
-              <div className="message-text">
-                {/* Messages are being rendered in Markdown format */}
-                <MarkdownWithMermaid>{message.text}</MarkdownWithMermaid>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <form onSubmit={handleSubmit}>
-        <div className="input-container">
-          <textarea
-            className="input-text"
-            disabled={loading}
-            onKeyDown={handleEnter}
-            ref={textAreaRef}
-            autoFocus={true}
-            id="userInput"
-            name="userInput"
-            placeholder={loading ? "Waiting for response..." : "Type your question..."}
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
+    <Box w="100%" h="100%" bgColor="#f0f0f0">
+      <Flex flexDir="column" h="100%">
+        <Box flex="1" overflow="auto" ref={messageListRef}>
+          <MessageView messages={messages} onRemoveMessage={onRemoveMessage} />
+        </Box>
+        <Box
+          pos="relative"
+          flex={isExpanded ? "2" : undefined}
+          bgColor="white"
+          pb={2}
+          borderTop="1px"
+          borderColor="gray.300"
+        >
+          <IconButton
+            pos="absolute"
+            right="0"
+            top=""
+            zIndex="500"
+            aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+            title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+            icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
+            onClick={onToggle}
+            bg="white"
+            color="gray.500"
           />
-          <button type="submit" disabled={loading} className="send-button">
-            {!loading ? "Send" : "..."}
-          </button>
-        </div>
-      </form>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={lastMsgMode}
-            onChange={(event) => setLastMsgMode(event.target.checked)}
-          />
-          Last-message-context-only mode. &nbsp;
-        </label>
-        <label>
-          Model: &nbsp;
-          <select
-            id="gpt-select"
-            value={selectedGPT}
-            onChange={(event) => setSelectedGPT(event.target.value)}
-            disabled={loading}
-          >
-            <option value="gpt-4">GPT-4</option>
-            <option value="gpt-3.5-turbo">chatgpt</option>
-          </select>
-        </label>
-        <button onClick={(_) => setMessages(initialMessages)}>Clear Chat</button>
-      </div>
-    </>
+
+          <Box maxW="1024px" mx="auto" h="100%" mt={3}>
+            <Text ml={2} color="gray.600" fontSize="sm">
+              Type your question below. Use <kbd>Shift+Enter</kbd> for newlines.
+            </Text>
+            <PromptForm
+              onPrompt={onPrompt}
+              onClear={() => setMessages(initialMessages)}
+              isExpanded={isExpanded}
+              isLoading={loading}
+            />
+          </Box>
+        </Box>
+      </Flex>
+    </Box>
   );
 }
 

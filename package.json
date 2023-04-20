@@ -18,7 +18,9 @@
     "langchain": "^0.0.59",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-markdown": "^8.0.6"
+    "react-icons": "^4.8.0",
+    "react-markdown": "^8.0.6",
+    "remark-mermaidjs": "^4.1.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
