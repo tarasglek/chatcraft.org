@@ -1,8 +1,8 @@
-.chat-container {
-  display: flex;
-  flex-direction: column;
+html,
+body,
+main {
   height: 100%;
-  color: #000000;
+  overflow: hidden;
 }
 
 .message-view {
