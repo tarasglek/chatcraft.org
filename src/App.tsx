@@ -1,19 +1,32 @@
 import { FormEvent, Key, useEffect, useRef, useState } from 'react'
 import './App.css'
-import {
-  Configuration,
-  OpenAIApi,
-  ChatCompletionRequestMessageRoleEnum,
-  ChatCompletionRequestMessage,
-  ChatCompletionResponseMessage,} from "openai";
+import { ChatOpenAI } from "langchain/chat_models/openai";
 import { MarkdownWithMermaid } from './MarkdownWithMermaid';
+import { AIChatMessage, BaseChatMessage, HumanChatMessage } from 'langchain/schema';
+
+function obj2msg(obj: { role: string, content: string }): BaseChatMessage {
+  console.log(obj.role)
+  if (obj.role === 'user') {
+    return new HumanChatMessage(obj.content)
+  } else {
+    return new AIChatMessage(obj.content)
+  }
+}
+
+function msg2obj(msg: BaseChatMessage): { role: string, content: string } {
+  if (msg instanceof HumanChatMessage) {
+    return { role: 'user', content: msg.text }
+  } else {
+    return { role: 'assistant', content: msg.text }
+  }
+}
 
 function App() {
   const [mouseOverMessageIndex, setMouseOverMessageIndex] = useState(-1)
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const initialMessages: ChatCompletionRequestMessage[] = [
-    { role: "assistant", content: "I am a helpful assistant! How can I help?" },
+  const initialMessages: BaseChatMessage[] = [
+    new AIChatMessage("I am a helpful assistant! How can I help?")
   ]
   const [messages, _setMessages] = useState(() => {
     // getting stored value
@@ -22,14 +35,14 @@ function App() {
       return initialMessages
     } else {
       try {
-        return JSON.parse(saved)
+        return JSON.parse(saved).map(obj2msg) as BaseChatMessage[]
       } catch (e) {
         return initialMessages
       }
     }
   });
-  const setMessages = (messages: ChatCompletionRequestMessage[]) => {
-    localStorage.setItem("messages", JSON.stringify(messages));
+  const setMessages = (messages: BaseChatMessage[]) => {
+    localStorage.setItem("messages", JSON.stringify(messages.map(msg2obj)));
     _setMessages(messages)
   }
   const [lastMsgMode, setLastMsgMode] = useState(false);
@@ -85,14 +98,9 @@ function App() {
     }
 
     setLoading(true);
-    const allMessages = [...messages, { role: "user", content: userInput }] as ChatCompletionRequestMessage[];
+    const allMessages = [...messages, new HumanChatMessage(userInput)];
     setMessages(allMessages);
 
-    const configuration = new Configuration({
-      apiKey: openai_api_key,
-    });
-
-    const openai = new OpenAIApi(configuration);
     let messagesToSend = [
       // {
       //   role: ChatCompletionRequestMessageRoleEnum.System,
@@ -105,26 +113,16 @@ function App() {
       messagesToSend = messagesToSend.slice(-2)
     }
     // Send chat history to API
-    const completion = await openai.createChatCompletion({
-      // Downgraded to GPT-3.5 due to high traffic. Sorry for the inconvenience.
-      // If you have access to GPT-4, simply change the model to "gpt-4"
-      model: selectedGPT,
-      messages: messagesToSend,
-      temperature: 0,
-    });
-    let response: ChatCompletionResponseMessage | undefined = completion.data.choices[0].message
+    const chat = new ChatOpenAI({ openAIApiKey:openai_api_key, temperature: 0 }, );
 
-    if (!response) {
-      return handleError();
-    }
+    let response = await chat.call(messagesToSend)
     setMessages([
       ...allMessages,
-      response as any,
+      response,
     ]);
     // console.log(response, messages )
     setLoading(false);
   };
-
 
   // Prevent blank submissions and allow for multiline input
   const handleEnter = (e: any) => {
@@ -141,10 +139,7 @@ function App() {
     const handleError = () => {
       setMessages([
         ...messages,
-        {
-          role: "assistant",
-          content: "Oops! There seems to be an error. Please try again.",
-        },
+        new AIChatMessage("Oops! There seems to be an error. Please try again."),
       ]);
       setLoading(false);
       setUserInput("");
@@ -153,7 +148,7 @@ function App() {
   return (
     <>
           <div ref={messageListRef} className="message-view">
-            {messages.map((message: ChatCompletionRequestMessage, index: number) => {
+            {messages.map((message: BaseChatMessage, index: number) => {
               return (
                 // The latest message sent by the user will be animated while waiting for a response
                 <div
@@ -162,11 +157,11 @@ function App() {
                 >
                   <div onMouseOver={_ => setMouseOverMessageIndex(index)} onMouseOut={_ => setMouseOverMessageIndex(-1)} className="avatar">
                     <img
-                      src={`/${message.role}.png`}
-                      alt={message.role}
+                      src={`/${message._getType()}.png`}
+                      alt={message._getType()}
                       width="30"
                       height="30"
-                      className={message.role}
+                      className={message._getType()}
                     />
                     {mouseOverMessageIndex === index && (
                     <div
@@ -186,7 +181,7 @@ function App() {
                   <div className="message-text">
                     {/* Messages are being rendered in Markdown format */}
                     <MarkdownWithMermaid>
-                      {message.content}
+                      {message.text}
                     </MarkdownWithMermaid>
                   </div>
                 </div>
