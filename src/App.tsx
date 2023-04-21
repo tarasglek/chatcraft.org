@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { AIChatMessage, BaseChatMessage, HumanChatMessage } from "langchain/schema";
 import { CallbackManager } from "langchain/callbacks";
-import { Box, Flex, IconButton, Text, useDisclosure } from "@chakra-ui/react";
-import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
+import { Box, Flex, Text, useDisclosure, useColorModeValue } from "@chakra-ui/react";
 
 import "./App.css";
 import PromptForm from "./components/PromptForm";
+import PromptIcons from "./components/PromptIcons";
 import MessageView from "./components/MessageView";
 
 function obj2msg(obj: { role: string; content: string }): BaseChatMessage {
@@ -31,7 +31,7 @@ const initialMessages: BaseChatMessage[] = [
 ];
 
 function App() {
-  const { isOpen: isExpanded, onToggle } = useDisclosure();
+  const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
   const [loading, setLoading] = useState(false);
   const [messages, _setMessages] = useState<BaseChatMessage[]>(() => {
     // getting stored value
@@ -112,7 +112,7 @@ function App() {
     });
     let response = await chat.call(messagesToSend);
     setMessages([...allMessages, response]);
-    // console.log(response, messages )
+    // console.log(response, messages);
     setLoading(false);
   };
 
@@ -124,34 +124,22 @@ function App() {
   }
 
   return (
-    <Box w="100%" h="100%" bgColor="#f0f0f0">
+    <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
-        <Box flex="1" overflow="auto" ref={messageListRef}>
+        <Box flex="1" overflow="auto" pb={4} ref={messageListRef}>
           <MessageView messages={messages} onRemoveMessage={onRemoveMessage} />
         </Box>
         <Box
           pos="relative"
           flex={isExpanded ? "2" : undefined}
-          bgColor="white"
           pb={2}
           borderTop="1px"
-          borderColor="gray.300"
+          borderColor={useColorModeValue("gray.200", "gray.500")}
         >
-          <IconButton
-            pos="absolute"
-            right="0"
-            top=""
-            zIndex="500"
-            aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-            title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-            icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
-            onClick={onToggle}
-            bg="white"
-            color="gray.500"
-          />
+          <PromptIcons isExpanded={isExpanded} toggleExpanded={toggleExpanded} />
 
           <Box maxW="1024px" mx="auto" h="100%" mt={3}>
-            <Text ml={2} color="gray.600" fontSize="sm">
+            <Text ml={2} fontSize="sm">
               Type your question below. Use <kbd>Shift+Enter</kbd> for newlines.
             </Text>
             <PromptForm

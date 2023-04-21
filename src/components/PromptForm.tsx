@@ -78,7 +78,6 @@ function PromptForm({ onPrompt, onClear, isExpanded, isLoading }: PromptFormProp
           <Stack spacing={6} direction="row" alignItems="center">
             <Checkbox
               isDisabled={isLoading}
-              colorScheme="blue"
               checked={lastMsgMode}
               onChange={() => setLastMsgMode.toggle()}
             >
@@ -100,14 +99,13 @@ function PromptForm({ onPrompt, onClear, isExpanded, isLoading }: PromptFormProp
             </Stack>
           </Stack>
           <ButtonGroup>
-            <Button onClick={onClear} colorScheme="blue" variant="outline" size="sm">
+            <Button onClick={onClear} variant="outline" size="sm">
               Clear Chat
             </Button>
             <Button
               type="submit"
               size="sm"
               isDisabled={isLoading || !prompt.length}
-              colorScheme="blue"
               isLoading={isLoading}
               loadingText="Loading"
             >
