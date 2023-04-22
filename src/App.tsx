@@ -126,15 +126,26 @@ function App() {
   return (
     <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
-        <Box flex="1" overflow="auto" pb={4} ref={messageListRef}>
+        <Box
+          flex="1"
+          overflow="auto"
+          pb={4}
+          ref={messageListRef}
+          bgGradient={useColorModeValue(
+            "linear(to-b, white, gray.100)",
+            "linear(to-b, gray.600, gray.700)"
+          )}
+        >
           <MessageView messages={messages} onRemoveMessage={onRemoveMessage} />
         </Box>
+
         <Box
           pos="relative"
           flex={isExpanded ? "2" : undefined}
           pb={2}
           borderTop="1px"
-          borderColor={useColorModeValue("gray.200", "gray.500")}
+          borderColor={useColorModeValue("gray.400", "gray.00")}
+          bg={useColorModeValue("gray.100", "gray.700")}
         >
           <PromptIcons isExpanded={isExpanded} toggleExpanded={toggleExpanded} />
 
