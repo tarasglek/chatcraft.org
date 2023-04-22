@@ -45,6 +45,7 @@ function lazyLoadMermaidAndRenderThem() {
 export const MarkdownWithMermaid: React.FC<MarkdownWithMermaidProps> = ({ children }) => {
   return (
     <ReactMarkdown
+      className="message-text"
       children={children}
       components={{
         code({ node, inline, className, children, ...props }) {

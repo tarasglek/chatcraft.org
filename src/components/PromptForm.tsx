@@ -10,6 +10,7 @@ import {
   Stack,
   Textarea,
   useBoolean,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 type PromptFormProps = {
@@ -71,6 +72,7 @@ function PromptForm({ onPrompt, onClear, isExpanded, isLoading }: PromptFormProp
             autoFocus={true}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
+            bg={useColorModeValue("white", "gray.700")}
           />
         </Box>
 
