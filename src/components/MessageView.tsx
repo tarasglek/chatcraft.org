@@ -10,7 +10,7 @@ type MessagesViewProps = {
 
 function MessageView({ messages, onRemoveMessage }: MessagesViewProps) {
   return (
-    <Box maxW="1024px" mx="auto" scrollBehavior="smooth">
+    <Box maxW="900px" mx="auto" scrollBehavior="smooth">
       {messages.map((message: BaseChatMessage, index: number) => {
         return (
           <Message key={index} message={message} onDeleteClick={() => onRemoveMessage(index)} />
