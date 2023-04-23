@@ -6,21 +6,29 @@ import {
   chakra,
   Checkbox,
   Flex,
+  IconButton,
   Kbd,
   Text,
   Textarea,
   useBoolean,
   useColorModeValue,
 } from "@chakra-ui/react";
+import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
+
+import { AutoResizingTextarea } from "./AutoResizingTextarea";
 
 type PromptFormProps = {
   onPrompt: (prompt: string, lastMsgMode: boolean) => void;
   onClear: () => void;
+  // Whether or not to automatically manage the height of the prompt.
+  // When `isExpanded` is `false`, Shit+Enter adds rows. Otherwise,
+  // the height is determined automatically by the parent.
   isExpanded: boolean;
+  toggleExpanded: () => void;
   isLoading: boolean;
 };
 
-function PromptForm({ onPrompt, onClear, isExpanded, isLoading }: PromptFormProps) {
+function PromptForm({ onPrompt, onClear, isExpanded, toggleExpanded, isLoading }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [lastMsgMode, setLastMsgMode] = useBoolean(false);
@@ -57,32 +65,53 @@ function PromptForm({ onPrompt, onClear, isExpanded, isLoading }: PromptFormProp
 
   return (
     <Box h="100%" px={1}>
-      <Text ml={2} fontSize="sm">
-        Type your question.{" "}
-        {!!prompt.length && (
-          <>
-            {" "}
-            <Kbd>Shift</Kbd> + <Kbd>Enter</Kbd> for newline
-          </>
-        )}
-      </Text>
+      <Flex justify="space-between" alignItems="baseline">
+        <Text ml={2} fontSize="sm">
+          {!!prompt.length && (
+            <span>
+              <Kbd>Shift</Kbd> + <Kbd>Enter</Kbd> for newline
+            </span>
+          )}
+        </Text>
+
+        <ButtonGroup isAttached>
+          <IconButton
+            aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+            title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+            icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
+            variant="ghost"
+            onClick={toggleExpanded}
+          />
+        </ButtonGroup>
+      </Flex>
+
       <chakra.form onSubmit={handleSubmit} h="100%" pb={2}>
-        <Flex pb={8} flexDir="column" h="100%">
-          <Box flex="1" mt={2} pb={2}>
-            <Textarea
-              ref={textareaRef}
-              required
-              h="100%"
-              flex="1"
-              rows={!isExpanded ? 1 : undefined}
-              resize="none"
-              disabled={isLoading}
-              onKeyDown={handleEnter}
-              autoFocus={true}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              bg={useColorModeValue("white", "gray.700")}
-            />
+        <Flex pb={isExpanded ? 8 : 0} flexDir="column" h="100%">
+          <Box flex={isExpanded ? "1" : undefined} mt={2} pb={2}>
+            {isExpanded ? (
+              <Textarea
+                ref={textareaRef}
+                h="100%"
+                resize="none"
+                disabled={isLoading}
+                onKeyDown={handleEnter}
+                autoFocus={true}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                bg={useColorModeValue("white", "gray.700")}
+                placeholder="Type your question"
+              />
+            ) : (
+              <AutoResizingTextarea
+                ref={textareaRef}
+                onKeyDown={handleEnter}
+                autoFocus={true}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                bg={useColorModeValue("white", "gray.700")}
+                placeholder="Type your question"
+              />
+            )}
           </Box>
 
           <Flex gap={1} justify={"space-between"} align="center">
