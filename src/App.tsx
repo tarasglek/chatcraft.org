@@ -3,6 +3,7 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 import { AIChatMessage, BaseChatMessage, HumanChatMessage } from "langchain/schema";
 import { CallbackManager } from "langchain/callbacks";
 import { Box, Flex, useDisclosure, useColorModeValue } from "@chakra-ui/react";
+import { Resizable, type ResizeDirection } from "re-resizable";
 
 import "./App.css";
 import PromptForm from "./components/PromptForm";
@@ -34,7 +35,7 @@ const initialMessages: BaseChatMessage[] = [
 
 function App() {
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
-  const { settings } = useSettings();
+  const { settings, setSettings } = useSettings();
   const [loading, setLoading] = useState(false);
   const [messages, _setMessages] = useState<BaseChatMessage[]>(() => {
     // getting stored value
@@ -126,6 +127,16 @@ function App() {
     setMessages(newMessages);
   }
 
+  function onResize(
+    _e: MouseEvent | TouchEvent,
+    _diretion: ResizeDirection,
+    elementRef: HTMLElement,
+    _delta: { height: number; width: number }
+  ) {
+    // Remember the hight of the prompt panel for next time
+    setSettings({ ...settings, promptPanelHeight: elementRef.clientHeight });
+  }
+
   return (
     <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
@@ -148,20 +159,23 @@ function App() {
           pos="relative"
           flex={isExpanded ? "2" : undefined}
           pb={2}
-          borderTop="1px"
-          borderColor={useColorModeValue("gray.400", "gray.00")}
           bg={useColorModeValue("gray.100", "gray.700")}
         >
-          <PromptIcons isExpanded={isExpanded} toggleExpanded={toggleExpanded} />
-
-          <Box maxW="900px" mx="auto" h="100%" mt={3}>
-            <PromptForm
-              onPrompt={onPrompt}
-              onClear={() => setMessages(initialMessages)}
-              isExpanded={isExpanded}
-              isLoading={loading}
-            />
-          </Box>
+          <Resizable
+            defaultSize={{ height: settings.promptPanelHeight, width: "100%" }}
+            minHeight="120px"
+            onResize={onResize}
+          >
+            <PromptIcons isExpanded={isExpanded} toggleExpanded={toggleExpanded} />
+            <Box maxW="900px" mx="auto" h="100%" mt={3}>
+              <PromptForm
+                onPrompt={onPrompt}
+                onClear={() => setMessages(initialMessages)}
+                isExpanded={isExpanded}
+                isLoading={loading}
+              />
+            </Box>
+          </Resizable>
         </Box>
       </Flex>
     </Box>
