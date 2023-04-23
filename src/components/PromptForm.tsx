@@ -6,15 +6,15 @@ import {
   chakra,
   Checkbox,
   Flex,
-  Select,
-  Stack,
+  Kbd,
+  Text,
   Textarea,
   useBoolean,
   useColorModeValue,
 } from "@chakra-ui/react";
 
 type PromptFormProps = {
-  onPrompt: (prompt: string, model: GptModel, lastMsgMode: boolean) => void;
+  onPrompt: (prompt: string, lastMsgMode: boolean) => void;
   onClear: () => void;
   isExpanded: boolean;
   isLoading: boolean;
@@ -24,7 +24,6 @@ function PromptForm({ onPrompt, onClear, isExpanded, isLoading }: PromptFormProp
   const [prompt, setPrompt] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [lastMsgMode, setLastMsgMode] = useBoolean(false);
-  const [model, setModel] = useState<GptModel>("gpt-3.5-turbo");
 
   // Clear the form when loading finishes and focus the textarea again
   useEffect(() => {
@@ -42,7 +41,7 @@ function PromptForm({ onPrompt, onClear, isExpanded, isLoading }: PromptFormProp
       return;
     }
 
-    onPrompt(value, model, lastMsgMode);
+    onPrompt(value, lastMsgMode);
   };
 
   // Prevent blank submissions and allow for multiline input
@@ -57,27 +56,36 @@ function PromptForm({ onPrompt, onClear, isExpanded, isLoading }: PromptFormProp
   };
 
   return (
-    <chakra.form onSubmit={handleSubmit} h="100%" pb={2} mx={2}>
-      <Flex pb={8} flexDir="column" h="100%">
-        <Box flex="1" mt={2} pb={2}>
-          <Textarea
-            ref={textareaRef}
-            required
-            h="100%"
-            flex="1"
-            rows={!isExpanded ? 1 : undefined}
-            resize="none"
-            disabled={isLoading}
-            onKeyDown={handleEnter}
-            autoFocus={true}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            bg={useColorModeValue("white", "gray.700")}
-          />
-        </Box>
+    <Box h="100%" px={1}>
+      <Text ml={2} fontSize="sm">
+        Type your question.{" "}
+        {!!prompt.length && (
+          <>
+            {" "}
+            <Kbd>Shift</Kbd> + <Kbd>Enter</Kbd> for newline
+          </>
+        )}
+      </Text>
+      <chakra.form onSubmit={handleSubmit} h="100%" pb={2}>
+        <Flex pb={8} flexDir="column" h="100%">
+          <Box flex="1" mt={2} pb={2}>
+            <Textarea
+              ref={textareaRef}
+              required
+              h="100%"
+              flex="1"
+              rows={!isExpanded ? 1 : undefined}
+              resize="none"
+              disabled={isLoading}
+              onKeyDown={handleEnter}
+              autoFocus={true}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              bg={useColorModeValue("white", "gray.700")}
+            />
+          </Box>
 
-        <Flex gap={2} justify={"space-between"} align="center">
-          <Stack spacing={6} direction="row" alignItems="center">
+          <Flex gap={1} justify={"space-between"} align="center">
             <Checkbox
               isDisabled={isLoading}
               checked={lastMsgMode}
@@ -85,38 +93,24 @@ function PromptForm({ onPrompt, onClear, isExpanded, isLoading }: PromptFormProp
             >
               Single Message Mode
             </Checkbox>
-
-            <Stack direction="row" alignItems="center">
-              <label htmlFor="gpt-model">Model</label>
-              <Select
-                id="gpt-model"
+            <ButtonGroup>
+              <Button onClick={onClear} variant="outline" size="sm">
+                Clear Chat
+              </Button>
+              <Button
+                type="submit"
                 size="sm"
-                value={model}
-                onChange={(e) => setModel(e.target.value as GptModel)}
-                isDisabled={isLoading}
+                isDisabled={isLoading || !prompt.length}
+                isLoading={isLoading}
+                loadingText="Loading"
               >
-                <option value="gpt-4">GPT-4</option>
-                <option value="gpt-3.5-turbo">ChatGPT</option>
-              </Select>
-            </Stack>
-          </Stack>
-          <ButtonGroup>
-            <Button onClick={onClear} variant="outline" size="sm">
-              Clear Chat
-            </Button>
-            <Button
-              type="submit"
-              size="sm"
-              isDisabled={isLoading || !prompt.length}
-              isLoading={isLoading}
-              loadingText="Loading"
-            >
-              Send
-            </Button>
-          </ButtonGroup>
+                Send
+              </Button>
+            </ButtonGroup>
+          </Flex>
         </Flex>
-      </Flex>
-    </chakra.form>
+      </chakra.form>
+    </Box>
   );
 }
 

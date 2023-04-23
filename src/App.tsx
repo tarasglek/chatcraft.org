@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { AIChatMessage, BaseChatMessage, HumanChatMessage } from "langchain/schema";
 import { CallbackManager } from "langchain/callbacks";
-import { Box, Flex, Text, useDisclosure, useColorModeValue } from "@chakra-ui/react";
+import { Box, Flex, useDisclosure, useColorModeValue } from "@chakra-ui/react";
 
 import "./App.css";
 import PromptForm from "./components/PromptForm";
 import PromptIcons from "./components/PromptIcons";
 import MessageView from "./components/MessageView";
+import Header from "./components/Header";
+import useSettings from "./hooks/use-settings";
 
 function obj2msg(obj: { role: string; content: string }): BaseChatMessage {
   console.log(obj.role);
@@ -32,6 +34,7 @@ const initialMessages: BaseChatMessage[] = [
 
 function App() {
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
+  const { settings } = useSettings();
   const [loading, setLoading] = useState(false);
   const [messages, _setMessages] = useState<BaseChatMessage[]>(() => {
     // getting stored value
@@ -77,7 +80,7 @@ function App() {
   }, [messages]);
 
   // Handle prompt form submission
-  const onPrompt = async (prompt: string, model: GptModel, lastMsgMode: boolean) => {
+  const onPrompt = async (prompt: string, lastMsgMode: boolean) => {
     setLoading(true);
     const allMessages = [...messages, new HumanChatMessage(prompt)];
     setMessages(allMessages);
@@ -105,7 +108,7 @@ function App() {
       openAIApiKey: openai_api_key,
       temperature: 0,
       streaming: true,
-      modelName: model,
+      modelName: settings.model,
       callbackManager: CallbackManager.fromHandlers({
         handleLLMNewToken: streamHandler,
       }),
@@ -126,6 +129,8 @@ function App() {
   return (
     <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
+        <Header />
+
         <Box
           flex="1"
           overflow="auto"
@@ -149,10 +154,7 @@ function App() {
         >
           <PromptIcons isExpanded={isExpanded} toggleExpanded={toggleExpanded} />
 
-          <Box maxW="1024px" mx="auto" h="100%" mt={3}>
-            <Text ml={2} fontSize="sm">
-              Type your question below. Use <kbd>Shift+Enter</kbd> for newlines.
-            </Text>
+          <Box maxW="900px" mx="auto" h="100%" mt={3}>
             <PromptForm
               onPrompt={onPrompt}
               onClear={() => setMessages(initialMessages)}

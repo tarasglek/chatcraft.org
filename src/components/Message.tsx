@@ -3,7 +3,6 @@ import { BaseChatMessage } from "langchain/schema";
 import {
   Avatar,
   Box,
-  ButtonGroup,
   Card,
   Flex,
   IconButton,
@@ -47,8 +46,8 @@ function MessageView({ message, onDeleteClick }: MessagesViewProps) {
       onMouseEnter={() => setIsMouseOver(true)}
       onMouseLeave={() => setIsMouseOver(false)}
     >
-      <Flex gap={2}>
-        <Box pr={4}>
+      <Flex>
+        <Box pr={6}>
           {isAI ? (
             <Avatar size="sm" name="OpenAI" src={`/ai.png`} />
           ) : (
@@ -61,26 +60,26 @@ function MessageView({ message, onDeleteClick }: MessagesViewProps) {
           <MarkdownWithMermaid>{message.text}</MarkdownWithMermaid>
         </Box>
 
-        <Box>
-          <ButtonGroup isAttached visibility={isMouseOver ? "visible" : "hidden"}>
-            <IconButton
-              aria-label="Copy to Clipboard"
-              title="Copy to Clipboard"
-              icon={<TbCopy />}
-              onClick={() => handleCopy()}
-              color={useColorModeValue("gray.500", "gray.300")}
-              variant="ghost"
-            />
-            <IconButton
-              aria-label="Delete"
-              title="Delete"
-              icon={<CgCloseO />}
-              variant="ghost"
-              color={useColorModeValue("gray.600", "gray.300")}
-              onClick={() => onDeleteClick()}
-            />
-          </ButtonGroup>
-        </Box>
+        <Flex flexDir={{ base: "column-reverse", md: "row" }} justify="start">
+          <IconButton
+            aria-label="Copy to Clipboard"
+            title="Copy to Clipboard"
+            icon={<TbCopy />}
+            onClick={() => handleCopy()}
+            isDisabled={!isMouseOver}
+            color={useColorModeValue("gray.600", "gray.300")}
+            variant="ghost"
+          />
+          <IconButton
+            aria-label="Delete"
+            title="Delete"
+            icon={<CgCloseO />}
+            variant="ghost"
+            isDisabled={!isMouseOver}
+            color={useColorModeValue("gray.600", "gray.300")}
+            onClick={() => onDeleteClick()}
+          />
+        </Flex>
       </Flex>
     </Card>
   );
