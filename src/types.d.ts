@@ -8,5 +8,4 @@ type EnterBehaviour = "send" | "newline";
 type Settings = {
   model: GptModel;
   enterBehaviour: EnterBehaviour;
-  promptPanelHeight: number;
 };

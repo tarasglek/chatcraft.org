@@ -54,9 +54,7 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
                   onChange={(e) => updateSettings({ model: e.target.value as GptModel })}
                 >
                   <option value="gpt-4">GPT-4</option>
-                  <option value="gpt-3.5-turbo" selected>
-                    ChatGPT (gpt-3.5-turbo)
-                  </option>
+                  <option value="gpt-3.5-turbo">ChatGPT (gpt-3.5-turbo)</option>
                 </Select>
                 <FormHelperText>NOTE: not all accounts have access to GPT-4</FormHelperText>
               </FormControl>

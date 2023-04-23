@@ -16,11 +16,11 @@
     "@emotion/styled": "^11.10.6",
     "framer-motion": "^10.12.4",
     "langchain": "^0.0.59",
-    "re-resizable": "^6.9.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.8.0",
     "react-markdown": "^8.0.6",
+    "react-textarea-autosize": "^8.4.1",
     "react-use": "^17.4.0",
     "remark-mermaidjs": "^4.1.1"
   },
