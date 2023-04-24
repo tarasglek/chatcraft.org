@@ -9,6 +9,8 @@ Features:
 
 
 Desired features:
+* sidebar for switching llm params
+* cancelling of streaming messages ala chatgpt
 * New modes of interaction, eg integration with jsfiddle-like workflows, JS/TS REPL
 * Social features: eg I should be able to write a blog post about obscure topic like "LLM-assisted formal methods for program checking" and link to a sample convo from my blog. users could jump in and start exploring that space. 
 * Editing responses from GPT, to get better followup responses for when gpt is almost correct
