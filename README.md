@@ -1,9 +1,16 @@
-This is personal chat-gpt UI clone to facilitate Taras workflow. Hosted on https://private.overthinker.dev/
+This open source GPT UI is meant to be a combinaion of chatgpt and coding REPLs. Idea is to foster creativity by enabling better exploratory programming, learning, etc.
 
-1. Supports rendering mermaid diagrams
-2. Allows to delete messages for when chatbot starts barking up the wrong tree
-3. Has a `Last-message-context-only mode` that's useful for `edit` workflows, also saves api cost. Switches between chatgpt and gpt-4 models
-4. Is fully-clientside openai key storage, message history
-5. No serverside compute dependency, pure react
+Features:
+* previews of HTML and mermaid diagrams.
+* Deletion of messages, single-message mode. easy switching between chatgpt3.5/gpt-4 model to make it easier to coax desired responses
+* fully-clientside UI, openai key storage, message history. This enables for easier exploration of various concepts, adding features for particular modes of interaction, etc
+* vite builds, for super-fast iteration
+* Good chunk of the initial code was written using the tool itself ;)
 
-![First Image](docs/first.png)
+
+Desired features:
+* New modes of interaction, eg integration with jsfiddle-like workflows, JS/TS REPL
+* Editing responses from GPT, to get better followup responses for when gpt is almost correct
+* more LLM models, easier ways to adjust LLM settings
+* voice? phone? chatgpt-plugins?
+
