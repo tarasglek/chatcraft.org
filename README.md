@@ -17,5 +17,6 @@ Desired features:
 * Social features: eg I should be able to write a blog post about obscure topic like "LLM-assisted formal methods for program checking" and link to a sample convo from my blog. users could jump in and start exploring that space. 
 * Editing responses from GPT, to get better followup responses for when gpt is almost correct
 * more LLM models, easier ways to adjust LLM settings
+* allow the UI to be used as a debugging tool to trace various gpt frotnends (eg langchain.js agents)
 * voice? phone? chatgpt-plugins?
 
