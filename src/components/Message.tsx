@@ -14,6 +14,8 @@ import { CgCloseO } from "react-icons/cg";
 import { TbCopy } from "react-icons/tb";
 
 import MarkdownWithMermaid from "./MarkdownWithMermaid";
+// Styles for the message text are defined in CSS vs. Chakra-UI
+import "./Message.css";
 
 type MessagesViewProps = {
   message: BaseChatMessage;
@@ -49,7 +51,7 @@ function MessageView({ message, onDeleteClick }: MessagesViewProps) {
       <Flex>
         <Box pr={6}>
           {isAI ? (
-            <Avatar size="sm" name="OpenAI" src={`/ai.png`} />
+            <Avatar size="sm" src={`/ai.png`} />
           ) : (
             <Avatar size="sm" bg={useColorModeValue("gray.600", "gray.500")} />
           )}

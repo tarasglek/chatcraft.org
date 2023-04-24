@@ -1,0 +1,45 @@
+/* Extra styles for HTML within a message */
+
+.message-text h1,
+.message-text h2,
+.message-text h3,
+.message-text h4,
+.message-text h5,
+.message-text h6 {
+  line-height: 1.4;
+  margin: 0.5em auto;
+}
+
+.message-text p {
+  margin-bottom: 1em;
+  line-height: 1.4;
+}
+
+.message-text ul,
+.message-text ol {
+  margin: 0;
+  padding: 1.5em;
+}
+
+.message-text blockquote {
+  border-left: 4px solid #0096bfab;
+  margin: 1.5em 0em;
+  padding: 0.5em 1em;
+  font-style: italic;
+}
+
+.message-text code,
+.message-text kbd {
+  padding: 5px;
+  border-radius: 6px;
+}
+
+.message-text pre {
+  margin: 1em auto;
+}
+
+.message-text pre > code {
+  padding: 10px;
+  display: block;
+  overflow-x: auto;
+}
