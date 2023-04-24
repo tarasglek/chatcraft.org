@@ -3,7 +3,7 @@ This open source GPT UI is meant to be a combinaion of chatgpt and coding REPLs.
 Features:
 * previews of HTML and mermaid diagrams.
 * Deletion of messages, single-message mode. easy switching between chatgpt3.5/gpt-4 model to make it easier to coax desired responses
-* fully-clientside UI, openai key storage, message history. This enables for easier exploration of various concepts, adding features for particular modes of interaction, etc
+* fully-clientside UI, openai key storage, message history. This enables for easier exploration of various concepts, adding features for particular modes of interaction, etc without having to worry about serverside
 * vite builds, for super-fast iteration
 * Good chunk of the initial code was written using the tool itself ;)
 
