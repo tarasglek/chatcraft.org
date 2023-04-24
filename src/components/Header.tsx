@@ -2,6 +2,8 @@ import {
   ButtonGroup,
   Flex,
   IconButton,
+  Link,
+  Text,
   useColorMode,
   useColorModeValue,
   useDisclosure,
@@ -19,10 +21,14 @@ function Header() {
     <Flex
       w="100%"
       bg={useColorModeValue("white", "gray.700")}
-      justifyContent="end"
+      justify="space-between"
+      align="center"
       borderBottom="1px"
       borderColor={useColorModeValue("gray.200", "gray.500")}
     >
+      <Text pl={4} fontWeight="bold" color={useColorModeValue("blue.600", "blue.200")}>
+        <Link href="/">&lt;ChatCraft /&gt;</Link>
+      </Text>
       <ButtonGroup isAttached pr={2}>
         <IconButton
           as="a"

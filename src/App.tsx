@@ -11,27 +11,11 @@ import { useSettings } from "./hooks/use-settings";
 import useMessages from "./hooks/use-messages";
 
 function App() {
-  const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
   const { messages, setMessages, removeMessage } = useMessages();
   const [singleMessageMode, setSingleMessageMode] = useState(false);
   const { settings } = useSettings();
+  const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
   const [loading, setLoading] = useState(false);
-  const [openai_api_key] = useState(() => {
-    // getting stored value
-    const saved = localStorage.getItem("openai_api_key");
-    if (!saved || saved.length === 0) {
-      // get it from user via input func
-      const key = prompt("Please enter your OpenAI API key");
-      // save it
-      if (key) {
-        localStorage.setItem("openai_api_key", JSON.stringify(key));
-        return key;
-      }
-    } else {
-      return JSON.parse(saved);
-    }
-    return "";
-  });
   const messageListRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
 
@@ -71,7 +55,7 @@ function App() {
     try {
       // Send chat history to API
       const chat = new ChatOpenAI({
-        openAIApiKey: openai_api_key,
+        openAIApiKey: settings.apiKey,
         temperature: 0,
         streaming: true,
         modelName: settings.model,
@@ -131,7 +115,7 @@ function App() {
               singleMessageMode={singleMessageMode}
               onSingleMessageModeChange={setSingleMessageMode}
               isLoading={loading}
-              previousMessage={messages.slice(-1).pop()?.text}
+              previousMessage={messages.at(-1)?.text}
             />
           </Box>
         </Box>
