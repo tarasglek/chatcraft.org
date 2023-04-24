@@ -1,4 +1,4 @@
-This open source GPT UI is meant to be a combinaion of chatgpt and coding REPLs. Idea is to foster creativity by enabling better exploratory programming, learning, etc. Try it out at https://private.overthinker.dev/
+This open source GPT UI is meant to be a combination of chatgpt and coding REPLs. Idea is to foster creativity by enabling better exploratory programming, learning, etc. Try it out at https://private.overthinker.dev/
 
 Features:
 * previews of HTML and mermaid diagrams.
