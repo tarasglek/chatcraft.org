@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState, useRef } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState, useRef } from "react";
 import {
   Box,
   Button,
@@ -15,6 +15,40 @@ import {
 import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
 
 import { AutoResizingTextarea } from "./AutoResizingTextarea";
+import { useSettings } from "../hooks/use-settings";
+import { isMac, isWindows } from "../utils";
+
+type KeyboardHintProps = {
+  isVisible: boolean;
+};
+
+function KeyboardHint({ isVisible }: KeyboardHintProps) {
+  const { settings } = useSettings();
+
+  console.log("keyboard hint", settings);
+
+  if (!isVisible) {
+    return <span />;
+  }
+
+  const metaKey = isMac() ? "Command ⌘" : "Ctrl";
+
+  return (
+    <Text ml={2} fontSize="sm">
+      <span>
+        {settings.enterBehaviour === "send" ? (
+          <span>
+            <Kbd>Shift</Kbd> + <Kbd>Enter</Kbd> for newline
+          </span>
+        ) : (
+          <span>
+            <Kbd>{metaKey}</Kbd> + <Kbd>Enter</Kbd> to send
+          </span>
+        )}
+      </span>
+    </Text>
+  );
+}
 
 type PromptFormProps = {
   onPrompt: (prompt: string) => void;
@@ -39,6 +73,7 @@ function PromptForm({
   isLoading,
 }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
+  const { settings } = useSettings();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Clear the form when loading finishes and focus the textarea again
@@ -61,26 +96,27 @@ function PromptForm({
   };
 
   // Prevent blank submissions and allow for multiline input
-  const handleEnter = (e: any) => {
-    if (e.key === "Enter" && prompt.length) {
-      if (!e.shiftKey && prompt.length) {
-        handleSubmit(e as any);
+  const handleEnter = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== "Enter") {
+      return;
+    }
+
+    // Deal with Enter key based on user preference
+    if (settings.enterBehaviour === "newline") {
+      if ((isMac() && e.metaKey) || (isWindows() && e.ctrlKey)) {
+        handleSubmit(e);
       }
-    } else if (e.key === "Enter") {
-      e.preventDefault();
+    } else if (settings.enterBehaviour === "send") {
+      if (!e.shiftKey && prompt.length) {
+        handleSubmit(e);
+      }
     }
   };
 
   return (
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">
-        <Text ml={2} fontSize="sm">
-          {!!prompt.length && (
-            <span>
-              <Kbd>Shift</Kbd> + <Kbd>Enter</Kbd> for newline
-            </span>
-          )}
-        </Text>
+        <KeyboardHint isVisible={!!prompt.length} />
 
         <ButtonGroup isAttached>
           <IconButton
