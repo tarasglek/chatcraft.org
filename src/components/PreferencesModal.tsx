@@ -18,7 +18,8 @@ import {
   Kbd,
 } from "@chakra-ui/react";
 
-import useSettings from "../hooks/use-settings";
+import { useSettings } from "../hooks/use-settings";
+import { isMac } from "../utils";
 
 type PreferencesModalProps = {
   isOpen: boolean;
@@ -27,10 +28,6 @@ type PreferencesModalProps = {
 
 function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
   const { settings, setSettings } = useSettings();
-
-  const updateSettings = (setting: Partial<Settings>) => {
-    setSettings({ ...settings, ...setting });
-  };
 
   return (
     <>
@@ -51,7 +48,7 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
                 <FormLabel>GPT Model</FormLabel>
                 <Select
                   value={settings.model}
-                  onChange={(e) => updateSettings({ model: e.target.value as GptModel })}
+                  onChange={(e) => setSettings({ ...settings, model: e.target.value as GptModel })}
                 >
                   <option value="gpt-4">GPT-4</option>
                   <option value="gpt-3.5-turbo">ChatGPT (gpt-3.5-turbo)</option>
@@ -66,13 +63,13 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
                 <RadioGroup
                   value={settings.enterBehaviour}
                   onChange={(nextValue) =>
-                    updateSettings({ enterBehaviour: nextValue as EnterBehaviour })
+                    setSettings({ ...settings, enterBehaviour: nextValue as EnterBehaviour })
                   }
                 >
                   <Stack>
                     <Radio value="send">Send the message</Radio>
                     <Radio value="newline">
-                      Start a new line (use <Kbd>⌘</Kbd>+<Kbd>Enter</Kbd> or <Kbd>Ctrl</Kbd>+
+                      Start a new line (use {isMac() ? <Kbd>Command ⌘</Kbd> : <Kbd>Ctrl</Kbd>} +
                       <Kbd>Enter</Kbd> to send)
                     </Radio>
                   </Stack>

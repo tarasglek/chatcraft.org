@@ -7,7 +7,7 @@ import { Box, Flex, useDisclosure, useColorModeValue, useToast } from "@chakra-u
 import PromptForm from "./components/PromptForm";
 import MessageView from "./components/MessageView";
 import Header from "./components/Header";
-import useSettings from "./hooks/use-settings";
+import { useSettings } from "./hooks/use-settings";
 
 function obj2msg(obj: { role: string; content: string }): BaseChatMessage {
   console.log(obj.role);
