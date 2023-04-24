@@ -1,5 +1,7 @@
 This open source GPT UI is meant to be a combination of chatgpt and coding REPLs. Idea is to foster creativity by enabling better exploratory programming, learning, etc. Try it out at https://chatcraft.org
 
+<img width="735" alt="image" src="https://user-images.githubusercontent.com/857083/234095992-ff2c7ad5-9318-4a17-98d3-d19f8d79e635.png">
+
 Features:
 * previews of HTML and mermaid diagrams.
 * Deletion of messages, single-message mode. easy switching between chatgpt3.5/gpt-4 model to make it easier to coax desired responses
