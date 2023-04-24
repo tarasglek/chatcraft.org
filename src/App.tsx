@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { AIChatMessage, BaseChatMessage, HumanChatMessage } from "langchain/schema";
 import { CallbackManager } from "langchain/callbacks";
-import { Box, Flex, useDisclosure, useColorModeValue } from "@chakra-ui/react";
+import { Box, Flex, useDisclosure, useColorModeValue, useToast } from "@chakra-ui/react";
 
-import "./App.css";
 import PromptForm from "./components/PromptForm";
 import MessageView from "./components/MessageView";
 import Header from "./components/Header";
@@ -33,6 +32,7 @@ const initialMessages: BaseChatMessage[] = [
 
 function App() {
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
+  const [singleMessageMode, setSingleMessageMode] = useState(false);
   const { settings } = useSettings();
   const [loading, setLoading] = useState(false);
   const [messages, _setMessages] = useState<BaseChatMessage[]>(() => {
@@ -69,6 +69,7 @@ function App() {
     return "";
   });
   const messageListRef = useRef<HTMLDivElement>(null);
+  const toast = useToast();
 
   // Auto scroll chat to bottom
   useEffect(() => {
@@ -79,7 +80,7 @@ function App() {
   }, [messages]);
 
   // Handle prompt form submission
-  const onPrompt = async (prompt: string, lastMsgMode: boolean) => {
+  const onPrompt = async (prompt: string) => {
     setLoading(true);
     const allMessages = [...messages, new HumanChatMessage(prompt)];
     setMessages(allMessages);
@@ -91,7 +92,7 @@ function App() {
       // },
       ...allMessages,
     ];
-    if (lastMsgMode) {
+    if (singleMessageMode) {
       //trim messages to last 1
       messagesToSend = messagesToSend.slice(-2);
     }
@@ -102,20 +103,32 @@ function App() {
       emptyResponse.text += token;
       setMessages([...allMessages, emptyResponse]);
     };
-    // Send chat history to API
-    const chat = new ChatOpenAI({
-      openAIApiKey: openai_api_key,
-      temperature: 0,
-      streaming: true,
-      modelName: settings.model,
-      callbackManager: CallbackManager.fromHandlers({
-        handleLLMNewToken: streamHandler,
-      }),
-    });
-    let response = await chat.call(messagesToSend);
-    setMessages([...allMessages, response]);
-    // console.log(response, messages);
-    setLoading(false);
+
+    try {
+      // Send chat history to API
+      const chat = new ChatOpenAI({
+        openAIApiKey: openai_api_key,
+        temperature: 0,
+        streaming: true,
+        modelName: settings.model,
+        callbackManager: CallbackManager.fromHandlers({
+          handleLLMNewToken: streamHandler,
+        }),
+      });
+      const response = await chat.call(messagesToSend);
+      setMessages([...allMessages, response]);
+      // console.log(response, messages);
+    } catch (err: any) {
+      toast({
+        title: `OpenAI Response Error`,
+        description: "message" in err ? err.message : undefined,
+        status: "error",
+        position: "top",
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Remove a message from the list when the user requests it
@@ -140,7 +153,11 @@ function App() {
             "linear(to-b, gray.600, gray.700)"
           )}
         >
-          <MessageView messages={messages} onRemoveMessage={onRemoveMessage} />
+          <MessageView
+            messages={messages}
+            onRemoveMessage={onRemoveMessage}
+            singleMessageMode={singleMessageMode}
+          />
         </Box>
 
         <Box
@@ -154,6 +171,8 @@ function App() {
               onClear={() => setMessages(initialMessages)}
               isExpanded={isExpanded}
               toggleExpanded={toggleExpanded}
+              singleMessageMode={singleMessageMode}
+              onSingleMessageModeChange={setSingleMessageMode}
               isLoading={loading}
             />
           </Box>

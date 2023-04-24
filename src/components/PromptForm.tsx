@@ -10,7 +10,6 @@ import {
   Kbd,
   Text,
   Textarea,
-  useBoolean,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
@@ -18,20 +17,29 @@ import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
 import { AutoResizingTextarea } from "./AutoResizingTextarea";
 
 type PromptFormProps = {
-  onPrompt: (prompt: string, lastMsgMode: boolean) => void;
+  onPrompt: (prompt: string) => void;
   onClear: () => void;
   // Whether or not to automatically manage the height of the prompt.
   // When `isExpanded` is `false`, Shit+Enter adds rows. Otherwise,
   // the height is determined automatically by the parent.
   isExpanded: boolean;
   toggleExpanded: () => void;
+  singleMessageMode: boolean;
+  onSingleMessageModeChange: (value: boolean) => void;
   isLoading: boolean;
 };
 
-function PromptForm({ onPrompt, onClear, isExpanded, toggleExpanded, isLoading }: PromptFormProps) {
+function PromptForm({
+  onPrompt,
+  onClear,
+  isExpanded,
+  toggleExpanded,
+  singleMessageMode,
+  onSingleMessageModeChange,
+  isLoading,
+}: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [lastMsgMode, setLastMsgMode] = useBoolean(false);
 
   // Clear the form when loading finishes and focus the textarea again
   useEffect(() => {
@@ -49,7 +57,7 @@ function PromptForm({ onPrompt, onClear, isExpanded, toggleExpanded, isLoading }
       return;
     }
 
-    onPrompt(value, lastMsgMode);
+    onPrompt(value);
   };
 
   // Prevent blank submissions and allow for multiline input
@@ -117,8 +125,8 @@ function PromptForm({ onPrompt, onClear, isExpanded, toggleExpanded, isLoading }
           <Flex gap={1} justify={"space-between"} align="center">
             <Checkbox
               isDisabled={isLoading}
-              checked={lastMsgMode}
-              onChange={() => setLastMsgMode.toggle()}
+              checked={singleMessageMode}
+              onChange={(e) => onSingleMessageModeChange(e.target.checked)}
             >
               Single Message Mode
             </Checkbox>
