@@ -1,4 +1,5 @@
 import {
+  Button,
   FormControl,
   FormLabel,
   FormHelperText,
@@ -39,8 +40,22 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
           <ModalBody>
             <VStack gap={2}>
               <FormControl>
-                <FormLabel>OpenAI API Key</FormLabel>
-                <Input type="password" placeholder="TODO..." />
+                <FormLabel>
+                  OpenAI API Key{" "}
+                  <Button
+                    ml={2}
+                    size="xs"
+                    colorScheme="red"
+                    onClick={() => setSettings({ ...settings, apiKey: undefined })}
+                  >
+                    Remove
+                  </Button>
+                </FormLabel>
+                <Input
+                  type="password"
+                  value={settings.apiKey || ""}
+                  onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
+                />
                 <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
               </FormControl>
 

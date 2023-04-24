@@ -6,13 +6,20 @@ import {
   chakra,
   Checkbox,
   Flex,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  Input,
+  Link,
   IconButton,
   Kbd,
   Text,
   Textarea,
   useColorModeValue,
+  HStack,
 } from "@chakra-ui/react";
-import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
+import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
+
 import { AutoResizingTextarea } from "./AutoResizingTextarea";
 
 import { useSettings } from "../hooks/use-settings";
@@ -75,7 +82,7 @@ function PromptForm({
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
-  const { settings } = useSettings();
+  const { settings, setSettings } = useSettings();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // If the user clears the prompt, allow up-arrow again
@@ -93,8 +100,8 @@ function PromptForm({
     }
   }, [isLoading, textareaRef]);
 
-  // Handle form submission
-  const handleSubmit = async (e: FormEvent) => {
+  // Handle prompt form submission
+  const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
     const value = prompt.trim();
     if (!value.length) {
@@ -102,6 +109,17 @@ function PromptForm({
     }
 
     onPrompt(value);
+  };
+
+  // Handle API key form submission
+  const handleApiKeySubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.target as HTMLFormElement);
+    const apiKey = data.get("api-key");
+
+    if (typeof apiKey === "string") {
+      setSettings({ ...settings, apiKey: apiKey.trim() });
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -120,11 +138,11 @@ function PromptForm({
         // Deal with Enter key based on user preference
         if (settings.enterBehaviour === "newline") {
           if ((isMac() && e.metaKey) || (isWindows() && e.ctrlKey)) {
-            handleSubmit(e);
+            handlePromptSubmit(e);
           }
         } else if (settings.enterBehaviour === "send") {
           if (!e.shiftKey && prompt.length) {
-            handleSubmit(e);
+            handlePromptSubmit(e);
           }
         }
         break;
@@ -151,60 +169,106 @@ function PromptForm({
         </ButtonGroup>
       </Flex>
 
-      <chakra.form onSubmit={handleSubmit} h="100%" pb={2}>
-        <Flex pb={isExpanded ? 8 : 0} flexDir="column" h="100%">
-          <Box flex={isExpanded ? "1" : undefined} mt={2} pb={2}>
-            {isExpanded ? (
-              <Textarea
-                ref={textareaRef}
-                h="100%"
-                resize="none"
-                disabled={isLoading}
-                onKeyDown={handleKeyDown}
-                autoFocus={true}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                bg={useColorModeValue("white", "gray.700")}
-                placeholder="Type your question"
-              />
-            ) : (
-              <AutoResizingTextarea
-                ref={textareaRef}
-                onKeyDown={handleKeyDown}
-                autoFocus={true}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                bg={useColorModeValue("white", "gray.700")}
-                placeholder="Type your question"
-              />
-            )}
-          </Box>
+      {/* If we have an API Key in storage, show the chat form;
+          otherwise give the user a form to enter their API key. */}
+      {settings.apiKey ? (
+        <chakra.form onSubmit={handlePromptSubmit} h="100%" pb={2}>
+          <Flex pb={isExpanded ? 8 : 0} flexDir="column" h="100%">
+            <Box flex={isExpanded ? "1" : undefined} mt={2} pb={2}>
+              {isExpanded ? (
+                <Textarea
+                  ref={textareaRef}
+                  h="100%"
+                  resize="none"
+                  disabled={isLoading}
+                  onKeyDown={handleKeyDown}
+                  autoFocus={true}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  bg={useColorModeValue("white", "gray.700")}
+                  placeholder="Type your question"
+                />
+              ) : (
+                <AutoResizingTextarea
+                  ref={textareaRef}
+                  onKeyDown={handleKeyDown}
+                  autoFocus={true}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  bg={useColorModeValue("white", "gray.700")}
+                  placeholder="Type your question"
+                />
+              )}
+            </Box>
 
-          <Flex gap={1} justify={"space-between"} align="center">
-            <Checkbox
-              isDisabled={isLoading}
-              checked={singleMessageMode}
-              onChange={(e) => onSingleMessageModeChange(e.target.checked)}
-            >
-              Single Message Mode
-            </Checkbox>
-            <ButtonGroup>
-              <Button onClick={onClear} variant="outline" size="sm">
-                Clear Chat
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                isDisabled={isLoading || !prompt.length}
-                isLoading={isLoading}
-                loadingText="Loading"
+            <Flex gap={1} justify={"space-between"} align="center">
+              <Checkbox
+                isDisabled={isLoading}
+                checked={singleMessageMode}
+                onChange={(e) => onSingleMessageModeChange(e.target.checked)}
               >
-                Send
-              </Button>
-            </ButtonGroup>
+                Single Message Mode
+              </Checkbox>
+              <ButtonGroup>
+                <Button onClick={onClear} variant="outline" size="sm">
+                  Clear Chat
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  isDisabled={isLoading || !prompt.length}
+                  isLoading={isLoading}
+                  loadingText="Loading"
+                >
+                  Send
+                </Button>
+              </ButtonGroup>
+            </Flex>
           </Flex>
-        </Flex>
-      </chakra.form>
+        </chakra.form>
+      ) : (
+        <chakra.form onSubmit={handleApiKeySubmit} h="100%" pb={2}>
+          <FormControl>
+            <FormLabel>
+              <HStack>
+                <CgInfo />
+                <Text>
+                  ChatCraft requires an{" "}
+                  <Link
+                    href="https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety"
+                    textDecoration="underline"
+                  >
+                    OpenAI API Key
+                  </Link>
+                  {"."}
+                </Text>
+              </HStack>
+            </FormLabel>
+            <Flex>
+              <Input
+                flex="1"
+                type="password"
+                name="api-key"
+                bg={useColorModeValue("white", "gray.700")}
+                required
+                autoFocus
+              />
+              <Button ml={2} type="submit">
+                Save
+              </Button>
+            </Flex>
+            <FormHelperText>
+              Your API Key will be stored offline in your browser's{" "}
+              <Link
+                href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
+                textDecoration="underline"
+              >
+                local storage
+              </Link>
+            </FormHelperText>
+          </FormControl>
+        </chakra.form>
+      )}
     </Box>
   );
 }

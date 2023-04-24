@@ -6,6 +6,7 @@ type EnterBehaviour = "send" | "newline";
 
 // Settings
 type Settings = {
+  apiKey?: string;
   model: GptModel;
   enterBehaviour: EnterBehaviour;
 };
