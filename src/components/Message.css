@@ -11,14 +11,14 @@
 }
 
 .message-text p {
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
   line-height: 1.4;
 }
 
 .message-text ul,
 .message-text ol {
   margin: 0;
-  padding: 1.5em;
+  padding: 1.2em;
 }
 
 .message-text blockquote {
@@ -35,13 +35,31 @@
 }
 
 .message-text pre {
-  margin: 1em auto;
+  margin: 0.5em auto;
 }
 
 .message-text pre > code {
   padding: 10px;
   display: block;
   overflow-x: auto;
+  font-size: 0.9em;
+}
+
+.message-text img {
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.message-text table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.message-text th,
+.message-text td {
+  border: 1px solid #ccc;
+  padding: 5px;
 }
 
 .message-text a {
