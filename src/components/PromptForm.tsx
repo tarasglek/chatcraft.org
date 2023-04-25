@@ -25,8 +25,6 @@ type KeyboardHintProps = {
 function KeyboardHint({ isVisible }: KeyboardHintProps) {
   const { settings } = useSettings();
 
-  console.log("keyboard hint", settings);
-
   if (!isVisible) {
     return <span />;
   }
