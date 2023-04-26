@@ -174,6 +174,7 @@ function App() {
               singleMessageMode={singleMessageMode}
               onSingleMessageModeChange={setSingleMessageMode}
               isLoading={loading}
+              previousMessage={messages.slice(-1).pop()?.text}
             />
           </Box>
         </Box>
