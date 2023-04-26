@@ -45,14 +45,10 @@ function App() {
       messagesToSend = messagesToSend.slice(-2);
     }
 
-    let emptyResponse = new AIChatMessage("");
-    setMessages([...allMessages, emptyResponse]);
-    let streamHandler = async (token: string) => {
-      emptyResponse.text += token;
-      setMessages([...allMessages, emptyResponse]);
-    };
-
     try {
+      let emptyResponse = new AIChatMessage("");
+      setMessages([...allMessages, emptyResponse]);
+
       // Send chat history to API
       const chat = new ChatOpenAI({
         openAIApiKey: settings.apiKey,
@@ -60,7 +56,16 @@ function App() {
         streaming: true,
         modelName: settings.model,
         callbackManager: CallbackManager.fromHandlers({
-          handleLLMNewToken: streamHandler,
+          async handleLLMNewToken(token: string) {
+            emptyResponse.text += token;
+            setMessages([...allMessages, emptyResponse]);
+          },
+          async handleChainError(err: any, verbose?: boolean) {
+            console.log("handleChainError", err);
+          },
+          async handleLLMError(err: any, verbose?: boolean) {
+            console.log("handleLLMError", err);
+          },
         }),
       });
       const response = await chat.call(messagesToSend);

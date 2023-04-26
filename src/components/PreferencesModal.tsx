@@ -19,6 +19,7 @@ import {
   Kbd,
 } from "@chakra-ui/react";
 
+import RevealablePasswordInput from "./RevealablePasswordInput";
 import { useSettings } from "../hooks/use-settings";
 import { isMac } from "../utils";
 
@@ -47,11 +48,12 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
                     size="xs"
                     colorScheme="red"
                     onClick={() => setSettings({ ...settings, apiKey: undefined })}
+                    isDisabled={!settings.apiKey}
                   >
                     Remove
                   </Button>
                 </FormLabel>
-                <Input
+                <RevealablePasswordInput
                   type="password"
                   value={settings.apiKey || ""}
                   onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
