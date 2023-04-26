@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
-import { AIChatMessage, BaseChatMessage, HumanChatMessage } from "langchain/schema";
+import { AIChatMessage, HumanChatMessage } from "langchain/schema";
 import { CallbackManager } from "langchain/callbacks";
 import { Box, Flex, useDisclosure, useColorModeValue, useToast } from "@chakra-ui/react";
 
@@ -8,50 +8,14 @@ import PromptForm from "./components/PromptForm";
 import MessageView from "./components/MessageView";
 import Header from "./components/Header";
 import { useSettings } from "./hooks/use-settings";
-
-function obj2msg(obj: { role: string; content: string }): BaseChatMessage {
-  console.log(obj.role);
-  if (obj.role === "user") {
-    return new HumanChatMessage(obj.content);
-  } else {
-    return new AIChatMessage(obj.content);
-  }
-}
-
-function msg2obj(msg: BaseChatMessage): { role: string; content: string } {
-  if (msg instanceof HumanChatMessage) {
-    return { role: "user", content: msg.text };
-  } else {
-    return { role: "assistant", content: msg.text };
-  }
-}
-
-const initialMessages: BaseChatMessage[] = [
-  new AIChatMessage("I am a helpful assistant! How can I help?"),
-];
+import useMessages from "./hooks/use-messages";
 
 function App() {
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
+  const { messages, setMessages, removeMessage } = useMessages();
   const [singleMessageMode, setSingleMessageMode] = useState(false);
   const { settings } = useSettings();
   const [loading, setLoading] = useState(false);
-  const [messages, _setMessages] = useState<BaseChatMessage[]>(() => {
-    // getting stored value
-    const saved = localStorage.getItem("messages");
-    if (!saved) {
-      return initialMessages;
-    } else {
-      try {
-        return JSON.parse(saved).map(obj2msg) as BaseChatMessage[];
-      } catch (e) {
-        return initialMessages;
-      }
-    }
-  });
-  const setMessages = (messages: BaseChatMessage[]) => {
-    localStorage.setItem("messages", JSON.stringify(messages.map(msg2obj)));
-    _setMessages(messages);
-  };
   const [openai_api_key] = useState(() => {
     // getting stored value
     const saved = localStorage.getItem("openai_api_key");
@@ -131,13 +95,6 @@ function App() {
     }
   };
 
-  // Remove a message from the list when the user requests it
-  function onRemoveMessage(index: number) {
-    const newMessages = [...messages];
-    newMessages.splice(index, 1);
-    setMessages(newMessages);
-  }
-
   return (
     <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
@@ -155,7 +112,7 @@ function App() {
         >
           <MessageView
             messages={messages}
-            onRemoveMessage={onRemoveMessage}
+            onRemoveMessage={removeMessage}
             singleMessageMode={singleMessageMode}
           />
         </Box>
@@ -168,7 +125,7 @@ function App() {
           <Box maxW="900px" mx="auto" h="100%">
             <PromptForm
               onPrompt={onPrompt}
-              onClear={() => setMessages(initialMessages)}
+              onClear={() => setMessages()}
               isExpanded={isExpanded}
               toggleExpanded={toggleExpanded}
               singleMessageMode={singleMessageMode}

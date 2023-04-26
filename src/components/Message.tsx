@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BaseChatMessage } from "langchain/schema";
+import { AIChatMessage, BaseChatMessage } from "langchain/schema";
 import {
   Avatar,
   Box,
@@ -26,8 +26,7 @@ function MessageView({ message, onDeleteClick }: MessagesViewProps) {
   const [isMouseOver, setIsMouseOver] = useState(false);
   const { onCopy } = useClipboard(message.text);
   const toast = useToast();
-
-  const isAI = message._getType() === "ai";
+  const isAI = message instanceof AIChatMessage;
 
   const handleCopy = () => {
     onCopy();
