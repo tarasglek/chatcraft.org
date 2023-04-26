@@ -13,8 +13,8 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
-
 import { AutoResizingTextarea } from "./AutoResizingTextarea";
+
 import { useSettings } from "../hooks/use-settings";
 import { isMac, isWindows } from "../utils";
 
@@ -59,6 +59,7 @@ type PromptFormProps = {
   singleMessageMode: boolean;
   onSingleMessageModeChange: (value: boolean) => void;
   isLoading: boolean;
+  previousMessage?: string;
 };
 
 function PromptForm({
@@ -69,10 +70,20 @@ function PromptForm({
   singleMessageMode,
   onSingleMessageModeChange,
   isLoading,
+  previousMessage,
 }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
+  // Has the user started typing?
+  const [isDirty, setIsDirty] = useState(false);
   const { settings } = useSettings();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // If the user clears the prompt, allow up-arrow again
+  useEffect(() => {
+    if (!prompt) {
+      setIsDirty(false);
+    }
+  }, [prompt, setIsDirty]);
 
   // Clear the form when loading finishes and focus the textarea again
   useEffect(() => {
@@ -93,21 +104,34 @@ function PromptForm({
     onPrompt(value);
   };
 
-  // Prevent blank submissions and allow for multiline input
-  const handleEnter = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key !== "Enter") {
-      return;
-    }
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    switch (e.key) {
+      // Allow the user to cursor-up to repeat last prompt
+      case "ArrowUp":
+        if (!isDirty && previousMessage) {
+          e.preventDefault();
+          setPrompt(previousMessage);
+          setIsDirty(true);
+        }
+        break;
 
-    // Deal with Enter key based on user preference
-    if (settings.enterBehaviour === "newline") {
-      if ((isMac() && e.metaKey) || (isWindows() && e.ctrlKey)) {
-        handleSubmit(e);
-      }
-    } else if (settings.enterBehaviour === "send") {
-      if (!e.shiftKey && prompt.length) {
-        handleSubmit(e);
-      }
+      // Prevent blank submissions and allow for multiline input.
+      case "Enter":
+        // Deal with Enter key based on user preference
+        if (settings.enterBehaviour === "newline") {
+          if ((isMac() && e.metaKey) || (isWindows() && e.ctrlKey)) {
+            handleSubmit(e);
+          }
+        } else if (settings.enterBehaviour === "send") {
+          if (!e.shiftKey && prompt.length) {
+            handleSubmit(e);
+          }
+        }
+        break;
+
+      default:
+        setIsDirty(true);
+        return;
     }
   };
 
@@ -136,7 +160,7 @@ function PromptForm({
                 h="100%"
                 resize="none"
                 disabled={isLoading}
-                onKeyDown={handleEnter}
+                onKeyDown={handleKeyDown}
                 autoFocus={true}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -146,7 +170,7 @@ function PromptForm({
             ) : (
               <AutoResizingTextarea
                 ref={textareaRef}
-                onKeyDown={handleEnter}
+                onKeyDown={handleKeyDown}
                 autoFocus={true}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
