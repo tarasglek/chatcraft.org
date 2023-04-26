@@ -43,3 +43,7 @@
   display: block;
   overflow-x: auto;
 }
+
+.message-text a {
+  text-decoration: underline;
+}

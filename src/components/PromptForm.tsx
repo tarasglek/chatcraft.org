@@ -21,6 +21,7 @@ import {
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
 
 import { AutoResizingTextarea } from "./AutoResizingTextarea";
+import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
 import { isMac, isWindows } from "../utils";
@@ -180,7 +181,7 @@ function PromptForm({
                   ref={textareaRef}
                   h="100%"
                   resize="none"
-                  disabled={isLoading}
+                  isDisabled={isLoading}
                   onKeyDown={handleKeyDown}
                   autoFocus={true}
                   value={prompt}
@@ -192,6 +193,7 @@ function PromptForm({
                 <AutoResizingTextarea
                   ref={textareaRef}
                   onKeyDown={handleKeyDown}
+                  isDisabled={isLoading}
                   autoFocus={true}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
@@ -210,7 +212,7 @@ function PromptForm({
                 Single Message Mode
               </Checkbox>
               <ButtonGroup>
-                <Button onClick={onClear} variant="outline" size="sm">
+                <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
                   Clear Chat
                 </Button>
                 <Button
@@ -233,19 +235,18 @@ function PromptForm({
               <HStack>
                 <CgInfo />
                 <Text>
-                  ChatCraft requires an{" "}
+                  Please enter your{" "}
                   <Link
                     href="https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety"
                     textDecoration="underline"
                   >
                     OpenAI API Key
                   </Link>
-                  {"."}
                 </Text>
               </HStack>
             </FormLabel>
             <Flex>
-              <Input
+              <RevealablePasswordInput
                 flex="1"
                 type="password"
                 name="api-key"
@@ -253,7 +254,7 @@ function PromptForm({
                 required
                 autoFocus
               />
-              <Button ml={2} type="submit">
+              <Button ml={3} type="submit">
                 Save
               </Button>
             </Flex>
