@@ -5,7 +5,7 @@ import Message from "./Message";
 
 type MessagesViewProps = {
   messages: BaseChatMessage[];
-  onRemoveMessage: (index: number) => void;
+  onRemoveMessage: (message: BaseChatMessage) => void;
   singleMessageMode: boolean;
 };
 
@@ -18,15 +18,12 @@ function MessageView({ messages, onRemoveMessage, singleMessageMode }: MessagesV
       <Collapse in={!singleMessageMode} animateOpacity>
         {messages.map((message: BaseChatMessage, index: number) => {
           return (
-            <Message key={index} message={message} onDeleteClick={() => onRemoveMessage(index)} />
+            <Message key={index} message={message} onDeleteClick={() => onRemoveMessage(message)} />
           );
         })}
       </Collapse>
       {singleMessageMode && lastMessage && (
-        <Message
-          message={lastMessage}
-          onDeleteClick={() => onRemoveMessage(messages.indexOf(lastMessage))}
-        />
+        <Message message={lastMessage} onDeleteClick={() => onRemoveMessage(lastMessage)} />
       )}
     </Box>
   );
