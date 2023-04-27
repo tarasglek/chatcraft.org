@@ -56,7 +56,7 @@ function MessageView({ message, loading, onDeleteClick }: MessagesViewProps) {
           )}
         </Box>
 
-        <Box flex="1" maxWidth="100%" overflow="hidden">
+        <Box flex="1" maxWidth="100%" overflow="hidden" mt={1}>
           {/* Messages are being rendered in Markdown format */}
           <MarkdownWithMermaid previewCode={!loading}>{message.text}</MarkdownWithMermaid>
         </Box>
