@@ -9,7 +9,6 @@ import {
   FormControl,
   FormHelperText,
   FormLabel,
-  Input,
   Link,
   IconButton,
   Kbd,
@@ -28,9 +27,10 @@ import { isMac, isWindows } from "../utils";
 
 type KeyboardHintProps = {
   isVisible: boolean;
+  isExpanded: boolean;
 };
 
-function KeyboardHint({ isVisible }: KeyboardHintProps) {
+function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
   const { settings } = useSettings();
 
   if (!isVisible) {
@@ -42,13 +42,13 @@ function KeyboardHint({ isVisible }: KeyboardHintProps) {
   return (
     <Text ml={2} fontSize="sm">
       <span>
-        {settings.enterBehaviour === "send" ? (
+        {settings.enterBehaviour === "newline" || isExpanded ? (
           <span>
-            <Kbd>Shift</Kbd> + <Kbd>Enter</Kbd> for newline
+            <Kbd>{metaKey}</Kbd> + <Kbd>Enter</Kbd> to send
           </span>
         ) : (
           <span>
-            <Kbd>{metaKey}</Kbd> + <Kbd>Enter</Kbd> to send
+            <Kbd>Shift</Kbd> + <Kbd>Enter</Kbd> for newline
           </span>
         )}
       </span>
@@ -135,8 +135,8 @@ function PromptForm({
 
       // Prevent blank submissions and allow for multiline input.
       case "Enter":
-        // Deal with Enter key based on user preference
-        if (settings.enterBehaviour === "newline") {
+        // Deal with Enter key based on user preference and state of prompt form
+        if (settings.enterBehaviour === "newline" || isExpanded) {
           if ((isMac() && e.metaKey) || (isWindows() && e.ctrlKey)) {
             handlePromptSubmit(e);
           }
@@ -156,7 +156,7 @@ function PromptForm({
   return (
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">
-        <KeyboardHint isVisible={!!prompt.length && !isLoading} />
+        <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
 
         <ButtonGroup isAttached>
           <IconButton
