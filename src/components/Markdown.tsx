@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import {
   Flex,
   ButtonGroup,
@@ -60,12 +60,12 @@ function PreHeader({ children, code }: PreHeaderProps) {
   );
 }
 
-type MarkdownWithMermaidProps = {
+type MarkdownProps = {
   previewCode?: boolean;
   children: string;
 };
 
-const MarkdownWithMermaid = ({ previewCode, children }: MarkdownWithMermaidProps) => {
+const Markdown = ({ previewCode, children }: MarkdownProps) => {
   return (
     <ReactMarkdown
       className="message-text"
@@ -115,4 +115,5 @@ const MarkdownWithMermaid = ({ previewCode, children }: MarkdownWithMermaidProps
   );
 };
 
-export default MarkdownWithMermaid;
+// Don't re-render Markdown unless we have to
+export default memo(Markdown);
