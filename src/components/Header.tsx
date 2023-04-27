@@ -27,7 +27,12 @@ function Header() {
       borderColor={useColorModeValue("gray.50", "gray.600")}
     >
       <Text pl={4} fontWeight="bold" color={useColorModeValue("blue.600", "blue.200")}>
-        <Link href="/">&lt;ChatCraft /&gt;</Link>
+        <Link
+          href="/"
+          _hover={{ textDecoration: "none", color: useColorModeValue("blue.400", "blue.100") }}
+        >
+          &lt;ChatCraft /&gt;
+        </Link>
       </Text>
       <ButtonGroup isAttached pr={2}>
         <IconButton
