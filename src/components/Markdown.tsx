@@ -6,6 +6,8 @@ import {
   useToast,
   useClipboard,
   useColorModeValue,
+  Text,
+  Box,
 } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
 import remarkMermaid from "remark-mermaidjs";
@@ -17,9 +19,9 @@ import { PrismAsyncLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark";
 import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light";
 
-type PreHeaderProps = { children: ReactNode; code: string };
+type PreHeaderProps = { language: string; children: ReactNode; code: string };
 
-function PreHeader({ children, code }: PreHeaderProps) {
+function PreHeader({ language, children, code }: PreHeaderProps) {
   const { onCopy } = useClipboard(code);
   const toast = useToast();
 
@@ -39,11 +41,17 @@ function PreHeader({ children, code }: PreHeaderProps) {
     <>
       <Flex
         bg={useColorModeValue("gray.200", "gray.600")}
-        justify="end"
+        alignItems="center"
+        justify="space-between"
         align="center"
         borderTopLeftRadius="md"
         borderTopRightRadius="md"
       >
+        <Box pl={2}>
+          <Text as="code" fontSize="xs">
+            {language}
+          </Text>
+        </Box>
         <ButtonGroup isAttached pr={2}>
           <IconButton
             size="sm"
@@ -75,7 +83,7 @@ const Markdown = ({ previewCode, children }: MarkdownProps) => {
         code({ node, inline, className, children, ...props }) {
           if (inline) {
             return (
-              <code className={className} {...props}>
+              <code className="inline-code" {...props}>
                 {children}
               </code>
             );
@@ -102,7 +110,7 @@ const Markdown = ({ previewCode, children }: MarkdownProps) => {
               <SyntaxHighlighter
                 children={code}
                 language={language}
-                PreTag={(props) => <PreHeader {...props} code={code} />}
+                PreTag={(props) => <PreHeader {...props} code={code} language={language} />}
                 style={useColorModeValue(oneLight, oneDark)}
                 showLineNumbers={true}
                 wrapLongLines={true}
