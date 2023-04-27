@@ -12,7 +12,7 @@
 
 .message-text p {
   margin-bottom: 0.5em;
-  line-height: 1.4;
+  line-height: 1.6;
 }
 
 .message-text ul,
@@ -32,6 +32,20 @@
 .message-text kbd {
   padding: 5px;
   border-radius: 6px;
+}
+
+/* Wrap inline code in backticks and make bold */
+.message-text .inline-code::before {
+  content: "`";
+  font-size: 0.9em;
+}
+.message-text .inline-code {
+  font-weight: bold;
+  font-size: 0.9em;
+}
+.message-text .inline-code::after {
+  content: "`";
+  font-size: 0.9em;
 }
 
 .message-text pre {
