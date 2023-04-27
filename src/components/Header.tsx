@@ -23,8 +23,8 @@ function Header() {
       bg={useColorModeValue("white", "gray.700")}
       justify="space-between"
       align="center"
-      borderBottom="1px"
-      borderColor={useColorModeValue("gray.200", "gray.500")}
+      borderBottom="2px"
+      borderColor={useColorModeValue("gray.50", "gray.600")}
     >
       <Text pl={4} fontWeight="bold" color={useColorModeValue("blue.600", "blue.200")}>
         <Link href="/">&lt;ChatCraft /&gt;</Link>
