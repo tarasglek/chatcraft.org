@@ -46,6 +46,7 @@
     "prettier": "2.8.8",
     "typescript": "^5.0.4",
     "vite": "^4.3.3",
+    "vite-plugin-pwa": "^0.14.7",
     "vite-plugin-wasm": "^3.2.2",
     "yarn-audit-fix": "^9.3.10"
   },
