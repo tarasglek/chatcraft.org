@@ -60,10 +60,10 @@ function App() {
             emptyResponse.text += token;
             setMessages([...allMessages, emptyResponse]);
           },
-          async handleChainError(err: any, verbose?: boolean) {
+          async handleChainError(err: any, runId?: string, parentRunId?: string) {
             console.log("handleChainError", err);
           },
-          async handleLLMError(err: any, verbose?: boolean) {
+          async handleLLMError(err: any, runId?: string, parentRunId?: string) {
             console.log("handleLLMError", err);
           },
         }),
