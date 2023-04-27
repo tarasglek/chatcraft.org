@@ -157,7 +157,7 @@ function PromptForm({
   return (
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">
-        <KeyboardHint isVisible={!!prompt.length} />
+        <KeyboardHint isVisible={!!prompt.length && !isLoading} />
 
         <ButtonGroup isAttached>
           <IconButton
