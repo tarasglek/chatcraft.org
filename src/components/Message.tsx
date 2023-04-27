@@ -13,7 +13,7 @@ import {
 import { CgCloseO } from "react-icons/cg";
 import { TbCopy } from "react-icons/tb";
 
-import MarkdownWithMermaid from "./MarkdownWithMermaid";
+import Markdown from "./Markdown";
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 
@@ -40,6 +40,7 @@ function MessageView({ message, loading, onDeleteClick }: MessagesViewProps) {
       isClosable: true,
     });
   };
+
   return (
     <Card
       p={6}
@@ -58,7 +59,7 @@ function MessageView({ message, loading, onDeleteClick }: MessagesViewProps) {
 
         <Box flex="1" maxWidth="100%" overflow="hidden" mt={1}>
           {/* Messages are being rendered in Markdown format */}
-          <MarkdownWithMermaid previewCode={!loading}>{message.text}</MarkdownWithMermaid>
+          <Markdown previewCode={!loading}>{message.text}</Markdown>
         </Box>
 
         <Flex flexDir={{ base: "column-reverse", md: "row" }} justify="start">
