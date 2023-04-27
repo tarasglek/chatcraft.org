@@ -93,7 +93,7 @@ function App() {
     }
 
     try {
-      let emptyResponse = new AIChatMessage("");
+      const emptyResponse = new AIChatMessage("");
       setMessages([...allMessages, emptyResponse]);
 
       // Send chat history to API
@@ -108,10 +108,10 @@ function App() {
             setMessages([...allMessages, emptyResponse]);
           },
           async handleChainError(err: any, runId?: string, parentRunId?: string) {
-            console.log("handleChainError", err);
+            console.log("handleChainError", err, runId, parentRunId);
           },
           async handleLLMError(err: any, runId?: string, parentRunId?: string) {
-            console.log("handleLLMError", err);
+            console.log("handleLLMError", err, runId, parentRunId);
           },
         }),
       });

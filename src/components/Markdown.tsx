@@ -72,7 +72,7 @@ const Markdown = ({ previewCode, children }: MarkdownProps) => {
       children={children}
       remarkPlugins={previewCode ? [remarkGfm, remarkMermaid] : []}
       components={{
-        code({ node, inline, className, children, ...props }) {
+        code({ inline, className, children, ...props }) {
           if (inline) {
             return (
               <code className={className} {...props}>
