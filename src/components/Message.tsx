@@ -19,10 +19,11 @@ import "./Message.css";
 
 type MessagesViewProps = {
   message: BaseChatMessage;
+  loading: boolean;
   onDeleteClick: () => void;
 };
 
-function MessageView({ message, onDeleteClick }: MessagesViewProps) {
+function MessageView({ message, loading, onDeleteClick }: MessagesViewProps) {
   const [isMouseOver, setIsMouseOver] = useState(false);
   const { onCopy } = useClipboard(message.text);
   const toast = useToast();
@@ -39,7 +40,6 @@ function MessageView({ message, onDeleteClick }: MessagesViewProps) {
       isClosable: true,
     });
   };
-
   return (
     <Card
       p={6}
@@ -58,7 +58,7 @@ function MessageView({ message, onDeleteClick }: MessagesViewProps) {
 
         <Box flex="1" maxWidth="100%" overflow="hidden">
           {/* Messages are being rendered in Markdown format */}
-          <MarkdownWithMermaid>{message.text}</MarkdownWithMermaid>
+          <MarkdownWithMermaid previewCode={!loading}>{message.text}</MarkdownWithMermaid>
         </Box>
 
         <Flex flexDir={{ base: "column-reverse", md: "row" }} justify="start">

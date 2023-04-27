@@ -61,15 +61,16 @@ function PreHeader({ children, code }: PreHeaderProps) {
 }
 
 type MarkdownWithMermaidProps = {
+  previewCode?: boolean;
   children: string;
 };
 
-const MarkdownWithMermaid = ({ children }: MarkdownWithMermaidProps) => {
+const MarkdownWithMermaid = ({ previewCode, children }: MarkdownWithMermaidProps) => {
   return (
     <ReactMarkdown
       className="message-text"
       children={children}
-      remarkPlugins={[remarkGfm, remarkMermaid]}
+      remarkPlugins={previewCode ? [remarkGfm, remarkMermaid] : []}
       components={{
         code({ node, inline, className, children, ...props }) {
           if (inline) {
@@ -86,12 +87,13 @@ const MarkdownWithMermaid = ({ children }: MarkdownWithMermaidProps) => {
 
           // Include rendered versions of some code blocks before the code
           let prefix = <></>;
-          if (language === "mermaid") {
-            prefix = <div className="mermaid">{children}</div>;
-          } else if (language === "html") {
-            prefix = <iframe className="htmlPreview" srcDoc={children as any}></iframe>;
+          if (previewCode === undefined || previewCode === true) {
+            if (language === "mermaid") {
+              prefix = <div className="mermaid">{children}</div>;
+            } else if (language === "html") {
+              prefix = <iframe className="htmlPreview" srcDoc={children as any}></iframe>;
+            }
           }
-
           const code = String(children);
 
           return (
