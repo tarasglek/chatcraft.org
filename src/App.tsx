@@ -2,7 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { AIChatMessage, HumanChatMessage } from "langchain/schema";
 import { CallbackManager } from "langchain/callbacks";
-import { Box, Flex, useDisclosure, useColorModeValue, useToast } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Text,
+  useDisclosure,
+  useColorModeValue,
+  useToast,
+} from "@chakra-ui/react";
+import { CgArrowDownO } from "react-icons/cg";
 
 import PromptForm from "./components/PromptForm";
 import MessageView from "./components/MessageView";
@@ -16,20 +25,58 @@ function App() {
   const { settings } = useSettings();
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
   const [loading, setLoading] = useState(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const messageListRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
 
-  // Auto scroll chat to bottom
+  // Auto scroll chat to bottom, but only if user isn't trying to scroll manually
   useEffect(() => {
-    if (messageListRef.current) {
+    if (messageListRef.current && shouldAutoScroll) {
       const messageList = messageListRef.current;
       messageList.scrollTop = messageList.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, shouldAutoScroll]);
+
+  // If the user manually scrolls, stop auto scrolling
+  useEffect(() => {
+    const messageList = messageListRef.current;
+    if (!messageList) {
+      return;
+    }
+
+    // Disable auto scroll when we're loading and the user scrolls up to read previous content
+    const handleScroll = () => {
+      // We need a "fudge factor" here, or it constantly loses auto scroll
+      // as content streams in and the container is auto scroll in the
+      // previous useEffect.
+      const scrollThreshold = 25;
+      const atBottom =
+        messageList.scrollTop + messageList.clientHeight >=
+        messageList.scrollHeight - scrollThreshold;
+
+      // Disable auto scrolling if the user scrolls up
+      // while messages are being streamed
+      if (loading && shouldAutoScroll && !atBottom) {
+        setShouldAutoScroll(false);
+      }
+
+      // Re-enable it if the user scrolls back to
+      // the bottom while messages are streaming
+      if (loading && !shouldAutoScroll && atBottom) {
+        setShouldAutoScroll(true);
+      }
+    };
+    messageList.addEventListener("scroll", handleScroll);
+    return () => {
+      messageList.removeEventListener("scroll", handleScroll);
+    };
+  }, [messageListRef, loading, shouldAutoScroll]);
 
   // Handle prompt form submission
   const onPrompt = async (prompt: string) => {
     setLoading(true);
+    setShouldAutoScroll(true);
+
     const allMessages = [...messages, new HumanChatMessage(prompt)];
     setMessages(allMessages);
 
@@ -81,6 +128,7 @@ function App() {
       });
     } finally {
       setLoading(false);
+      setShouldAutoScroll(true);
     }
   };
 
@@ -91,7 +139,7 @@ function App() {
 
         <Box
           flex="1"
-          overflow="auto"
+          overflow="scroll"
           pb={4}
           ref={messageListRef}
           bgGradient={useColorModeValue(
@@ -105,6 +153,15 @@ function App() {
             singleMessageMode={singleMessageMode}
             loading={loading}
           />
+
+          {!shouldAutoScroll && (
+            <Box position="absolute" top="5em" zIndex="500" w="100%" textAlign="center">
+              <Button onClick={() => setShouldAutoScroll(true)}>
+                <CgArrowDownO />
+                <Text ml={2}>Follow Chat</Text>
+              </Button>
+            </Box>
+          )}
         </Box>
 
         <Box
