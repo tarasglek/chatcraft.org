@@ -93,10 +93,8 @@ function PromptForm({
     }
   }, [prompt, setIsDirty]);
 
-  // Clear the form when loading finishes and focus the textarea again
   useEffect(() => {
     if (!isLoading) {
-      setPrompt("");
       textareaRef.current?.focus();
     }
   }, [isLoading, textareaRef]);
@@ -109,6 +107,7 @@ function PromptForm({
       return;
     }
 
+    setPrompt("");
     onPrompt(value);
   };
 
@@ -187,7 +186,7 @@ function PromptForm({
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   bg={useColorModeValue("white", "gray.700")}
-                  placeholder="Type your question"
+                  placeholder={!isLoading ? "Type your question" : undefined}
                 />
               ) : (
                 <AutoResizingTextarea
@@ -198,7 +197,7 @@ function PromptForm({
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   bg={useColorModeValue("white", "gray.700")}
-                  placeholder="Type your question"
+                  placeholder={!isLoading ? "Type your question" : undefined}
                 />
               )}
             </Box>
