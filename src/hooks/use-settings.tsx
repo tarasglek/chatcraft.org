@@ -21,7 +21,9 @@ type SettingsContextType = {
 
 const SettingsContext = createContext<SettingsContextType>({
   settings: defaultSettings,
-  setSettings: () => {},
+  setSettings: () => {
+    /* do nothing */
+  },
 });
 
 export const useSettings = () => useContext(SettingsContext);

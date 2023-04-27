@@ -19,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
 
-import { AutoResizingTextarea } from "./AutoResizingTextarea";
+import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
@@ -258,7 +258,7 @@ function PromptForm({
               </Button>
             </Flex>
             <FormHelperText>
-              Your API Key will be stored offline in your browser's{" "}
+              Your API Key will be stored offline in your browser&apos;s{" "}
               <Link
                 href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
                 textDecoration="underline"
