@@ -103,6 +103,7 @@ function App() {
             messages={messages}
             onRemoveMessage={removeMessage}
             singleMessageMode={singleMessageMode}
+            loading={loading}
           />
         </Box>
 
