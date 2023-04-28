@@ -1,15 +1,6 @@
 import { useState } from "react";
 import { AIChatMessage, BaseChatMessage } from "langchain/schema";
-import {
-  Avatar,
-  Box,
-  Card,
-  Flex,
-  IconButton,
-  useColorModeValue,
-  useClipboard,
-  useToast,
-} from "@chakra-ui/react";
+import { Avatar, Box, Card, Flex, IconButton, useClipboard, useToast } from "@chakra-ui/react";
 import { CgCloseO } from "react-icons/cg";
 import { TbCopy } from "react-icons/tb";
 
@@ -53,7 +44,7 @@ function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
           {isAI ? (
             <Avatar size="sm" src={`/ai.png`} />
           ) : (
-            <Avatar size="sm" bg={useColorModeValue("gray.600", "gray.500")} />
+            <Avatar size="sm" bg="gray.600" _dark={{ bg: "gray.500" }} />
           )}
         </Box>
 
@@ -69,7 +60,8 @@ function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
             icon={<TbCopy />}
             onClick={() => handleCopy()}
             isDisabled={!isMouseOver}
-            color={useColorModeValue("gray.600", "gray.300")}
+            color="gray.600"
+            _dark={{ color: "gray.300" }}
             variant="ghost"
           />
           {onDeleteClick && (
@@ -79,7 +71,8 @@ function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
               icon={<CgCloseO />}
               variant="ghost"
               isDisabled={!isMouseOver}
-              color={useColorModeValue("gray.600", "gray.300")}
+              color="gray.600"
+              _dark={{ color: "gray.300" }}
               onClick={onDeleteClick && (() => onDeleteClick())}
             />
           )}

@@ -14,7 +14,6 @@ import {
   Kbd,
   Text,
   Textarea,
-  useColorModeValue,
   HStack,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
@@ -185,7 +184,8 @@ function PromptForm({
                   autoFocus={true}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  bg={useColorModeValue("white", "gray.700")}
+                  bg="white"
+                  _dark={{ bg: "gray.700" }}
                   placeholder={!isLoading ? "Type your question" : undefined}
                 />
               ) : (
@@ -196,7 +196,8 @@ function PromptForm({
                   autoFocus={true}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  bg={useColorModeValue("white", "gray.700")}
+                  bg="white"
+                  _dark={{ bg: "gray.700" }}
                   placeholder={!isLoading ? "Type your question" : undefined}
                 />
               )}
@@ -249,7 +250,8 @@ function PromptForm({
                 flex="1"
                 type="password"
                 name="api-key"
-                bg={useColorModeValue("white", "gray.700")}
+                bg="white"
+                _dark={{ bg: "gray.700" }}
                 required
                 autoFocus
               />

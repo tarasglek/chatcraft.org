@@ -92,6 +92,8 @@ type MarkdownProps = {
 };
 
 const Markdown = ({ previewCode, children }: MarkdownProps) => {
+  const style = useColorModeValue(oneLight, oneDark);
+
   return (
     <ReactMarkdown
       className="message-text"
@@ -129,7 +131,7 @@ const Markdown = ({ previewCode, children }: MarkdownProps) => {
                 children={code}
                 language={language}
                 PreTag={(props) => <PreHeader {...props} code={code} language={language} />}
-                style={useColorModeValue(oneLight, oneDark)}
+                style={style}
                 showLineNumbers={true}
                 wrapLines={true}
               />

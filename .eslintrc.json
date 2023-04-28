@@ -4,6 +4,7 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:jsx-a11y/recommended",
+    "plugin:react-hooks/recommended",
     "eslint-config-prettier"
   ],
   "settings": {
@@ -15,7 +16,7 @@
     "browser": true
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "prettier"],
+  "plugins": ["@typescript-eslint", "react", "react-hooks", "jsx-a11y", "prettier"],
   "root": true,
   "rules": {
     "prettier/prettier": ["error", {}, { "usePrettierrc": true }],

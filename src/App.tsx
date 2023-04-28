@@ -14,7 +14,6 @@ import { HumanChatMessage } from "langchain/schema";
 import PromptForm from "./components/PromptForm";
 import MessagesView from "./components/MessagesView";
 import Header from "./components/Header";
-import { useSettings } from "./hooks/use-settings";
 import useMessages from "./hooks/use-messages";
 import useChatOpenAI from "./hooks/use-chat-openai";
 
@@ -25,7 +24,6 @@ function App() {
   const { messages, setMessages, removeMessage } = useMessages();
   // Whether to include the whole message chat history or just the last response
   const [singleMessageMode, setSingleMessageMode] = useState(false);
-  const { settings } = useSettings();
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
   const [loading, setLoading] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
@@ -40,7 +38,7 @@ function App() {
       const messageList = messageListRef.current;
       messageList.scrollTop = messageList.scrollHeight;
     }
-  }, [messageListRef.current, streamingMessage, shouldAutoScroll]);
+  }, [messageListRef, streamingMessage, shouldAutoScroll]);
 
   // Disable auto scroll when we're loading and the user scrolls up to read previous content
   const handleScroll = useCallback(() => {
@@ -68,15 +66,18 @@ function App() {
     if (loading && !shouldAutoScroll && atBottom) {
       setShouldAutoScroll(true);
     }
-  }, [loading, shouldAutoScroll, setShouldAutoScroll, messageListRef.current]);
+  }, [loading, shouldAutoScroll, setShouldAutoScroll, messageListRef]);
 
   // If the user manually scrolls, stop auto scrolling
   useEffect(() => {
-    messageListRef.current?.addEventListener("scroll", handleScroll);
+    const messageList = messageListRef.current;
+    if (messageList) {
+      messageList.addEventListener("scroll", handleScroll);
+    }
     return () => {
-      messageListRef.current?.removeEventListener("scroll", handleScroll);
+      messageList?.removeEventListener("scroll", handleScroll);
     };
-  }, [messageListRef, loading, shouldAutoScroll]);
+  }, [messageListRef, handleScroll, shouldAutoScroll]);
 
   // Handle prompt form submission
   const onPrompt = useCallback(
@@ -105,7 +106,7 @@ function App() {
         setShouldAutoScroll(true);
       }
     },
-    [messages, setMessages, singleMessageMode, settings, setLoading, setShouldAutoScroll, toast]
+    [messages, setMessages, singleMessageMode, setLoading, setShouldAutoScroll, callChatApi, toast]
   );
 
   return (
