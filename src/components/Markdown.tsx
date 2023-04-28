@@ -68,12 +68,32 @@ function PreHeader({ language, children, code }: PreHeaderProps) {
   );
 }
 
+const fixLanguage = (language: string | null) => {
+  if (!language) {
+    return "text";
+  }
+
+  // Allow for common short-forms, but map back to known language names
+  switch (language) {
+    case "js":
+      return "javascript";
+    case "ts":
+      return "typescript";
+    case "yml":
+      return "yaml";
+    default:
+      return language;
+  }
+};
+
 type MarkdownProps = {
   previewCode?: boolean;
   children: string;
 };
 
 const Markdown = ({ previewCode, children }: MarkdownProps) => {
+  const style = useColorModeValue(oneLight, oneDark);
+
   return (
     <ReactMarkdown
       className="message-text"
@@ -91,7 +111,7 @@ const Markdown = ({ previewCode, children }: MarkdownProps) => {
 
           // Look for named code fences (e.g., `language-html`)
           const match = /language-(\w+)/.exec(className || "");
-          const language = match ? match[1] : "";
+          const language = fixLanguage(match && match[1]);
 
           // Include rendered versions of some code blocks before the code
           let prefix = <></>;
@@ -111,9 +131,9 @@ const Markdown = ({ previewCode, children }: MarkdownProps) => {
                 children={code}
                 language={language}
                 PreTag={(props) => <PreHeader {...props} code={code} language={language} />}
-                style={useColorModeValue(oneLight, oneDark)}
+                style={style}
                 showLineNumbers={true}
-                wrapLongLines={true}
+                wrapLines={true}
               />
             </>
           );
