@@ -12,7 +12,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkMermaid from "remark-mermaidjs";
 import remarkGfm from "remark-gfm";
-import { TbCopy } from "react-icons/tb";
+import { TbCopy, TbDownload } from "react-icons/tb";
 
 import { PrismAsyncLight as SyntaxHighlighter } from "react-syntax-highlighter";
 // We need both a light and dark theme
@@ -30,6 +30,24 @@ function PreHeader({ language, children, code }: PreHeaderProps) {
     toast({
       title: "Copied to Clipboard",
       description: "Code was copied to your clipboard.",
+      status: "info",
+      duration: 3000,
+      position: "top",
+      isClosable: true,
+    });
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([code], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.setAttribute("download", "code.txt");
+    anchor.setAttribute("href", url);
+    anchor.click();
+
+    toast({
+      title: "Downloaded",
+      description: "Code was downloaded as a file",
       status: "info",
       duration: 3000,
       position: "top",
@@ -55,9 +73,21 @@ function PreHeader({ language, children, code }: PreHeaderProps) {
         <ButtonGroup isAttached pr={2}>
           <IconButton
             size="sm"
+            aria-label="Download code"
+            title="Download code"
+            icon={<TbDownload />}
+            color="gray.600"
+            _dark={{ color: "gray.300" }}
+            variant="ghost"
+            onClick={handleDownload}
+          />
+          <IconButton
+            size="sm"
             aria-label="Copy to Clipboard"
             title="Copy to Clipboard"
             icon={<TbCopy />}
+            color="gray.600"
+            _dark={{ color: "gray.300" }}
             variant="ghost"
             onClick={handleCopy}
           />

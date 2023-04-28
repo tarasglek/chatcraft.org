@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { AIChatMessage, BaseChatMessage } from "langchain/schema";
 import { Avatar, Box, Card, Flex, IconButton, useClipboard, useToast } from "@chakra-ui/react";
 import { CgCloseO } from "react-icons/cg";
@@ -15,7 +14,6 @@ type MessagesViewProps = {
 };
 
 function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
-  const [isMouseOver, setIsMouseOver] = useState(false);
   const { onCopy } = useClipboard(message.text);
   const toast = useToast();
   const isAI = message instanceof AIChatMessage;
@@ -33,12 +31,7 @@ function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
   };
 
   return (
-    <Card
-      p={6}
-      my={6}
-      onMouseEnter={() => setIsMouseOver(true)}
-      onMouseLeave={() => setIsMouseOver(false)}
-    >
+    <Card p={6} my={6}>
       <Flex>
         <Box pr={6}>
           {isAI ? (
@@ -59,7 +52,6 @@ function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
             title="Copy to Clipboard"
             icon={<TbCopy />}
             onClick={() => handleCopy()}
-            isDisabled={!isMouseOver}
             color="gray.600"
             _dark={{ color: "gray.300" }}
             variant="ghost"
@@ -70,7 +62,6 @@ function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
               title="Delete"
               icon={<CgCloseO />}
               variant="ghost"
-              isDisabled={!isMouseOver}
               color="gray.600"
               _dark={{ color: "gray.300" }}
               onClick={onDeleteClick && (() => onDeleteClick())}
