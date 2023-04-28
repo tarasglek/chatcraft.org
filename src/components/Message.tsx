@@ -20,10 +20,10 @@ import "./Message.css";
 type MessagesViewProps = {
   message: BaseChatMessage;
   loading: boolean;
-  onDeleteClick: () => void;
+  onDeleteClick?: () => void;
 };
 
-function MessageView({ message, loading, onDeleteClick }: MessagesViewProps) {
+function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
   const [isMouseOver, setIsMouseOver] = useState(false);
   const { onCopy } = useClipboard(message.text);
   const toast = useToast();
@@ -72,19 +72,21 @@ function MessageView({ message, loading, onDeleteClick }: MessagesViewProps) {
             color={useColorModeValue("gray.600", "gray.300")}
             variant="ghost"
           />
-          <IconButton
-            aria-label="Delete"
-            title="Delete"
-            icon={<CgCloseO />}
-            variant="ghost"
-            isDisabled={!isMouseOver}
-            color={useColorModeValue("gray.600", "gray.300")}
-            onClick={() => onDeleteClick()}
-          />
+          {onDeleteClick && (
+            <IconButton
+              aria-label="Delete"
+              title="Delete"
+              icon={<CgCloseO />}
+              variant="ghost"
+              isDisabled={!isMouseOver}
+              color={useColorModeValue("gray.600", "gray.300")}
+              onClick={onDeleteClick && (() => onDeleteClick())}
+            />
+          )}
         </Flex>
       </Flex>
     </Card>
   );
 }
 
-export default MessageView;
+export default MessagesView;

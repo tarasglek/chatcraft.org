@@ -1,7 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { AIChatMessage, HumanChatMessage } from "langchain/schema";
-import { CallbackManager } from "langchain/callbacks";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -12,15 +9,21 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { CgArrowDownO } from "react-icons/cg";
+import { HumanChatMessage } from "langchain/schema";
 
 import PromptForm from "./components/PromptForm";
-import MessageView from "./components/MessageView";
+import MessagesView from "./components/MessagesView";
 import Header from "./components/Header";
 import { useSettings } from "./hooks/use-settings";
 import useMessages from "./hooks/use-messages";
+import useChatOpenAI from "./hooks/use-chat-openai";
 
 function App() {
+  // When chatting with OpenAI, a streaming message is returned during loading
+  const { streamingMessage, callChatApi } = useChatOpenAI();
+  // Messages are all the static, previous messages in the chat
   const { messages, setMessages, removeMessage } = useMessages();
+  // Whether to include the whole message chat history or just the last response
   const [singleMessageMode, setSingleMessageMode] = useState(false);
   const { settings } = useSettings();
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
@@ -30,107 +33,80 @@ function App() {
   const toast = useToast();
 
   // Auto scroll chat to bottom, but only if user isn't trying to scroll manually
+  // Also add a dependency on the streamingMessage, since its content (and therefore
+  // the height of messageList) will change while streaming.
   useEffect(() => {
-    if (messageListRef.current && shouldAutoScroll) {
+    if (messageListRef.current && shouldAutoScroll && streamingMessage) {
       const messageList = messageListRef.current;
       messageList.scrollTop = messageList.scrollHeight;
     }
-  }, [messages, shouldAutoScroll]);
+  }, [messageListRef.current, streamingMessage, shouldAutoScroll]);
 
-  // If the user manually scrolls, stop auto scrolling
-  useEffect(() => {
+  // Disable auto scroll when we're loading and the user scrolls up to read previous content
+  const handleScroll = useCallback(() => {
     const messageList = messageListRef.current;
     if (!messageList) {
       return;
     }
 
-    // Disable auto scroll when we're loading and the user scrolls up to read previous content
-    const handleScroll = () => {
-      // We need a "fudge factor" here, or it constantly loses auto scroll
-      // as content streams in and the container is auto scroll in the
-      // previous useEffect.
-      const scrollThreshold = 25;
-      const atBottom =
-        messageList.scrollTop + messageList.clientHeight >=
-        messageList.scrollHeight - scrollThreshold;
+    // We need a "fudge factor" here, or it constantly loses auto scroll
+    // as content streams in and the container is auto scroll in the
+    // previous useEffect.
+    const scrollThreshold = 25;
+    const atBottom =
+      messageList.scrollTop + messageList.clientHeight >=
+      messageList.scrollHeight - scrollThreshold;
 
-      // Disable auto scrolling if the user scrolls up
-      // while messages are being streamed
-      if (loading && shouldAutoScroll && !atBottom) {
-        setShouldAutoScroll(false);
-      }
+    // Disable auto scrolling if the user scrolls up
+    // while messages are being streamed
+    if (loading && shouldAutoScroll && !atBottom) {
+      setShouldAutoScroll(false);
+    }
 
-      // Re-enable it if the user scrolls back to
-      // the bottom while messages are streaming
-      if (loading && !shouldAutoScroll && atBottom) {
-        setShouldAutoScroll(true);
-      }
-    };
-    messageList.addEventListener("scroll", handleScroll);
+    // Re-enable it if the user scrolls back to
+    // the bottom while messages are streaming
+    if (loading && !shouldAutoScroll && atBottom) {
+      setShouldAutoScroll(true);
+    }
+  }, [loading, shouldAutoScroll, setShouldAutoScroll, messageListRef.current]);
+
+  // If the user manually scrolls, stop auto scrolling
+  useEffect(() => {
+    messageListRef.current?.addEventListener("scroll", handleScroll);
     return () => {
-      messageList.removeEventListener("scroll", handleScroll);
+      messageListRef.current?.removeEventListener("scroll", handleScroll);
     };
   }, [messageListRef, loading, shouldAutoScroll]);
 
   // Handle prompt form submission
-  const onPrompt = async (prompt: string) => {
-    setLoading(true);
-    setShouldAutoScroll(true);
+  const onPrompt = useCallback(
+    async (prompt: string) => {
+      const allMessages = [...messages, new HumanChatMessage(prompt)];
 
-    const allMessages = [...messages, new HumanChatMessage(prompt)];
-    setMessages(allMessages);
-
-    let messagesToSend = [
-      // {
-      //   role: ChatCompletionRequestMessageRoleEnum.System,
-      //   content: "",
-      // },
-      ...allMessages,
-    ];
-    if (singleMessageMode) {
-      //trim messages to last 1
-      messagesToSend = messagesToSend.slice(-2);
-    }
-
-    try {
-      const emptyResponse = new AIChatMessage("");
-      setMessages([...allMessages, emptyResponse]);
-
-      // Send chat history to API
-      const chat = new ChatOpenAI({
-        openAIApiKey: settings.apiKey,
-        temperature: 0,
-        streaming: true,
-        modelName: settings.model,
-        callbackManager: CallbackManager.fromHandlers({
-          async handleLLMNewToken(token: string) {
-            emptyResponse.text += token;
-            setMessages([...allMessages, emptyResponse]);
-          },
-          async handleChainError(err: any, runId?: string, parentRunId?: string) {
-            console.log("handleChainError", err, runId, parentRunId);
-          },
-          async handleLLMError(err: any, runId?: string, parentRunId?: string) {
-            console.log("handleLLMError", err, runId, parentRunId);
-          },
-        }),
-      });
-      const response = await chat.call(messagesToSend);
-      setMessages([...allMessages, response]);
-      // console.log(response, messages);
-    } catch (err: any) {
-      toast({
-        title: `OpenAI Response Error`,
-        description: "message" in err ? err.message : undefined,
-        status: "error",
-        position: "top",
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
       setShouldAutoScroll(true);
-    }
-  };
+      setMessages(allMessages);
+      setLoading(true);
+
+      try {
+        // In single-message-mode, trim messages to last 1. Otherwise send all
+        const messagesToSend = singleMessageMode ? [...allMessages].slice(-2) : [...allMessages];
+        const response = await callChatApi(messagesToSend);
+        setMessages([...allMessages, response]);
+      } catch (err: any) {
+        toast({
+          title: `OpenAI Response Error`,
+          description: "message" in err ? err.message : undefined,
+          status: "error",
+          position: "top",
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+        setShouldAutoScroll(true);
+      }
+    },
+    [messages, setMessages, singleMessageMode, settings, setLoading, setShouldAutoScroll, toast]
+  );
 
   return (
     <Box w="100%" h="100%">
@@ -147,21 +123,25 @@ function App() {
             "linear(to-b, gray.600, gray.700)"
           )}
         >
-          <MessageView
+          <MessagesView
             messages={messages}
+            newMessage={streamingMessage}
             onRemoveMessage={removeMessage}
             singleMessageMode={singleMessageMode}
             loading={loading}
           />
 
-          {!shouldAutoScroll && (
-            <Box position="absolute" top="5em" zIndex="500" w="100%" textAlign="center">
-              <Button onClick={() => setShouldAutoScroll(true)}>
-                <CgArrowDownO />
-                <Text ml={2}>Follow Chat</Text>
-              </Button>
-            </Box>
-          )}
+          {
+            /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
+            !shouldAutoScroll && (
+              <Box position="absolute" top="5em" zIndex="500" w="100%" textAlign="center">
+                <Button onClick={() => setShouldAutoScroll(true)}>
+                  <CgArrowDownO />
+                  <Text ml={2}>Follow Chat</Text>
+                </Button>
+              </Box>
+            )
+          }
         </Box>
 
         <Box
