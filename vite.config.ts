@@ -11,7 +11,7 @@ import { join } from "node:path";
 // some of these in our service worker.  See full list in:
 // https://github.com/react-syntax-highlighter/react-syntax-highlighter/tree/master/src/languages/prism
 const prismLanguagesDir = "node_modules/react-syntax-highlighter/dist/esm/languages/prism";
-const includedLanguages = ["css.js", "javascript.js", "typescript.js"];
+const includedLanguages = ["css.js", "javascript.js", "typescript.js", "python.js"];
 
 // bash.js -> assets/bash-*.js
 const filenameToGlob = (prefix: string, filename: string) => {
