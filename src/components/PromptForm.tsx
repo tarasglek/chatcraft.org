@@ -187,6 +187,7 @@ function PromptForm({
                   bg="white"
                   _dark={{ bg: "gray.700" }}
                   placeholder={!isLoading ? "Type your question" : undefined}
+                  overflowY="auto"
                 />
               ) : (
                 <AutoResizingTextarea
@@ -199,6 +200,7 @@ function PromptForm({
                   bg="white"
                   _dark={{ bg: "gray.700" }}
                   placeholder={!isLoading ? "Type your question" : undefined}
+                  overflowY="auto"
                 />
               )}
             </Box>
