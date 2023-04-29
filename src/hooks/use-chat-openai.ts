@@ -1,16 +1,21 @@
 import { useState, useCallback } from "react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { CallbackManager } from "langchain/callbacks";
-import { AIChatMessage } from "langchain/schema";
+import { BaseChatMessage, AIChatMessage, SystemChatMessage } from "langchain/schema";
 
 import { useSettings } from "./use-settings";
+
+const systemMessage = `You are ChatCraft.org, a web-based, expert programming AI.
+ You help programmers learn, experiment, and be more creative with code.
+ Respond in GitHub flavored Markdown and format ALL lines of code to 80
+ characters or fewer.`;
 
 function useChatOpenAI() {
   const [streamingMessage, setStreamingMessage] = useState<AIChatMessage>();
   const { settings } = useSettings();
 
   const callChatApi = useCallback(
-    async (messagesToSend: AIChatMessage[]) => {
+    async (messages: BaseChatMessage[]) => {
       setStreamingMessage(new AIChatMessage(""));
 
       const chatOpenAI = new ChatOpenAI({
@@ -30,7 +35,11 @@ function useChatOpenAI() {
           },
         }),
       });
-      return chatOpenAI.call(messagesToSend).finally(() => setStreamingMessage(undefined));
+      // Send the chat history + user's prompt, and prefix it all with a system message
+      const systemChatMessage = new SystemChatMessage(systemMessage);
+      return chatOpenAI
+        .call([systemChatMessage, ...messages])
+        .finally(() => setStreamingMessage(undefined));
     },
     [settings, setStreamingMessage]
   );
