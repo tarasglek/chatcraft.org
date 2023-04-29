@@ -5,7 +5,7 @@ import { BaseChatMessage, AIChatMessage, SystemChatMessage } from "langchain/sch
 
 import { useSettings } from "./use-settings";
 
-const systemMessage = `You are ChatCraft.org, a web-based, expert programming AI.
+export const systemMessage = `You are ChatCraft.org, a web-based, expert programming AI.
  You help programmers learn, experiment, and be more creative with code.
  Respond in GitHub flavored Markdown and format ALL lines of code to 80
  characters or fewer.`;
@@ -35,6 +35,7 @@ function useChatOpenAI() {
           },
         }),
       });
+
       // Send the chat history + user's prompt, and prefix it all with a system message
       const systemChatMessage = new SystemChatMessage(systemMessage);
       return chatOpenAI
@@ -44,7 +45,19 @@ function useChatOpenAI() {
     [settings, setStreamingMessage]
   );
 
-  return { streamingMessage, callChatApi };
+  const getTokenCount = useCallback(
+    async (messages: BaseChatMessage[]) => {
+      const api = new ChatOpenAI({
+        openAIApiKey: settings.apiKey,
+        modelName: settings.model,
+      });
+      const { totalCount } = await api.getNumTokensFromMessages(messages);
+      return totalCount;
+    },
+    [settings]
+  );
+
+  return { streamingMessage, callChatApi, getTokenCount };
 }
 
 export default useChatOpenAI;

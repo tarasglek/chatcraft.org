@@ -1,7 +1,13 @@
-import { AIChatMessage, BaseChatMessage, HumanChatMessage } from "langchain/schema";
+import {
+  AIChatMessage,
+  BaseChatMessage,
+  HumanChatMessage,
+  SystemChatMessage,
+} from "langchain/schema";
 import { useLocalStorage } from "react-use";
 import { useSettings } from "./use-settings";
 import { useEffect, useState } from "react";
+import useChatOpenAI, { systemMessage } from "./use-chat-openai";
 
 const obj2msg = (obj: { role: string; content: string }): BaseChatMessage =>
   obj.role === "user" ? new HumanChatMessage(obj.content) : new AIChatMessage(obj.content);
@@ -29,6 +35,8 @@ const initialMessages = (hasApiKey: boolean): BaseChatMessage[] =>
 
 function useMessages() {
   const { settings } = useSettings();
+  const { getTokenCount } = useChatOpenAI();
+  const [tokenCount, setTokenCount] = useState<number | undefined>();
   const hasApiKey = !!settings.apiKey;
   const [storage, setStorage] = useLocalStorage<BaseChatMessage[]>("messages", [greetingMessage], {
     raw: false,
@@ -62,8 +70,21 @@ function useMessages() {
     setStorage(messages);
   }, [setStorage, messages]);
 
+  // Count the number of tokens in messages, if the user opts in.
+  useEffect(() => {
+    if (settings.countTokens) {
+      // Include the system message too, since we send that as well
+      getTokenCount([new SystemChatMessage(systemMessage), ...messages])
+        .then(setTokenCount)
+        .catch((err: any) => console.warn("Unable to count tokens in messages", err.message));
+    } else {
+      setTokenCount(undefined);
+    }
+  }, [messages, settings, getTokenCount, setTokenCount]);
+
   return {
     messages: messages,
+    tokenCount,
     setMessages(messages?: BaseChatMessage[]) {
       // Allow clearing existing messages back to the initial message list
       const newMessages = messages || initialMessages(hasApiKey);

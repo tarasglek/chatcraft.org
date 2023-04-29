@@ -15,6 +15,7 @@ import {
   Text,
   Textarea,
   HStack,
+  Tag,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
 
@@ -22,7 +23,7 @@ import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
-import { isMac, isWindows } from "../utils";
+import { isMac, isWindows, formatNumber } from "../utils";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -67,6 +68,7 @@ type PromptFormProps = {
   onSingleMessageModeChange: (value: boolean) => void;
   isLoading: boolean;
   previousMessage?: string;
+  tokenCount?: number;
 };
 
 function PromptForm({
@@ -78,6 +80,7 @@ function PromptForm({
   onSingleMessageModeChange,
   isLoading,
   previousMessage,
+  tokenCount,
 }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
@@ -157,15 +160,19 @@ function PromptForm({
       <Flex justify="space-between" alignItems="baseline">
         <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
 
-        <ButtonGroup isAttached>
-          <IconButton
-            aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-            title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-            icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
-            variant="ghost"
-            onClick={toggleExpanded}
-          />
-        </ButtonGroup>
+        <HStack>
+          {tokenCount && <Tag size="sm">{formatNumber(tokenCount)} Tokens</Tag>}
+
+          <ButtonGroup isAttached>
+            <IconButton
+              aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+              title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+              icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
+              variant="ghost"
+              onClick={toggleExpanded}
+            />
+          </ButtonGroup>
+        </HStack>
       </Flex>
 
       {/* If we have an API Key in storage, show the chat form;

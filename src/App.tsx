@@ -19,9 +19,9 @@ import useChatOpenAI from "./hooks/use-chat-openai";
 
 function App() {
   // When chatting with OpenAI, a streaming message is returned during loading
-  const { streamingMessage, callChatApi } = useChatOpenAI();
+  const { streamingMessage, callChatApi, getTokenCount } = useChatOpenAI();
   // Messages are all the static, previous messages in the chat
-  const { messages, setMessages, removeMessage } = useMessages();
+  const { messages, tokenCount, setMessages, removeMessage } = useMessages();
   // Whether to include the whole message chat history or just the last response
   const [singleMessageMode, setSingleMessageMode] = useState(false);
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
@@ -160,6 +160,7 @@ function App() {
               onSingleMessageModeChange={setSingleMessageMode}
               isLoading={loading}
               previousMessage={messages.at(-1)?.text}
+              tokenCount={tokenCount}
             />
           </Box>
         </Box>

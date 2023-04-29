@@ -16,6 +16,7 @@ import {
   Stack,
   Select,
   Kbd,
+  Checkbox,
 } from "@chakra-ui/react";
 
 import RevealablePasswordInput from "./RevealablePasswordInput";
@@ -90,6 +91,15 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
                     </Radio>
                   </Stack>
                 </RadioGroup>
+              </FormControl>
+
+              <FormControl>
+                <Checkbox
+                  isChecked={settings.countTokens}
+                  onChange={(e) => setSettings({ ...settings, countTokens: e.target.checked })}
+                >
+                  Track and Display Messages Token Count
+                </Checkbox>
               </FormControl>
             </VStack>
           </ModalBody>
