@@ -17,6 +17,7 @@ import {
   Select,
   Kbd,
   Checkbox,
+  Link,
 } from "@chakra-ui/react";
 
 import RevealablePasswordInput from "./RevealablePasswordInput";
@@ -68,9 +69,22 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
                   onChange={(e) => setSettings({ ...settings, model: e.target.value as GptModel })}
                 >
                   <option value="gpt-4">GPT-4</option>
-                  <option value="gpt-3.5-turbo">ChatGPT (gpt-3.5-turbo)</option>
+                  <option value="gpt-3.5-turbo">ChatGPT (GPT-3.5-turbo)</option>
                 </Select>
-                <FormHelperText>NOTE: not all accounts have access to GPT-4</FormHelperText>
+                <FormHelperText>
+                  See{" "}
+                  <Link
+                    href="https://platform.openai.com/docs/models/gpt-4"
+                    textDecoration="underline"
+                  >
+                    docs
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="https://openai.com/pricing" textDecoration="underline">
+                    pricing
+                  </Link>
+                  . NOTE: not all accounts have access to GPT-4
+                </FormHelperText>
               </FormControl>
 
               <FormControl>

@@ -23,7 +23,7 @@ import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
-import { isMac, isWindows, formatNumber } from "../utils";
+import { isMac, isWindows, formatNumber, formatCurrency } from "../utils";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -68,7 +68,7 @@ type PromptFormProps = {
   onSingleMessageModeChange: (value: boolean) => void;
   isLoading: boolean;
   previousMessage?: string;
-  tokenCount?: number;
+  tokenInfo?: TokenInfo;
 };
 
 function PromptForm({
@@ -80,7 +80,7 @@ function PromptForm({
   onSingleMessageModeChange,
   isLoading,
   previousMessage,
-  tokenCount,
+  tokenInfo,
 }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
@@ -161,7 +161,13 @@ function PromptForm({
         <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
 
         <HStack>
-          {tokenCount && <Tag size="sm">{formatNumber(tokenCount)} Tokens</Tag>}
+          {
+            /* Only bother with cost if it's $0.01 or more */
+            tokenInfo?.cost && tokenInfo?.cost >= 0.01 && (
+              <Tag size="sm">{formatCurrency(tokenInfo.cost)}</Tag>
+            )
+          }
+          {tokenInfo?.count && <Tag size="sm">{formatNumber(tokenInfo.count)} Tokens</Tag>}
 
           <ButtonGroup isAttached>
             <IconButton

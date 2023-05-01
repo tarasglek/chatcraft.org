@@ -35,8 +35,8 @@ const initialMessages = (hasApiKey: boolean): BaseChatMessage[] =>
 
 function useMessages() {
   const { settings } = useSettings();
-  const { getTokenCount } = useChatOpenAI();
-  const [tokenCount, setTokenCount] = useState<number | undefined>();
+  const { getTokenInfo } = useChatOpenAI();
+  const [tokenInfo, setTokenInfo] = useState<TokenInfo | undefined>();
   const hasApiKey = !!settings.apiKey;
   const [storage, setStorage] = useLocalStorage<BaseChatMessage[]>("messages", [greetingMessage], {
     raw: false,
@@ -74,17 +74,17 @@ function useMessages() {
   useEffect(() => {
     if (settings.countTokens) {
       // Include the system message too, since we send that as well
-      getTokenCount([new SystemChatMessage(systemMessage), ...messages])
-        .then(setTokenCount)
+      getTokenInfo([new SystemChatMessage(systemMessage), ...messages])
+        .then(setTokenInfo)
         .catch((err: any) => console.warn("Unable to count tokens in messages", err.message));
     } else {
-      setTokenCount(undefined);
+      setTokenInfo(undefined);
     }
-  }, [messages, settings, getTokenCount, setTokenCount]);
+  }, [messages, settings, getTokenInfo, setTokenInfo]);
 
   return {
     messages: messages,
-    tokenCount,
+    tokenInfo,
     setMessages(messages?: BaseChatMessage[]) {
       // Allow clearing existing messages back to the initial message list
       const newMessages = messages || initialMessages(hasApiKey);

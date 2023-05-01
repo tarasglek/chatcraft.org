@@ -10,6 +10,22 @@ export const systemMessage = `You are ChatCraft.org, a web-based, expert program
  Respond in GitHub flavored Markdown and format ALL lines of code to 80
  characters or fewer.`;
 
+// See https://openai.com/pricing
+const calculateTokenCost = (tokens: number, model: GptModel): number | undefined => {
+  // Pricing is per 1,000K tokens
+  tokens = tokens / 1000;
+
+  switch (model) {
+    case "gpt-4":
+      return tokens * 0.06;
+    case "gpt-3.5-turbo":
+      return tokens * 0.002;
+    default:
+      console.warn(`Unknown pricing for OpenAI model ${model}`);
+      return undefined;
+  }
+};
+
 function useChatOpenAI() {
   const [streamingMessage, setStreamingMessage] = useState<AIChatMessage>();
   const { settings } = useSettings();
@@ -45,19 +61,19 @@ function useChatOpenAI() {
     [settings, setStreamingMessage]
   );
 
-  const getTokenCount = useCallback(
-    async (messages: BaseChatMessage[]) => {
+  const getTokenInfo = useCallback(
+    async (messages: BaseChatMessage[]): Promise<TokenInfo> => {
       const api = new ChatOpenAI({
         openAIApiKey: settings.apiKey,
         modelName: settings.model,
       });
       const { totalCount } = await api.getNumTokensFromMessages(messages);
-      return totalCount;
+      return { count: totalCount, cost: calculateTokenCost(totalCount, settings.model) };
     },
     [settings]
   );
 
-  return { streamingMessage, callChatApi, getTokenCount };
+  return { streamingMessage, callChatApi, getTokenInfo };
 }
 
 export default useChatOpenAI;
