@@ -17,7 +17,7 @@
     "@emotion/react": "^11.10.8",
     "@emotion/styled": "^11.10.8",
     "framer-motion": "^10.12.4",
-    "langchain": "^0.0.66",
+    "langchain": "^0.0.67",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.8.0",
