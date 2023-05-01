@@ -15,6 +15,7 @@ import {
   Text,
   Textarea,
   HStack,
+  Tag,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
 
@@ -22,7 +23,7 @@ import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
-import { isMac, isWindows } from "../utils";
+import { isMac, isWindows, formatNumber, formatCurrency } from "../utils";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -67,6 +68,7 @@ type PromptFormProps = {
   onSingleMessageModeChange: (value: boolean) => void;
   isLoading: boolean;
   previousMessage?: string;
+  tokenInfo?: TokenInfo;
 };
 
 function PromptForm({
@@ -78,6 +80,7 @@ function PromptForm({
   onSingleMessageModeChange,
   isLoading,
   previousMessage,
+  tokenInfo,
 }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
@@ -157,15 +160,25 @@ function PromptForm({
       <Flex justify="space-between" alignItems="baseline">
         <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
 
-        <ButtonGroup isAttached>
-          <IconButton
-            aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-            title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-            icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
-            variant="ghost"
-            onClick={toggleExpanded}
-          />
-        </ButtonGroup>
+        <HStack>
+          {
+            /* Only bother with cost if it's $0.01 or more */
+            tokenInfo?.cost && tokenInfo?.cost >= 0.01 && (
+              <Tag size="sm">{formatCurrency(tokenInfo.cost)}</Tag>
+            )
+          }
+          {tokenInfo?.count && <Tag size="sm">{formatNumber(tokenInfo.count)} Tokens</Tag>}
+
+          <ButtonGroup isAttached>
+            <IconButton
+              aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+              title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+              icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
+              variant="ghost"
+              onClick={toggleExpanded}
+            />
+          </ButtonGroup>
+        </HStack>
       </Flex>
 
       {/* If we have an API Key in storage, show the chat form;

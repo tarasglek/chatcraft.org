@@ -12,6 +12,8 @@ import { useLocalStorage } from "react-use";
 const defaultSettings: Settings = {
   model: "gpt-3.5-turbo",
   enterBehaviour: "send",
+  // Disabled by default, since token parsing requires downloading larger deps
+  countTokens: false,
 };
 
 type SettingsContextType = {
