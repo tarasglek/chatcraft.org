@@ -112,7 +112,7 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
                   isChecked={settings.countTokens}
                   onChange={(e) => setSettings({ ...settings, countTokens: e.target.checked })}
                 >
-                  Track and Display Messages Token Count
+                  Track and Display Token Count and Cost
                 </Checkbox>
               </FormControl>
             </VStack>
