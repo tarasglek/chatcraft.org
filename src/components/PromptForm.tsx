@@ -268,7 +268,6 @@ function PromptForm({
                 bg="white"
                 _dark={{ bg: "gray.700" }}
                 required
-                autoFocus
               />
               <Button ml={3} type="submit">
                 Save
