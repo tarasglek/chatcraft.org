@@ -244,7 +244,7 @@ function PromptForm({
           </Flex>
         </chakra.form>
       ) : (
-        <chakra.form onSubmit={handleApiKeySubmit} h="100%" pb={2}>
+        <chakra.form onSubmit={handleApiKeySubmit} autoComplete="off" h="100%" pb={2}>
           <FormControl>
             <FormLabel>
               <HStack>
