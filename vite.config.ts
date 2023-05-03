@@ -9,8 +9,8 @@ import { join } from "node:path";
 // For syntax highlighting, we use https://github.com/react-syntax-highlighter/react-syntax-highlighter#async-build
 // It includes 180+ languages defined as .js files.  We only want to pre-cache
 // some of these in our service worker.  See full list in:
-// https://github.com/react-syntax-highlighter/react-syntax-highlighter/tree/master/src/languages/prism
-const prismLanguagesDir = "node_modules/react-syntax-highlighter/dist/esm/languages/prism";
+// https://github.com/react-syntax-highlighter/react-syntax-highlighter/tree/master/src/languages/hljs
+const languagesDir = "node_modules/react-syntax-highlighter/dist/esm/languages/hljs";
 const includedLanguages = ["css.js", "javascript.js", "typescript.js", "python.js"];
 
 // bash.js -> assets/bash-*.js
@@ -26,7 +26,7 @@ function buildLanguageGlobPatterns(prefix: string) {
 
 // Language glob patterns to exclude
 function buildLanguageIgnoreGlobPatterns(prefix: string) {
-  const languageFiles = readdirSync(prismLanguagesDir);
+  const languageFiles = readdirSync(languagesDir);
 
   // Turn ['bash.js', ...] into ['assets/bash-*.js', ...]
   // filtering out the languages we want to bundle.
@@ -60,7 +60,7 @@ export default defineConfig({
         display: "standalone",
       },
       workbox: {
-        // Ignore all Prism languages we don't explicitly include as part of `includedLanguages`
+        // Ignore all languages we don't explicitly include as part of `includedLanguages`
         globIgnores: buildLanguageIgnoreGlobPatterns("**/assets/"),
         globPatterns: [
           "**/*.{js,css,html,ico,png,svg}",

@@ -28,7 +28,6 @@
   font-style: italic;
 }
 
-.message-text code,
 .message-text kbd {
   padding: 5px;
   border-radius: 6px;
@@ -53,10 +52,21 @@
 }
 
 .message-text pre > code {
-  padding: 10px;
-  display: block;
   overflow-x: auto;
   font-size: 0.9em;
+}
+
+.linenumber {
+  padding-left: 0.5em;
+  font-style: italic;
+}
+
+/* Force the line numbers to be lighter gray in highlight.js styles */
+.chakra-ui-light .linenumber {
+  color: rgb(160, 161, 167);
+}
+.chakra-ui-dark .linenumber {
+  color: rgb(92, 99, 112);
 }
 
 .message-text img {

@@ -7,13 +7,13 @@ import Markdown from "./Markdown";
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 
-type MessagesViewProps = {
+type MessageProps = {
   message: BaseChatMessage;
-  loading: boolean;
+  loading?: boolean;
   onDeleteClick?: () => void;
 };
 
-function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
+function Message({ message, loading, onDeleteClick }: MessageProps) {
   const { onCopy } = useClipboard(message.text);
   const toast = useToast();
   const isAI = message instanceof AIChatMessage;
@@ -73,4 +73,4 @@ function MessagesView({ message, loading, onDeleteClick }: MessagesViewProps) {
   );
 }
 
-export default MessagesView;
+export default Message;
