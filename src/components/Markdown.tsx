@@ -1,104 +1,20 @@
-import { memo, type ReactNode } from "react";
-import {
-  Flex,
-  ButtonGroup,
-  IconButton,
-  useToast,
-  useClipboard,
-  useColorModeValue,
-  Text,
-  Box,
-} from "@chakra-ui/react";
+import { Box, useColorModeValue } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
 import remarkMermaid from "remark-mermaidjs";
 import remarkGfm from "remark-gfm";
-import { TbCopy, TbDownload } from "react-icons/tb";
+import { ErrorBoundary } from "react-error-boundary";
 
-import { PrismAsyncLight as SyntaxHighlighter } from "react-syntax-highlighter";
+// Use highlight.js (via lowlight) vs. prism.js (via refractor) due to
+// https://github.com/tarasglek/chatcraft.org/issues/32
+import { LightAsync as SyntaxHighlighter } from "react-syntax-highlighter";
 // We need both a light and dark theme
-import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark";
-import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light";
+import oneDark from "react-syntax-highlighter/dist/esm/styles/hljs/atom-one-dark";
+import oneLight from "react-syntax-highlighter/dist/esm/styles/hljs/atom-one-light";
 
-type PreHeaderProps = { language: string; children: ReactNode; code: string };
+import CodeHeader from "./CodeHeader";
+import HtmlPreview from "./HtmlPreview";
 
-function PreHeader({ language, children, code }: PreHeaderProps) {
-  const { onCopy } = useClipboard(code);
-  const toast = useToast();
-
-  const handleCopy = () => {
-    onCopy();
-    toast({
-      title: "Copied to Clipboard",
-      description: "Code was copied to your clipboard.",
-      status: "info",
-      duration: 3000,
-      position: "top",
-      isClosable: true,
-    });
-  };
-
-  const handleDownload = () => {
-    const blob = new Blob([code], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.setAttribute("download", "code.txt");
-    anchor.setAttribute("href", url);
-    anchor.click();
-
-    toast({
-      title: "Downloaded",
-      description: "Code was downloaded as a file",
-      status: "info",
-      duration: 3000,
-      position: "top",
-      isClosable: true,
-    });
-  };
-
-  return (
-    <>
-      <Flex
-        bg={useColorModeValue("gray.200", "gray.600")}
-        alignItems="center"
-        justify="space-between"
-        align="center"
-        borderTopLeftRadius="md"
-        borderTopRightRadius="md"
-      >
-        <Box pl={2}>
-          <Text as="code" fontSize="xs">
-            {language}
-          </Text>
-        </Box>
-        <ButtonGroup isAttached pr={2}>
-          <IconButton
-            size="sm"
-            aria-label="Download code"
-            title="Download code"
-            icon={<TbDownload />}
-            color="gray.600"
-            _dark={{ color: "gray.300" }}
-            variant="ghost"
-            onClick={handleDownload}
-          />
-          <IconButton
-            size="sm"
-            aria-label="Copy to Clipboard"
-            title="Copy to Clipboard"
-            icon={<TbCopy />}
-            color="gray.600"
-            _dark={{ color: "gray.300" }}
-            variant="ghost"
-            onClick={handleCopy}
-          />
-        </ButtonGroup>
-      </Flex>
-      {children}
-    </>
-  );
-}
-
-const fixLanguage = (language: string | null) => {
+const fixLanguageName = (language: string | null) => {
   if (!language) {
     return "text";
   }
@@ -106,29 +22,41 @@ const fixLanguage = (language: string | null) => {
   // Allow for common short-forms, but map back to known language names
   switch (language) {
     case "js":
+    case "jsx":
       return "javascript";
     case "ts":
+    case "tsx":
       return "typescript";
     case "yml":
       return "yaml";
+    case "objective":
+    case "objective-c":
+      return "objectivec";
+    case "asm":
+    case "assembly":
+      return "armasm";
+    case "sh":
+    case "shell":
+      return "bash";
     default:
       return language;
   }
 };
 
 type MarkdownProps = {
+  includePlugins?: boolean;
   previewCode?: boolean;
   children: string;
 };
 
-const Markdown = ({ previewCode, children }: MarkdownProps) => {
+function Markdown({ includePlugins, previewCode, children }: MarkdownProps) {
   const style = useColorModeValue(oneLight, oneDark);
 
   return (
     <ReactMarkdown
       className="message-text"
       children={children}
-      remarkPlugins={previewCode ? [remarkGfm, remarkMermaid] : []}
+      remarkPlugins={includePlugins && previewCode ? [remarkGfm, remarkMermaid] : []}
       components={{
         code({ inline, className, children, ...props }) {
           if (inline) {
@@ -139,39 +67,59 @@ const Markdown = ({ previewCode, children }: MarkdownProps) => {
             );
           }
 
-          // Look for named code fences (e.g., `language-html`)
+          // Look for named code blocks (e.g., `language-html`)
           const match = /language-(\w+)/.exec(className || "");
-          const language = fixLanguage(match && match[1]);
+          const language = (match && match[1]) || "text";
 
           // Include rendered versions of some code blocks before the code
-          let prefix = <></>;
+          let preview = null;
           if (previewCode === undefined || previewCode === true) {
-            if (language === "mermaid") {
-              prefix = <div className="mermaid">{children}</div>;
-            } else if (language === "html") {
-              prefix = <iframe className="htmlPreview" srcDoc={children as any}></iframe>;
+            if (language === "html") {
+              preview = <HtmlPreview children={children} />;
             }
           }
           const code = String(children);
 
           return (
             <>
-              {prefix}
-              <SyntaxHighlighter
-                children={code}
-                language={language}
-                PreTag={(props) => <PreHeader {...props} code={code} language={language} />}
-                style={style}
-                showLineNumbers={true}
-                wrapLines={true}
-              />
+              {preview}
+              <Box
+                fontSize="0.9em"
+                border="1px"
+                borderRadius="5px"
+                borderColor="gray.200"
+                bg="gray.50"
+                _dark={{
+                  bg: "gray.800",
+                  borderColor: "gray.600",
+                }}
+                pb={1}
+                overflowX="auto"
+              >
+                <SyntaxHighlighter
+                  children={code}
+                  language={fixLanguageName(language)}
+                  PreTag={(props) => <CodeHeader {...props} code={code} language={language} />}
+                  style={style}
+                  showLineNumbers={true}
+                />
+              </Box>
             </>
           );
         },
       }}
     />
   );
-};
+}
 
-// Don't re-render Markdown unless we have to
-export default memo(Markdown);
+// Because Mermaid diagrams (and other Remark plugins) can crash the app, fallback to
+// not use plugins if there is a problem.
+function SafeMarkdown({ previewCode, children }: MarkdownProps) {
+  return (
+    <ErrorBoundary fallback={<Markdown children={children} previewCode={previewCode} />}>
+      <Markdown includePlugins children={children} previewCode={previewCode} />
+    </ErrorBoundary>
+  );
+}
+
+export default SafeMarkdown;

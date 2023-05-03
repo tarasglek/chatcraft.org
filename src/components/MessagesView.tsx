@@ -31,14 +31,12 @@ function MessagesView({
               <Message
                 key={index}
                 message={message}
-                loading={loading && message === lastMessage}
+                loading={loading}
                 onDeleteClick={() => onRemoveMessage(message)}
               />
             );
           })}
-          {newMessage && (
-            <Message message={newMessage} loading={loading && newMessage === lastMessage} />
-          )}
+          {newMessage && <Message message={newMessage} loading={loading} />}
         </>
       </Collapse>
 
@@ -51,9 +49,7 @@ function MessagesView({
             onDeleteClick={() => onRemoveMessage(lastMessage)}
           />
 
-          {newMessage && (
-            <Message message={newMessage} loading={loading && newMessage === lastMessage} />
-          )}
+          {newMessage && <Message message={newMessage} loading={loading} />}
         </>
       )}
     </Box>
