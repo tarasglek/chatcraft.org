@@ -19,7 +19,7 @@ import useChatOpenAI from "./hooks/use-chat-openai";
 
 function App() {
   // When chatting with OpenAI, a streaming message is returned during loading
-  const { streamingMessage, callChatApi, getTokenInfo } = useChatOpenAI();
+  const { streamingMessage, callChatApi } = useChatOpenAI();
   // Messages are all the static, previous messages in the chat
   const { messages, tokenInfo, setMessages, removeMessage } = useMessages();
   // Whether to include the whole message chat history or just the last response
