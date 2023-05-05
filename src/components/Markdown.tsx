@@ -94,7 +94,6 @@ function Markdown({ includePlugins, previewCode, children }: MarkdownProps) {
                   borderColor: "gray.600",
                 }}
                 pb={1}
-                overflowX="auto"
               >
                 <SyntaxHighlighter
                   children={code}
@@ -102,6 +101,11 @@ function Markdown({ includePlugins, previewCode, children }: MarkdownProps) {
                   PreTag={(props) => <CodeHeader {...props} code={code} language={language} />}
                   style={style}
                   showLineNumbers={true}
+                  showInlineLineNumbers={true}
+                  wrapLines={true}
+                  lineProps={{
+                    style: { display: "block" },
+                  }}
                 />
               </Box>
             </>

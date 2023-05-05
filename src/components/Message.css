@@ -51,12 +51,15 @@
   margin: 0.5em auto;
 }
 
-.message-text pre > code {
-  overflow-x: auto;
-  font-size: 0.9em;
+.message-text pre code {
+  font-size: 0.95em;
+  max-width: 100%;
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word;
 }
 
 .linenumber {
+  display: inline-block;
   padding-left: 0.5em;
   font-style: italic;
 }
