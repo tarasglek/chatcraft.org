@@ -82,7 +82,6 @@ function Markdown({ includePlugins, previewCode, children }: MarkdownProps) {
 
           return (
             <>
-              {preview}
               <Box
                 fontSize="0.9em"
                 border="1px"
@@ -104,6 +103,7 @@ function Markdown({ includePlugins, previewCode, children }: MarkdownProps) {
                   showLineNumbers={true}
                 />
               </Box>
+              {preview}
             </>
           );
         },
