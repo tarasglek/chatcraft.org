@@ -7,8 +7,8 @@ import { useSettings } from "./use-settings";
 
 export const systemMessage = `You are ChatCraft.org, a web-based, expert programming AI.
  You help programmers learn, experiment, and be more creative with code.
- Respond in GitHub flavored Markdown and format ALL lines of code to 80
- characters or fewer.`;
+ Respond in GitHub flavored Markdown. Format ALL lines of code to 80
+ characters or fewer. Use Mermaid diagrams when discussing visual topics.`;
 
 // See https://openai.com/pricing
 const calculateTokenCost = (tokens: number, model: GptModel): number | undefined => {
