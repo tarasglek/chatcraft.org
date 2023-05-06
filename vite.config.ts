@@ -63,13 +63,15 @@ export default defineConfig({
         // Ignore all languages we don't explicitly include as part of `includedLanguages`
         globIgnores: buildLanguageIgnoreGlobPatterns("**/assets/"),
         globPatterns: [
-          "**/*.{js,css,html,ico,png,svg}",
+          "*.{ico,png}",
+          "**/assets/*.{js,css,ico,png,svg}",
           ...buildLanguageGlobPatterns("**/assets/"),
         ],
       },
     }),
   ],
   build: {
+    chunkSizeWarningLimit: 2000,
     outDir: "build",
     target: "esnext",
   },
