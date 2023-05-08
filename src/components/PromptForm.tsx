@@ -56,6 +56,26 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
   );
 }
 
+type LoadingHintProps = {
+  isPaused: boolean;
+};
+
+function LoadingHint({ isPaused }: LoadingHintProps) {
+  return (
+    <Text ml={2} fontSize="sm" color="gray.400" _dark={{ color: "gray.500" }}>
+      <span>
+        {isPaused ? (
+          <span>Paused</span>
+        ) : (
+          <span>
+            <em>Loading...</em>
+          </span>
+        )}
+      </span>
+    </Text>
+  );
+}
+
 type PromptFormProps = {
   onPrompt: (prompt: string) => void;
   onClear: () => void;
@@ -166,7 +186,11 @@ function PromptForm({
   return (
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">
-        <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
+        {isLoading ? (
+          <LoadingHint isPaused={isPaused} />
+        ) : (
+          <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
+        )}
 
         <HStack>
           {
@@ -257,15 +281,12 @@ function PromptForm({
                     Cancel
                   </Button>
                 )}
-                <Button
-                  type="submit"
-                  size="sm"
-                  isDisabled={isLoading || !prompt.length}
-                  isLoading={isLoading}
-                  loadingText="Loading"
-                >
-                  Send
-                </Button>
+
+                {!isLoading && (
+                  <Button type="submit" size="sm">
+                    Send
+                  </Button>
+                )}
               </ButtonGroup>
             </Flex>
           </Flex>

@@ -122,6 +122,12 @@ function App() {
     }
   }
 
+  // Restart auto-scrolling and resume a paused response when Follow Chat is clicked
+  function handleFollowChatClick() {
+    setShouldAutoScroll(true);
+    resume();
+  }
+
   return (
     <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
@@ -151,7 +157,7 @@ function App() {
             /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
             !shouldAutoScroll && (
               <Box position="absolute" top="5em" zIndex="500" w="100%" textAlign="center">
-                <Button onClick={() => setShouldAutoScroll(true)}>
+                <Button onClick={() => handleFollowChatClick()}>
                   <CgArrowDownO />
                   <Text ml={2}>Follow Chat</Text>
                 </Button>
