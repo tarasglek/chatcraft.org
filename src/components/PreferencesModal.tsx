@@ -123,7 +123,7 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
                     setSettings({ ...settings, justShowMeTheCode: e.target.checked })
                   }
                 >
-                  Just show me the new code, Don&apos;t explain anything. [new conversations]
+                  Just show me the code, don&apos;t explain anything
                 </Checkbox>
               </FormControl>
             </VStack>
