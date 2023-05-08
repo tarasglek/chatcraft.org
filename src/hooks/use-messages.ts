@@ -17,24 +17,26 @@ const msg2obj = (msg: BaseChatMessage): { role: string; content: string } =>
     ? { role: "user", content: msg.text }
     : { role: "assistant", content: msg.text };
 
-const greetingMessage: BaseChatMessage = new AIChatMessage(
-  "I am a helpful assistant! How can I help?"
-);
-
-const instructionMessage: BaseChatMessage =
-  new AIChatMessage(`I am a helpful assistant! Before I can help, you need to enter an
-[OpenAI API Key](https://platform.openai.com/account/api-keys). Here's an example of what
-an API Key looks like:
-
-\`sk-tVqEo67MxnfAAPQ68iuVT#ClbkFJkUz4oUblcvyUUxrg4T0\` (this is just an example).
-
-Enter your API Key below to begin chatting!`);
-
-const initialMessages = (hasApiKey: boolean): BaseChatMessage[] =>
-  hasApiKey ? [greetingMessage] : [instructionMessage];
-
 function useMessages() {
   const { settings } = useSettings();
+
+  const greetingMessage: BaseChatMessage = new AIChatMessage(
+    settings.justShowMeTheCode
+      ? "I just show the new code, nothing else. I don't explain anything."
+      : "I am a helpful assistant! How can I help?"
+  );
+  const instructionMessage: BaseChatMessage =
+    new AIChatMessage(`I am a helpful assistant! Before I can help, you need to enter an
+  [OpenAI API Key](https://platform.openai.com/account/api-keys). Here's an example of what
+  an API Key looks like:
+
+  \`sk-tVqEo67MxnfAAPQ68iuVT#ClbkFJkUz4oUblcvyUUxrg4T0\` (this is just an example).
+
+  Enter your API Key below to begin chatting!`);
+
+  const initialMessages = (hasApiKey: boolean): BaseChatMessage[] =>
+    hasApiKey ? [greetingMessage] : [instructionMessage];
+
   const { getTokenInfo } = useChatOpenAI();
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | undefined>();
   const hasApiKey = !!settings.apiKey;

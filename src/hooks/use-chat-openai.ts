@@ -63,8 +63,13 @@ function useChatOpenAI() {
         controller.abort();
       });
 
+      const modifiedSystemMessage = settings.justShowMeTheCode
+        ? systemMessage + "Just show me the new code, nothing else. Don't explain anything."
+        : systemMessage;
+      console.log("modifiedSystemMessage", modifiedSystemMessage);
       // Send the chat history + user's prompt, and prefix it all with a system message
-      const systemChatMessage = new SystemChatMessage(systemMessage);
+      const systemChatMessage = new SystemChatMessage(modifiedSystemMessage);
+
       return chatOpenAI
         .call(
           [systemChatMessage, ...messages],

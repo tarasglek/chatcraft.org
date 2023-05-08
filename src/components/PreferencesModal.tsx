@@ -115,6 +115,17 @@ function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
                   Track and Display Token Count and Cost
                 </Checkbox>
               </FormControl>
+
+              <FormControl>
+                <Checkbox
+                  isChecked={settings.justShowMeTheCode}
+                  onChange={(e) =>
+                    setSettings({ ...settings, justShowMeTheCode: e.target.checked })
+                  }
+                >
+                  Just show me the new code, Don&apos;t explain anything. [new conversations]
+                </Checkbox>
+              </FormControl>
             </VStack>
           </ModalBody>
 
