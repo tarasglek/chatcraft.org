@@ -5,11 +5,7 @@ import { BaseChatMessage, AIChatMessage, SystemChatMessage } from "langchain/sch
 import { useKey } from "react-use";
 
 import { useSettings } from "./use-settings";
-
-export const systemMessage = `You are ChatCraft.org, a web-based, expert programming AI.
- You help programmers learn, experiment, and be more creative with code.
- Respond in GitHub flavored Markdown. Format ALL lines of code to 80
- characters or fewer. Use Mermaid diagrams when discussing visual topics.`;
+import useSystemMessage from "./use-system-message";
 
 // See https://openai.com/pricing
 const calculateTokenCost = (tokens: number, model: GptModel): number | undefined => {
@@ -28,6 +24,7 @@ const calculateTokenCost = (tokens: number, model: GptModel): number | undefined
 };
 
 function useChatOpenAI() {
+  const systemMessage = useSystemMessage();
   const [streamingMessage, setStreamingMessage] = useState<AIChatMessage>();
   const { settings } = useSettings();
   const [cancel, setCancel] = useState<() => void>(() => {});
@@ -63,12 +60,8 @@ function useChatOpenAI() {
         controller.abort();
       });
 
-      const modifiedSystemMessage = settings.justShowMeTheCode
-        ? systemMessage + "Just show me the new code, nothing else. Don't explain anything."
-        : systemMessage;
-      console.log("modifiedSystemMessage", modifiedSystemMessage);
-      // Send the chat history + user's prompt, and prefix it all with a system message
-      const systemChatMessage = new SystemChatMessage(modifiedSystemMessage);
+      // Send the chat history + user's prompt, and prefix it all with our system message
+      const systemChatMessage = new SystemChatMessage(systemMessage);
 
       return chatOpenAI
         .call(
@@ -99,7 +92,7 @@ function useChatOpenAI() {
           setPaused(false);
         });
     },
-    [settings, pausedRef, setStreamingMessage]
+    [systemMessage, settings, pausedRef, setStreamingMessage]
   );
 
   const getTokenInfo = useCallback(

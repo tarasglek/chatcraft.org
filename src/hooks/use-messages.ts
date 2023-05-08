@@ -7,7 +7,8 @@ import {
 import { useLocalStorage } from "react-use";
 import { useSettings } from "./use-settings";
 import { useEffect, useState } from "react";
-import useChatOpenAI, { systemMessage } from "./use-chat-openai";
+import useChatOpenAI from "./use-chat-openai";
+import useSystemMessage from "./use-system-message";
 
 const obj2msg = (obj: { role: string; content: string }): BaseChatMessage =>
   obj.role === "user" ? new HumanChatMessage(obj.content) : new AIChatMessage(obj.content);
@@ -17,31 +18,28 @@ const msg2obj = (msg: BaseChatMessage): { role: string; content: string } =>
     ? { role: "user", content: msg.text }
     : { role: "assistant", content: msg.text };
 
+const greetingMessage = "I am a helpful assistant! How can I help?";
+
+const instructionMessage = `I am a helpful assistant! Before I can help, you need to enter an
+ [OpenAI API Key](https://platform.openai.com/account/api-keys). Here's an example of what
+ an API Key looks like:
+
+ \`sk-tVqEo67MxnfAAPQ68iuVT#ClbkFJkUz4oUblcvyUUxrg4T0\` (this is just an example).
+
+ Enter your API Key below to begin chatting!`;
+
+const initialMessages = (hasApiKey: boolean): BaseChatMessage[] =>
+  hasApiKey ? [new AIChatMessage(greetingMessage)] : [new AIChatMessage(instructionMessage)];
+
 function useMessages() {
   const { settings } = useSettings();
-
-  const greetingMessage = "I am a helpful assistant! How can I help?";
-
-  const justShowMeTheCodeMessage =
-    "I just show the new code, nothing else. I don't explain anything.";
-  const instructionMessage = `I am a helpful assistant! Before I can help, you need to enter an
-  [OpenAI API Key](https://platform.openai.com/account/api-keys). Here's an example of what
-  an API Key looks like:
-
-  \`sk-tVqEo67MxnfAAPQ68iuVT#ClbkFJkUz4oUblcvyUUxrg4T0\` (this is just an example).
-
-  Enter your API Key below to begin chatting!`;
-
-  const initialMessages = (hasApiKey: boolean): BaseChatMessage[] => [
-    new AIChatMessage(hasApiKey ? greetingMessage : instructionMessage),
-  ];
-
+  const systemMessage = useSystemMessage();
   const { getTokenInfo } = useChatOpenAI();
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | undefined>();
   const hasApiKey = !!settings.apiKey;
   const [storage, setStorage] = useLocalStorage<BaseChatMessage[]>(
     "messages",
-    [new AIChatMessage(greetingMessage)],
+    initialMessages(hasApiKey),
     {
       raw: false,
       serializer(value: BaseChatMessage[]) {
@@ -58,34 +56,17 @@ function useMessages() {
 
   // When the user enters an API Key (or removes it), update first message
   useEffect(() => {
-    if (!hasApiKey && messages.length >= 1 && messages[0].text !== instructionMessage) {
+    if (!hasApiKey) {
       setMessages([new AIChatMessage(instructionMessage)]);
       return;
     }
 
-    // Replace the instructions when an api key is added if necessary
+    // Replace the instructions when an api key is added, if necessary
     if (hasApiKey && messages[0].text === instructionMessage) {
       const newMessages = [new AIChatMessage(greetingMessage), ...messages.slice(1)];
       setMessages(newMessages);
     }
   }, [hasApiKey, messages]);
-
-  useEffect(() => {
-    if (!hasApiKey || !messages.length) {
-      return;
-    }
-
-    const fromGreetingToJustCode =
-      settings.justShowMeTheCode && messages[0].text === greetingMessage;
-    const fromJustCodeToGreeting =
-      !settings.justShowMeTheCode && messages[0].text === justShowMeTheCodeMessage;
-    if (fromGreetingToJustCode) {
-      setMessages([new AIChatMessage(justShowMeTheCodeMessage), ...messages.slice(1)]);
-    }
-    if (fromJustCodeToGreeting) {
-      setMessages([new AIChatMessage(greetingMessage), ...messages.slice(1)]);
-    }
-  }, [hasApiKey, messages, settings.justShowMeTheCode]);
 
   // Update localStorage when the messages change
   useEffect(() => {
@@ -102,7 +83,7 @@ function useMessages() {
     } else {
       setTokenInfo(undefined);
     }
-  }, [messages, settings, getTokenInfo, setTokenInfo]);
+  }, [systemMessage, messages, settings.countTokens, getTokenInfo, setTokenInfo]);
 
   return {
     messages: messages,
