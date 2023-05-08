@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { CallbackManager } from "langchain/callbacks";
 import { BaseChatMessage, AIChatMessage, SystemChatMessage } from "langchain/schema";
+import { useKey } from "react-use";
 
 import { useSettings } from "./use-settings";
 
@@ -29,9 +30,21 @@ const calculateTokenCost = (tokens: number, model: GptModel): number | undefined
 function useChatOpenAI() {
   const [streamingMessage, setStreamingMessage] = useState<AIChatMessage>();
   const { settings } = useSettings();
+  const [cancel, setCancel] = useState<() => void>(() => {});
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(paused);
+
+  // Listen for escape being pressed on window, and cancel any in flight
+  useKey("Escape", cancel, { event: "keydown" }, [cancel]);
+
+  // Make sure we always use the correct `paused` value in our streaming callback below
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
 
   const callChatApi = useCallback(
-    async (messages: BaseChatMessage[]) => {
+    (messages: BaseChatMessage[]) => {
+      const buffer: string[] = [];
       setStreamingMessage(new AIChatMessage(""));
 
       const chatOpenAI = new ChatOpenAI({
@@ -39,26 +52,49 @@ function useChatOpenAI() {
         temperature: 0,
         streaming: true,
         modelName: settings.model,
-        callbackManager: CallbackManager.fromHandlers({
-          async handleLLMNewToken(token: string) {
-            setStreamingMessage((prev) => new AIChatMessage((prev?.text || "") + token));
-          },
-          async handleChainError(err: any, runId?: string, parentRunId?: string) {
-            console.log("handleChainError", err, runId, parentRunId);
-          },
-          async handleLLMError(err: any, runId?: string, parentRunId?: string) {
-            console.log("handleLLMError", err, runId, parentRunId);
-          },
-        }),
+        callbackManager: CallbackManager.fromHandlers({}),
+      });
+
+      // Allow the stream to be cancelled
+      const controller = new AbortController();
+
+      // Set the cancel and pause functions
+      setCancel(() => () => {
+        controller.abort();
       });
 
       // Send the chat history + user's prompt, and prefix it all with a system message
       const systemChatMessage = new SystemChatMessage(systemMessage);
       return chatOpenAI
-        .call([systemChatMessage, ...messages])
-        .finally(() => setStreamingMessage(undefined));
+        .call(
+          [systemChatMessage, ...messages],
+          {
+            options: { signal: controller.signal },
+          },
+          CallbackManager.fromHandlers({
+            async handleLLMNewToken(token: string) {
+              buffer.push(token);
+
+              if (!pausedRef.current) {
+                setStreamingMessage(new AIChatMessage(buffer.join("")));
+              }
+            },
+          })
+        )
+        .catch((err) => {
+          // Deal with cancelled messages by returning a partial message
+          if (err.message.startsWith("Cancel:")) {
+            buffer.push("...");
+            return new AIChatMessage(buffer.join("")) as BaseChatMessage;
+          }
+          throw err;
+        })
+        .finally(() => {
+          setStreamingMessage(undefined);
+          setPaused(false);
+        });
     },
-    [settings, setStreamingMessage]
+    [settings, pausedRef, setStreamingMessage]
   );
 
   const getTokenInfo = useCallback(
@@ -73,7 +109,15 @@ function useChatOpenAI() {
     [settings]
   );
 
-  return { streamingMessage, callChatApi, getTokenInfo };
+  return {
+    streamingMessage,
+    callChatApi,
+    getTokenInfo,
+    cancel,
+    isPaused: paused,
+    pause: () => setPaused(true),
+    resume: () => setPaused(false),
+  };
 }
 
 export default useChatOpenAI;

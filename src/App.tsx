@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import {
   Box,
   Button,
@@ -19,7 +19,7 @@ import useChatOpenAI from "./hooks/use-chat-openai";
 
 function App() {
   // When chatting with OpenAI, a streaming message is returned during loading
-  const { streamingMessage, callChatApi } = useChatOpenAI();
+  const { streamingMessage, callChatApi, cancel, isPaused, pause, resume } = useChatOpenAI();
   // Messages are all the static, previous messages in the chat
   const { messages, tokenInfo, setMessages, removeMessage } = useMessages();
   // Whether to include the whole message chat history or just the last response
@@ -109,6 +109,19 @@ function App() {
     [messages, setMessages, singleMessageMode, setLoading, setShouldAutoScroll, callChatApi, toast]
   );
 
+  // If the user presses/releases the mouse while loading a message, pause/resume
+  // to make it easier to copy/paste text as it streams in.
+  function handleMouseDown() {
+    if (loading && !isPaused) {
+      pause();
+    }
+  }
+  function handleMouseUp() {
+    if (loading && isPaused) {
+      resume();
+    }
+  }
+
   return (
     <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
@@ -123,6 +136,8 @@ function App() {
             "linear(to-b, white, gray.100)",
             "linear(to-b, gray.600, gray.700)"
           )}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
         >
           <MessagesView
             messages={messages}
@@ -154,6 +169,10 @@ function App() {
             <PromptForm
               onPrompt={onPrompt}
               onClear={() => setMessages()}
+              isPaused={isPaused}
+              onPause={() => pause()}
+              onResume={() => resume()}
+              onCancel={() => cancel()}
               isExpanded={isExpanded}
               toggleExpanded={toggleExpanded}
               singleMessageMode={singleMessageMode}
