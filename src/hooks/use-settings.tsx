@@ -14,6 +14,7 @@ const defaultSettings: Settings = {
   enterBehaviour: "send",
   // Disabled by default, since token parsing requires downloading larger deps
   countTokens: false,
+  justShowMeTheCode: false,
 };
 
 type SettingsContextType = {

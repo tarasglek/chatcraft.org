@@ -15,6 +15,7 @@ type Settings = {
   apiKey?: string;
   model: GptModel;
   enterBehaviour: EnterBehaviour;
+  justShowMeTheCode: boolean;
   countTokens: boolean;
 };
 
