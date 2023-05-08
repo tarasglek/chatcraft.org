@@ -59,6 +59,10 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
 type PromptFormProps = {
   onPrompt: (prompt: string) => void;
   onClear: () => void;
+  isPaused: boolean;
+  onPause: () => void;
+  onResume: () => void;
+  onCancel: () => void;
   // Whether or not to automatically manage the height of the prompt.
   // When `isExpanded` is `false`, Shit+Enter adds rows. Otherwise,
   // the height is determined automatically by the parent.
@@ -74,6 +78,10 @@ type PromptFormProps = {
 function PromptForm({
   onPrompt,
   onClear,
+  isPaused,
+  onPause,
+  onResume,
+  onCancel,
   isExpanded,
   toggleExpanded,
   singleMessageMode,
@@ -227,9 +235,28 @@ function PromptForm({
                 Single Message Mode
               </Checkbox>
               <ButtonGroup>
-                <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
-                  Clear Chat
-                </Button>
+                {!isLoading && (
+                  <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
+                    Clear Chat
+                  </Button>
+                )}
+
+                {isLoading && isPaused && (
+                  <Button size="sm" variant="outline" onClick={() => onResume()}>
+                    Resume
+                  </Button>
+                )}
+                {isLoading && !isPaused && (
+                  <Button size="sm" variant="outline" onClick={() => onPause()}>
+                    Pause
+                  </Button>
+                )}
+
+                {isLoading && (
+                  <Button size="sm" onClick={() => onCancel()}>
+                    Cancel
+                  </Button>
+                )}
                 <Button
                   type="submit"
                   size="sm"
