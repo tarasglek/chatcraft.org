@@ -21,12 +21,12 @@ const msg2obj = (msg: BaseChatMessage): { role: string; content: string } =>
 const greetingMessage = "I am a helpful assistant! How can I help?";
 
 const instructionMessage = `I am a helpful assistant! Before I can help, you need to enter an
- [OpenAI API Key](https://platform.openai.com/account/api-keys). Here's an example of what
+ [OpenAI API Key](https://platform.openai.com/account/api-keys) below. Here's an example of what
  an API Key looks like:
 
  \`sk-tVqEo67MxnfAAPQ68iuVT#ClbkFJkUz4oUblcvyUUxrg4T0\` (this is just an example).
 
- Enter your API Key below to begin chatting!`;
+ Please enter your API Key in the form below to begin chatting!`;
 
 const initialMessages = (hasApiKey: boolean): BaseChatMessage[] =>
   hasApiKey ? [new AIChatMessage(greetingMessage)] : [new AIChatMessage(instructionMessage)];
