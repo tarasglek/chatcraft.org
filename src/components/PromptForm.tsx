@@ -17,7 +17,14 @@ import {
   HStack,
   Tag,
 } from "@chakra-ui/react";
-import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
+import {
+  CgChevronUpO,
+  CgChevronDownO,
+  CgInfo,
+  CgPlayPauseO,
+  CgPlayButtonO,
+  CgPlayStopO,
+} from "react-icons/cg";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
@@ -58,21 +65,28 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
 
 type LoadingHintProps = {
   isPaused: boolean;
+  onPause: () => void;
+  onResume: () => void;
+  onCancel: () => void;
 };
 
-function LoadingHint({ isPaused }: LoadingHintProps) {
+function LoadingHint({ isPaused, onPause, onResume }: LoadingHintProps) {
   return (
-    <Text ml={2} fontSize="sm" color="gray.400" _dark={{ color: "gray.500" }}>
-      <span>
-        {isPaused ? (
-          <span>Paused</span>
-        ) : (
-          <span>
-            <em>Loading...</em>
-          </span>
-        )}
-      </span>
-    </Text>
+    <ButtonGroup>
+      <Button variant="outline" size="xs" leftIcon={<CgPlayStopO />} onClick={onResume}>
+        Cancel
+      </Button>
+
+      {isPaused ? (
+        <Button size="xs" leftIcon={<CgPlayButtonO />} onClick={onResume}>
+          Resume
+        </Button>
+      ) : (
+        <Button size="xs" leftIcon={<CgPlayPauseO />} onClick={onPause}>
+          Pause
+        </Button>
+      )}
+    </ButtonGroup>
   );
 }
 
@@ -187,7 +201,12 @@ function PromptForm({
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">
         {isLoading ? (
-          <LoadingHint isPaused={isPaused} />
+          <LoadingHint
+            isPaused={isPaused}
+            onPause={onPause}
+            onResume={onResume}
+            onCancel={onCancel}
+          />
         ) : (
           <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
         )}
@@ -196,10 +215,16 @@ function PromptForm({
           {
             /* Only bother with cost if it's $0.01 or more */
             tokenInfo?.cost && tokenInfo?.cost >= 0.01 && (
-              <Tag size="sm">{formatCurrency(tokenInfo.cost)}</Tag>
+              <Tag key="token-cost" size="sm">
+                {formatCurrency(tokenInfo.cost)}
+              </Tag>
             )
           }
-          {tokenInfo?.count && <Tag size="sm">{formatNumber(tokenInfo.count)} Tokens</Tag>}
+          {tokenInfo?.count && (
+            <Tag key="token-count" size="sm">
+              {formatNumber(tokenInfo.count)} Tokens
+            </Tag>
+          )}
 
           <ButtonGroup isAttached>
             <IconButton
@@ -259,34 +284,12 @@ function PromptForm({
                 Single Message Mode
               </Checkbox>
               <ButtonGroup>
-                {!isLoading && (
-                  <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
-                    Clear Chat
-                  </Button>
-                )}
-
-                {isLoading && isPaused && (
-                  <Button size="sm" variant="outline" onClick={() => onResume()}>
-                    Resume
-                  </Button>
-                )}
-                {isLoading && !isPaused && (
-                  <Button size="sm" variant="outline" onClick={() => onPause()}>
-                    Pause
-                  </Button>
-                )}
-
-                {isLoading && (
-                  <Button size="sm" onClick={() => onCancel()}>
-                    Cancel
-                  </Button>
-                )}
-
-                {!isLoading && (
-                  <Button type="submit" size="sm">
-                    Send
-                  </Button>
-                )}
+                <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
+                  Clear Chat
+                </Button>
+                <Button type="submit" size="sm" isLoading={isLoading} loadingText="Send">
+                  Send
+                </Button>
               </ButtonGroup>
             </Flex>
           </Flex>
