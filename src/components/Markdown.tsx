@@ -1,6 +1,5 @@
 import { Box, useColorModeValue } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
-import remarkMermaid from "remark-mermaidjs";
 import remarkGfm from "remark-gfm";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -13,6 +12,7 @@ import oneLight from "react-syntax-highlighter/dist/esm/styles/hljs/atom-one-lig
 
 import CodeHeader from "./CodeHeader";
 import HtmlPreview from "./HtmlPreview";
+import MermaidPreview from "./MermaidPreview";
 
 const fixLanguageName = (language: string | null) => {
   if (!language) {
@@ -44,19 +44,18 @@ const fixLanguageName = (language: string | null) => {
 };
 
 type MarkdownProps = {
-  includePlugins?: boolean;
   previewCode?: boolean;
   children: string;
 };
 
-function Markdown({ includePlugins, previewCode, children }: MarkdownProps) {
+function Markdown({ previewCode, children }: MarkdownProps) {
   const style = useColorModeValue(oneLight, oneDark);
 
   return (
     <ReactMarkdown
       className="message-text"
       children={children}
-      remarkPlugins={includePlugins && previewCode ? [remarkGfm, remarkMermaid] : []}
+      remarkPlugins={[remarkGfm]}
       components={{
         code({ inline, className, children, ...props }) {
           if (inline) {
@@ -76,6 +75,8 @@ function Markdown({ includePlugins, previewCode, children }: MarkdownProps) {
           if (previewCode === undefined || previewCode === true) {
             if (language === "html") {
               preview = <HtmlPreview children={children} />;
+            } else if (language === "mermaid") {
+              preview = <MermaidPreview children={children} />;
             }
           }
           const code = String(children);
@@ -116,14 +117,4 @@ function Markdown({ includePlugins, previewCode, children }: MarkdownProps) {
   );
 }
 
-// Because Mermaid diagrams (and other Remark plugins) can crash the app, fallback to
-// not use plugins if there is a problem.
-function SafeMarkdown({ previewCode, children }: MarkdownProps) {
-  return (
-    <ErrorBoundary fallback={<Markdown children={children} previewCode={previewCode} />}>
-      <Markdown includePlugins children={children} previewCode={previewCode} />
-    </ErrorBoundary>
-  );
-}
-
-export default SafeMarkdown;
+export default Markdown;

@@ -18,6 +18,7 @@
     "@emotion/styled": "^11.10.8",
     "framer-motion": "^10.12.4",
     "langchain": "^0.0.67",
+    "mermaid": "^10.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-error-boundary": "^4.0.4",
@@ -26,8 +27,7 @@
     "react-syntax-highlighter": "^15.5.0",
     "react-textarea-autosize": "^8.4.1",
     "react-use": "^17.4.0",
-    "remark-gfm": "^3.0.1",
-    "remark-mermaidjs": "^4.1.1"
+    "remark-gfm": "^3.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

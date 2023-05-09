@@ -1,5 +1,7 @@
+import { useLayoutEffect } from "react";
 import { AIChatMessage, BaseChatMessage } from "langchain/schema";
-import { Box, Collapse } from "@chakra-ui/react";
+import { Box, Collapse, useColorMode } from "@chakra-ui/react";
+import mermaid from "mermaid";
 
 import Message from "./Message";
 
@@ -18,8 +20,19 @@ function MessagesView({
   singleMessageMode,
   loading,
 }: MessagesViewProps) {
+  const { colorMode } = useColorMode();
   // When we're in singleMessageMode, we collapse all but the final message
   const lastMessage = messages.at(-1);
+
+  // Make sure that any Mermaid diagrams use the same light/dark theme as rest of app.
+  // Use a layout effect vs. regular effect so it happens after DOM is ready.
+  useLayoutEffect(() => {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: colorMode === "dark" ? "dark" : "default",
+      securityLevel: "loose",
+    });
+  }, [colorMode]);
 
   return (
     <Box maxW="900px" mx="auto" scrollBehavior="smooth">
