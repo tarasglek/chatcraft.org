@@ -18,121 +18,130 @@ import {
   Kbd,
   Checkbox,
   Link,
+  useClipboard,
 } from "@chakra-ui/react";
 
 import RevealablePasswordInput from "./RevealablePasswordInput";
 import { useSettings } from "../hooks/use-settings";
 import { isMac } from "../utils";
+import { ChangeEvent, RefObject } from "react";
 
 type PreferencesModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  finalFocusRef: RefObject<HTMLTextAreaElement>;
 };
 
-function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
+function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalProps) {
+  const { onCopy, setValue, hasCopied } = useClipboard("");
   const { settings, setSettings } = useSettings();
 
+  const handleApiKeyChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setValue(value);
+    setSettings({ ...settings, apiKey: value });
+  };
+
   return (
-    <>
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>User Settings</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack gap={2}>
-              <FormControl>
-                <FormLabel>
-                  OpenAI API Key{" "}
-                  <Button
-                    ml={2}
-                    size="xs"
-                    colorScheme="red"
-                    onClick={() => setSettings({ ...settings, apiKey: undefined })}
-                    isDisabled={!settings.apiKey}
-                  >
-                    Remove
-                  </Button>
-                </FormLabel>
-                <RevealablePasswordInput
-                  type="password"
-                  value={settings.apiKey || ""}
-                  onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
-                />
-                <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>GPT Model</FormLabel>
-                <Select
-                  value={settings.model}
-                  onChange={(e) => setSettings({ ...settings, model: e.target.value as GptModel })}
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>User Settings</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack gap={2}>
+            <FormControl>
+              <FormLabel>
+                OpenAI API Key{" "}
+                <Button ml={2} size="xs" onClick={() => onCopy()} isDisabled={!settings.apiKey}>
+                  {hasCopied ? <span>&#10003; Copied</span> : "Copy"}
+                </Button>
+                <Button
+                  ml={2}
+                  size="xs"
+                  colorScheme="red"
+                  onClick={() => setSettings({ ...settings, apiKey: undefined })}
+                  isDisabled={!settings.apiKey}
                 >
-                  <option value="gpt-4">GPT-4</option>
-                  <option value="gpt-3.5-turbo">ChatGPT (GPT-3.5-turbo)</option>
-                </Select>
-                <FormHelperText>
-                  See{" "}
-                  <Link
-                    href="https://platform.openai.com/docs/models/gpt-4"
-                    textDecoration="underline"
-                  >
-                    docs
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="https://openai.com/pricing" textDecoration="underline">
-                    pricing
-                  </Link>
-                  . NOTE: not all accounts have access to GPT-4
-                </FormHelperText>
-              </FormControl>
+                  Remove
+                </Button>
+              </FormLabel>
+              <RevealablePasswordInput
+                type="password"
+                value={settings.apiKey || ""}
+                onChange={handleApiKeyChange}
+              />
+              <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
+            </FormControl>
 
-              <FormControl>
-                <FormLabel>
-                  When writing a prompt, press <Kbd>Enter</Kbd> to...
-                </FormLabel>
-                <RadioGroup
-                  value={settings.enterBehaviour}
-                  onChange={(nextValue) =>
-                    setSettings({ ...settings, enterBehaviour: nextValue as EnterBehaviour })
-                  }
+            <FormControl>
+              <FormLabel>GPT Model</FormLabel>
+              <Select
+                value={settings.model}
+                onChange={(e) => setSettings({ ...settings, model: e.target.value as GptModel })}
+              >
+                <option value="gpt-4">GPT-4</option>
+                <option value="gpt-3.5-turbo">ChatGPT (GPT-3.5-turbo)</option>
+              </Select>
+              <FormHelperText>
+                See{" "}
+                <Link
+                  href="https://platform.openai.com/docs/models/gpt-4"
+                  textDecoration="underline"
                 >
-                  <Stack>
-                    <Radio value="send">Send the message</Radio>
-                    <Radio value="newline">
-                      Start a new line (use {isMac() ? <Kbd>Command ⌘</Kbd> : <Kbd>Ctrl</Kbd>} +
-                      <Kbd>Enter</Kbd> to send)
-                    </Radio>
-                  </Stack>
-                </RadioGroup>
-              </FormControl>
+                  docs
+                </Link>{" "}
+                and{" "}
+                <Link href="https://openai.com/pricing" textDecoration="underline">
+                  pricing
+                </Link>
+                . NOTE: not all accounts have access to GPT-4
+              </FormHelperText>
+            </FormControl>
 
-              <FormControl>
-                <Checkbox
-                  isChecked={settings.countTokens}
-                  onChange={(e) => setSettings({ ...settings, countTokens: e.target.checked })}
-                >
-                  Track and Display Token Count and Cost
-                </Checkbox>
-              </FormControl>
+            <FormControl>
+              <FormLabel>
+                When writing a prompt, press <Kbd>Enter</Kbd> to...
+              </FormLabel>
+              <RadioGroup
+                value={settings.enterBehaviour}
+                onChange={(nextValue) =>
+                  setSettings({ ...settings, enterBehaviour: nextValue as EnterBehaviour })
+                }
+              >
+                <Stack>
+                  <Radio value="send">Send the message</Radio>
+                  <Radio value="newline">
+                    Start a new line (use {isMac() ? <Kbd>Command ⌘</Kbd> : <Kbd>Ctrl</Kbd>} +
+                    <Kbd>Enter</Kbd> to send)
+                  </Radio>
+                </Stack>
+              </RadioGroup>
+            </FormControl>
 
-              <FormControl>
-                <Checkbox
-                  isChecked={settings.justShowMeTheCode}
-                  onChange={(e) =>
-                    setSettings({ ...settings, justShowMeTheCode: e.target.checked })
-                  }
-                >
-                  Just show me the code, don&apos;t explain anything
-                </Checkbox>
-              </FormControl>
-            </VStack>
-          </ModalBody>
+            <FormControl>
+              <Checkbox
+                isChecked={settings.countTokens}
+                onChange={(e) => setSettings({ ...settings, countTokens: e.target.checked })}
+              >
+                Track and Display Token Count and Cost
+              </Checkbox>
+            </FormControl>
 
-          <ModalFooter></ModalFooter>
-        </ModalContent>
-      </Modal>
-    </>
+            <FormControl>
+              <Checkbox
+                isChecked={settings.justShowMeTheCode}
+                onChange={(e) => setSettings({ ...settings, justShowMeTheCode: e.target.checked })}
+              >
+                Just show me the code, don&apos;t explain anything
+              </Checkbox>
+            </FormControl>
+          </VStack>
+        </ModalBody>
+
+        <ModalFooter></ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }
 

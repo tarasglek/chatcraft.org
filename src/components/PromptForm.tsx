@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, useRef } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
 import {
   Box,
   Button,
@@ -104,6 +104,7 @@ type PromptFormProps = {
   toggleExpanded: () => void;
   singleMessageMode: boolean;
   onSingleMessageModeChange: (value: boolean) => void;
+  inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
   tokenInfo?: TokenInfo;
@@ -120,6 +121,7 @@ function PromptForm({
   toggleExpanded,
   singleMessageMode,
   onSingleMessageModeChange,
+  inputPromptRef,
   isLoading,
   previousMessage,
   tokenInfo,
@@ -128,7 +130,6 @@ function PromptForm({
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
   const { settings, setSettings } = useSettings();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -139,9 +140,9 @@ function PromptForm({
 
   useEffect(() => {
     if (!isLoading) {
-      textareaRef.current?.focus();
+      inputPromptRef.current?.focus();
     }
-  }, [isLoading, textareaRef]);
+  }, [isLoading, inputPromptRef]);
 
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
@@ -246,7 +247,7 @@ function PromptForm({
             <Box flex={isExpanded ? "1" : undefined} mt={2} pb={2}>
               {isExpanded ? (
                 <Textarea
-                  ref={textareaRef}
+                  ref={inputPromptRef}
                   h="100%"
                   resize="none"
                   isDisabled={isLoading}
@@ -261,7 +262,7 @@ function PromptForm({
                 />
               ) : (
                 <AutoResizingTextarea
-                  ref={textareaRef}
+                  ref={inputPromptRef}
                   onKeyDown={handleKeyDown}
                   isDisabled={isLoading}
                   autoFocus={true}

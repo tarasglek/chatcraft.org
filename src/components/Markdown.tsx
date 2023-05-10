@@ -1,7 +1,6 @@
 import { Box, useColorModeValue } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ErrorBoundary } from "react-error-boundary";
 
 // Use highlight.js (via lowlight) vs. prism.js (via refractor) due to
 // https://github.com/tarasglek/chatcraft.org/issues/32

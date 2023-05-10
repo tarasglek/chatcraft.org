@@ -1,3 +1,4 @@
+import { type RefObject } from "react";
 import {
   ButtonGroup,
   Flex,
@@ -13,7 +14,11 @@ import { BsPersonGear, BsGithub } from "react-icons/bs";
 
 import PreferencesModal from "./PreferencesModal";
 
-function Header() {
+type HeaderProps = {
+  inputPromptRef: RefObject<HTMLTextAreaElement>;
+};
+
+function Header({ inputPromptRef }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -59,7 +64,7 @@ function Header() {
           variant="ghost"
           onClick={onOpen}
         />
-        <PreferencesModal isOpen={isOpen} onClose={onClose} />
+        <PreferencesModal isOpen={isOpen} onClose={onClose} finalFocusRef={inputPromptRef} />
       </ButtonGroup>
     </Flex>
   );
