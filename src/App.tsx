@@ -27,7 +27,8 @@ function App() {
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
   const [loading, setLoading] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const messageListRef = useRef<HTMLDivElement>(null);
+  const messageListRef = useRef<HTMLDivElement | null>(null);
+  const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
 
   // Auto scroll chat to bottom, but only if user isn't trying to scroll manually
@@ -131,7 +132,7 @@ function App() {
   return (
     <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
-        <Header />
+        <Header inputPromptRef={inputPromptRef} />
 
         <Box
           flex="1"
@@ -186,6 +187,7 @@ function App() {
               isLoading={loading}
               previousMessage={messages.at(-1)?.text}
               tokenInfo={tokenInfo}
+              inputPromptRef={inputPromptRef}
             />
           </Box>
         </Box>
