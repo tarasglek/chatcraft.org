@@ -42,7 +42,11 @@ const MermaidPreview = ({ children }: MermaidPreviewProps) => {
         diagramDiv.innerHTML = svg;
         bindFunctions?.(diagramDiv);
       })
-      .catch((err) => console.warn(`Error rendering mermaid diagram ${mermaidDiagramId}`, err));
+      .catch((err) => {
+        // When the diagram fails, use the error vs. diagram for copying (to debug)
+        setValue(err);
+        console.warn(`Error rendering mermaid diagram ${mermaidDiagramId}`, err);
+      });
   }, [diagramRef, code, setValue]);
 
   return (
