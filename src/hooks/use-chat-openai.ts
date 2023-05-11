@@ -39,6 +39,18 @@ function useChatOpenAI() {
     pausedRef.current = paused;
   }, [paused]);
 
+  const pause = () => {
+    setPaused(true);
+  };
+
+  const resume = () => {
+    setPaused(false);
+  };
+
+  const togglePause = () => {
+    setPaused(!paused);
+  };
+
   const callChatApi = useCallback(
     (messages: BaseChatMessage[]) => {
       const buffer: string[] = [];
@@ -112,9 +124,10 @@ function useChatOpenAI() {
     callChatApi,
     getTokenInfo,
     cancel,
-    isPaused: paused,
-    pause: () => setPaused(true),
-    resume: () => setPaused(false),
+    paused,
+    pause,
+    resume,
+    togglePause,
   };
 }
 
