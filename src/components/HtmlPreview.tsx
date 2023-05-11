@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { chakra, Card, CardBody, IconButton } from "@chakra-ui/react";
 import { TbExternalLink } from "react-icons/tb";
 
@@ -35,4 +35,5 @@ const HtmlPreview = ({ children }: HtmlPreviewProps) => {
   );
 };
 
-export default HtmlPreview;
+// Memoize to reduce re-renders/flickering when content hasn't changed
+export default memo(HtmlPreview);

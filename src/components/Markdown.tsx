@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Box, useColorModeValue } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -116,4 +117,5 @@ function Markdown({ previewCode, children }: MarkdownProps) {
   );
 }
 
-export default Markdown;
+// Memoize to reduce re-renders/flickering when content hasn't changed
+export default memo(Markdown);
