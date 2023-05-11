@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import { AIChatMessage, BaseChatMessage } from "langchain/schema";
 import { Avatar, Box, Card, Flex, IconButton, useClipboard, useToast } from "@chakra-ui/react";
 import { CgCloseO } from "react-icons/cg";
@@ -18,7 +19,7 @@ function Message({ message, loading, onDeleteClick }: MessageProps) {
   const toast = useToast();
   const isAI = message instanceof AIChatMessage;
 
-  const handleCopy = () => {
+  const handleCopy = useCallback(() => {
     onCopy();
     toast({
       title: "Copied to Clipboard",
@@ -28,7 +29,7 @@ function Message({ message, loading, onDeleteClick }: MessageProps) {
       position: "top",
       isClosable: true,
     });
-  };
+  }, [onCopy, toast]);
 
   return (
     <Card p={6} my={6}>
@@ -73,4 +74,5 @@ function Message({ message, loading, onDeleteClick }: MessageProps) {
   );
 }
 
-export default Message;
+// Memoize to reduce re-renders/flickering when content hasn't changed
+export default memo(Message);

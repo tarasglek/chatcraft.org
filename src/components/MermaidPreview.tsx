@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 import { Card, CardBody, IconButton, useClipboard, useToast } from "@chakra-ui/react";
 import mermaid from "mermaid";
 import { TbCopy } from "react-icons/tb";
@@ -15,7 +15,7 @@ const MermaidPreview = ({ children }: MermaidPreviewProps) => {
   const diagramRef = useRef<HTMLDivElement | null>(null);
   const code = String(children);
 
-  const handleCopy = () => {
+  const handleCopy = useCallback(() => {
     onCopy();
     toast({
       title: "Copied to Clipboard",
@@ -25,7 +25,7 @@ const MermaidPreview = ({ children }: MermaidPreviewProps) => {
       position: "top",
       isClosable: true,
     });
-  };
+  }, [onCopy, toast]);
 
   // Render the diagram as an SVG into our card's body
   useEffect(() => {
@@ -34,22 +34,15 @@ const MermaidPreview = ({ children }: MermaidPreviewProps) => {
       return;
     }
 
-    const renderDiagram = () => {
-      const mermaidDiagramId = `mermaid-diagram-${unique()}`;
-      mermaid
-        .render(mermaidDiagramId, code, diagramDiv)
-        .then(({ svg }) => {
-          setValue(svg);
-        })
-        .catch((err) => console.warn(`Error rendering mermaid diagram ${mermaidDiagramId}`, err));
-    };
-
-    // HACK: can't figure out how to eliminate the need for this timeout
-    const timeoutId = setTimeout(renderDiagram, 100);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
+    const mermaidDiagramId = `mermaid-diagram-${unique()}`;
+    mermaid
+      .render(mermaidDiagramId, code, diagramDiv)
+      .then(({ svg, bindFunctions }) => {
+        setValue(svg);
+        diagramDiv.innerHTML = svg;
+        bindFunctions?.(diagramDiv);
+      })
+      .catch((err) => console.warn(`Error rendering mermaid diagram ${mermaidDiagramId}`, err));
   }, [diagramRef, code, setValue]);
 
   return (
@@ -70,10 +63,11 @@ const MermaidPreview = ({ children }: MermaidPreviewProps) => {
       />
 
       <CardBody p={2}>
-        <div ref={diagramRef} dangerouslySetInnerHTML={{ __html: value }} />
+        <div ref={diagramRef} />
       </CardBody>
     </Card>
   );
 };
 
-export default MermaidPreview;
+// Memoize to reduce re-renders/flickering when content hasn't changed
+export default memo(MermaidPreview);

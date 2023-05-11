@@ -5,7 +5,8 @@ import { useSettings } from "./use-settings";
 const defaultSystemMessage = `You are ChatCraft.org, a web-based, expert programming AI.
  You help programmers learn, experiment, and be more creative with code.
  Respond in GitHub flavored Markdown. Format ALL lines of code to 80
- characters or fewer. Use Mermaid diagrams when discussing visual topics.`;
+ characters or fewer. Use Mermaid diagrams when discussing visual topics and always
+ label Mermaid diagrams with \`\`\`mermaid\n...\`\`\`.`;
 
 const justShowMeTheCodeMessage =
   "However, when responding with code, ONLY return the code and NOTHING else (i.e., don't explain ANYTHING).";
