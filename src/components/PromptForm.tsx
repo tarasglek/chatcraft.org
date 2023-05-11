@@ -17,14 +17,7 @@ import {
   HStack,
   Tag,
 } from "@chakra-ui/react";
-import {
-  CgChevronUpO,
-  CgChevronDownO,
-  CgInfo,
-  CgPlayPauseO,
-  CgPlayButtonO,
-  CgPlayStopO,
-} from "react-icons/cg";
+import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
@@ -63,40 +56,9 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
   );
 }
 
-type LoadingHintProps = {
-  isPaused: boolean;
-  onPause: () => void;
-  onResume: () => void;
-  onCancel: () => void;
-};
-
-function LoadingHint({ isPaused, onPause, onResume }: LoadingHintProps) {
-  return (
-    <ButtonGroup>
-      <Button variant="outline" size="xs" leftIcon={<CgPlayStopO />} onClick={onResume}>
-        Cancel
-      </Button>
-
-      {isPaused ? (
-        <Button size="xs" leftIcon={<CgPlayButtonO />} onClick={onResume}>
-          Resume
-        </Button>
-      ) : (
-        <Button size="xs" leftIcon={<CgPlayPauseO />} onClick={onPause}>
-          Pause
-        </Button>
-      )}
-    </ButtonGroup>
-  );
-}
-
 type PromptFormProps = {
   onPrompt: (prompt: string) => void;
   onClear: () => void;
-  isPaused: boolean;
-  onPause: () => void;
-  onResume: () => void;
-  onCancel: () => void;
   // Whether or not to automatically manage the height of the prompt.
   // When `isExpanded` is `false`, Shit+Enter adds rows. Otherwise,
   // the height is determined automatically by the parent.
@@ -113,10 +75,6 @@ type PromptFormProps = {
 function PromptForm({
   onPrompt,
   onClear,
-  isPaused,
-  onPause,
-  onResume,
-  onCancel,
   isExpanded,
   toggleExpanded,
   singleMessageMode,
@@ -201,16 +159,7 @@ function PromptForm({
   return (
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">
-        {isLoading ? (
-          <LoadingHint
-            isPaused={isPaused}
-            onPause={onPause}
-            onResume={onResume}
-            onCancel={onCancel}
-          />
-        ) : (
-          <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
-        )}
+        <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
 
         <HStack>
           {
@@ -233,6 +182,7 @@ function PromptForm({
               title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
               icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
               variant="ghost"
+              isDisabled={isLoading}
               onClick={toggleExpanded}
             />
           </ButtonGroup>

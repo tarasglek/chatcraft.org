@@ -19,7 +19,7 @@ import useChatOpenAI from "./hooks/use-chat-openai";
 
 function App() {
   // When chatting with OpenAI, a streaming message is returned during loading
-  const { streamingMessage, callChatApi, cancel, isPaused, pause, resume } = useChatOpenAI();
+  const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
   // Messages are all the static, previous messages in the chat
   const { messages, tokenInfo, setMessages, removeMessage } = useMessages();
   // Whether to include the whole message chat history or just the last response
@@ -110,19 +110,6 @@ function App() {
     [messages, setMessages, singleMessageMode, setLoading, setShouldAutoScroll, callChatApi, toast]
   );
 
-  // If the user presses/releases the mouse while loading a message, pause/resume
-  // to make it easier to copy/paste text as it streams in.
-  function handleMouseDown() {
-    if (loading && !isPaused) {
-      pause();
-    }
-  }
-  function handleMouseUp() {
-    if (loading && isPaused) {
-      resume();
-    }
-  }
-
   // Restart auto-scrolling and resume a paused response when Follow Chat is clicked
   function handleFollowChatClick() {
     setShouldAutoScroll(true);
@@ -137,14 +124,11 @@ function App() {
         <Box
           flex="1"
           overflow="scroll"
-          pb={4}
           ref={messageListRef}
           bgGradient={useColorModeValue(
             "linear(to-b, white, gray.100)",
             "linear(to-b, gray.600, gray.700)"
           )}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
         >
           <MessagesView
             messages={messages}
@@ -152,6 +136,9 @@ function App() {
             onRemoveMessage={removeMessage}
             singleMessageMode={singleMessageMode}
             loading={loading}
+            isPaused={paused}
+            onTogglePause={togglePause}
+            onCancel={cancel}
           />
 
           {
@@ -167,19 +154,11 @@ function App() {
           }
         </Box>
 
-        <Box
-          flex={isExpanded ? "1" : undefined}
-          pb={2}
-          bg={useColorModeValue("gray.100", "gray.700")}
-        >
+        <Box flex={isExpanded ? "1" : undefined} bg={useColorModeValue("gray.100", "gray.700")}>
           <Box maxW="900px" mx="auto" h="100%">
             <PromptForm
               onPrompt={onPrompt}
               onClear={() => setMessages()}
-              isPaused={isPaused}
-              onPause={() => pause()}
-              onResume={() => resume()}
-              onCancel={() => cancel()}
               isExpanded={isExpanded}
               toggleExpanded={toggleExpanded}
               singleMessageMode={singleMessageMode}

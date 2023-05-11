@@ -4,6 +4,7 @@ import { Box, Collapse, useColorMode } from "@chakra-ui/react";
 import mermaid from "mermaid";
 
 import Message from "./Message";
+import NewMessage from "./NewMessage";
 
 type MessagesViewProps = {
   messages: BaseChatMessage[];
@@ -11,6 +12,9 @@ type MessagesViewProps = {
   onRemoveMessage: (message: BaseChatMessage) => void;
   singleMessageMode: boolean;
   loading: boolean;
+  isPaused: boolean;
+  onTogglePause: () => void;
+  onCancel: () => void;
 };
 
 function MessagesView({
@@ -19,6 +23,9 @@ function MessagesView({
   onRemoveMessage,
   singleMessageMode,
   loading,
+  isPaused,
+  onTogglePause,
+  onCancel,
 }: MessagesViewProps) {
   const { colorMode } = useColorMode();
   // When we're in singleMessageMode, we collapse all but the final message
@@ -34,22 +41,26 @@ function MessagesView({
     });
   }, [colorMode]);
 
+  // Memoize the previous messages so we don't have to update when newMessage changes
+  const prevMessages = messages.map((message: BaseChatMessage, index: number) => {
+    return <Message key={index} message={message} onDeleteClick={() => onRemoveMessage(message)} />;
+  });
+
   return (
     <Box maxW="900px" mx="auto" scrollBehavior="smooth">
       {/* Show entire message history + current streaming response if available */}
       <Collapse in={!singleMessageMode} animateOpacity>
         <>
-          {messages.map((message: BaseChatMessage, index: number) => {
-            return (
-              <Message
-                key={index}
-                message={message}
-                loading={loading}
-                onDeleteClick={() => onRemoveMessage(message)}
-              />
-            );
-          })}
-          {newMessage && <Message message={newMessage} loading={loading} />}
+          {prevMessages}
+
+          {newMessage && (
+            <NewMessage
+              message={newMessage}
+              isPaused={isPaused}
+              onTogglePause={onTogglePause}
+              onCancel={onCancel}
+            />
+          )}
         </>
       </Collapse>
 
@@ -62,7 +73,14 @@ function MessagesView({
             onDeleteClick={() => onRemoveMessage(lastMessage)}
           />
 
-          {newMessage && <Message message={newMessage} loading={loading} />}
+          {newMessage && (
+            <NewMessage
+              message={newMessage}
+              isPaused={isPaused}
+              onTogglePause={onTogglePause}
+              onCancel={onCancel}
+            />
+          )}
         </>
       )}
     </Box>
