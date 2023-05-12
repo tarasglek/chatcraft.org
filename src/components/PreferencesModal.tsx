@@ -1,3 +1,5 @@
+import { RefObject } from "react";
+import { useCopyToClipboard } from "react-use";
 import {
   Button,
   FormControl,
@@ -18,13 +20,11 @@ import {
   Kbd,
   Checkbox,
   Link,
-  useClipboard,
 } from "@chakra-ui/react";
 
 import RevealablePasswordInput from "./RevealablePasswordInput";
 import { useSettings } from "../hooks/use-settings";
 import { isMac } from "../utils";
-import { ChangeEvent, RefObject } from "react";
 
 type PreferencesModalProps = {
   isOpen: boolean;
@@ -33,14 +33,9 @@ type PreferencesModalProps = {
 };
 
 function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalProps) {
-  const { onCopy, setValue, hasCopied } = useClipboard("");
   const { settings, setSettings } = useSettings();
-
-  const handleApiKeyChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setValue(value);
-    setSettings({ ...settings, apiKey: value });
-  };
+  // Using this hook vs. useClipboard() in Chakra to work around a bug
+  const [, copyToClipboard] = useCopyToClipboard();
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
@@ -53,8 +48,13 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
             <FormControl>
               <FormLabel>
                 OpenAI API Key{" "}
-                <Button ml={2} size="xs" onClick={() => onCopy()} isDisabled={!settings.apiKey}>
-                  {hasCopied ? <span>&#10003; Copied</span> : "Copy"}
+                <Button
+                  ml={2}
+                  size="xs"
+                  onClick={() => copyToClipboard(settings.apiKey || "")}
+                  isDisabled={!settings.apiKey}
+                >
+                  Copy
                 </Button>
                 <Button
                   ml={2}
@@ -69,7 +69,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               <RevealablePasswordInput
                 type="password"
                 value={settings.apiKey || ""}
-                onChange={handleApiKeyChange}
+                onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
               />
               <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
             </FormControl>
