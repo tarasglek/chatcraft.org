@@ -2,8 +2,7 @@
 
 [ChatCraft.org](https://chatcraft.org) is an open source chatgpt frontend designed for developers. It allows for GPT-assisted collaboration to write code and explore the design space of GPT-assisted collaboration. The UI is adaptable and can be re-used to fit your workflow.
 
-- UI uses langchain.js, Chakra UI, vite, TypeScript
-- No server-side requirements
+<img width="530" alt="image" src="https://github.com/tarasglek/chatcraft.org/assets/857083/39df8fa8-7f38-43b4-85e5-559031f72fcf">
 
 ## Differentiation from ChatGPT.com
 
@@ -15,7 +14,7 @@
 - Easy switching between gpt-3.5-turbo and gpt-4 models
 
 ## Dev-focused features
-
+- No server-side requirements
 - Token usage tracking
 - Inline previews for HTML
 - Mermaidjs rendering
