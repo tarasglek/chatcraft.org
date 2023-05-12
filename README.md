@@ -14,6 +14,7 @@
 - Easy switching between gpt-3.5-turbo and gpt-4 models
 
 ## Dev-focused features
+
 - No server-side requirements
 - Token usage tracking
 - Inline previews for HTML
@@ -23,7 +24,11 @@
 - Single-message mode for tweaking code quickly
 - Ability to delete messages, reuse/edit them for next prompt
 
-## Inception Story
+## Why ChatCraft.org?
+
+https://blog.humphd.org/chatcraft-org/
+
+https://taras.glek.net/post/chatcraft.org-opensourcechatgpt-for-devs/
 
 ## Future
 
