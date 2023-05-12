@@ -74,16 +74,16 @@ function useMessages() {
   }, [setStorage, messages]);
 
   // Count the number of tokens in messages, if the user opts in.
-  useEffect(() => {
-    if (settings.countTokens) {
-      // Include the system message too, since we send that as well
-      getTokenInfo([new SystemChatMessage(systemMessage), ...messages])
-        .then(setTokenInfo)
-        .catch((err: any) => console.warn("Unable to count tokens in messages", err.message));
-    } else {
-      setTokenInfo(undefined);
-    }
-  }, [systemMessage, messages, settings.countTokens, getTokenInfo, setTokenInfo]);
+  // useEffect(() => {
+  //   if (settings.countTokens) {
+  //     // Include the system message too, since we send that as well
+  //     getTokenInfo([new SystemChatMessage(systemMessage), ...messages])
+  //       .then(setTokenInfo)
+  //       .catch((err: any) => console.warn("Unable to count tokens in messages", err.message));
+  //   } else {
+  //     setTokenInfo(undefined);
+  //   }
+  // }, [systemMessage, messages, settings.countTokens, getTokenInfo, setTokenInfo]);
 
   return {
     messages: messages,

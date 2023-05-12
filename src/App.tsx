@@ -102,6 +102,7 @@ function App() {
           position: "top",
           isClosable: true,
         });
+        console.error(err);
       } finally {
         setLoading(false);
         setShouldAutoScroll(true);

@@ -32,6 +32,15 @@ type PreferencesModalProps = {
   finalFocusRef: RefObject<HTMLTextAreaElement>;
 };
 
+const MODELS = {
+  "gpt-4": "GPT-4",
+  "gpt-3.5-turbo": "ChatGPT (GPT-3.5-turbo)",
+  "claude-v1": "claude-v1",
+  "claude-v1-100k": "claude-v1-100k",
+  "claude-instant-v1": "claude-instant-v1 Smaller/Lower Latency",
+  "claude-instant-v1-100k": "claude-instant-v1-100k Faster, full 100k model",
+};
+
 function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalProps) {
   const { onCopy, setValue, hasCopied } = useClipboard("");
   const { settings, setSettings } = useSettings();
@@ -80,8 +89,11 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 value={settings.model}
                 onChange={(e) => setSettings({ ...settings, model: e.target.value as GptModel })}
               >
-                <option value="gpt-4">GPT-4</option>
-                <option value="gpt-3.5-turbo">ChatGPT (GPT-3.5-turbo)</option>
+                {Object.entries(MODELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </Select>
               <FormHelperText>
                 See{" "}

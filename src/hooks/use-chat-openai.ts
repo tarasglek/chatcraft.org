@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { ChatOpenAI } from "langchain/chat_models/openai";
+import { ChatAnthropic } from "langchain/chat_models/anthropic";
 import { CallbackManager } from "langchain/callbacks";
 import { BaseChatMessage, AIChatMessage, SystemChatMessage } from "langchain/schema";
 import { useKey } from "react-use";
@@ -44,12 +44,9 @@ function useChatOpenAI() {
       const buffer: string[] = [];
       setStreamingMessage(new AIChatMessage(""));
 
-      const chatOpenAI = new ChatOpenAI({
-        openAIApiKey: settings.apiKey,
-        temperature: 0,
-        streaming: true,
-        modelName: settings.model,
-        callbackManager: CallbackManager.fromHandlers({}),
+      const chatAnthropic = new ChatAnthropic({
+        anthropicApiKey: settings.apiKey,
+        // modelName: settings.model,
       });
 
       // Allow the stream to be cancelled
@@ -63,22 +60,8 @@ function useChatOpenAI() {
       // Send the chat history + user's prompt, and prefix it all with our system message
       const systemChatMessage = new SystemChatMessage(systemMessage);
 
-      return chatOpenAI
-        .call(
-          [systemChatMessage, ...messages],
-          {
-            options: { signal: controller.signal },
-          },
-          CallbackManager.fromHandlers({
-            async handleLLMNewToken(token: string) {
-              buffer.push(token);
-
-              if (!pausedRef.current) {
-                setStreamingMessage(new AIChatMessage(buffer.join("")));
-              }
-            },
-          })
-        )
+      return chatAnthropic
+        .call([systemChatMessage, ...messages])
         .catch((err) => {
           // Deal with cancelled messages by returning a partial message
           if (err.message.startsWith("Cancel:")) {
@@ -95,17 +78,9 @@ function useChatOpenAI() {
     [systemMessage, settings, pausedRef, setStreamingMessage]
   );
 
-  const getTokenInfo = useCallback(
-    async (messages: BaseChatMessage[]): Promise<TokenInfo> => {
-      const api = new ChatOpenAI({
-        openAIApiKey: settings.apiKey,
-        modelName: settings.model,
-      });
-      const { totalCount } = await api.getNumTokensFromMessages(messages);
-      return { count: totalCount, cost: calculateTokenCost(totalCount, settings.model) };
-    },
-    [settings]
-  );
+  const getTokenInfo = useCallback(async (): Promise<TokenInfo> => {
+    return { count: 0, cost: 0 };
+  }, []);
 
   return {
     streamingMessage,
