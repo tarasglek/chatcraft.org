@@ -156,6 +156,11 @@ function PromptForm({
     }
   };
 
+  // If we don't have an API Key, don't show the prompt form yet
+  if (!settings.apiKey) {
+    return null;
+  }
+
   return (
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">

@@ -5,6 +5,8 @@ import mermaid from "mermaid";
 
 import Message from "./Message";
 import NewMessage from "./NewMessage";
+import { useSettings } from "../hooks/use-settings";
+import WelcomeMessage from "./WelcomeMessage";
 
 type MessagesViewProps = {
   messages: BaseChatMessage[];
@@ -27,6 +29,7 @@ function MessagesView({
   onTogglePause,
   onCancel,
 }: MessagesViewProps) {
+  const { settings } = useSettings();
   const { colorMode } = useColorMode();
   // When we're in singleMessageMode, we collapse all but the final message
   const lastMessage = messages.at(-1);
@@ -47,16 +50,20 @@ function MessagesView({
   // Memoize the previous messages so we don't have to update when newMessage changes
   const prevMessages = useMemo(
     () =>
-      messages.map((message: BaseChatMessage, index: number) => {
-        return (
-          <Message
-            key={index}
-            message={message}
-            onDeleteClick={() => memoizedOnRemoveMessage(message)}
-          />
-        );
-      }),
-    [messages, memoizedOnRemoveMessage]
+      settings.apiKey ? (
+        messages.map((message: BaseChatMessage, index: number) => {
+          return (
+            <Message
+              key={index}
+              message={message}
+              onDeleteClick={() => memoizedOnRemoveMessage(message)}
+            />
+          );
+        })
+      ) : (
+        <WelcomeMessage />
+      ),
+    [settings.apiKey, messages, memoizedOnRemoveMessage]
   );
 
   return (
