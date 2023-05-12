@@ -62,7 +62,7 @@ function useMessages() {
     }
 
     // Replace the instructions when an api key is added, if necessary
-    if (hasApiKey && messages[0].text === instructionMessage) {
+    if (hasApiKey && messages[0]?.text === instructionMessage) {
       const newMessages = [new AIChatMessage(greetingMessage), ...messages.slice(1)];
       setMessages(newMessages);
     }
