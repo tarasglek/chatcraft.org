@@ -15,6 +15,7 @@ type MessagesViewProps = {
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
+  onPrompt: (prompt: string) => void;
 };
 
 function MessagesView({
@@ -26,6 +27,7 @@ function MessagesView({
   isPaused,
   onTogglePause,
   onCancel,
+  onPrompt,
 }: MessagesViewProps) {
   const { colorMode } = useColorMode();
   // When we're in singleMessageMode, we collapse all but the final message
@@ -53,10 +55,11 @@ function MessagesView({
             key={index}
             message={message}
             onDeleteClick={() => memoizedOnRemoveMessage(message)}
+            onPrompt={onPrompt}
           />
         );
       }),
-    [messages, memoizedOnRemoveMessage]
+    [messages, onPrompt, memoizedOnRemoveMessage]
   );
 
   return (
@@ -82,6 +85,7 @@ function MessagesView({
             message={lastMessage}
             loading={loading}
             onDeleteClick={() => onRemoveMessage(lastMessage)}
+            onPrompt={onPrompt}
           />
 
           {newMessage && (

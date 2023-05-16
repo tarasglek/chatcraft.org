@@ -139,6 +139,7 @@ function App() {
             isPaused={paused}
             onTogglePause={togglePause}
             onCancel={cancel}
+            onPrompt={onPrompt}
           />
 
           {

@@ -9,11 +9,16 @@ import {
   Text,
   Box,
 } from "@chakra-ui/react";
-import { TbCopy, TbDownload } from "react-icons/tb";
+import { TbCopy, TbDownload, TbRun } from "react-icons/tb";
 
-type PreHeaderProps = { language: string; children: ReactNode; code: string };
+type PreHeaderProps = {
+  language: string;
+  children: ReactNode;
+  onPrompt?: (prompt: string) => void;
+  code: string;
+};
 
-function CodeHeader({ language, children, code }: PreHeaderProps) {
+function CodeHeader({ language, children, onPrompt, code }: PreHeaderProps) {
   const { onCopy } = useClipboard(code);
   const toast = useToast();
 
@@ -47,6 +52,27 @@ function CodeHeader({ language, children, code }: PreHeaderProps) {
     });
   };
 
+  const handleRun = async () => {
+    if (!onPrompt) {
+      return;
+    }
+    let ret = undefined;
+    try {
+      let evalResult = eval(code);
+      if (evalResult instanceof Promise) {
+        evalResult = await evalResult;
+      }
+      if (typeof evalResult !== "string") {
+        evalResult = JSON.stringify(evalResult);
+      }
+      // this probably needs smarter escaping
+      ret = "```\n" + evalResult + "\n```";
+    } catch (error: any) {
+      ret = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`;
+    }
+    onPrompt(ret);
+  };
+
   return (
     <>
       <Flex
@@ -62,6 +88,18 @@ function CodeHeader({ language, children, code }: PreHeaderProps) {
           </Text>
         </Box>
         <ButtonGroup isAttached pr={2}>
+          {(language === "js" || language === "javascript") && onPrompt && (
+            <IconButton
+              size="sm"
+              aria-label="Run code"
+              title="Run code"
+              icon={<TbRun />}
+              color="gray.600"
+              _dark={{ color: "gray.300" }}
+              variant="ghost"
+              onClick={handleRun}
+            />
+          )}
           <IconButton
             size="sm"
             aria-label="Download code"

@@ -11,10 +11,11 @@ import "./Message.css";
 type MessageProps = {
   message: BaseChatMessage;
   loading?: boolean;
+  onPrompt?: (prompt: string) => void;
   onDeleteClick?: () => void;
 };
 
-function Message({ message, loading, onDeleteClick }: MessageProps) {
+function Message({ message, loading, onDeleteClick, onPrompt }: MessageProps) {
   const { onCopy } = useClipboard(message.text);
   const toast = useToast();
   const isAI = message instanceof AIChatMessage;
@@ -44,7 +45,9 @@ function Message({ message, loading, onDeleteClick }: MessageProps) {
 
         <Box flex="1" maxWidth="100%" overflow="hidden" mt={1}>
           {/* Messages are being rendered in Markdown format */}
-          <Markdown previewCode={!loading}>{message.text}</Markdown>
+          <Markdown previewCode={!loading} onPrompt={onPrompt}>
+            {message.text}
+          </Markdown>
         </Box>
 
         <Flex flexDir={{ base: "column-reverse", md: "row" }} justify="start">
