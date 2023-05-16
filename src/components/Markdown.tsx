@@ -45,10 +45,11 @@ const fixLanguageName = (language: string | null) => {
 
 type MarkdownProps = {
   previewCode?: boolean;
+  onPrompt?: (prompt: string) => void;
   children: string;
 };
 
-function Markdown({ previewCode, children }: MarkdownProps) {
+function Markdown({ previewCode, onPrompt, children }: MarkdownProps) {
   const style = useColorModeValue(oneLight, oneDark);
 
   return (
@@ -98,7 +99,9 @@ function Markdown({ previewCode, children }: MarkdownProps) {
                 <SyntaxHighlighter
                   children={code}
                   language={fixLanguageName(language)}
-                  PreTag={(props) => <CodeHeader {...props} code={code} language={language} />}
+                  PreTag={(props) => (
+                    <CodeHeader {...props} code={code} language={language} onPrompt={onPrompt} />
+                  )}
                   style={style}
                   showLineNumbers={true}
                   showInlineLineNumbers={true}
