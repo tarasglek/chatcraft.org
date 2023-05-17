@@ -3,7 +3,7 @@ import { Card, CardBody, IconButton, useClipboard, useToast } from "@chakra-ui/r
 import mermaid from "mermaid";
 import { TbCopy } from "react-icons/tb";
 
-import { unique } from "../utils";
+import { unique } from "../lib/utils";
 
 type MermaidPreviewProps = {
   children: React.ReactNode & React.ReactNode[];

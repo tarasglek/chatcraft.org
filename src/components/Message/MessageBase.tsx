@@ -1,24 +1,31 @@
-import { memo, useCallback } from "react";
-import { AIChatMessage, BaseChatMessage } from "langchain/schema";
-import { Avatar, Box, Card, Flex, IconButton, useClipboard, useToast } from "@chakra-ui/react";
+import { memo, useCallback, type ReactNode } from "react";
+import { Box, Card, Flex, IconButton, useClipboard, useToast } from "@chakra-ui/react";
 import { CgCloseO } from "react-icons/cg";
 import { TbCopy } from "react-icons/tb";
 
-import Markdown from "./Markdown";
+import Markdown from "../Markdown";
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 
-type MessageProps = {
-  message: BaseChatMessage;
-  loading?: boolean;
+export interface MessageBaseProps {
+  text: string;
+  avatar: ReactNode;
+  isLoading: boolean;
+  hidePreviews?: boolean;
   onPrompt?: (prompt: string) => void;
   onDeleteClick?: () => void;
-};
+}
 
-function Message({ message, loading, onDeleteClick, onPrompt }: MessageProps) {
-  const { onCopy } = useClipboard(message.text);
+function MessageBase({
+  text,
+  avatar,
+  isLoading,
+  hidePreviews,
+  onDeleteClick,
+  onPrompt,
+}: MessageBaseProps) {
+  const { onCopy } = useClipboard(text);
   const toast = useToast();
-  const isAI = message instanceof AIChatMessage;
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -35,22 +42,20 @@ function Message({ message, loading, onDeleteClick, onPrompt }: MessageProps) {
   return (
     <Card p={6} my={6}>
       <Flex>
-        <Box pr={6}>
-          {isAI ? (
-            <Avatar size="sm" src={`/ai.png`} />
-          ) : (
-            <Avatar size="sm" bg="gray.600" _dark={{ bg: "gray.500" }} />
-          )}
-        </Box>
+        <Box pr={6}>{avatar}</Box>
 
         <Box flex="1" maxWidth="100%" overflow="hidden" mt={1}>
           {/* Messages are being rendered in Markdown format */}
-          <Markdown previewCode={!loading} onPrompt={onPrompt}>
-            {message.text}
+          <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
+            {text}
           </Markdown>
         </Box>
 
-        <Flex flexDir={{ base: "column-reverse", md: "row" }} justify="start">
+        <Flex
+          flexDir={{ base: "column-reverse", md: "row" }}
+          minW={{ md: "80px " }}
+          justify="start"
+        >
           <IconButton
             aria-label="Copy to Clipboard"
             title="Copy to Clipboard"
@@ -78,4 +83,4 @@ function Message({ message, loading, onDeleteClick, onPrompt }: MessageProps) {
 }
 
 // Memoize to reduce re-renders/flickering when content hasn't changed
-export default memo(Message);
+export default memo(MessageBase);

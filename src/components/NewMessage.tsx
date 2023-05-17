@@ -1,10 +1,10 @@
-import { AIChatMessage } from "langchain/schema";
 import { Box, Button, ButtonGroup, Flex } from "@chakra-ui/react";
 
 import Message from "./Message";
+import { ChatCraftAiMessage } from "../lib/ChatCraftMessage";
 
 type NewMessageProps = {
-  message: AIChatMessage;
+  message: ChatCraftAiMessage;
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
@@ -22,7 +22,7 @@ function NewMessage({ message, isPaused, onTogglePause, onCancel }: NewMessagePr
   return (
     <Flex flexDir="column" w="100%">
       <Box flex={1} onMouseDown={handleMouseDown}>
-        <Message message={message} loading={true} />
+        <Message message={message} isLoading />
       </Box>
       <Box textAlign="center">
         <ButtonGroup>

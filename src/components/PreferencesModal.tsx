@@ -24,7 +24,7 @@ import {
 
 import RevealablePasswordInput from "./RevealablePasswordInput";
 import { useSettings } from "../hooks/use-settings";
-import { isMac } from "../utils";
+import { isMac } from "../lib/utils";
 
 type PreferencesModalProps = {
   isOpen: boolean;

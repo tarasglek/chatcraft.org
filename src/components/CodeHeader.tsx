@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { memo, useCallback, type ReactNode } from "react";
 import {
   Flex,
   ButtonGroup,
@@ -14,15 +14,18 @@ import { TbCopy, TbDownload, TbRun } from "react-icons/tb";
 type PreHeaderProps = {
   language: string;
   children: ReactNode;
+  isLoading: boolean;
   onPrompt?: (prompt: string) => void;
   code: string;
 };
 
-function CodeHeader({ language, children, onPrompt, code }: PreHeaderProps) {
+function CodeHeader({ language, children, isLoading, onPrompt, code }: PreHeaderProps) {
   const { onCopy } = useClipboard(code);
   const toast = useToast();
+  // Only show the "Run" button for JS code blocks, and only when we aren't already loading
+  const shouldShowRunButton = (language === "js" || language === "javascript") && onPrompt;
 
-  const handleCopy = () => {
+  const handleCopy = useCallback(() => {
     onCopy();
     toast({
       title: "Copied to Clipboard",
@@ -32,9 +35,9 @@ function CodeHeader({ language, children, onPrompt, code }: PreHeaderProps) {
       position: "top",
       isClosable: true,
     });
-  };
+  }, [onCopy, toast]);
 
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     const blob = new Blob([code], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -50,28 +53,35 @@ function CodeHeader({ language, children, onPrompt, code }: PreHeaderProps) {
       position: "top",
       isClosable: true,
     });
-  };
+  }, [toast, code]);
 
-  const handleRun = async () => {
+  const handleRun = useCallback(async () => {
     if (!onPrompt) {
       return;
     }
+
+    const toCodeBlock = (text: string) => "```\n" + text + "\n```";
+
     let ret = undefined;
     try {
-      let evalResult = eval(code);
-      if (evalResult instanceof Promise) {
-        evalResult = await evalResult;
+      // We're doing eval() here, but rollup doesn't like it, so use `new Function()`
+      const fn = new Function(code);
+      let result = fn();
+      if (result instanceof Promise) {
+        result = await result;
       }
-      if (typeof evalResult !== "string") {
-        evalResult = JSON.stringify(evalResult);
+      if (typeof result !== "string") {
+        result = JSON.stringify(result);
       }
       // this probably needs smarter escaping
-      ret = "```\n" + evalResult + "\n```";
+      ret = toCodeBlock(result);
     } catch (error: any) {
-      ret = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`;
+      ret = toCodeBlock(
+        error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
+      );
     }
     onPrompt(ret);
-  };
+  }, [onPrompt, code]);
 
   return (
     <>
@@ -88,7 +98,7 @@ function CodeHeader({ language, children, onPrompt, code }: PreHeaderProps) {
           </Text>
         </Box>
         <ButtonGroup isAttached pr={2}>
-          {(language === "js" || language === "javascript") && onPrompt && (
+          {shouldShowRunButton && (
             <IconButton
               size="sm"
               aria-label="Run code"
@@ -98,6 +108,7 @@ function CodeHeader({ language, children, onPrompt, code }: PreHeaderProps) {
               _dark={{ color: "gray.300" }}
               variant="ghost"
               onClick={handleRun}
+              isDisabled={isLoading}
             />
           )}
           <IconButton
@@ -127,4 +138,4 @@ function CodeHeader({ language, children, onPrompt, code }: PreHeaderProps) {
   );
 }
 
-export default CodeHeader;
+export default memo(CodeHeader);

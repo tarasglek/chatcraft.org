@@ -1,11 +1,15 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { CallbackManager } from "langchain/callbacks";
-import { BaseChatMessage, AIChatMessage, SystemChatMessage } from "langchain/schema";
 import { useKey } from "react-use";
 
 import { useSettings } from "./use-settings";
 import useSystemMessage from "./use-system-message";
+import {
+  ChatCraftMessage,
+  ChatCraftAiMessage,
+  ChatCraftSystemMessage,
+} from "../lib/ChatCraftMessage";
 
 // See https://openai.com/pricing
 const calculateTokenCost = (tokens: number, model: GptModel): number | undefined => {
@@ -25,7 +29,7 @@ const calculateTokenCost = (tokens: number, model: GptModel): number | undefined
 
 function useChatOpenAI() {
   const systemMessage = useSystemMessage();
-  const [streamingMessage, setStreamingMessage] = useState<AIChatMessage>();
+  const [streamingMessage, setStreamingMessage] = useState<ChatCraftMessage>();
   const { settings } = useSettings();
   const [cancel, setCancel] = useState<() => void>(() => {});
   const [paused, setPaused] = useState(false);
@@ -52,16 +56,19 @@ function useChatOpenAI() {
   };
 
   const callChatApi = useCallback(
-    (messages: BaseChatMessage[]) => {
+    (messages: ChatCraftMessage[]) => {
       const buffer: string[] = [];
-      setStreamingMessage(new AIChatMessage(""));
+      const { model } = settings;
+      const message = new ChatCraftAiMessage({ model, text: "" });
+      // Cache the id so we can re-use it below
+      const id = message.id;
+      setStreamingMessage(message);
 
       const chatOpenAI = new ChatOpenAI({
         openAIApiKey: settings.apiKey,
         temperature: 0,
         streaming: true,
         modelName: settings.model,
-        callbackManager: CallbackManager.fromHandlers({}),
       });
 
       // Allow the stream to be cancelled
@@ -73,7 +80,7 @@ function useChatOpenAI() {
       });
 
       // Send the chat history + user's prompt, and prefix it all with our system message
-      const systemChatMessage = new SystemChatMessage(systemMessage);
+      const systemChatMessage = new ChatCraftSystemMessage({ text: systemMessage });
 
       return chatOpenAI
         .call(
@@ -86,16 +93,34 @@ function useChatOpenAI() {
               buffer.push(token);
 
               if (!pausedRef.current) {
-                setStreamingMessage(new AIChatMessage(buffer.join("")));
+                setStreamingMessage(
+                  new ChatCraftAiMessage({
+                    id,
+                    model,
+                    text: buffer.join(""),
+                  })
+                );
               }
             },
           })
+        )
+        .then(
+          ({ text }) =>
+            new ChatCraftAiMessage({
+              id,
+              model,
+              text,
+            })
         )
         .catch((err) => {
           // Deal with cancelled messages by returning a partial message
           if (err.message.startsWith("Cancel:")) {
             buffer.push("...");
-            return new AIChatMessage(buffer.join("")) as BaseChatMessage;
+            return new ChatCraftAiMessage({
+              id,
+              model,
+              text: buffer.join(""),
+            });
           }
           throw err;
         })
@@ -108,7 +133,7 @@ function useChatOpenAI() {
   );
 
   const getTokenInfo = useCallback(
-    async (messages: BaseChatMessage[]): Promise<TokenInfo> => {
+    async (messages: ChatCraftMessage[]): Promise<TokenInfo> => {
       const api = new ChatOpenAI({
         openAIApiKey: settings.apiKey,
         modelName: settings.model,
