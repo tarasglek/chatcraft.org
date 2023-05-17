@@ -45,11 +45,12 @@ const fixLanguageName = (language: string | null) => {
 
 type MarkdownProps = {
   previewCode?: boolean;
+  isLoading: boolean;
   onPrompt?: (prompt: string) => void;
   children: string;
 };
 
-function Markdown({ previewCode, onPrompt, children }: MarkdownProps) {
+function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps) {
   const style = useColorModeValue(oneLight, oneDark);
 
   return (
@@ -100,7 +101,13 @@ function Markdown({ previewCode, onPrompt, children }: MarkdownProps) {
                   children={code}
                   language={fixLanguageName(language)}
                   PreTag={(props) => (
-                    <CodeHeader {...props} code={code} language={language} onPrompt={onPrompt} />
+                    <CodeHeader
+                      {...props}
+                      code={code}
+                      language={language}
+                      isLoading={isLoading}
+                      onPrompt={onPrompt}
+                    />
                   )}
                   style={style}
                   showLineNumbers={true}

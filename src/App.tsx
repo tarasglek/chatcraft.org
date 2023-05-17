@@ -9,7 +9,6 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { CgArrowDownO } from "react-icons/cg";
-import { HumanChatMessage } from "langchain/schema";
 
 import PromptForm from "./components/PromptForm";
 import MessagesView from "./components/MessagesView";
@@ -17,6 +16,7 @@ import Header from "./components/Header";
 import useMessages from "./hooks/use-messages";
 import useChatOpenAI from "./hooks/use-chat-openai";
 import useUser from "./hooks/use-user";
+import { ChatCraftHumanMessage } from "./lib/ChatCraftMessage";
 
 function App() {
   // When chatting with OpenAI, a streaming message is returned during loading
@@ -87,7 +87,7 @@ function App() {
   // Handle prompt form submission
   const onPrompt = useCallback(
     async (prompt: string) => {
-      const allMessages = [...messages, new HumanChatMessage(prompt)];
+      const allMessages = [...messages, new ChatCraftHumanMessage({ text: prompt })];
 
       setShouldAutoScroll(true);
       setMessages(allMessages);
@@ -160,9 +160,9 @@ function App() {
           <MessagesView
             messages={messages}
             newMessage={streamingMessage}
+            isLoading={loading}
             onRemoveMessage={removeMessage}
             singleMessageMode={singleMessageMode}
-            loading={loading}
             isPaused={paused}
             onTogglePause={togglePause}
             onCancel={cancel}

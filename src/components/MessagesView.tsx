@@ -1,17 +1,17 @@
 import { useCallback, useLayoutEffect, useMemo } from "react";
-import { AIChatMessage, BaseChatMessage } from "langchain/schema";
 import { Box, Collapse, useColorMode } from "@chakra-ui/react";
 import mermaid from "mermaid";
 
 import Message from "./Message";
 import NewMessage from "./NewMessage";
+import { ChatCraftMessage, ChatCraftAiMessage } from "../lib/ChatCraftMessage";
 
 type MessagesViewProps = {
-  messages: BaseChatMessage[];
-  newMessage?: AIChatMessage;
-  onRemoveMessage: (message: BaseChatMessage) => void;
+  messages: ChatCraftMessage[];
+  newMessage?: ChatCraftAiMessage;
+  isLoading: boolean;
+  onRemoveMessage: (message: ChatCraftMessage) => void;
   singleMessageMode: boolean;
-  loading: boolean;
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
@@ -21,9 +21,9 @@ type MessagesViewProps = {
 function MessagesView({
   messages,
   newMessage,
+  isLoading,
   onRemoveMessage,
   singleMessageMode,
-  loading,
   isPaused,
   onTogglePause,
   onCancel,
@@ -49,17 +49,18 @@ function MessagesView({
   // Memoize the previous messages so we don't have to update when newMessage changes
   const prevMessages = useMemo(
     () =>
-      messages.map((message: BaseChatMessage, index: number) => {
+      messages.map((message) => {
         return (
           <Message
-            key={index}
+            key={message.id}
             message={message}
+            isLoading={isLoading}
             onDeleteClick={() => memoizedOnRemoveMessage(message)}
             onPrompt={onPrompt}
           />
         );
       }),
-    [messages, onPrompt, memoizedOnRemoveMessage]
+    [messages, onPrompt, isLoading, memoizedOnRemoveMessage]
   );
 
   return (
@@ -83,7 +84,7 @@ function MessagesView({
         <>
           <Message
             message={lastMessage}
-            loading={loading}
+            isLoading={isLoading}
             onDeleteClick={() => onRemoveMessage(lastMessage)}
             onPrompt={onPrompt}
           />

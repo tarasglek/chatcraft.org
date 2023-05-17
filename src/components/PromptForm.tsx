@@ -23,7 +23,7 @@ import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
-import { isMac, isWindows, formatNumber, formatCurrency } from "../utils";
+import { isMac, isWindows, formatNumber, formatCurrency } from "../lib/utils";
 
 type KeyboardHintProps = {
   isVisible: boolean;
