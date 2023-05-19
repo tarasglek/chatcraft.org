@@ -1,9 +1,10 @@
-type LoginPostResponse = {
-  code: string;
-  state?: string;
-};
-
 type AccessTokenResponse = {
   error?: string;
   access_token: string;
+};
+
+type UserInfoResponse = {
+  login: string;
+  name: string;
+  avatar_url: string;
 };
