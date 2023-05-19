@@ -50,10 +50,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     if (result.error) {
       console.error(result.error);
-      return Response.redirect(`https://chatcraft.org/?login_error`);
+      return Response.redirect(`https://chatcraft.org/?login_error`, 302);
     }
 
-    return Response.redirect(`https://chatcraft.org/?token=${result.access_token}`);
+    return Response.redirect(`https://chatcraft.org/?token=${result.access_token}`, 302);
   } catch (error) {
     console.error(error);
     return new Response(error.message, {
