@@ -11,14 +11,16 @@ import {
 } from "@chakra-ui/react";
 import { BiSun, BiMoon } from "react-icons/bi";
 import { BsPersonGear, BsGithub } from "react-icons/bs";
+import { FiCopy } from "react-icons/fi";
 
 import PreferencesModal from "./PreferencesModal";
 
 type HeaderProps = {
   inputPromptRef: RefObject<HTMLTextAreaElement>;
+  onCopyMessages: () => void;
 };
 
-function Header({ inputPromptRef }: HeaderProps) {
+function Header({ inputPromptRef, onCopyMessages }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -39,7 +41,7 @@ function Header({ inputPromptRef }: HeaderProps) {
           &lt;ChatCraft /&gt;
         </Link>
       </Text>
-      <ButtonGroup isAttached pr={2}>
+      <ButtonGroup isAttached pr={2} alignItems="center">
         <IconButton
           as="a"
           href="https://github.com/tarasglek/chatcraft.org"
@@ -56,6 +58,14 @@ function Header({ inputPromptRef }: HeaderProps) {
           icon={useColorModeValue(<BiMoon />, <BiSun />)}
           variant="ghost"
           onClick={toggleColorMode}
+        />
+        <IconButton
+          aria-label="Copy messages"
+          icon={<FiCopy />}
+          onClick={onCopyMessages}
+          ml={2}
+          size="sm"
+          variant="ghost"
         />
         <IconButton
           aria-label="User Settings"

@@ -120,10 +120,33 @@ function App() {
     resume();
   }
 
+  function copyMessagesToClipboard() {
+    const messageTexts = messages.map((message) => "CHAT:\n\n" + message.text).join("\n\n");
+
+    navigator.clipboard.writeText(messageTexts).then(
+      () => {
+        toast({
+          title: "Messages copied to clipboard",
+          status: "success",
+          position: "top",
+          isClosable: true,
+        });
+      },
+      (err) => {
+        toast({
+          title: "Failed to copy messages to clipboard",
+          status: "error",
+          position: "top",
+          isClosable: true,
+        });
+      }
+    );
+  }
+
   return (
     <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
-        <Header inputPromptRef={inputPromptRef} />
+        <Header inputPromptRef={inputPromptRef} onCopyMessages={copyMessagesToClipboard} />
 
         <Box
           flex="1"
