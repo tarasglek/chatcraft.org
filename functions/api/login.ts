@@ -47,18 +47,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       body: JSON.stringify({ CLIENT_ID, CLIENT_SECRET, code }),
     });
     const result = (await response.json()) as AccessTokenResponse;
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-    };
 
     if (result.error) {
-      return new Response(JSON.stringify(result), { status: 401, headers });
+      console.error(result.error);
+      return Response.redirect(`https://chatcraft.org/?login_error`);
     }
 
-    return new Response(JSON.stringify({ token: result.access_token }), {
-      status: 201,
-      headers,
-    });
+    return Response.redirect(`https://chatcraft.org/?token=${result.access_token}`);
   } catch (error) {
     console.error(error);
     return new Response(error.message, {
