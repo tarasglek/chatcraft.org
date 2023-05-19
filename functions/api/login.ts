@@ -27,6 +27,7 @@ async function requestAccessToken(code: string, CLIENT_ID: string, CLIENT_SECRET
   const res = await fetch(url, {
     method: "POST",
     headers: {
+      "User-Agent": "chatcraft.org",
       Accept: "application/json",
     },
   });
@@ -50,6 +51,7 @@ async function requestUserInfo(token: string) {
       Accept: "application/json",
       Authorization: `Bearer ${token}`,
       "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "chatcraft.org",
     },
   });
 
