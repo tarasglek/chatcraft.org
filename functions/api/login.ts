@@ -5,20 +5,39 @@ interface Env {
   CLIENT_SECRET: string;
 }
 
+function buildUrl(url: string, params: { [key: string]: string }) {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    searchParams.set(key, value);
+  }
+
+  const u = new URL(url);
+  u.search = searchParams.toString();
+
+  return u.href;
+}
+
 async function requestAccessToken(code: string, CLIENT_ID: string, CLIENT_SECRET: string) {
-  const res = await fetch("https://github.com/login/oauth/access_token", {
+  const url = buildUrl("https://github.com/login/oauth/access_token", {
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    code,
+  });
+
+  const res = await fetch(url, {
     method: "POST",
     headers: {
-      "content-type": "application/json",
-      "user-agent": "chatcraft.org",
-      accept: "application/json",
+      Accept: "application/json",
     },
-    body: JSON.stringify({ CLIENT_ID, CLIENT_SECRET, code }),
   });
-  const result = (await res.json()) as AccessTokenResponse;
 
+  if (!res.ok) {
+    throw new Error(`Failed to get GitHub token: ${res.status} ${await res.text()}`);
+  }
+
+  const result = (await res.json()) as AccessTokenResponse;
   if (result.error) {
-    throw new Error(`GitHub login error: ${result.error}`);
+    throw new Error(`Error in GitHub token response: ${result.error}`);
   }
 
   return result.access_token;
@@ -28,31 +47,18 @@ async function requestAccessToken(code: string, CLIENT_ID: string, CLIENT_SECRET
 async function requestUserInfo(token: string) {
   const res = await fetch("https://api.github.com/user", {
     headers: {
-      Accept: "application/vnd.github+json",
+      Accept: "application/json",
       Authorization: `Bearer ${token}`,
       "X-GitHub-Api-Version": "2022-11-28",
     },
   });
 
   if (!res.ok) {
-    throw new Error(`GitHub error: unable to get user info: ${res.status} ${res.statusText}`);
+    throw new Error(`Failed to get GitHub User info: ${res.status} ${await res.text()}`);
   }
 
   const { login, name, avatar_url } = (await res.json()) as UserInfoResponse;
-  return { login, name, avatar_url };
-}
-
-function buildChatCraftUrl(token: string, login: string, name: string, avatar: string) {
-  const url = new URL("https://chatcraft.org/");
-
-  const params = new URLSearchParams();
-  params.set("token", token);
-  params.set("username", login);
-  params.set("name", name);
-  params.set("avatar", avatar);
-  url.search = params.toString();
-
-  return url.href;
+  return { login, name, avatar: avatar_url };
 }
 
 // Handle CORS pre-flight request
@@ -76,17 +82,15 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   if (!code) {
     // TODO: make use of `redirect_uri` and `state`, see:
     // https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
-    return Response.redirect(
-      `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}`,
-      302
-    );
+    const url = buildUrl("https://github.com/login/oauth/authorize", { client_id: CLIENT_ID });
+    return Response.redirect(url, 302);
   }
 
   // Otherwise, exchange the code for an access_token, then get user info
   try {
     const token = await requestAccessToken(code, CLIENT_ID, CLIENT_SECRET);
-    const { login, name, avatar_url } = await requestUserInfo(token);
-    const url = buildChatCraftUrl(token, login, name, avatar_url);
+    const { login, name, avatar } = await requestUserInfo(token);
+    const url = buildUrl("https://chatcraft.org/", { token, login, name, avatar });
 
     return Response.redirect(url, 302);
   } catch (err) {
