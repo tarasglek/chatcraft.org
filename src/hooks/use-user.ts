@@ -8,6 +8,10 @@ function useUser() {
   const [user, setUser] = useState<User | undefined>();
 
   useEffect(() => {
+    if (!query) {
+      return;
+    }
+
     const token = query.get("token");
     const username = query.get("login");
     const name = query.get("name");
