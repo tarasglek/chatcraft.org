@@ -18,6 +18,7 @@ import {
   Tag,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
+import { TbSettings, TbShare2 } from "react-icons/tb";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
@@ -40,7 +41,7 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
   const metaKey = isMac() ? "Command ⌘" : "Ctrl";
 
   return (
-    <Text ml={2} fontSize="sm">
+    <Text fontSize="sm">
       <span>
         {settings.enterBehaviour === "newline" || isExpanded ? (
           <span>
@@ -159,7 +160,20 @@ function PromptForm({
   return (
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">
-        <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
+        <HStack>
+          <ButtonGroup isAttached>
+            <IconButton
+              aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+              title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+              icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
+              variant="ghost"
+              isDisabled={isLoading}
+              onClick={toggleExpanded}
+            />
+          </ButtonGroup>
+
+          <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
+        </HStack>
 
         <HStack>
           {
@@ -178,12 +192,18 @@ function PromptForm({
 
           <ButtonGroup isAttached>
             <IconButton
-              aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-              title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-              icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
+              aria-label="Settings"
+              title="Share"
+              icon={<TbSettings />}
               variant="ghost"
               isDisabled={isLoading}
-              onClick={toggleExpanded}
+            />
+            <IconButton
+              aria-label="Share"
+              title="Share"
+              icon={<TbShare2 />}
+              variant="ghost"
+              isDisabled={isLoading}
             />
           </ButtonGroup>
         </HStack>
@@ -236,7 +256,7 @@ function PromptForm({
               </Checkbox>
               <ButtonGroup>
                 <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
-                  Clear Chat
+                  New Chat
                 </Button>
                 <Button type="submit" size="sm" isLoading={isLoading} loadingText="Send">
                   Send

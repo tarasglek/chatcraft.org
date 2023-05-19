@@ -15,7 +15,6 @@ import MessagesView from "./components/MessagesView";
 import Header from "./components/Header";
 import useMessages from "./hooks/use-messages";
 import useChatOpenAI from "./hooks/use-chat-openai";
-import useUser from "./hooks/use-user";
 import { ChatCraftHumanMessage } from "./lib/ChatCraftMessage";
 
 function App() {
@@ -31,9 +30,6 @@ function App() {
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
-  const user = useUser();
-
-  console.log({ user });
 
   // Auto scroll chat to bottom, but only if user isn't trying to scroll manually
   // Also add a dependency on the streamingMessage, since its content (and therefore
