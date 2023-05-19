@@ -24,3 +24,10 @@ type TokenInfo = {
   count: number;
   cost?: number;
 };
+
+type User = {
+  name: string;
+  username: string;
+  token: string;
+  avatarUrl: string;
+};
