@@ -90,7 +90,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, params }
     console.error(err);
     return new Response(
       JSON.stringify({
-        error: "Unable to share chat: " + err.message,
+        message: "Unable to share chat: " + err.message,
       }),
       {
         status: 500,

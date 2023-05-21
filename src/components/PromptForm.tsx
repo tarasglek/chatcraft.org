@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useCallback } from "react";
 import {
   Box,
   Button,
@@ -12,19 +12,36 @@ import {
   Link,
   IconButton,
   Kbd,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
   Text,
   Textarea,
   HStack,
   Tag,
+  useDisclosure,
+  MenuDivider,
+  useToast,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
-import { TbSettings, TbShare2 } from "react-icons/tb";
+import { TbShare2 } from "react-icons/tb";
+import { useCopyToClipboard } from "react-use";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
-import { isMac, isWindows, formatNumber, formatCurrency } from "../lib/utils";
+import {
+  isMac,
+  isWindows,
+  formatNumber,
+  formatCurrency,
+  download,
+  messagesToMarkdown,
+} from "../lib/utils";
+import ShareModal from "./ShareModal";
+import { ChatCraftMessage } from "../lib/ChatCraftMessage";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -58,6 +75,7 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
 }
 
 type PromptFormProps = {
+  messages: ChatCraftMessage[];
   onPrompt: (prompt: string) => void;
   onClear: () => void;
   // Whether or not to automatically manage the height of the prompt.
@@ -74,6 +92,7 @@ type PromptFormProps = {
 };
 
 function PromptForm({
+  messages,
   onPrompt,
   onClear,
   isExpanded,
@@ -86,9 +105,12 @@ function PromptForm({
   tokenInfo,
 }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
+  const { isOpen, onOpen, onClose } = useDisclosure();
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
   const { settings, setSettings } = useSettings();
+  const [, copyToClipboard] = useCopyToClipboard();
+  const toast = useToast();
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -157,6 +179,30 @@ function PromptForm({
     }
   };
 
+  const handleCopyMessages = useCallback(() => {
+    const text = messagesToMarkdown(messages);
+    copyToClipboard(text);
+    toast({
+      colorScheme: "blue",
+      title: "Messages copied to clipboard",
+      status: "success",
+      position: "top",
+      isClosable: true,
+    });
+  }, [messages, copyToClipboard, toast]);
+
+  const handleDownloadMessages = useCallback(() => {
+    const text = messagesToMarkdown(messages);
+    download(text, "chat.md", "text/markdown");
+    toast({
+      colorScheme: "blue",
+      title: "Messages downloaded as file",
+      status: "success",
+      position: "top",
+      isClosable: true,
+    });
+  }, [messages, toast]);
+
   return (
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">
@@ -190,22 +236,27 @@ function PromptForm({
             </Tag>
           )}
 
-          <ButtonGroup isAttached>
-            <IconButton
-              aria-label="Settings"
-              title="Share"
-              icon={<TbSettings />}
-              variant="ghost"
-              isDisabled={isLoading}
-            />
-            <IconButton
-              aria-label="Share"
-              title="Share"
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              aria-label="User Settings"
+              title="User Settings"
               icon={<TbShare2 />}
               variant="ghost"
-              isDisabled={isLoading}
             />
-          </ButtonGroup>
+            <MenuList>
+              <MenuItem onClick={() => handleCopyMessages()}>Copy to Clipboard</MenuItem>
+              <MenuItem onClick={() => handleDownloadMessages()}>Download as File</MenuItem>
+              <MenuDivider />
+              <MenuItem onClick={() => onOpen()}>Create Public URL...</MenuItem>
+            </MenuList>
+          </Menu>
+          <ShareModal
+            messages={messages}
+            isOpen={isOpen}
+            onClose={onClose}
+            finalFocusRef={inputPromptRef}
+          />
         </HStack>
       </Flex>
 

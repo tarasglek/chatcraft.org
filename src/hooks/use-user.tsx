@@ -11,12 +11,14 @@ import useClearParams from "use-clear-params";
 
 type UserContextType = {
   user?: User;
+  token?: string;
   login: () => void;
   logout: () => void;
 };
 
 const UserContext = createContext<UserContextType>({
   user: undefined,
+  token: undefined,
   login: () => {
     /* do nothing */
   },
@@ -29,12 +31,8 @@ export const useUser = () => useContext(UserContext);
 
 export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const query = useClearParams();
-  const [user, setUser] = useState<User | undefined>({
-    avatarUrl: "https://avatars.githubusercontent.com/u/427398?v=4",
-    name: "David Humphrey",
-    token: "...",
-    username: "humphd",
-  });
+  const [token, setToken] = useState<string | undefined>();
+  const [user, setUser] = useState<User | undefined>();
 
   useEffect(() => {
     if (!query) {
@@ -46,13 +44,16 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const name = query.get("name");
     const avatarUrl = query.get("avatar");
 
-    if (token && username && name && avatarUrl) {
+    if (username && name && avatarUrl) {
       setUser({
-        token,
         username,
         name,
         avatarUrl,
       });
+    }
+
+    if (token) {
+      setToken(token);
     }
   }, [query, setUser]);
 
@@ -62,6 +63,7 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const value = {
     user,
+    token,
     login() {
       window.location.href = "/api/login";
     },

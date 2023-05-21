@@ -5,7 +5,8 @@ import { nanoid } from "nanoid";
 export type SerializedChatCraftMessage = {
   id: string;
   type: MessageType;
-  model: GptModel | null;
+  model?: GptModel;
+  user?: User;
   text: string;
 };
 
@@ -14,16 +15,19 @@ export class ChatCraftMessage extends BaseChatMessage {
   id: string;
   type: MessageType;
   model?: GptModel;
+  user?: User;
 
   constructor({
     id,
     type,
     model,
+    user,
     text,
   }: {
     id?: string;
     type: MessageType;
     model?: GptModel;
+    user?: User;
     text: string;
   }) {
     super(text);
@@ -31,9 +35,13 @@ export class ChatCraftMessage extends BaseChatMessage {
     // We didn't used to have an `id`, so generate if missing
     this.id = id ?? nanoid();
     this.type = type;
-    // We may or may not have info about the model (e.g., human message)
+    // We may or may not have info about the model (e.g., ai message will)
     if (model) {
       this.model = model;
+    }
+    // We may or may not have user info (e.g., human message will)
+    if (user) {
+      this.user = user;
     }
   }
 
@@ -47,16 +55,17 @@ export class ChatCraftMessage extends BaseChatMessage {
     return {
       id: this.id,
       type: this.type,
-      model: this.model ?? null,
+      model: this.model,
+      user: this.user,
       text: this.text,
     };
   }
 
-  static parse({ id, type, model, text }: SerializedChatCraftMessage): ChatCraftMessage {
+  static parse({ id, type, model, user, text }: SerializedChatCraftMessage): ChatCraftMessage {
     if (type === "ai") {
       return new ChatCraftAiMessage({ id, model: model || "gpt-3.5-turbo", text });
     } else if (type === "human") {
-      return new ChatCraftHumanMessage({ id, text });
+      return new ChatCraftHumanMessage({ id, user, text });
     } else {
       return new ChatCraftSystemMessage({ id, text });
     }
@@ -70,8 +79,8 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
 }
 
 export class ChatCraftHumanMessage extends ChatCraftMessage {
-  constructor({ id, text }: { id?: string; text: string }) {
-    super({ id, type: "human", text });
+  constructor({ id, user, text }: { id?: string; user?: User; text: string }) {
+    super({ id, type: "human", user, text });
   }
 }
 

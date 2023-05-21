@@ -27,8 +27,11 @@ function Message({ message, isLoading, hidePreviews, onDeleteClick, onPrompt }: 
   }
 
   // Human Message
+  const { user } = message;
   return (
     <HumanMessage
+      name={user?.name}
+      avatarUrl={user?.avatarUrl}
       text={message.text}
       isLoading={isLoading}
       hidePreviews={hidePreviews}

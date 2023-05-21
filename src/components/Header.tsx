@@ -16,17 +16,15 @@ import {
 } from "@chakra-ui/react";
 import { BiSun, BiMoon } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
-import { FiCopy } from "react-icons/fi";
 
 import PreferencesModal from "./PreferencesModal";
 import { useUser } from "../hooks/use-user";
 
 type HeaderProps = {
   inputPromptRef: RefObject<HTMLTextAreaElement>;
-  onCopyMessages: () => void;
 };
 
-function Header({ inputPromptRef, onCopyMessages }: HeaderProps) {
+function Header({ inputPromptRef }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, login, logout } = useUser();
@@ -65,14 +63,6 @@ function Header({ inputPromptRef, onCopyMessages }: HeaderProps) {
           icon={useColorModeValue(<BiMoon />, <BiSun />)}
           variant="ghost"
           onClick={toggleColorMode}
-        />
-        <IconButton
-          aria-label="Copy messages"
-          icon={<FiCopy />}
-          onClick={onCopyMessages}
-          ml={2}
-          size="sm"
-          variant="ghost"
         />
 
         <Menu>
