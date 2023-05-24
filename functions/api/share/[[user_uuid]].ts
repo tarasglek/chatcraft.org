@@ -25,7 +25,14 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
       return errorResponse(404, `${key} not found`);
     }
 
-    return successResponse(object.body);
+    const headers = new Headers();
+    object.writeHttpMetadata(headers);
+    headers.set("etag", object.httpEtag);
+
+    return new Response(object.body, {
+      status: 200,
+      headers,
+    });
   } catch (err) {
     console.error(err);
     return errorResponse(500, `Unable to get chat: ${err.message}`);
