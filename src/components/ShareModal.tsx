@@ -31,7 +31,7 @@ type AuthenticatedForm = {
 
 function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
   const [url, setUrl] = useState<string | undefined>();
-  const [error, setError] = useState<string | undefined>();
+  const [error, setError] = useState<Error | undefined>();
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
@@ -42,7 +42,7 @@ function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
       setUrl(url);
     } catch (err: any) {
       console.error(err);
-      setError(err.message);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
           Create URL
         </Button>
         {error ? (
-          <FormErrorMessage>{error}</FormErrorMessage>
+          <FormErrorMessage>{error.message}</FormErrorMessage>
         ) : (
           <FormHelperText>
             Anyone who knows the public URL will be able to access it.
