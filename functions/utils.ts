@@ -11,6 +11,15 @@ export function buildUrl(url: string, params: { [key: string]: string }) {
   return u.href;
 }
 
+// Create an error response to send back to the client
+export function successResponse(body: any, statusCode = 200, headers?: Headers) {
+  return new Response(JSON.stringify(body), { status: statusCode, headers });
+}
+
+export function errorResponse(statusCode: number, message: string) {
+  return new Response(JSON.stringify({ message }), { status: statusCode });
+}
+
 // Extract the access token from the Authorization header
 export function getAccessToken(request: Request) {
   const Authorization = request.headers.get("Authorization");

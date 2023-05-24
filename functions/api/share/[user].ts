@@ -1,5 +1,5 @@
 import { validateToken } from "../../github";
-import { uuid, getAccessToken } from "../../utils";
+import { uuid, getAccessToken, successResponse, errorResponse } from "../../utils";
 
 interface Env {
   CHATCRAFT_ORG_BUCKET: R2Bucket;
@@ -13,33 +13,31 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params })
   const token = getAccessToken(request);
   const { user } = params;
 
+  // Make sure we have a token, and that it matches the expected user
   try {
     const ghUsername = await validateToken(token, CLIENT_ID);
 
     // Make sure this is the same username as the user who owns this token
     if (user !== ghUsername) {
-      return new Response(
-        JSON.stringify({
-          message: "GitHub token does not match username",
-        }),
-        { status: 403 }
-      );
+      return errorResponse(403, "GitHub token does not match username");
     }
+  } catch (err) {
+    return errorResponse(400, err.message);
+  }
 
+  // Get a list of the user's shared chats
+  try {
     // Build an array of uuids and return
     const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix: `${user}/` });
-    const uuids = objects.map(({ key }) => key.replace(`${user}/`, ""));
-    return new Response(JSON.stringify(JSON.stringify(uuids)));
+    return successResponse(
+      objects.map(({ key }) => ({
+        key: key.replace(`${user}/`, ""),
+        url: `https://chatcraft.org/${key}`,
+      }))
+    );
   } catch (err) {
     console.error(err);
-    return new Response(
-      JSON.stringify({
-        error: "Unable to share chat: " + err.message,
-      }),
-      {
-        status: 500,
-      }
-    );
+    return errorResponse(500, `Unable to share chat: ${err.message}`);
   }
 };
 
@@ -51,50 +49,41 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, params }
 
   // We expect JSON
   if (!request.headers.get("content-type").includes("application/json")) {
-    return new Response(
-      JSON.stringify({
-        message: "Expected JSON",
-      }),
-      { status: 400 }
-    );
+    return errorResponse(400, "Expected JSON");
   }
 
+  // Make sure we have a token, and that it matches the expected user
   try {
     const ghUsername = await validateToken(token, CLIENT_ID);
 
     // Make sure this is the same username as the user who owns this token
     if (user !== ghUsername) {
-      return new Response(
-        JSON.stringify({
-          message: "GitHub token does not match username",
-        }),
-        { status: 403 }
-      );
+      return errorResponse(403, "GitHub token does not match username");
     }
+  } catch (err) {
+    return errorResponse(400, err.message);
+  }
 
-    const key = `${user}/${uuid()}`;
+  // Put the chat into R2
+  try {
+    const id = uuid();
+    const key = `${user}/${id}`;
     await CHATCRAFT_ORG_BUCKET.put(key, request.body);
 
-    return new Response(
-      JSON.stringify({
-        message: "Chat shared successfully",
-      }),
+    const url = `https://chatcraft.org/${key}`;
+    return successResponse(
       {
-        status: 201,
-        headers: {
-          Location: `https://chatcraft.org/${key}`,
-        },
-      }
+        message: "Chat shared successfully",
+        url,
+        id,
+      },
+      201,
+      new Headers({
+        Location: url,
+      })
     );
   } catch (err) {
     console.error(err);
-    return new Response(
-      JSON.stringify({
-        message: "Unable to share chat: " + err.message,
-      }),
-      {
-        status: 500,
-      }
-    );
+    return errorResponse(500, `Unable to share chat: ${err.message}`);
   }
 };

@@ -1,5 +1,5 @@
 import { validateToken } from "../../github";
-import { getAccessToken } from "../../utils";
+import { getAccessToken, successResponse, errorResponse } from "../../utils";
 
 interface Env {
   CHATCRAFT_ORG_BUCKET: R2Bucket;
@@ -14,37 +14,20 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
 
   // We should receive [username, uuid]
   if (!(Array.isArray(user_uuid) && user_uuid.length === 2)) {
-    return new Response(
-      JSON.stringify({
-        message: "Expected share URL of the form /api/share/{user}/{uuid}",
-      }),
-      { status: 400 }
-    );
+    return errorResponse(400, "Expected share URL of the form /api/share/{user}/{uuid}");
   }
 
   try {
     const key = user_uuid.join("/");
     const object = await CHATCRAFT_ORG_BUCKET.get(key);
     if (!object) {
-      return new Response(
-        JSON.stringify({
-          message: `${key} not found`,
-        }),
-        { status: 404 }
-      );
+      return errorResponse(404, `${key} not found`);
     }
 
-    return new Response(object.body);
+    return successResponse(object.body);
   } catch (err) {
     console.error(err);
-    return new Response(
-      JSON.stringify({
-        message: "Unable to get chat: " + err.message,
-      }),
-      {
-        status: 500,
-      }
-    );
+    return errorResponse(500, `Unable to get chat: ${err.message}`);
   }
 };
 
@@ -57,12 +40,7 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
 
   // We should receive [username, uuid]
   if (!(Array.isArray(user_uuid) && user_uuid.length === 2)) {
-    return new Response(
-      JSON.stringify({
-        message: "Expected share URL of the form /api/share/{user}/{uuid}",
-      }),
-      { status: 400 }
-    );
+    return errorResponse(400, "Expected share URL of the form /api/share/{user}/{uuid}");
   }
 
   try {
@@ -71,34 +49,17 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
 
     // Make sure this is the same username as the user who owns this token
     if (user !== ghUsername) {
-      return new Response(
-        JSON.stringify({
-          message: "GitHub token does not match username",
-        }),
-        { status: 403 }
-      );
+      return errorResponse(403, "GitHub token does not match username");
     }
 
     const key = user_uuid.join("/");
     await CHATCRAFT_ORG_BUCKET.delete(key);
 
-    return new Response(
-      JSON.stringify({
-        message: "Chat deleted successfully",
-      }),
-      {
-        status: 200,
-      }
-    );
+    return successResponse({
+      message: "Chat deleted successfully",
+    });
   } catch (err) {
     console.error(err);
-    return new Response(
-      JSON.stringify({
-        message: "Unable to share chat: " + err.message,
-      }),
-      {
-        status: 500,
-      }
-    );
+    return errorResponse(500, `Unable to share chat: ${err.message}`);
   }
 };
