@@ -15,8 +15,8 @@ import MessagesView from "./components/MessagesView";
 import Header from "./components/Header";
 import useMessages from "./hooks/use-messages";
 import useChatOpenAI from "./hooks/use-chat-openai";
-import useUser from "./hooks/use-user";
 import { ChatCraftHumanMessage } from "./lib/ChatCraftMessage";
+import { useUser } from "./hooks/use-user";
 
 function App() {
   // When chatting with OpenAI, a streaming message is returned during loading
@@ -31,9 +31,7 @@ function App() {
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
-  const user = useUser();
-
-  console.log({ user });
+  const { user } = useUser();
 
   // Auto scroll chat to bottom, but only if user isn't trying to scroll manually
   // Also add a dependency on the streamingMessage, since its content (and therefore
@@ -87,7 +85,7 @@ function App() {
   // Handle prompt form submission
   const onPrompt = useCallback(
     async (prompt: string) => {
-      const allMessages = [...messages, new ChatCraftHumanMessage({ text: prompt })];
+      const allMessages = [...messages, new ChatCraftHumanMessage({ text: prompt, user })];
 
       setShouldAutoScroll(true);
       setMessages(allMessages);
@@ -111,7 +109,16 @@ function App() {
         setShouldAutoScroll(true);
       }
     },
-    [messages, setMessages, singleMessageMode, setLoading, setShouldAutoScroll, callChatApi, toast]
+    [
+      user,
+      messages,
+      setMessages,
+      singleMessageMode,
+      setLoading,
+      setShouldAutoScroll,
+      callChatApi,
+      toast,
+    ]
   );
 
   // Restart auto-scrolling and resume a paused response when Follow Chat is clicked
@@ -120,33 +127,10 @@ function App() {
     resume();
   }
 
-  function copyMessagesToClipboard() {
-    const messageTexts = messages.map((message) => "CHAT:\n\n" + message.text).join("\n\n");
-
-    navigator.clipboard.writeText(messageTexts).then(
-      () => {
-        toast({
-          title: "Messages copied to clipboard",
-          status: "success",
-          position: "top",
-          isClosable: true,
-        });
-      },
-      (err) => {
-        toast({
-          title: "Failed to copy messages to clipboard",
-          status: "error",
-          position: "top",
-          isClosable: true,
-        });
-      }
-    );
-  }
-
   return (
     <Box w="100%" h="100%">
       <Flex flexDir="column" h="100%">
-        <Header inputPromptRef={inputPromptRef} onCopyMessages={copyMessagesToClipboard} />
+        <Header inputPromptRef={inputPromptRef} />
 
         <Box
           flex="1"
@@ -185,6 +169,7 @@ function App() {
         <Box flex={isExpanded ? "1" : undefined} bg={useColorModeValue("gray.100", "gray.700")}>
           <Box maxW="900px" mx="auto" h="100%">
             <PromptForm
+              messages={messages}
               onPrompt={onPrompt}
               onClear={() => setMessages()}
               isExpanded={isExpanded}

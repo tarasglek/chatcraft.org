@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useCallback } from "react";
 import {
   Box,
   Button,
@@ -12,18 +12,36 @@ import {
   Link,
   IconButton,
   Kbd,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
   Text,
   Textarea,
   HStack,
   Tag,
+  useDisclosure,
+  MenuDivider,
+  useToast,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
+import { TbShare2 } from "react-icons/tb";
+import { useCopyToClipboard } from "react-use";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
-import { isMac, isWindows, formatNumber, formatCurrency } from "../lib/utils";
+import {
+  isMac,
+  isWindows,
+  formatNumber,
+  formatCurrency,
+  download,
+  messagesToMarkdown,
+} from "../lib/utils";
+import ShareModal from "./ShareModal";
+import { ChatCraftMessage } from "../lib/ChatCraftMessage";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -40,7 +58,7 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
   const metaKey = isMac() ? "Command ⌘" : "Ctrl";
 
   return (
-    <Text ml={2} fontSize="sm">
+    <Text fontSize="sm">
       <span>
         {settings.enterBehaviour === "newline" || isExpanded ? (
           <span>
@@ -57,6 +75,7 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
 }
 
 type PromptFormProps = {
+  messages: ChatCraftMessage[];
   onPrompt: (prompt: string) => void;
   onClear: () => void;
   // Whether or not to automatically manage the height of the prompt.
@@ -73,6 +92,7 @@ type PromptFormProps = {
 };
 
 function PromptForm({
+  messages,
   onPrompt,
   onClear,
   isExpanded,
@@ -85,9 +105,12 @@ function PromptForm({
   tokenInfo,
 }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
+  const { isOpen, onOpen, onClose } = useDisclosure();
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
   const { settings, setSettings } = useSettings();
+  const [, copyToClipboard] = useCopyToClipboard();
+  const toast = useToast();
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -156,10 +179,47 @@ function PromptForm({
     }
   };
 
+  const handleCopyMessages = useCallback(() => {
+    const text = messagesToMarkdown(messages);
+    copyToClipboard(text);
+    toast({
+      colorScheme: "blue",
+      title: "Messages copied to clipboard",
+      status: "success",
+      position: "top",
+      isClosable: true,
+    });
+  }, [messages, copyToClipboard, toast]);
+
+  const handleDownloadMessages = useCallback(() => {
+    const text = messagesToMarkdown(messages);
+    download(text, "chat.md", "text/markdown");
+    toast({
+      colorScheme: "blue",
+      title: "Messages downloaded as file",
+      status: "success",
+      position: "top",
+      isClosable: true,
+    });
+  }, [messages, toast]);
+
   return (
     <Box h="100%" px={1}>
       <Flex justify="space-between" alignItems="baseline">
-        <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
+        <HStack>
+          <ButtonGroup isAttached>
+            <IconButton
+              aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+              title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+              icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
+              variant="ghost"
+              isDisabled={isLoading}
+              onClick={toggleExpanded}
+            />
+          </ButtonGroup>
+
+          <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
+        </HStack>
 
         <HStack>
           {
@@ -176,16 +236,29 @@ function PromptForm({
             </Tag>
           )}
 
-          <ButtonGroup isAttached>
-            <IconButton
-              aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-              title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-              icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
-              variant="ghost"
-              isDisabled={isLoading}
-              onClick={toggleExpanded}
-            />
-          </ButtonGroup>
+          <Box>
+            <Menu>
+              <MenuButton
+                as={IconButton}
+                aria-label="User Settings"
+                title="User Settings"
+                icon={<TbShare2 />}
+                variant="ghost"
+              />
+              <MenuList>
+                <MenuItem onClick={() => handleCopyMessages()}>Copy to Clipboard</MenuItem>
+                <MenuItem onClick={() => handleDownloadMessages()}>Download as File</MenuItem>
+                <MenuDivider />
+                <MenuItem onClick={() => onOpen()}>Create Public URL...</MenuItem>
+              </MenuList>
+            </Menu>
+          </Box>
+          <ShareModal
+            messages={messages}
+            isOpen={isOpen}
+            onClose={onClose}
+            finalFocusRef={inputPromptRef}
+          />
         </HStack>
       </Flex>
 
@@ -236,7 +309,7 @@ function PromptForm({
               </Checkbox>
               <ButtonGroup>
                 <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
-                  Clear Chat
+                  New Chat
                 </Button>
                 <Button type="submit" size="sm" isLoading={isLoading} loadingText="Send">
                   Send

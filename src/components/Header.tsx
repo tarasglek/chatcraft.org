@@ -1,28 +1,34 @@
 import { type RefObject } from "react";
 import {
+  Avatar,
+  Box,
   ButtonGroup,
   Flex,
   IconButton,
   Link,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Text,
   useColorMode,
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
 import { BiSun, BiMoon } from "react-icons/bi";
-import { BsPersonGear, BsGithub } from "react-icons/bs";
-import { FiCopy } from "react-icons/fi";
+import { BsGithub } from "react-icons/bs";
 
 import PreferencesModal from "./PreferencesModal";
+import { useUser } from "../hooks/use-user";
 
 type HeaderProps = {
   inputPromptRef: RefObject<HTMLTextAreaElement>;
-  onCopyMessages: () => void;
 };
 
-function Header({ inputPromptRef, onCopyMessages }: HeaderProps) {
+function Header({ inputPromptRef }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { user, login, logout } = useUser();
 
   return (
     <Flex
@@ -59,21 +65,43 @@ function Header({ inputPromptRef, onCopyMessages }: HeaderProps) {
           variant="ghost"
           onClick={toggleColorMode}
         />
-        <IconButton
-          aria-label="Copy messages"
-          icon={<FiCopy />}
-          onClick={onCopyMessages}
-          ml={2}
-          size="sm"
-          variant="ghost"
-        />
-        <IconButton
-          aria-label="User Settings"
-          title="User Settings"
-          icon={<BsPersonGear />}
-          variant="ghost"
-          onClick={onOpen}
-        />
+
+        <Box>
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              aria-label="User Settings"
+              title="User Settings"
+              icon={
+                user ? (
+                  <Avatar size="xs" src={user.avatarUrl} title={user.username} />
+                ) : (
+                  <Avatar
+                    size="xs"
+                    bg="gray.500"
+                    borderColor="gray.400"
+                    _dark={{ bg: "gray.600", borderColor: "gray.500" }}
+                    showBorder
+                  />
+                )
+              }
+              variant="ghost"
+            />
+            <MenuList>
+              <MenuItem onClick={onOpen}>Settings...</MenuItem>
+              <MenuItem onClick={user ? logout : login}>
+                {user ? (
+                  "Logout"
+                ) : (
+                  <>
+                    <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
+                  </>
+                )}
+              </MenuItem>
+            </MenuList>
+          </Menu>
+        </Box>
+
         <PreferencesModal isOpen={isOpen} onClose={onClose} finalFocusRef={inputPromptRef} />
       </ButtonGroup>
     </Flex>

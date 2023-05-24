@@ -11,6 +11,8 @@ import {
 } from "@chakra-ui/react";
 import { TbCopy, TbDownload, TbRun } from "react-icons/tb";
 
+import { download } from "../lib/utils";
+
 type PreHeaderProps = {
   language: string;
   children: ReactNode;
@@ -38,13 +40,7 @@ function CodeHeader({ language, children, isLoading, onPrompt, code }: PreHeader
   }, [onCopy, toast]);
 
   const handleDownload = useCallback(() => {
-    const blob = new Blob([code], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.setAttribute("download", "code.txt");
-    anchor.setAttribute("href", url);
-    anchor.click();
-
+    download(code, "code.txt");
     toast({
       title: "Downloaded",
       description: "Code was downloaded as a file",

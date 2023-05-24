@@ -28,6 +28,5 @@ type TokenInfo = {
 type User = {
   name: string;
   username: string;
-  token: string;
   avatarUrl: string;
 };
