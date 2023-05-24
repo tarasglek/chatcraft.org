@@ -1,6 +1,6 @@
 import { ChatOpenAI } from "langchain/chat_models/openai";
 
-import { ChatCraftChat } from "./ChatCraftChat";
+import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 import { ChatCraftHumanMessage, ChatCraftSystemMessage } from "./ChatCraftMessage";
 
 type ShareResponse = {
@@ -26,6 +26,16 @@ export async function createShare(user: User, token: string, chat: ChatCraftChat
   }
 
   return { id, url };
+}
+
+export async function loadShare(user: string, id: string) {
+  const res = await fetch(`/api/share/${user}/${id}`);
+  if (!res.ok) {
+    throw new Error("Unable to load shared chat" + (await res.json()).message);
+  }
+
+  const serialized: SerializedChatCraftChat = await res.json();
+  return ChatCraftChat.parse(serialized);
 }
 
 export async function summarizeChat(openaiApiKey: string, chat: ChatCraftChat) {

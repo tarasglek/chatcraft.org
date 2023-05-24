@@ -58,7 +58,7 @@ const instructionMessage = `I am a helpful assistant! Before I can help, you nee
 
  Please enter your API Key in the form below to begin chatting!`;
 
-const initialMessages = (hasApiKey: boolean, model: GptModel): ChatCraftMessage[] =>
+const defaultMessages = (hasApiKey: boolean, model: GptModel): ChatCraftMessage[] =>
   hasApiKey
     ? [
         new ChatCraftAiMessage({
@@ -73,7 +73,9 @@ const initialMessages = (hasApiKey: boolean, model: GptModel): ChatCraftMessage[
         }),
       ];
 
-function useMessages() {
+// Allow passing in an initial set of messages to use as the starting point.
+// Otherwise, use what's in localStorage already, or create a new set.
+function useMessages(initialMessages?: ChatCraftMessage[]) {
   const { settings } = useSettings();
   const systemMessage = useSystemMessage();
   const { getTokenInfo } = useChatOpenAI();
@@ -81,7 +83,7 @@ function useMessages() {
   const hasApiKey = !!settings.apiKey;
   const [storage, setStorage] = useLocalStorage<ChatCraftMessage[]>(
     "messages",
-    initialMessages(hasApiKey, settings.model),
+    defaultMessages(hasApiKey, settings.model),
     {
       raw: false,
       serializer(value: ChatCraftMessage[]) {
@@ -93,7 +95,7 @@ function useMessages() {
     }
   );
   const [messages, setMessages] = useState<ChatCraftMessage[]>(
-    storage || initialMessages(hasApiKey, settings.model)
+    initialMessages || storage || defaultMessages(hasApiKey, settings.model)
   );
 
   // When the user enters an API Key (or removes it), update first message
@@ -166,12 +168,12 @@ function useMessages() {
     tokenInfo,
     setMessages(messages?: ChatCraftMessage[]) {
       // Allow clearing existing messages back to the initial message list
-      const newMessages = messages || initialMessages(hasApiKey, settings.model);
+      const newMessages = messages || defaultMessages(hasApiKey, settings.model);
       setMessages(newMessages);
     },
     removeMessage(message: ChatCraftMessage) {
       setMessages(
-        (messages || initialMessages(hasApiKey, settings.model)).filter((m) => m.id !== message.id)
+        (messages || defaultMessages(hasApiKey, settings.model)).filter((m) => m.id !== message.id)
       );
     },
   };

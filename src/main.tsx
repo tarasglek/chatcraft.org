@@ -1,8 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
+import { RouterProvider } from "react-router-dom";
 
-import App from "./App";
+import router from "./router";
 import theme from "./theme";
 import { SettingsProvider } from "./hooks/use-settings";
 import { UserProvider } from "./hooks/use-user";
@@ -13,7 +14,7 @@ ReactDOM.createRoot(document.querySelector("main") as HTMLElement).render(
       <SettingsProvider>
         <UserProvider>
           <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-          <App />
+          <RouterProvider router={router} />
         </UserProvider>
       </SettingsProvider>
     </ChakraProvider>

@@ -8,6 +8,7 @@ import {
   useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
+import { useLoaderData } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
 
 import PromptForm from "./components/PromptForm";
@@ -16,13 +17,16 @@ import Header from "./components/Header";
 import useMessages from "./hooks/use-messages";
 import useChatOpenAI from "./hooks/use-chat-openai";
 import { ChatCraftHumanMessage } from "./lib/ChatCraftMessage";
+import { ChatCraftChat } from "./lib/ChatCraftChat";
 import { useUser } from "./hooks/use-user";
 
 function App() {
+  // We may or may not have already loaded a shared chat
+  const chat = useLoaderData() as ChatCraftChat;
+  // Messages are all the static, previous messages in the chat
+  const { messages, tokenInfo, setMessages, removeMessage } = useMessages(chat?.messages);
   // When chatting with OpenAI, a streaming message is returned during loading
   const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
-  // Messages are all the static, previous messages in the chat
-  const { messages, tokenInfo, setMessages, removeMessage } = useMessages();
   // Whether to include the whole message chat history or just the last response
   const [singleMessageMode, setSingleMessageMode] = useState(false);
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
