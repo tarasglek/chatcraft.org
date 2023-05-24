@@ -1,6 +1,7 @@
 import { type RefObject } from "react";
 import {
   Avatar,
+  Box,
   ButtonGroup,
   Flex,
   IconButton,
@@ -65,39 +66,41 @@ function Header({ inputPromptRef }: HeaderProps) {
           onClick={toggleColorMode}
         />
 
-        <Menu>
-          <MenuButton
-            as={IconButton}
-            aria-label="User Settings"
-            title="User Settings"
-            icon={
-              user ? (
-                <Avatar size="xs" src={user.avatarUrl} title={user.username} />
-              ) : (
-                <Avatar
-                  size="xs"
-                  bg="gray.500"
-                  borderColor="gray.400"
-                  _dark={{ bg: "gray.600", borderColor: "gray.500" }}
-                  showBorder
-                />
-              )
-            }
-            variant="ghost"
-          />
-          <MenuList>
-            <MenuItem onClick={onOpen}>Settings...</MenuItem>
-            <MenuItem onClick={user ? logout : login}>
-              {user ? (
-                "Logout"
-              ) : (
-                <>
-                  <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
-                </>
-              )}
-            </MenuItem>
-          </MenuList>
-        </Menu>
+        <Box>
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              aria-label="User Settings"
+              title="User Settings"
+              icon={
+                user ? (
+                  <Avatar size="xs" src={user.avatarUrl} title={user.username} />
+                ) : (
+                  <Avatar
+                    size="xs"
+                    bg="gray.500"
+                    borderColor="gray.400"
+                    _dark={{ bg: "gray.600", borderColor: "gray.500" }}
+                    showBorder
+                  />
+                )
+              }
+              variant="ghost"
+            />
+            <MenuList>
+              <MenuItem onClick={onOpen}>Settings...</MenuItem>
+              <MenuItem onClick={user ? logout : login}>
+                {user ? (
+                  "Logout"
+                ) : (
+                  <>
+                    <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
+                  </>
+                )}
+              </MenuItem>
+            </MenuList>
+          </Menu>
+        </Box>
 
         <PreferencesModal isOpen={isOpen} onClose={onClose} finalFocusRef={inputPromptRef} />
       </ButtonGroup>

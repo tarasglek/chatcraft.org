@@ -236,21 +236,23 @@ function PromptForm({
             </Tag>
           )}
 
-          <Menu>
-            <MenuButton
-              as={IconButton}
-              aria-label="User Settings"
-              title="User Settings"
-              icon={<TbShare2 />}
-              variant="ghost"
-            />
-            <MenuList>
-              <MenuItem onClick={() => handleCopyMessages()}>Copy to Clipboard</MenuItem>
-              <MenuItem onClick={() => handleDownloadMessages()}>Download as File</MenuItem>
-              <MenuDivider />
-              <MenuItem onClick={() => onOpen()}>Create Public URL...</MenuItem>
-            </MenuList>
-          </Menu>
+          <Box>
+            <Menu>
+              <MenuButton
+                as={IconButton}
+                aria-label="User Settings"
+                title="User Settings"
+                icon={<TbShare2 />}
+                variant="ghost"
+              />
+              <MenuList>
+                <MenuItem onClick={() => handleCopyMessages()}>Copy to Clipboard</MenuItem>
+                <MenuItem onClick={() => handleDownloadMessages()}>Download as File</MenuItem>
+                <MenuDivider />
+                <MenuItem onClick={() => onOpen()}>Create Public URL...</MenuItem>
+              </MenuList>
+            </Menu>
+          </Box>
           <ShareModal
             messages={messages}
             isOpen={isOpen}
