@@ -1,13 +1,6 @@
-import {
-  createContext,
-  useState,
-  useEffect,
-  useCallback,
-  useContext,
-  type FC,
-  type ReactNode,
-} from "react";
+import { createContext, useEffect, useCallback, useContext, type FC, type ReactNode } from "react";
 import useClearParams from "use-clear-params";
+import { useLocalStorage } from "react-use";
 
 type UserContextType = {
   user?: User;
@@ -31,8 +24,8 @@ export const useUser = () => useContext(UserContext);
 
 export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const query = useClearParams();
-  const [token, setToken] = useState<string | undefined>();
-  const [user, setUser] = useState<User | undefined>();
+  const [token, setToken] = useLocalStorage<string | undefined>("gh_token");
+  const [user, setUser] = useLocalStorage<User | undefined>("gh_user");
 
   useEffect(() => {
     if (!query) {
@@ -55,7 +48,7 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
     if (token) {
       setToken(token);
     }
-  }, [query, setUser]);
+  }, [query, setUser, setToken]);
 
   const logout = useCallback(() => {
     setUser(undefined);
