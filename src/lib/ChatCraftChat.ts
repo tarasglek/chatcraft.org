@@ -7,6 +7,8 @@ export type SerializedChatCraftChat = {
   id: string;
   version: string;
   date: string;
+  title?: string;
+  summary?: string;
   messages: SerializedChatCraftMessage[];
 };
 
@@ -14,22 +16,30 @@ export class ChatCraftChat {
   id: string;
   version: string;
   date: string;
+  title?: string;
+  summary?: string;
   messages: ChatCraftMessage[];
 
   constructor({
     id,
     version,
     date,
+    title,
+    summary,
     messages,
   }: {
     id?: string;
     version?: string;
     date?: string;
+    title?: string;
+    summary?: string;
     messages: ChatCraftMessage[];
   }) {
     this.id = id ?? nanoid();
     this.version = version ?? "1";
     this.date = date ?? new Date().toISOString();
+    this.title = title ?? undefined;
+    this.summary = summary ?? undefined;
     this.messages = messages;
   }
 
@@ -43,15 +53,26 @@ export class ChatCraftChat {
       id: this.id,
       version: this.version,
       date: this.date,
+      title: this.title,
+      summary: this.summary,
       messages: this.messages.map((message) => message.serialize()),
     };
   }
 
-  static parse({ id, version, date, messages }: SerializedChatCraftChat): ChatCraftChat {
+  static parse({
+    id,
+    version,
+    date,
+    title,
+    summary,
+    messages,
+  }: SerializedChatCraftChat): ChatCraftChat {
     return new ChatCraftChat({
       id,
       version,
       date,
+      title,
+      summary,
       messages: messages.map((message) => ChatCraftMessage.parse(message)),
     });
   }

@@ -1,7 +1,8 @@
-import { RefObject, useState } from "react";
+import { RefObject, useCallback, useState } from "react";
 import {
   Button,
   FormControl,
+  Flex,
   FormLabel,
   FormHelperText,
   Modal,
@@ -15,13 +16,19 @@ import {
   Text,
   Input,
   FormErrorMessage,
+  Textarea,
+  ButtonGroup,
+  IconButton,
 } from "@chakra-ui/react";
+import { useCopyToClipboard } from "react-use";
 import { BsGithub } from "react-icons/bs";
+import { TbCopy } from "react-icons/tb";
 
 import { useUser } from "../hooks/use-user";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftMessage } from "../lib/ChatCraftMessage";
-import { createShare } from "../lib/share";
+import { createShare, summarizeChat } from "../lib/share";
+import { useSettings } from "../hooks/use-settings";
 
 type AuthenticatedForm = {
   user: User;
@@ -30,12 +37,17 @@ type AuthenticatedForm = {
 };
 
 function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
-  const [url, setUrl] = useState<string | undefined>();
+  const { settings } = useSettings();
+  const [url, setUrl] = useState<string>("");
   const [error, setError] = useState<Error | undefined>();
-  const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState<string>(chat.title || "");
+  const [summary, setSummary] = useState<string>(chat.summary || "");
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [, copyToClipboard] = useCopyToClipboard();
 
-  const handleClick = async () => {
-    setLoading(true);
+  const handleShareClick = async () => {
+    setIsSharing(true);
     try {
       const { id, url } = await createShare(user, token, chat);
       console.log("share", { id, url });
@@ -44,28 +56,81 @@ function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
       console.error(err);
       setError(err);
     } finally {
-      setLoading(false);
+      setIsSharing(false);
     }
   };
+
+  const handleSummarizeClick = useCallback(async () => {
+    if (!settings.apiKey) {
+      return;
+    }
+    try {
+      setIsSummarizing(true);
+      const { title, summary } = await summarizeChat(settings.apiKey, chat);
+      chat.title = title;
+      chat.summary = summary;
+      setTitle(title);
+      setSummary(summary);
+    } catch (err: any) {
+      console.error(err);
+      setError(err);
+    } finally {
+      setIsSummarizing(false);
+    }
+  }, [settings.apiKey, chat, setIsSummarizing]);
+
+  const handleCopyClick = useCallback(() => {
+    copyToClipboard(url);
+  }, [url, copyToClipboard]);
 
   return (
     <VStack gap={2}>
       <FormControl>
-        <Button onClick={() => handleClick()} isLoading={loading} loadingText="Creating URL...">
-          Create URL
-        </Button>
-        {error ? (
-          <FormErrorMessage>{error.message}</FormErrorMessage>
-        ) : (
-          <FormHelperText>
-            Anyone who knows the public URL will be able to access it.
-          </FormHelperText>
-        )}
+        <FormLabel>Title</FormLabel>
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel>Summary</FormLabel>
+        <Textarea value={summary} onChange={(e) => setSummary(e.target.value)}></Textarea>
+      </FormControl>
+
+      <FormControl>
+        <FormLabel>
+          Use your own <strong>Title</strong> and <strong>Summary</strong>, or click{" "}
+          <strong>Summarize</strong> to generate them automatically using GPT 3.5.
+        </FormLabel>
+        <ButtonGroup w="100%" justifyContent="space-between">
+          <Button
+            variant="outline"
+            onClick={() => handleSummarizeClick()}
+            isDisabled={!settings.apiKey}
+            isLoading={isSummarizing}
+            loadingText="Summarizing..."
+          >
+            Summarize
+          </Button>
+          <Button onClick={() => handleShareClick()} isLoading={isSharing} loadingText="Sharing...">
+            Share Chat
+          </Button>
+        </ButtonGroup>
+
+        {error && <FormErrorMessage>{error.message}</FormErrorMessage>}
       </FormControl>
 
       {url && (
         <FormControl>
-          <Input type="url" value={url} />
+          <FormLabel>Public Share URL</FormLabel>
+          <Flex gap={1}>
+            <Input autoFocus={true} type="url" defaultValue={url} readOnly flex={1} />{" "}
+            <IconButton
+              icon={<TbCopy />}
+              aria-label="Copy URL"
+              variant="ghost"
+              onClick={() => handleCopyClick()}
+            />
+          </Flex>
+          <FormHelperText>Anyone can access the chat using this URL.</FormHelperText>
         </FormControl>
       )}
     </VStack>
