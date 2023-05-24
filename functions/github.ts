@@ -1,4 +1,4 @@
-import { buildUrl } from "./utils";
+import { buildUrl, base64 } from "./utils";
 
 export async function requestAccessToken(code: string, CLIENT_ID: string, CLIENT_SECRET: string) {
   const url = buildUrl("https://github.com/login/oauth/access_token", {
@@ -47,18 +47,27 @@ export async function requestUserInfo(token: string) {
 }
 
 // https://docs.github.com/en/rest/apps/oauth-applications?apiVersion=2022-11-28#check-a-token
-export async function validateToken(token: string | null, client_id: string) {
+export async function validateToken(
+  token: string | null,
+  client_id: string,
+  client_secret: string
+) {
   if (typeof token !== "string") {
     throw new Error("Missing GitHub Access Token");
   }
 
-  const res = await fetch(`https://api.github.com/applications/${client_id}`, {
+  const credentials = base64(`${client_id}:${client_secret}`);
+  const res = await fetch(`https://api.github.com/applications/${client_id}/token`, {
+    method: "POST",
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Basic ${credentials}`,
       "X-GitHub-Api-Version": "2022-11-28",
       "User-Agent": "chatcraft.org",
     },
+    body: JSON.stringify({
+      access_token: token,
+    }),
   });
 
   if (!res.ok) {

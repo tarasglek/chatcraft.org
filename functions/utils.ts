@@ -33,3 +33,5 @@ export function getAccessToken(request: Request) {
 }
 
 export const uuid = () => crypto.randomUUID();
+
+export const base64 = (s) => btoa(s);

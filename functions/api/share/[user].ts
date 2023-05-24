@@ -4,18 +4,19 @@ import { uuid, getAccessToken, successResponse, errorResponse } from "../../util
 interface Env {
   CHATCRAFT_ORG_BUCKET: R2Bucket;
   CLIENT_ID: string;
+  CLIENT_SECRET: string;
 }
 
 // GET https://chatcraft.org/api/share/{user}
 // Must include a bearer token and GitHub user must match token owner
 export const onRequestGet: PagesFunction<Env> = async ({ request, env, params }) => {
-  const { CLIENT_ID, CHATCRAFT_ORG_BUCKET } = env;
+  const { CLIENT_ID, CLIENT_SECRET, CHATCRAFT_ORG_BUCKET } = env;
   const token = getAccessToken(request);
   const { user } = params;
 
   // Make sure we have a token, and that it matches the expected user
   try {
-    const ghUsername = await validateToken(token, CLIENT_ID);
+    const ghUsername = await validateToken(token, CLIENT_ID, CLIENT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
     if (user !== ghUsername) {
@@ -43,7 +44,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params })
 
 // POST https://chatcraft.org/api/share/{user}
 export const onRequestPost: PagesFunction<Env> = async ({ request, env, params }) => {
-  const { CLIENT_ID, CHATCRAFT_ORG_BUCKET } = env;
+  const { CLIENT_ID, CLIENT_SECRET, CHATCRAFT_ORG_BUCKET } = env;
   const token = getAccessToken(request);
   const { user } = params;
 
@@ -54,7 +55,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, params }
 
   // Make sure we have a token, and that it matches the expected user
   try {
-    const ghUsername = await validateToken(token, CLIENT_ID);
+    const ghUsername = await validateToken(token, CLIENT_ID, CLIENT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
     if (user !== ghUsername) {

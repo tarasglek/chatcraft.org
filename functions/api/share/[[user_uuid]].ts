@@ -4,6 +4,7 @@ import { getAccessToken, successResponse, errorResponse } from "../../utils";
 interface Env {
   CHATCRAFT_ORG_BUCKET: R2Bucket;
   CLIENT_ID: string;
+  CLIENT_SECRET: string;
 }
 
 // GET https://chatcraft.org/api/share/{user}/{uuid}
@@ -34,7 +35,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
 // DELETE https://chatcraft.org/api/share/{user}/{uuid}
 // Must include a bearer token and GitHub user must match token owner
 export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params }) => {
-  const { CLIENT_ID, CHATCRAFT_ORG_BUCKET } = env;
+  const { CLIENT_ID, CLIENT_SECRET, CHATCRAFT_ORG_BUCKET } = env;
   const token = getAccessToken(request);
   const { user_uuid } = params;
 
@@ -45,7 +46,7 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
 
   try {
     const [user] = user_uuid;
-    const ghUsername = await validateToken(token, CLIENT_ID);
+    const ghUsername = await validateToken(token, CLIENT_ID, CLIENT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
     if (user !== ghUsername) {
