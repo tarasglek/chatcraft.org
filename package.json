@@ -6,6 +6,7 @@
   "scripts": {
     "audit-fix": "yarn-audit-fix",
     "dev": "vite",
+    "dev-functions": "wrangler pages dev -- npm run dev",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "prepare": "husky install",
@@ -52,6 +53,7 @@
     "vite": "^4.3.8",
     "vite-plugin-pwa": "^0.15.0",
     "vite-plugin-wasm": "^3.2.2",
+    "wrangler": "^3.0.1",
     "yarn-audit-fix": "^9.3.10"
   },
   "lint-staged": {
