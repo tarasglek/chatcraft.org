@@ -14,12 +14,14 @@ import {
   VStack,
   Text,
   Input,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import { BsGithub } from "react-icons/bs";
 
 import { useUser } from "../hooks/use-user";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftMessage } from "../lib/ChatCraftMessage";
+import { createShare } from "../lib/share";
 
 type AuthenticatedForm = {
   user: User;
@@ -29,31 +31,18 @@ type AuthenticatedForm = {
 
 function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
   const [url, setUrl] = useState<string | undefined>();
+  const [error, setError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/share/${user.username}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(chat.serialize()),
-      });
-      if (!res.ok) {
-        throw new Error(`Error creating share URL: ${(await res.json())?.message}`);
-      }
-
-      const url = res.headers.get("Location");
-      if (!url) {
-        throw new Error("Missing URL in response");
-      }
+      const { id, url } = await createShare(user, token, chat);
+      console.log("share", { id, url });
       setUrl(url);
-    } catch (err) {
-      // TODO: UI...
+    } catch (err: any) {
       console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -65,7 +54,13 @@ function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
         <Button onClick={() => handleClick()} isLoading={loading} loadingText="Creating URL...">
           Create URL
         </Button>
-        <FormHelperText>Anyone who knows the public URL will be able to access it.</FormHelperText>
+        {error ? (
+          <FormErrorMessage>{error}</FormErrorMessage>
+        ) : (
+          <FormHelperText>
+            Anyone who knows the public URL will be able to access it.
+          </FormHelperText>
+        )}
       </FormControl>
 
       {url && (
