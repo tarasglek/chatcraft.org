@@ -10,18 +10,24 @@ interface OpenAiMessageProps extends Omit<MessageBaseProps, "avatar"> {
 const getAvatar = (model: GptModel) => {
   switch (model) {
     case "gpt-4":
-      return <Avatar size="sm" bg="#A96CF9" src={`/openai-logo.png`} title="GPT-4" />;
+      return {
+        avatar: <Avatar size="sm" bg="#A96CF9" src={`/openai-logo.png`} title="GPT-4" />,
+        heading: "GPT-4",
+      };
     case "gpt-3.5-turbo":
     // falls through
     default:
-      return <Avatar size="sm" bg="#75AB9C" src={`/openai-logo.png`} title="ChatGPT" />;
+      return {
+        avatar: <Avatar size="sm" bg="#75AB9C" src={`/openai-logo.png`} title="ChatGPT" />,
+        heading: "ChatGPT",
+      };
   }
 };
 
 function OpenAiMessage(props: OpenAiMessageProps) {
-  const avatar = getAvatar(props.model);
+  const { heading, avatar } = getAvatar(props.model);
 
-  return <MessageBase {...props} avatar={avatar} />;
+  return <MessageBase {...props} avatar={avatar} heading={heading} />;
 }
 
 export default memo(OpenAiMessage);

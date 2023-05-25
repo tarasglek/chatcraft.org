@@ -10,12 +10,19 @@ function HumanMessage(props: HumanMessageProps) {
 
   // If we have a user's name and GitHub avatar, use that.
   const avatar = avatarUrl ? (
-    <Avatar size="sm" src={avatarUrl} title={name} />
+    <Avatar
+      size="sm"
+      src={avatarUrl}
+      title={name}
+      showBorder
+      borderColor="gray.100"
+      _dark={{ borderColor: "gray.600" }}
+    />
   ) : (
     <Avatar size="sm" bg="gray.600" _dark={{ bg: "gray.500" }} />
   );
 
-  return <MessageBase {...rest} avatar={avatar} />;
+  return <MessageBase {...rest} avatar={avatar} heading={name} />;
 }
 
 export default memo(HumanMessage);

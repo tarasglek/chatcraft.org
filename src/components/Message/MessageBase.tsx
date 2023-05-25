@@ -1,13 +1,29 @@
 import { memo, useCallback, type ReactNode } from "react";
-import { Box, Card, Flex, IconButton, useClipboard, useToast } from "@chakra-ui/react";
-import { CgCloseO } from "react-icons/cg";
-import { TbCopy } from "react-icons/tb";
+import {
+  Box,
+  Card,
+  CardBody,
+  CardHeader,
+  Divider,
+  Flex,
+  Heading,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuDivider,
+  MenuItem,
+  MenuList,
+  useClipboard,
+  useToast,
+} from "@chakra-ui/react";
+import { TbDots } from "react-icons/tb";
 
 import Markdown from "../Markdown";
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 
 export interface MessageBaseProps {
+  heading?: string;
   text: string;
   avatar: ReactNode;
   isLoading: boolean;
@@ -17,6 +33,7 @@ export interface MessageBaseProps {
 }
 
 function MessageBase({
+  heading,
   text,
   avatar,
   isLoading,
@@ -40,47 +57,54 @@ function MessageBase({
   }, [onCopy, toast]);
 
   return (
-    <Card p={6} my={6}>
-      <Flex>
-        <Box pr={6}>{avatar}</Box>
+    <Box my={6} flex={1}>
+      <Card>
+        <CardHeader p={0} py={1} pr={1}>
+          <Flex justify="space-between" align="center" ml={5} mr={2}>
+            <Flex gap={3}>
+              <Box>{avatar}</Box>
+              <Flex direction="column" justify="center">
+                <Heading as="h2" size="xs">
+                  {heading}
+                </Heading>
+              </Flex>
+            </Flex>
 
-        <Box flex="1" maxWidth="100%" overflow="hidden" mt={1}>
-          {/* Messages are being rendered in Markdown format */}
-          <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
-            {text}
-          </Markdown>
-        </Box>
-
-        <Flex
-          flexDir={{ base: "column-reverse", md: "row" }}
-          minW={{ md: "80px " }}
-          justify="start"
-        >
-          <IconButton
-            aria-label="Copy to Clipboard"
-            title="Copy to Clipboard"
-            icon={<TbCopy />}
-            onClick={() => handleCopy()}
-            color="gray.600"
-            _dark={{ color: "gray.300" }}
-            variant="ghost"
-          />
-          {onDeleteClick && (
-            <IconButton
-              aria-label="Delete"
-              title="Delete"
-              icon={<CgCloseO />}
-              variant="ghost"
-              color="gray.600"
-              _dark={{ color: "gray.300" }}
-              onClick={onDeleteClick && (() => onDeleteClick())}
-            />
-          )}
-        </Flex>
-      </Flex>
-    </Card>
+            <Menu>
+              <MenuButton
+                as={IconButton}
+                aria-label="Message Menu"
+                icon={<TbDots />}
+                variant="ghost"
+                isDisabled={isLoading}
+              />
+              <MenuList>
+                <MenuItem onClick={() => handleCopy()}>Copy</MenuItem>
+                <MenuDivider />
+                <MenuItem>Edit (TODO...)</MenuItem>
+                {onDeleteClick && (
+                  <MenuItem onClick={() => onDeleteClick()} color="red.400">
+                    Delete
+                  </MenuItem>
+                )}
+              </MenuList>
+            </Menu>
+          </Flex>
+        </CardHeader>
+        <CardBody p={0}>
+          <Flex direction="column" gap={3}>
+            <Divider />
+            <Box maxWidth="100%" overflow="hidden" px={6} pb={2}>
+              {/* Messages are being rendered in Markdown format */}
+              <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
+                {text}
+              </Markdown>
+            </Box>
+          </Flex>
+        </CardBody>
+      </Card>
+    </Box>
   );
 }
 
-// Memoize to reduce re-renders/flickering when content hasn't changed
 export default memo(MessageBase);
