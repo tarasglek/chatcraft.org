@@ -204,8 +204,8 @@ function PromptForm({
   }, [messages, toast]);
 
   return (
-    <Box h="100%" px={1}>
-      <Flex justify="space-between" alignItems="baseline">
+    <Box h="100%" w="100%" px={1}>
+      <Flex justify="space-between" alignItems="baseline" w="100%">
         <HStack>
           <ButtonGroup isAttached>
             <IconButton
@@ -262,104 +262,106 @@ function PromptForm({
         </HStack>
       </Flex>
 
-      {/* If we have an API Key in storage, show the chat form;
+      <Box w="100%">
+        {/* If we have an API Key in storage, show the chat form;
           otherwise give the user a form to enter their API key. */}
-      {settings.apiKey ? (
-        <chakra.form onSubmit={handlePromptSubmit} h="100%" pb={2}>
-          <Flex pb={isExpanded ? 8 : 0} flexDir="column" h="100%">
-            <Box flex={isExpanded ? "1" : undefined} mt={2} pb={2}>
-              {isExpanded ? (
-                <Textarea
-                  ref={inputPromptRef}
-                  h="100%"
-                  resize="none"
-                  isDisabled={isLoading}
-                  onKeyDown={handleKeyDown}
-                  autoFocus={true}
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  bg="white"
-                  _dark={{ bg: "gray.700" }}
-                  placeholder={!isLoading ? "Type your question" : undefined}
-                  overflowY="auto"
-                />
-              ) : (
-                <AutoResizingTextarea
-                  ref={inputPromptRef}
-                  onKeyDown={handleKeyDown}
-                  isDisabled={isLoading}
-                  autoFocus={true}
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  bg="white"
-                  _dark={{ bg: "gray.700" }}
-                  placeholder={!isLoading ? "Type your question" : undefined}
-                  overflowY="auto"
-                />
-              )}
-            </Box>
+        {settings.apiKey ? (
+          <chakra.form onSubmit={handlePromptSubmit} h="100%" pb={2}>
+            <Flex pb={isExpanded ? 8 : 0} flexDir="column" h="100%">
+              <Box flex={isExpanded ? "1" : undefined} mt={2} pb={2}>
+                {isExpanded ? (
+                  <Textarea
+                    ref={inputPromptRef}
+                    h="100%"
+                    resize="none"
+                    isDisabled={isLoading}
+                    onKeyDown={handleKeyDown}
+                    autoFocus={true}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    bg="white"
+                    _dark={{ bg: "gray.700" }}
+                    placeholder={!isLoading ? "Type your question" : undefined}
+                    overflowY="auto"
+                  />
+                ) : (
+                  <AutoResizingTextarea
+                    ref={inputPromptRef}
+                    onKeyDown={handleKeyDown}
+                    isDisabled={isLoading}
+                    autoFocus={true}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    bg="white"
+                    _dark={{ bg: "gray.700" }}
+                    placeholder={!isLoading ? "Type your question" : undefined}
+                    overflowY="auto"
+                  />
+                )}
+              </Box>
 
-            <Flex gap={1} justify={"space-between"} align="center">
-              <Checkbox
-                isDisabled={isLoading}
-                checked={singleMessageMode}
-                onChange={(e) => onSingleMessageModeChange(e.target.checked)}
-              >
-                Single Message Mode
-              </Checkbox>
-              <ButtonGroup>
-                <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
-                  New Chat
-                </Button>
-                <Button type="submit" size="sm" isLoading={isLoading} loadingText="Send">
-                  Send
-                </Button>
-              </ButtonGroup>
+              <Flex gap={1} justify={"space-between"} align="center" h="40px">
+                <Checkbox
+                  isDisabled={isLoading}
+                  checked={singleMessageMode}
+                  onChange={(e) => onSingleMessageModeChange(e.target.checked)}
+                >
+                  Single Message Mode
+                </Checkbox>
+                <ButtonGroup>
+                  <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
+                    New Chat
+                  </Button>
+                  <Button type="submit" size="sm" isLoading={isLoading} loadingText="Send">
+                    Send
+                  </Button>
+                </ButtonGroup>
+              </Flex>
             </Flex>
-          </Flex>
-        </chakra.form>
-      ) : (
-        <chakra.form onSubmit={handleApiKeySubmit} autoComplete="off" h="100%" pb={2}>
-          <FormControl>
-            <FormLabel>
-              <HStack>
-                <CgInfo />
-                <Text>
-                  Please enter your{" "}
-                  <Link
-                    href="https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety"
-                    textDecoration="underline"
-                  >
-                    OpenAI API Key
-                  </Link>
-                </Text>
-              </HStack>
-            </FormLabel>
-            <Flex>
-              <RevealablePasswordInput
-                flex="1"
-                type="password"
-                name="api-key"
-                bg="white"
-                _dark={{ bg: "gray.700" }}
-                required
-              />
-              <Button ml={3} type="submit">
-                Save
-              </Button>
-            </Flex>
-            <FormHelperText>
-              Your API Key will be stored offline in your browser&apos;s{" "}
-              <Link
-                href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
-                textDecoration="underline"
-              >
-                local storage
-              </Link>
-            </FormHelperText>
-          </FormControl>
-        </chakra.form>
-      )}
+          </chakra.form>
+        ) : (
+          <chakra.form onSubmit={handleApiKeySubmit} autoComplete="off" h="100%" pb={2}>
+            <FormControl>
+              <FormLabel>
+                <HStack>
+                  <CgInfo />
+                  <Text>
+                    Please enter your{" "}
+                    <Link
+                      href="https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety"
+                      textDecoration="underline"
+                    >
+                      OpenAI API Key
+                    </Link>
+                  </Text>
+                </HStack>
+              </FormLabel>
+              <Flex>
+                <RevealablePasswordInput
+                  flex="1"
+                  type="password"
+                  name="api-key"
+                  bg="white"
+                  _dark={{ bg: "gray.700" }}
+                  required
+                />
+                <Button ml={3} type="submit">
+                  Save
+                </Button>
+              </Flex>
+              <FormHelperText>
+                Your API Key will be stored offline in your browser&apos;s{" "}
+                <Link
+                  href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
+                  textDecoration="underline"
+                >
+                  local storage
+                </Link>
+              </FormHelperText>
+            </FormControl>
+          </chakra.form>
+        )}
+      </Box>
     </Box>
   );
 }
