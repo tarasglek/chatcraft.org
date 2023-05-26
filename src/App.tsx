@@ -6,6 +6,7 @@ import {
   Text,
   useDisclosure,
   useColorModeValue,
+  useBreakpoint,
   useToast,
   Grid,
   GridItem,
@@ -33,12 +34,28 @@ function App() {
   // Whether to include the whole message chat history or just the last response
   const [singleMessageMode, setSingleMessageMode] = useState(false);
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
+  const {
+    isOpen: isSidebarVisible,
+    onOpen: showSidebar,
+    onClose: hideSidebar,
+    onToggle: toggleSidebarVisible,
+  } = useDisclosure();
+  const breakpoint = useBreakpoint();
   const [loading, setLoading] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
   const { user } = useUser();
+
+  // Hide the sidebar on small/mobile screens by default
+  useEffect(() => {
+    if (breakpoint === "base" || breakpoint === "sm") {
+      hideSidebar();
+    } else {
+      showSidebar();
+    }
+  }, [breakpoint, hideSidebar, showSidebar]);
 
   // Auto scroll chat to bottom, but only if user isn't trying to scroll manually
   // Also add a dependency on the streamingMessage, since its content (and therefore
@@ -139,14 +156,14 @@ function App() {
       w="100%"
       h="100%"
       gridTemplateRows={isExpanded ? "min-content 1fr 1fr" : "min-content 1fr min-content"}
-      gridTemplateColumns="1fr 4fr"
+      gridTemplateColumns={isSidebarVisible ? "minmax(275px, 1fr) 4fr" : "0 1fr"}
       bgGradient={useColorModeValue(
         "linear(to-b, white, gray.100)",
         "linear(to-b, gray.600, gray.700)"
       )}
     >
       <GridItem colSpan={2}>
-        <Header inputPromptRef={inputPromptRef} />
+        <Header inputPromptRef={inputPromptRef} onMenuClick={toggleSidebarVisible} />
       </GridItem>
 
       <GridItem rowSpan={2} overflowY="auto">
