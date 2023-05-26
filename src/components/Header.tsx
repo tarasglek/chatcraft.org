@@ -4,6 +4,7 @@ import {
   Box,
   ButtonGroup,
   Flex,
+  HStack,
   IconButton,
   Link,
   Menu,
@@ -15,7 +16,7 @@ import {
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
-import { BiSun, BiMoon } from "react-icons/bi";
+import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
 
 import PreferencesModal from "./PreferencesModal";
@@ -23,9 +24,10 @@ import { useUser } from "../hooks/use-user";
 
 type HeaderProps = {
   inputPromptRef: RefObject<HTMLTextAreaElement>;
+  onMenuClick: () => void;
 };
 
-function Header({ inputPromptRef }: HeaderProps) {
+function Header({ inputPromptRef, onMenuClick }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, login, logout } = useUser();
@@ -39,14 +41,23 @@ function Header({ inputPromptRef }: HeaderProps) {
       borderBottom="2px"
       borderColor={useColorModeValue("gray.50", "gray.600")}
     >
-      <Text pl={4} fontWeight="bold" color={useColorModeValue("blue.600", "blue.200")}>
-        <Link
-          href="/"
-          _hover={{ textDecoration: "none", color: useColorModeValue("blue.400", "blue.100") }}
-        >
-          &lt;ChatCraft /&gt;
-        </Link>
-      </Text>
+      <HStack>
+        <IconButton
+          icon={<BiMenu />}
+          variant="ghost"
+          aria-label="Toggle Sidebar Menu"
+          onClick={() => onMenuClick()}
+        />
+        <Text fontWeight="bold" color={useColorModeValue("blue.600", "blue.200")}>
+          <Link
+            href="/"
+            _hover={{ textDecoration: "none", color: useColorModeValue("blue.400", "blue.100") }}
+          >
+            &lt;ChatCraft /&gt;
+          </Link>
+        </Text>
+      </HStack>
+
       <ButtonGroup isAttached pr={2} alignItems="center">
         <IconButton
           as="a"
