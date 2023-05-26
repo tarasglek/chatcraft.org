@@ -7,6 +7,8 @@ import {
   useDisclosure,
   useColorModeValue,
   useToast,
+  Grid,
+  GridItem,
 } from "@chakra-ui/react";
 import { useLoaderData } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
@@ -133,73 +135,75 @@ function App() {
   }
 
   return (
-    <Box w="100%" h="100%">
-      <Flex flexDir="column" h="100%">
+    <Grid
+      w="100%"
+      h="100%"
+      gridTemplateRows={isExpanded ? "min-content 1fr 1fr" : "min-content 1fr min-content"}
+      gridTemplateColumns="1fr 4fr"
+      bgGradient={useColorModeValue(
+        "linear(to-b, white, gray.100)",
+        "linear(to-b, gray.600, gray.700)"
+      )}
+    >
+      <GridItem colSpan={2}>
         <Header inputPromptRef={inputPromptRef} />
-        <Flex
-          flex={1}
-          h="100%"
-          bgGradient={useColorModeValue(
-            "linear(to-b, white, gray.100)",
-            "linear(to-b, gray.600, gray.700)"
-          )}
-        >
-          <Box w={60}>
-            <Sidebar />
-          </Box>
+      </GridItem>
 
-          <Flex flex={1} direction="column">
-            <Box flex="1" overflow="scroll" ref={messageListRef}>
-              <MessagesView
-                messages={messages}
-                newMessage={streamingMessage}
-                isLoading={loading}
-                onRemoveMessage={removeMessage}
-                singleMessageMode={singleMessageMode}
-                isPaused={paused}
-                onTogglePause={togglePause}
-                onCancel={cancel}
-                onPrompt={onPrompt}
-              />
+      <GridItem rowSpan={2} overflowY="auto">
+        <Sidebar />
+      </GridItem>
 
-              {
-                /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
-                !shouldAutoScroll && (
-                  <Box position="absolute" top="5em" zIndex="500" w="100%" textAlign="center">
-                    <Button onClick={() => handleFollowChatClick()}>
-                      <CgArrowDownO />
-                      <Text ml={2}>Follow Chat</Text>
-                    </Button>
-                  </Box>
-                )
-              }
-            </Box>
+      <GridItem overflowY="auto" ref={messageListRef} pos="relative">
+        <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
+          <MessagesView
+            messages={messages}
+            newMessage={streamingMessage}
+            isLoading={loading}
+            onRemoveMessage={removeMessage}
+            singleMessageMode={singleMessageMode}
+            isPaused={paused}
+            onTogglePause={togglePause}
+            onCancel={cancel}
+            onPrompt={onPrompt}
+          />
 
-            <Box
-              flex={isExpanded ? "1" : undefined}
-              bg={useColorModeValue("gray.100", "gray.700")}
-              minH="180px"
-            >
-              <Box maxW="900px" mx="auto" h="100%">
-                <PromptForm
-                  messages={messages}
-                  onPrompt={onPrompt}
-                  onClear={() => setMessages()}
-                  isExpanded={isExpanded}
-                  toggleExpanded={toggleExpanded}
-                  singleMessageMode={singleMessageMode}
-                  onSingleMessageModeChange={setSingleMessageMode}
-                  isLoading={loading}
-                  previousMessage={messages.at(-1)?.text}
-                  tokenInfo={tokenInfo}
-                  inputPromptRef={inputPromptRef}
-                />
+          {
+            /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
+            !shouldAutoScroll && (
+              <Box w="100%" textAlign="center">
+                <Button
+                  position="fixed"
+                  top="5em"
+                  zIndex="500"
+                  onClick={() => handleFollowChatClick()}
+                >
+                  <CgArrowDownO />
+                  <Text ml={2}>Follow Chat</Text>
+                </Button>
               </Box>
-            </Box>
-          </Flex>
+            )
+          }
         </Flex>
-      </Flex>
-    </Box>
+      </GridItem>
+
+      <GridItem>
+        <Box maxW="900px" mx="auto" h="100%">
+          <PromptForm
+            messages={messages}
+            onPrompt={onPrompt}
+            onClear={() => setMessages()}
+            isExpanded={isExpanded}
+            toggleExpanded={toggleExpanded}
+            singleMessageMode={singleMessageMode}
+            onSingleMessageModeChange={setSingleMessageMode}
+            isLoading={loading}
+            previousMessage={messages.at(-1)?.text}
+            tokenInfo={tokenInfo}
+            inputPromptRef={inputPromptRef}
+          />
+        </Box>
+      </GridItem>
+    </Grid>
   );
 }
 

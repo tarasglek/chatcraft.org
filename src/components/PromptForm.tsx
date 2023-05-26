@@ -204,71 +204,82 @@ function PromptForm({
   }, [messages, toast]);
 
   return (
-    <Box h="100%" w="100%" px={1}>
-      <Flex justify="space-between" alignItems="baseline" w="100%">
-        <HStack>
-          <ButtonGroup isAttached>
-            <IconButton
-              aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-              title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-              icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
-              variant="ghost"
-              isDisabled={isLoading}
-              onClick={toggleExpanded}
-            />
-          </ButtonGroup>
-
-          <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
-        </HStack>
-
-        <HStack>
-          {
-            /* Only bother with cost if it's $0.01 or more */
-            tokenInfo?.cost && tokenInfo?.cost >= 0.01 && (
-              <Tag key="token-cost" size="sm">
-                {formatCurrency(tokenInfo.cost)}
-              </Tag>
-            )
-          }
-          {tokenInfo?.count && (
-            <Tag key="token-count" size="sm">
-              {formatNumber(tokenInfo.count)} Tokens
-            </Tag>
-          )}
-
-          <Box>
-            <Menu>
-              <MenuButton
-                as={IconButton}
-                aria-label="User Settings"
-                title="User Settings"
-                icon={<TbShare2 />}
+    <Flex direction="column" h="100%" px={1}>
+      {settings.apiKey && (
+        <Flex justify="space-between" alignItems="baseline" w="100%">
+          <HStack>
+            <ButtonGroup isAttached>
+              <IconButton
+                aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+                title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+                icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
                 variant="ghost"
+                isDisabled={isLoading}
+                onClick={toggleExpanded}
               />
-              <MenuList>
-                <MenuItem onClick={() => handleCopyMessages()}>Copy to Clipboard</MenuItem>
-                <MenuItem onClick={() => handleDownloadMessages()}>Download as File</MenuItem>
-                <MenuDivider />
-                <MenuItem onClick={() => onOpen()}>Create Public URL...</MenuItem>
-              </MenuList>
-            </Menu>
-          </Box>
-          <ShareModal
-            messages={messages}
-            isOpen={isOpen}
-            onClose={onClose}
-            finalFocusRef={inputPromptRef}
-          />
-        </HStack>
-      </Flex>
+            </ButtonGroup>
 
-      <Box w="100%">
+            <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
+          </HStack>
+
+          <HStack>
+            {
+              /* Only bother with cost if it's $0.01 or more */
+              tokenInfo?.cost && tokenInfo?.cost >= 0.01 && (
+                <Tag key="token-cost" size="sm">
+                  {formatCurrency(tokenInfo.cost)}
+                </Tag>
+              )
+            }
+            {tokenInfo?.count && (
+              <Tag key="token-count" size="sm">
+                {formatNumber(tokenInfo.count)} Tokens
+              </Tag>
+            )}
+
+            <Box>
+              <Menu>
+                <MenuButton
+                  as={IconButton}
+                  aria-label="User Settings"
+                  title="User Settings"
+                  icon={<TbShare2 />}
+                  variant="ghost"
+                />
+                <MenuList>
+                  <MenuItem onClick={() => handleCopyMessages()}>Copy to Clipboard</MenuItem>
+                  <MenuItem onClick={() => handleDownloadMessages()}>Download as File</MenuItem>
+                  <MenuDivider />
+                  <MenuItem onClick={() => onOpen()}>Create Public URL...</MenuItem>
+                </MenuList>
+              </Menu>
+            </Box>
+            <ShareModal
+              messages={messages}
+              isOpen={isOpen}
+              onClose={onClose}
+              finalFocusRef={inputPromptRef}
+            />
+          </HStack>
+        </Flex>
+      )}
+
+      <Box flex={1} w="100%">
         {/* If we have an API Key in storage, show the chat form;
           otherwise give the user a form to enter their API key. */}
         {settings.apiKey ? (
           <chakra.form onSubmit={handlePromptSubmit} h="100%" pb={2}>
-            <Flex pb={isExpanded ? 8 : 0} flexDir="column" h="100%">
-              <Box flex={isExpanded ? "1" : undefined} mt={2} pb={2}>
+            <Flex
+              // pb={isExpanded ? 8 : 0}
+              flexDir="column"
+              h={isExpanded ? "100%" : undefined}
+            >
+              <Box
+                flex={isExpanded ? "1" : undefined}
+                mt={2}
+                pb={2}
+                h={isExpanded ? "100%" : undefined}
+              >
                 {isExpanded ? (
                   <Textarea
                     ref={inputPromptRef}
@@ -300,7 +311,7 @@ function PromptForm({
                 )}
               </Box>
 
-              <Flex gap={1} justify={"space-between"} align="center" h="40px">
+              <Flex gap={1} justify={"space-between"} align="center">
                 <Checkbox
                   isDisabled={isLoading}
                   checked={singleMessageMode}
@@ -362,7 +373,7 @@ function PromptForm({
           </chakra.form>
         )}
       </Box>
-    </Box>
+    </Flex>
   );
 }
 

@@ -60,7 +60,7 @@ function Sidebar() {
   ];
 
   return (
-    <Box maxH="100%" p={4} overflow="scroll">
+    <Box maxH="100%" p={4}>
       <Box mb={2}>
         <InputGroup size="sm">
           <InputLeftElement pointerEvents="none" color="gray.500">

@@ -64,7 +64,7 @@ function MessagesView({
   );
 
   return (
-    <Box maxW="900px" mx="auto" minHeight="100%" scrollBehavior="smooth">
+    <Box minHeight="100%" scrollBehavior="smooth">
       {/* Show entire message history + current streaming response if available */}
       <Collapse in={!singleMessageMode} animateOpacity>
         {prevMessages}
