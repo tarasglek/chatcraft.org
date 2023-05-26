@@ -94,7 +94,7 @@ function MessageBase({
         <CardBody p={0}>
           <Flex direction="column" gap={3}>
             <Divider />
-            <Box maxWidth="100%" overflow="hidden" px={6} pb={2}>
+            <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
               {/* Messages are being rendered in Markdown format */}
               <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
                 {text}
