@@ -27,20 +27,17 @@ import { TbCopy } from "react-icons/tb";
 import { useUser } from "../hooks/use-user";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftMessage } from "../lib/ChatCraftMessage";
-import { createShare, summarizeChat } from "../lib/share";
+import { summarizeChat } from "../lib/share";
 import { useSettings } from "../hooks/use-settings";
 
 type AuthenticatedForm = {
-  user: User;
-  token: string;
   chat: ChatCraftChat;
 };
 
-function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
+function AuthenticatedForm({ chat }: AuthenticatedForm) {
   const { settings } = useSettings();
   const [url, setUrl] = useState<string>("");
   const [error, setError] = useState<Error | undefined>();
-  const [title, setTitle] = useState<string>(chat.title || "");
   const [summary, setSummary] = useState<string>(chat.summary || "");
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -49,8 +46,7 @@ function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
   const handleShareClick = async () => {
     setIsSharing(true);
     try {
-      const { id, url } = await createShare(user, token, chat);
-      console.log("share", { id, url });
+      const url = await chat.share();
       setUrl(url);
     } catch (err: any) {
       console.error(err);
@@ -66,10 +62,8 @@ function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
     }
     try {
       setIsSummarizing(true);
-      const { title, summary } = await summarizeChat(settings.apiKey, chat);
-      chat.title = title;
+      const summary = await summarizeChat(settings.apiKey, chat);
       chat.summary = summary;
-      setTitle(title);
       setSummary(summary);
     } catch (err: any) {
       console.error(err);
@@ -85,11 +79,6 @@ function AuthenticatedForm({ user, token, chat }: AuthenticatedForm) {
 
   return (
     <VStack gap={2}>
-      <FormControl>
-        <FormLabel>Title</FormLabel>
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-      </FormControl>
-
       <FormControl>
         <FormLabel>Summary</FormLabel>
         <Textarea value={summary} onChange={(e) => setSummary(e.target.value)}></Textarea>
@@ -171,7 +160,7 @@ function ShareModal({ messages, isOpen, onClose, finalFocusRef }: ShareModalProp
         <ModalCloseButton />
         <ModalBody>
           {user && token ? (
-            <AuthenticatedForm user={user} token={token} chat={new ChatCraftChat({ messages })} />
+            <AuthenticatedForm chat={new ChatCraftChat({ messages })} />
           ) : (
             <UnauthenticatedForm onLoginClick={login} />
           )}

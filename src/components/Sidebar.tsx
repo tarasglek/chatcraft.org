@@ -1,81 +1,70 @@
-import { Box, Flex, Input, InputGroup, InputLeftElement, Text } from "@chakra-ui/react";
-import { MdOutlineChat } from "react-icons/md";
-import { TbSearch } from "react-icons/tb";
+import { Box, Flex, VStack, Heading, Text } from "@chakra-ui/react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { MdOutlineChatBubbleOutline } from "react-icons/md";
+import { TbShare2 } from "react-icons/tb";
 
-function SidebarItem({ title }: { title: string }) {
+import db from "../lib/db";
+import { Link } from "react-router-dom";
+
+function SidebarItem({ text, url }: { text: string; url: string }) {
   return (
-    <Flex alignItems="center" gap={2} pr={6}>
-      <Box>
-        <MdOutlineChat />
-      </Box>
-      <Box flex={1} maxW="100%">
-        <Text
-          fontSize="sm"
-          title={title}
-          overflow="hidden"
-          whiteSpace="nowrap"
-          textOverflow="ellipsis"
-        >
-          {title}
-        </Text>
-      </Box>
-    </Flex>
+    <Link to={url}>
+      <Flex gap={2} pr={6}>
+        <Box mt={1}>
+          <MdOutlineChatBubbleOutline />
+        </Box>
+        <Box flex={1} maxW="100%">
+          <Text noOfLines={4} fontSize="sm" title={text}>
+            {text}
+          </Text>
+        </Box>
+      </Flex>
+    </Link>
   );
 }
 
 function Sidebar() {
-  const privateChats = [
-    { title: "Update Docker Swarm Replica" },
-    { title: "SSL Certificate Type" },
-    { title: "Set Task Role Arn." },
-    { title: "Empty TXT Records Vaid" },
-    { title: "useMemo() in React" },
-    { title: "CSS Properties and Chakra-UI" },
-    { title: "Shell command syntax" },
-    { title: "MJPEG parser in Zig" },
-    { title: "Update Docker Swarm Replica" },
-    { title: "SSL Certificate Type" },
-    { title: "Set Task Role Arn." },
-    { title: "Empty TXT Records Vaid" },
-    { title: "useMemo() in React" },
-    { title: "CSS Properties and Chakra-UI" },
-    { title: "Shell command syntax" },
-    { title: "MJPEG parser in Zig" },
-    { title: "Update Docker Swarm Replica" },
-    { title: "SSL Certificate Type" },
-    { title: "Set Task Role Arn." },
-    { title: "Empty TXT Records Vaid" },
-    { title: "useMemo() in React" },
-    { title: "CSS Properties and Chakra-UI" },
-    { title: "Shell command syntax" },
-    { title: "MJPEG parser in Zig" },
-    { title: "Update Docker Swarm Replica" },
-    { title: "SSL Certificate Type" },
-    { title: "Set Task Role Arn." },
-    { title: "Empty TXT Records Vaid" },
-    { title: "useMemo() in React" },
-    { title: "CSS Properties and Chakra-UI" },
-    { title: "Shell command syntax" },
-    { title: "MJPEG parser in Zig" },
-  ];
+  const sharedChats = useLiveQuery(async () => {
+    const chats = await db.chats.orderBy("date").toArray();
+    return chats.filter((chat) => chat.isPublic);
+  });
 
   return (
-    <Box maxH="100%" p={4}>
-      <Box mb={2}>
-        <InputGroup size="sm">
-          <InputLeftElement pointerEvents="none" color="gray.500">
-            <TbSearch />
-          </InputLeftElement>
-          <Input type="search" />
-        </InputGroup>
+    <Flex direction="column" h="100%" p={4} gap={2}>
+      <Box>
+        <Flex align="center" gap={1}>
+          <Heading as="h3" size="sm">
+            Shared Chats
+          </Heading>
+        </Flex>
       </Box>
 
-      <Flex direction="column" gap={2}>
-        {privateChats.map(({ title }, index) => (
-          <SidebarItem key={index} title={title} />
-        ))}
-      </Flex>
-    </Box>
+      <>
+        {sharedChats?.length ? (
+          sharedChats.map(({ id, summary }) => (
+            <SidebarItem key={id} text={summary} url={`/c/${id}`} />
+          ))
+        ) : (
+          <VStack align="left">
+            <Text>You don&apos;t have any shared chats.</Text>
+            <Text>
+              Share your first chat by clicking the <strong>Share</strong> button ({" "}
+              <Box
+                display="inline-block"
+                as="span"
+                w="1.3em"
+                verticalAlign="middle"
+                color="blue.600"
+              >
+                <TbShare2 />
+              </Box>
+              ) to create a <strong>public URL</strong>. Anyone with this URL will be able to read
+              or fork the chat.
+            </Text>
+          </VStack>
+        )}
+      </>
+    </Flex>
   );
 }
 

@@ -5,14 +5,14 @@ import {
   Flex,
   Text,
   useDisclosure,
-  useColorModeValue,
   useBreakpoint,
   useToast,
   Grid,
   GridItem,
 } from "@chakra-ui/react";
-import { useLoaderData } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
+import { useLiveQuery } from "dexie-react-hooks";
 
 import PromptForm from "./components/PromptForm";
 import MessagesView from "./components/MessagesView";
@@ -25,10 +25,15 @@ import { ChatCraftChat } from "./lib/ChatCraftChat";
 import { useUser } from "./hooks/use-user";
 
 function App() {
-  // We may or may not have already loaded a shared chat
-  const chat = useLoaderData() as ChatCraftChat;
+  const { id: chatId } = useParams();
+  const chat = useLiveQuery<ChatCraftChat | undefined>(() => {
+    if (chatId) {
+      return Promise.resolve(ChatCraftChat.find(chatId));
+    }
+  }, [chatId]);
+
   // Messages are all the static, previous messages in the chat
-  const { messages, tokenInfo, setMessages, removeMessage } = useMessages(chat?.messages);
+  const { tokenInfo } = useMessages(); //chat?.messages);
   // When chatting with OpenAI, a streaming message is returned during loading
   const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
   // Whether to include the whole message chat history or just the last response
@@ -109,17 +114,25 @@ function App() {
   // Handle prompt form submission
   const onPrompt = useCallback(
     async (prompt: string) => {
-      const allMessages = [...messages, new ChatCraftHumanMessage({ text: prompt, user })];
+      if (!chat) {
+        return;
+      }
 
       setShouldAutoScroll(true);
-      setMessages(allMessages);
       setLoading(true);
 
       try {
-        // In single-message-mode, trim messages to last 1. Otherwise send all
-        const messagesToSend = singleMessageMode ? [...allMessages].slice(-2) : [...allMessages];
+        // Add this prompt message to the chat
+        await chat.addMessage(new ChatCraftHumanMessage({ text: prompt, user }));
+
+        // In single-message-mode, trim messages to last few. Otherwise send all
+        const messagesToSend = singleMessageMode
+          ? [...chat.messages].slice(-2)
+          : [...chat.messages];
         const response = await callChatApi(messagesToSend);
-        setMessages([...allMessages, response]);
+
+        // Add this response message to the chat
+        await chat.addMessage(response);
       } catch (err: any) {
         toast({
           title: `OpenAI Response Error`,
@@ -133,16 +146,7 @@ function App() {
         setShouldAutoScroll(true);
       }
     },
-    [
-      user,
-      messages,
-      setMessages,
-      singleMessageMode,
-      setLoading,
-      setShouldAutoScroll,
-      callChatApi,
-      toast,
-    ]
+    [user, chat, singleMessageMode, setLoading, setShouldAutoScroll, callChatApi, toast]
   );
 
   // Restart auto-scrolling and resume a paused response when Follow Chat is clicked
@@ -151,19 +155,26 @@ function App() {
     resume();
   }
 
+  // Wait until we have a chat object to render
+  if (!chat) {
+    return null;
+  }
+
   return (
     <Grid
       w="100%"
       h="100%"
       gridTemplateRows={isExpanded ? "min-content 1fr 1fr" : "min-content 1fr min-content"}
-      gridTemplateColumns={isSidebarVisible ? "minmax(275px, 1fr) 4fr" : "0 1fr"}
-      bgGradient={useColorModeValue(
-        "linear(to-b, white, gray.100)",
-        "linear(to-b, gray.600, gray.700)"
-      )}
+      gridTemplateColumns={isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0 1fr"}
+      bgGradient="linear(to-b, white, gray.100)"
+      _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
       <GridItem colSpan={2}>
-        <Header inputPromptRef={inputPromptRef} onMenuClick={toggleSidebarVisible} />
+        <Header
+          inputPromptRef={inputPromptRef}
+          isSidebarVisible={isSidebarVisible}
+          onSidebarVisibleClick={toggleSidebarVisible}
+        />
       </GridItem>
 
       <GridItem rowSpan={2} overflowY="auto">
@@ -172,49 +183,52 @@ function App() {
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">
         <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
+          {
+            /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
+            !shouldAutoScroll && (
+              <Flex
+                w="100%"
+                maxW="900px"
+                mx="auto"
+                justify="center"
+                position="fixed"
+                top="5em"
+                zIndex="500"
+              >
+                <Button onClick={() => handleFollowChatClick()}>
+                  <CgArrowDownO />
+                  <Text ml={2}>Follow Chat</Text>
+                </Button>
+              </Flex>
+            )
+          }
+
           <MessagesView
-            messages={messages}
+            messages={chat.messages}
             newMessage={streamingMessage}
             isLoading={loading}
-            onRemoveMessage={removeMessage}
+            onRemoveMessage={(message) => chat.removeMessage(message.id)}
             singleMessageMode={singleMessageMode}
             isPaused={paused}
             onTogglePause={togglePause}
             onCancel={cancel}
             onPrompt={onPrompt}
           />
-
-          {
-            /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
-            !shouldAutoScroll && (
-              <Box w="100%" textAlign="center">
-                <Button
-                  position="fixed"
-                  top="5em"
-                  zIndex="500"
-                  onClick={() => handleFollowChatClick()}
-                >
-                  <CgArrowDownO />
-                  <Text ml={2}>Follow Chat</Text>
-                </Button>
-              </Box>
-            )
-          }
         </Flex>
       </GridItem>
 
       <GridItem>
         <Box maxW="900px" mx="auto" h="100%">
           <PromptForm
-            messages={messages}
-            onPrompt={onPrompt}
-            onClear={() => setMessages()}
+            messages={chat.messages}
+            forkUrl={`/c/${chat.id}/fork`}
+            onSendClick={onPrompt}
             isExpanded={isExpanded}
             toggleExpanded={toggleExpanded}
             singleMessageMode={singleMessageMode}
             onSingleMessageModeChange={setSingleMessageMode}
             isLoading={loading}
-            previousMessage={messages.at(-1)?.text}
+            previousMessage={chat.messages.at(-1)?.text}
             tokenInfo={tokenInfo}
             inputPromptRef={inputPromptRef}
           />

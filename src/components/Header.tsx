@@ -6,9 +6,12 @@ import {
   Flex,
   HStack,
   IconButton,
+  Input,
+  InputGroup,
   Link,
   Menu,
   MenuButton,
+  MenuDivider,
   MenuItem,
   MenuList,
   Text,
@@ -16,18 +19,20 @@ import {
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
-import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
+import { BiSun, BiMoon } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
+import { TbSearch, TbLayoutSidebarLeftExpand, TbLayoutSidebarRightExpand } from "react-icons/tb";
 
 import PreferencesModal from "./PreferencesModal";
 import { useUser } from "../hooks/use-user";
 
 type HeaderProps = {
   inputPromptRef: RefObject<HTMLTextAreaElement>;
-  onMenuClick: () => void;
+  isSidebarVisible: boolean;
+  onSidebarVisibleClick: () => void;
 };
 
-function Header({ inputPromptRef, onMenuClick }: HeaderProps) {
+function Header({ inputPromptRef, isSidebarVisible, onSidebarVisibleClick }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, login, logout } = useUser();
@@ -43,10 +48,10 @@ function Header({ inputPromptRef, onMenuClick }: HeaderProps) {
     >
       <HStack>
         <IconButton
-          icon={<BiMenu />}
+          icon={isSidebarVisible ? <TbLayoutSidebarRightExpand /> : <TbLayoutSidebarLeftExpand />}
           variant="ghost"
           aria-label="Toggle Sidebar Menu"
-          onClick={() => onMenuClick()}
+          onClick={() => onSidebarVisibleClick()}
         />
         <Text fontWeight="bold" color={useColorModeValue("blue.600", "blue.200")}>
           <Link
@@ -58,17 +63,14 @@ function Header({ inputPromptRef, onMenuClick }: HeaderProps) {
         </Text>
       </HStack>
 
+      <Box flex={1} maxW="500px" px={4}>
+        <InputGroup size="sm" variant="outline">
+          <Input type="search" />
+          <IconButton aria-label="Search" variant="ghost" icon={<TbSearch />} />
+        </InputGroup>
+      </Box>
+
       <ButtonGroup isAttached pr={2} alignItems="center">
-        <IconButton
-          as="a"
-          href="https://github.com/tarasglek/chatcraft.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="GitHub Repository"
-          title="GitHub Repository"
-          icon={<BsGithub />}
-          variant="ghost"
-        />
         <IconButton
           aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
           title={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
@@ -108,6 +110,17 @@ function Header({ inputPromptRef, onMenuClick }: HeaderProps) {
                     <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
                   </>
                 )}
+              </MenuItem>
+              <MenuDivider />
+              <MenuItem
+                as="a"
+                href="https://github.com/tarasglek/chatcraft.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub Repository"
+                title="GitHub Repository"
+              >
+                GitHub Repository
               </MenuItem>
             </MenuList>
           </Menu>
