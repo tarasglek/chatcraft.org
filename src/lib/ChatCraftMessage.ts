@@ -1,5 +1,6 @@
+import { uuid } from "./utils";
+
 import { BaseChatMessage, type MessageType } from "langchain/schema";
-import { nanoid } from "nanoid";
 
 // We store ChatCraft messages as flat JSON
 export type SerializedChatCraftMessage = {
@@ -33,7 +34,7 @@ export class ChatCraftMessage extends BaseChatMessage {
     super(text);
 
     // We didn't used to have an `id`, so generate if missing
-    this.id = id ?? nanoid();
+    this.id = id ?? uuid();
     this.type = type;
     // We may or may not have info about the model (e.g., ai message will)
     if (model) {
@@ -89,3 +90,15 @@ export class ChatCraftSystemMessage extends ChatCraftMessage {
     super({ id, type: "system", text });
   }
 }
+
+export const ApiKeyInstructionsMessage = new ChatCraftAiMessage({
+  text: `I am a helpful assistant, but before I can help, you need to enter an
+ [OpenAI API Key](https://platform.openai.com/account/api-keys) below. Here's an example of what
+ an API Key looks like:
+
+ \`sk-tVqEo67MxnfAAPQ68iuVT#ClbkFJkUz4oUblcvyUUxrg4T0\`
+ 
+ Please enter your API Key in the form below to begin chatting!
+`,
+  model: "gpt-3.5-turbo",
+});

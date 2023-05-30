@@ -1,10 +1,15 @@
 import { useCallback, useLayoutEffect, useMemo } from "react";
-import { Box, Collapse, useColorMode } from "@chakra-ui/react";
+import { Box, useColorMode } from "@chakra-ui/react";
 import mermaid from "mermaid";
 
 import Message from "./Message";
 import NewMessage from "./NewMessage";
-import { ChatCraftMessage, ChatCraftAiMessage } from "../lib/ChatCraftMessage";
+import {
+  ChatCraftMessage,
+  ChatCraftAiMessage,
+  ApiKeyInstructionsMessage,
+} from "../lib/ChatCraftMessage";
+import { useSettings } from "../hooks/use-settings";
 
 type MessagesViewProps = {
   messages: ChatCraftMessage[];
@@ -30,8 +35,7 @@ function MessagesView({
   onPrompt,
 }: MessagesViewProps) {
   const { colorMode } = useColorMode();
-  // When we're in singleMessageMode, we collapse all but the final message
-  const lastMessage = messages.at(-1);
+  const { settings } = useSettings();
 
   // Make sure that any Mermaid diagrams use the same light/dark theme as rest of app.
   // Use a layout effect vs. regular effect so it happens after DOM is ready.
@@ -47,26 +51,44 @@ function MessagesView({
   const memoizedOnRemoveMessage = useCallback(onRemoveMessage, [onRemoveMessage]);
 
   // Memoize the previous messages so we don't have to update when newMessage changes
-  const prevMessages = useMemo(
-    () =>
-      messages.map((message) => {
+  const prevMessages = useMemo(() => {
+    // If there's no API key in storage, show instructions so we get one
+    if (!settings.apiKey) {
+      return (
+        <Message message={ApiKeyInstructionsMessage} isLoading={isLoading} onPrompt={onPrompt} />
+      );
+    }
+
+    // When we're in singleMessageMode, we collapse all but the final message
+    if (singleMessageMode) {
+      const lastMessage = messages.at(-1);
+      if (lastMessage) {
         return (
           <Message
-            key={message.id}
-            message={message}
+            message={lastMessage}
             isLoading={isLoading}
-            onDeleteClick={() => memoizedOnRemoveMessage(message)}
+            onDeleteClick={() => memoizedOnRemoveMessage(lastMessage)}
             onPrompt={onPrompt}
           />
         );
-      }),
-    [messages, onPrompt, isLoading, memoizedOnRemoveMessage]
-  );
+      }
+    }
+
+    // Otherwise, show all messages in order
+    return messages.map((message) => (
+      <Message
+        key={message.id}
+        message={message}
+        isLoading={isLoading}
+        onDeleteClick={() => memoizedOnRemoveMessage(message)}
+        onPrompt={onPrompt}
+      />
+    ));
+  }, [messages, singleMessageMode, settings.apiKey, onPrompt, isLoading, memoizedOnRemoveMessage]);
 
   return (
     <Box minHeight="100%" scrollBehavior="smooth">
-      {/* Show entire message history + current streaming response if available */}
-      <Collapse in={!singleMessageMode} animateOpacity>
+      <>
         {prevMessages}
 
         {newMessage && (
@@ -77,28 +99,7 @@ function MessagesView({
             onCancel={onCancel}
           />
         )}
-      </Collapse>
-
-      {/* Show only previous response + current streaming response if available */}
-      {singleMessageMode && lastMessage && (
-        <>
-          <Message
-            message={lastMessage}
-            isLoading={isLoading}
-            onDeleteClick={() => onRemoveMessage(lastMessage)}
-            onPrompt={onPrompt}
-          />
-
-          {newMessage && (
-            <NewMessage
-              message={newMessage}
-              isPaused={isPaused}
-              onTogglePause={onTogglePause}
-              onCancel={onCancel}
-            />
-          )}
-        </>
-      )}
+      </>
     </Box>
   );
 }

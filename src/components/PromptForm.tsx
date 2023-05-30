@@ -24,6 +24,7 @@ import {
   MenuDivider,
   useToast,
 } from "@chakra-ui/react";
+import { Link as ReactRouterLink } from "react-router-dom";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
 import { TbShare2 } from "react-icons/tb";
 import { useCopyToClipboard } from "react-use";
@@ -76,8 +77,8 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
 
 type PromptFormProps = {
   messages: ChatCraftMessage[];
-  onPrompt: (prompt: string) => void;
-  onClear: () => void;
+  forkUrl: string;
+  onSendClick: (prompt: string) => void;
   // Whether or not to automatically manage the height of the prompt.
   // When `isExpanded` is `false`, Shit+Enter adds rows. Otherwise,
   // the height is determined automatically by the parent.
@@ -93,8 +94,8 @@ type PromptFormProps = {
 
 function PromptForm({
   messages,
-  onPrompt,
-  onClear,
+  forkUrl,
+  onSendClick,
   isExpanded,
   toggleExpanded,
   singleMessageMode,
@@ -134,7 +135,7 @@ function PromptForm({
     }
 
     setPrompt("");
-    onPrompt(value);
+    onSendClick(value);
   };
 
   // Handle API key form submission
@@ -319,14 +320,23 @@ function PromptForm({
                 >
                   Single Message Mode
                 </Checkbox>
-                <ButtonGroup>
-                  <Button onClick={onClear} variant="outline" size="sm" isDisabled={isLoading}>
-                    New Chat
-                  </Button>
+
+                <Flex gap={4} align="center">
+                  <ReactRouterLink to="/new">
+                    <Button variant="link" size="sm" isDisabled={isLoading}>
+                      New
+                    </Button>
+                  </ReactRouterLink>
+                  <ReactRouterLink to={forkUrl}>
+                    <Button variant="link" size="sm" isDisabled={isLoading}>
+                      Fork
+                    </Button>
+                  </ReactRouterLink>
+
                   <Button type="submit" size="sm" isLoading={isLoading} loadingText="Send">
                     Send
                   </Button>
-                </ButtonGroup>
+                </Flex>
               </Flex>
             </Flex>
           </chakra.form>

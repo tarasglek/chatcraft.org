@@ -1,4 +1,4 @@
-import { RefObject } from "react";
+import { RefObject, useEffect, useState } from "react";
 import { useCopyToClipboard } from "react-use";
 import {
   Button,
@@ -26,6 +26,15 @@ import RevealablePasswordInput from "./RevealablePasswordInput";
 import { useSettings } from "../hooks/use-settings";
 import { isMac } from "../lib/utils";
 
+// https://dexie.org/docs/StorageManager
+async function isStoragePersisted() {
+  if (navigator.storage?.persisted) {
+    return await navigator.storage.persisted();
+  }
+
+  return false;
+}
+
 type PreferencesModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -36,6 +45,22 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const { settings, setSettings } = useSettings();
   // Using this hook vs. useClipboard() in Chakra to work around a bug
   const [, copyToClipboard] = useCopyToClipboard();
+  // Whether our db is being persisted
+  const [isPersisted, setIsPersisted] = useState(false);
+
+  useEffect(() => {
+    isStoragePersisted()
+      .then((value) => setIsPersisted(value))
+      .catch(console.error);
+  }, []);
+
+  async function handlePersistClick() {
+    if (navigator.storage?.persist) {
+      await navigator.storage.persist();
+      const persisted = await isStoragePersisted();
+      setIsPersisted(persisted);
+    }
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
@@ -72,6 +97,30 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
               />
               <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>
+                Offline database is {isPersisted ? "persisted" : "not persisted"}
+                <Button
+                  ml={2}
+                  size="xs"
+                  onClick={() => handlePersistClick()}
+                  isDisabled={isPersisted}
+                >
+                  Persist
+                </Button>
+              </FormLabel>
+              <FormHelperText>
+                Persisted databases use the{" "}
+                <Link
+                  href="https://developer.mozilla.org/en-US/docs/Web/API/Storage_API"
+                  textDecoration="underline"
+                >
+                  Storage API
+                </Link>{" "}
+                and are retained by the browser as long as possible.
+              </FormHelperText>
             </FormControl>
 
             <FormControl>

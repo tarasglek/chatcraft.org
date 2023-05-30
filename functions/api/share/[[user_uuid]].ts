@@ -7,6 +7,57 @@ interface Env {
   CLIENT_SECRET: string;
 }
 
+// POST https://chatcraft.org/api/share/{user}
+export const onRequestPut: PagesFunction<Env> = async ({ request, env, params }) => {
+  const { CLIENT_ID, CLIENT_SECRET, CHATCRAFT_ORG_BUCKET } = env;
+  const token = getAccessToken(request);
+  const { user_uuid } = params;
+
+  // We expect JSON
+  if (!request.headers.get("content-type").includes("application/json")) {
+    return errorResponse(400, "Expected JSON");
+  }
+
+  // We should receive [username, uuid]
+  if (!(Array.isArray(user_uuid) && user_uuid.length === 2)) {
+    return errorResponse(400, "Expected share URL of the form /api/share/{user}/{uuid}");
+  }
+
+  // Make sure we have a token, and that it matches the expected user
+  try {
+    const ghUsername = await validateToken(token, CLIENT_ID, CLIENT_SECRET);
+    const [user] = user_uuid;
+
+    // Make sure this is the same username as the user who owns this token
+    if (user !== ghUsername) {
+      return errorResponse(403, "GitHub token does not match username");
+    }
+  } catch (err) {
+    return errorResponse(400, err.message);
+  }
+
+  // Put the chat into R2
+  try {
+    const key = user_uuid.join("/");
+    await CHATCRAFT_ORG_BUCKET.put(key, request.body);
+
+    const url = `https://chatcraft.org/${key}`;
+    return successResponse(
+      {
+        message: "Chat shared successfully",
+        url,
+      },
+      200,
+      new Headers({
+        Location: url,
+      })
+    );
+  } catch (err) {
+    console.error(err);
+    return errorResponse(500, `Unable to share chat: ${err.message}`);
+  }
+};
+
 // GET https://chatcraft.org/api/share/{user}/{uuid}
 // Anyone can request a shared chat (don't need a token)
 export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
