@@ -22,17 +22,24 @@ import {
 import { BiSun, BiMoon } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
 import { TbSearch, TbLayoutSidebarLeftExpand, TbLayoutSidebarRightExpand } from "react-icons/tb";
+import { Form } from "react-router-dom";
 
 import PreferencesModal from "./PreferencesModal";
 import { useUser } from "../hooks/use-user";
 
 type HeaderProps = {
   inputPromptRef: RefObject<HTMLTextAreaElement>;
+  searchText?: string;
   isSidebarVisible: boolean;
   onSidebarVisibleClick: () => void;
 };
 
-function Header({ inputPromptRef, isSidebarVisible, onSidebarVisibleClick }: HeaderProps) {
+function Header({
+  inputPromptRef,
+  searchText,
+  isSidebarVisible,
+  onSidebarVisibleClick,
+}: HeaderProps) {
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, login, logout } = useUser();
@@ -64,10 +71,12 @@ function Header({ inputPromptRef, isSidebarVisible, onSidebarVisibleClick }: Hea
       </HStack>
 
       <Box flex={1} maxW="500px" px={4}>
-        <InputGroup size="sm" variant="outline">
-          <Input type="search" />
-          <IconButton aria-label="Search" variant="ghost" icon={<TbSearch />} />
-        </InputGroup>
+        <Form action="/s" method="get">
+          <InputGroup size="sm" variant="outline">
+            <Input type="search" name="q" defaultValue={searchText} isRequired />
+            <IconButton aria-label="Search" variant="ghost" icon={<TbSearch />} type="submit" />
+          </InputGroup>
+        </Form>
       </Box>
 
       <ButtonGroup isAttached pr={2} alignItems="center">

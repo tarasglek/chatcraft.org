@@ -38,7 +38,7 @@ function AuthenticatedForm({ chat }: AuthenticatedForm) {
   const { settings } = useSettings();
   const [url, setUrl] = useState<string>("");
   const [error, setError] = useState<Error | undefined>();
-  const [summary, setSummary] = useState<string>(chat.summary || "");
+  const [summary, setSummary] = useState<string>(chat.summary || chat.summarize());
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [, copyToClipboard] = useCopyToClipboard();

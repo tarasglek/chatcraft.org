@@ -43,9 +43,9 @@ const msg2obj = (msg: BaseChatMessage | ChatCraftMessage): SerializedChatCraftMe
 
   // It's one of the older message formats, upgrade them
   if (msg instanceof HumanChatMessage) {
-    return { id: nanoid(), type: "human", text: msg.text };
+    return { id: nanoid(), type: "human", text: msg.text, date: new Date() };
   }
-  return { id: nanoid(), type: "ai", model: "gpt-3.5-turbo", text: msg.text };
+  return { id: nanoid(), type: "ai", model: "gpt-3.5-turbo", text: msg.text, date: new Date() };
 };
 
 const greetingMessage = "I am a helpful assistant! How can I help?";

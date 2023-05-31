@@ -3,8 +3,7 @@ import { type MessageType } from "langchain/schema";
 
 export type ChatCraftChatTable = {
   id: string;
-  version: string;
-  date: number;
+  date: Date;
   isPublic: boolean;
   summary: string;
   messageIds: string[];
@@ -12,6 +11,7 @@ export type ChatCraftChatTable = {
 
 export type ChatCraftMessageTable = {
   id: string;
+  date: Date;
   chatId: string;
   type: MessageType;
   model?: GptModel;
@@ -26,8 +26,8 @@ class ChatCraftDatabase extends Dexie {
   constructor() {
     super("ChatCraftDatabase");
     this.version(1).stores({
-      chats: "id, version, date, summary, messageIds",
-      messages: "id, chatId, type, model, user, text",
+      chats: "id, date, summary, messageIds",
+      messages: "id, date, chatId, type, model, user, text",
     });
 
     this.chats = this.table("chats");

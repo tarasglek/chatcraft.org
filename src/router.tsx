@@ -1,8 +1,11 @@
 import { createBrowserRouter, Navigate, redirect } from "react-router-dom";
 
-import App from "./App";
+import Chat from "./Chat";
 import { loadShare } from "./lib/share";
 import { ChatCraftChat } from "./lib/ChatCraftChat";
+import Search, { loader as searchLoader } from "./Search";
+import db from "./lib/db";
+import { getUser } from "./lib/storage";
 
 export default createBrowserRouter([
   // Redirect users from / -> /new so they can create a chat
@@ -19,7 +22,8 @@ export default createBrowserRouter([
       return redirect(`/c/${chat.id}`);
     },
   },
-  // People shouldn't end-up here, but create new chat if they do
+
+  // People shouldn't end-up here, so create new chat if they do
   {
     path: "/c",
     element: <Navigate to="/new" />,
@@ -37,42 +41,67 @@ export default createBrowserRouter([
       }
       return null;
     },
-    element: <App />,
+    element: <Chat readonly={false} />,
   },
-  // For an existing chat and redirect to it
+  // Fork an existing chat and redirect to it. If a `messageId` is included,
+  // use that as our starting message vs. whole chat (partial fork)
   {
-    path: "/c/:id/fork",
+    path: "/c/:chatId/fork/:messageId?",
     async loader({ params }) {
-      const { id } = params;
-      if (id) {
-        const chat = await ChatCraftChat.find(id);
-        if (chat) {
-          const forked = await chat.fork();
-          return redirect(`/c/${forked.id}`);
-        }
+      const { chatId, messageId } = params;
+
+      if (!chatId) {
+        // Shouldn't happen, don't crash
+        console.error("No chatId passed to /fork");
+        return redirect("/new");
       }
-      // Shouldn't happen, don't crash
-      console.log("Unexpected redirect to /new, could not find chat to fork!");
-      return redirect("/new");
+
+      const chat = await ChatCraftChat.find(chatId);
+      if (!chat) {
+        console.error("Couldn't find chat with given chatId");
+        return redirect("/new");
+      }
+
+      // Pass the starting message id, if we have one
+      const forked = await chat.fork(messageId);
+      if (!forked) {
+        console.error("Couldn't fork");
+        return redirect("/new");
+      }
+
+      return redirect(`/c/${forked.id}`);
     },
   },
-  // XXX: need better nested routing, just a hack to get started with loading a chat
+  // Loading a shared chat, which may or may not be owned by this user
   {
-    path: ":user/:chatId",
+    path: "/c/:user/:chatId",
     async loader({ params }) {
       const { user, chatId } = params;
       if (!(user && chatId)) {
-        return;
+        return redirect("/");
       }
 
+      // Check if we own this share
+      const currentUser = getUser();
+      if (currentUser?.username === user && (await db.chats.get(chatId))) {
+        return redirect(`/c/${chatId}`);
+      }
+
+      // Otherwise, try to load it remotely
       try {
-        const chat = await loadShare(user, chatId);
-        return chat;
+        return loadShare(user, chatId);
       } catch (err) {
         console.warn(`Error loading shared chat ${user}/${chatId}`, err);
+        redirect(`/`);
       }
     },
-    // TODO: should split <App /> up so I can load bits into <Outlet />s
-    element: <App />,
+    element: <Chat readonly={true} />,
+  },
+
+  // Search. Process `GET /s?q=...` and return results
+  {
+    path: "/s",
+    loader: searchLoader,
+    element: <Search />,
   },
 ]);

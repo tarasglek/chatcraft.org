@@ -5,23 +5,40 @@ import OpenAiMessage from "./OpenAiMessage";
 
 type MessageProps = {
   message: ChatCraftMessage;
+  chatId: string;
   isLoading: boolean;
   hidePreviews?: boolean;
   onPrompt?: (prompt: string) => void;
   onDeleteClick?: () => void;
+  disableFork?: boolean;
+  disableEdit?: boolean;
 };
 
-function Message({ message, isLoading, hidePreviews, onDeleteClick, onPrompt }: MessageProps) {
+function Message({
+  message,
+  chatId,
+  isLoading,
+  hidePreviews,
+  onDeleteClick,
+  onPrompt,
+  disableFork,
+  disableEdit,
+}: MessageProps) {
   // AI Message
   if (message.type === "ai" && message.model) {
     return (
       <OpenAiMessage
+        id={message.id}
+        chatId={chatId}
+        date={message.date}
         text={message.text}
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         model={message.model}
         onPrompt={onPrompt}
         onDeleteClick={onDeleteClick}
+        disableFork={disableFork}
+        disableEdit={disableEdit}
       />
     );
   }
@@ -30,13 +47,18 @@ function Message({ message, isLoading, hidePreviews, onDeleteClick, onPrompt }: 
   const { user } = message;
   return (
     <HumanMessage
-      name={user?.name}
+      id={message.id}
+      chatId={chatId}
+      date={message.date}
+      name={user?.name || "User"}
       avatarUrl={user?.avatarUrl}
       text={message.text}
       isLoading={isLoading}
       hidePreviews={hidePreviews}
       onPrompt={onPrompt}
       onDeleteClick={onDeleteClick}
+      disableFork={disableFork}
+      disableEdit={disableEdit}
     />
   );
 

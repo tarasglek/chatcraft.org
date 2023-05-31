@@ -7,12 +7,13 @@ import NewMessage from "./NewMessage";
 import {
   ChatCraftMessage,
   ChatCraftAiMessage,
-  ApiKeyInstructionsMessage,
+  ApiKeyInstructionsText,
 } from "../lib/ChatCraftMessage";
 import { useSettings } from "../hooks/use-settings";
 
 type MessagesViewProps = {
   messages: ChatCraftMessage[];
+  chatId: string;
   newMessage?: ChatCraftAiMessage;
   isLoading: boolean;
   onRemoveMessage: (message: ChatCraftMessage) => void;
@@ -25,6 +26,7 @@ type MessagesViewProps = {
 
 function MessagesView({
   messages,
+  chatId,
   newMessage,
   isLoading,
   onRemoveMessage,
@@ -52,13 +54,6 @@ function MessagesView({
 
   // Memoize the previous messages so we don't have to update when newMessage changes
   const prevMessages = useMemo(() => {
-    // If there's no API key in storage, show instructions so we get one
-    if (!settings.apiKey) {
-      return (
-        <Message message={ApiKeyInstructionsMessage} isLoading={isLoading} onPrompt={onPrompt} />
-      );
-    }
-
     // When we're in singleMessageMode, we collapse all but the final message
     if (singleMessageMode) {
       const lastMessage = messages.at(-1);
@@ -66,6 +61,7 @@ function MessagesView({
         return (
           <Message
             message={lastMessage}
+            chatId={chatId}
             isLoading={isLoading}
             onDeleteClick={() => memoizedOnRemoveMessage(lastMessage)}
             onPrompt={onPrompt}
@@ -79,21 +75,41 @@ function MessagesView({
       <Message
         key={message.id}
         message={message}
+        chatId={chatId}
         isLoading={isLoading}
         onDeleteClick={() => memoizedOnRemoveMessage(message)}
         onPrompt={onPrompt}
       />
     ));
-  }, [messages, singleMessageMode, settings.apiKey, onPrompt, isLoading, memoizedOnRemoveMessage]);
+  }, [messages, chatId, singleMessageMode, onPrompt, isLoading, memoizedOnRemoveMessage]);
+
+  const instructions = useMemo(() => {
+    // If there's no API key in storage, show instructions so we get one
+    if (!settings.apiKey) {
+      return (
+        <Message
+          message={new ChatCraftAiMessage({ text: ApiKeyInstructionsText, model: settings.model })}
+          chatId={chatId}
+          isLoading={isLoading}
+          onPrompt={onPrompt}
+          disableFork={true}
+          disableEdit={true}
+        />
+      );
+    }
+  }, [settings.apiKey, settings.model, chatId, onPrompt, isLoading]);
 
   return (
     <Box minHeight="100%" scrollBehavior="smooth">
       <>
         {prevMessages}
 
+        {instructions}
+
         {newMessage && (
           <NewMessage
             message={newMessage}
+            chatId={chatId}
             isPaused={isPaused}
             onTogglePause={onTogglePause}
             onCancel={onCancel}

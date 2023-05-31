@@ -1,5 +1,4 @@
 import { createContext, useEffect, useCallback, useContext, type FC, type ReactNode } from "react";
-import useClearParams from "use-clear-params";
 import { useLocalStorage } from "react-use";
 
 type UserContextType = {
@@ -22,37 +21,71 @@ const UserContext = createContext<UserContextType>({
 
 export const useUser = () => useContext(UserContext);
 
+// We may or may not have user info on the search params. Consume if we do.
+function extractUser(queryParams: URLSearchParams) {
+  const username = queryParams.get("login");
+  const name = queryParams.get("name");
+  const avatarUrl = queryParams.get("avatar");
+
+  if (username && name && avatarUrl) {
+    queryParams.delete("login");
+    queryParams.delete("name");
+    queryParams.delete("avatar");
+
+    return { username, name, avatarUrl };
+  }
+}
+
+// We may or may not have a token on the search params. Consume if we do.
+function extractToken(queryParams: URLSearchParams) {
+  const token = queryParams.get("token");
+
+  if (token) {
+    queryParams.delete("token");
+    return token;
+  }
+}
+
 export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const query = useClearParams();
   const [token, setToken] = useLocalStorage<string | undefined>("gh_token");
   const [user, setUser] = useLocalStorage<User | undefined>("gh_user");
 
   useEffect(() => {
-    if (!query) {
+    const { pathname, search, hash } = location;
+
+    if (!search) {
       return;
     }
 
-    const token = query.get("token");
-    const username = query.get("login");
-    const name = query.get("name");
-    const avatarUrl = query.get("avatar");
+    const queryParams = new URLSearchParams(search);
+    let shouldUpdateUrl = false;
 
-    if (username && name && avatarUrl) {
-      setUser({
-        username,
-        name,
-        avatarUrl,
-      });
+    const user = extractUser(queryParams);
+    if (user) {
+      setUser(user);
+      shouldUpdateUrl = true;
     }
 
+    const token = extractToken(queryParams);
     if (token) {
       setToken(token);
+      shouldUpdateUrl = true;
     }
-  }, [query, setUser, setToken]);
+
+    if (shouldUpdateUrl) {
+      let url = `${pathname}?${queryParams}`;
+      if (hash) {
+        url += `${hash}`;
+      }
+
+      history.replaceState({}, "", url);
+    }
+  }, [setUser, setToken]);
 
   const logout = useCallback(() => {
     setUser(undefined);
-  }, [setUser]);
+    setToken(undefined);
+  }, [setUser, setToken]);
 
   const value = {
     user,
