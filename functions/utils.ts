@@ -32,6 +32,4 @@ export function getAccessToken(request: Request) {
   return Authorization.replace(/^[Bb]earer\s*/, "");
 }
 
-export const uuid = () => crypto.randomUUID();
-
 export const base64 = (s) => btoa(s);

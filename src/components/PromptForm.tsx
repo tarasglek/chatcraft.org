@@ -270,11 +270,7 @@ function PromptForm({
           otherwise give the user a form to enter their API key. */}
         {settings.apiKey ? (
           <chakra.form onSubmit={handlePromptSubmit} h="100%" pb={2}>
-            <Flex
-              // pb={isExpanded ? 8 : 0}
-              flexDir="column"
-              h={isExpanded ? "100%" : undefined}
-            >
+            <Flex flexDir="column" h={isExpanded ? "100%" : undefined}>
               <Box
                 flex={isExpanded ? "1" : undefined}
                 mt={2}
@@ -351,6 +347,8 @@ function PromptForm({
                     <Link
                       href="https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety"
                       textDecoration="underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       OpenAI API Key
                     </Link>
@@ -375,6 +373,8 @@ function PromptForm({
                 <Link
                   href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
                   textDecoration="underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   local storage
                 </Link>

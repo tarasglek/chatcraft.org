@@ -5,12 +5,13 @@ import { ChatCraftAiMessage } from "../lib/ChatCraftMessage";
 
 type NewMessageProps = {
   message: ChatCraftAiMessage;
+  chatId: string;
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
 };
 
-function NewMessage({ message, isPaused, onTogglePause, onCancel }: NewMessageProps) {
+function NewMessage({ message, chatId, isPaused, onTogglePause, onCancel }: NewMessageProps) {
   // If the user presses the mouse button over the streaming message while
   // loading, pause to make it easier to copy/paste text as it streams in.
   function handleMouseDown() {
@@ -22,7 +23,7 @@ function NewMessage({ message, isPaused, onTogglePause, onCancel }: NewMessagePr
   return (
     <Flex flexDir="column" w="100%">
       <Box flex={1} onMouseDown={handleMouseDown}>
-        <Message message={message} isLoading />
+        <Message message={message} chatId={chatId} isLoading />
       </Box>
       <Box textAlign="center">
         <ButtonGroup>

@@ -9,8 +9,9 @@ import {
   useToast,
   Grid,
   GridItem,
+  ButtonGroup,
 } from "@chakra-ui/react";
-import { useParams } from "react-router-dom";
+import { Link as ReactRouterLink, ScrollRestoration, useParams } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
 import { useLiveQuery } from "dexie-react-hooks";
 
@@ -24,7 +25,11 @@ import { ChatCraftHumanMessage } from "./lib/ChatCraftMessage";
 import { ChatCraftChat } from "./lib/ChatCraftChat";
 import { useUser } from "./hooks/use-user";
 
-function App() {
+type ChatProps = {
+  readonly: boolean;
+};
+
+function Chat({ readonly }: ChatProps) {
   const { id: chatId } = useParams();
   const chat = useLiveQuery<ChatCraftChat | undefined>(() => {
     if (chatId) {
@@ -33,7 +38,8 @@ function App() {
   }, [chatId]);
 
   // Messages are all the static, previous messages in the chat
-  const { tokenInfo } = useMessages(); //chat?.messages);
+  // TODO: this token stuff is no longer right and useMessages() needs to be removed
+  const { tokenInfo } = useMessages();
   // When chatting with OpenAI, a streaming message is returned during loading
   const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
   // Whether to include the whole message chat history or just the last response
@@ -203,8 +209,11 @@ function App() {
             )
           }
 
+          <ScrollRestoration />
+
           <MessagesView
             messages={chat.messages}
+            chatId={chat.id}
             newMessage={streamingMessage}
             isLoading={loading}
             onRemoveMessage={(message) => chat.removeMessage(message.id)}
@@ -219,23 +228,40 @@ function App() {
 
       <GridItem>
         <Box maxW="900px" mx="auto" h="100%">
-          <PromptForm
-            messages={chat.messages}
-            forkUrl={`/c/${chat.id}/fork`}
-            onSendClick={onPrompt}
-            isExpanded={isExpanded}
-            toggleExpanded={toggleExpanded}
-            singleMessageMode={singleMessageMode}
-            onSingleMessageModeChange={setSingleMessageMode}
-            isLoading={loading}
-            previousMessage={chat.messages.at(-1)?.text}
-            tokenInfo={tokenInfo}
-            inputPromptRef={inputPromptRef}
-          />
+          {readonly ? (
+            <Flex w="100%" h="40px" justify="end" align="center" px={2}>
+              <ButtonGroup gap={3}>
+                <ReactRouterLink to="/new">
+                  <Button variant="link" size="sm">
+                    New
+                  </Button>
+                </ReactRouterLink>
+                <ReactRouterLink to={`/c/${chat.id}/fork`}>
+                  <Button variant="link" size="sm">
+                    Fork
+                  </Button>
+                </ReactRouterLink>
+              </ButtonGroup>
+            </Flex>
+          ) : (
+            <PromptForm
+              messages={chat.messages}
+              forkUrl={`/c/${chat.id}/fork`}
+              onSendClick={onPrompt}
+              isExpanded={isExpanded}
+              toggleExpanded={toggleExpanded}
+              singleMessageMode={singleMessageMode}
+              onSingleMessageModeChange={setSingleMessageMode}
+              isLoading={loading}
+              previousMessage={chat.messages.at(-1)?.text}
+              tokenInfo={tokenInfo}
+              inputPromptRef={inputPromptRef}
+            />
+          )}
         </Box>
       </GridItem>
     </Grid>
   );
 }
 
-export default App;
+export default Chat;

@@ -28,12 +28,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params })
 
   // Get a list of the user's shared chats
   try {
-    // Build an array of uuids and return
+    // Build an array of ids and return
     const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix: `${user}/` });
     return successResponse(
       objects.map(({ key }) => ({
         key: key.replace(`${user}/`, ""),
-        url: `https://chatcraft.org/${key}`,
+        url: `https://chatcraft.org/c/${key}`,
       }))
     );
   } catch (err) {

@@ -55,6 +55,7 @@ function Sidebar() {
                 w="1.3em"
                 verticalAlign="middle"
                 color="blue.600"
+                _dark={{ color: "blue.200" }}
               >
                 <TbShare2 />
               </Box>

@@ -1,7 +1,9 @@
-import { uuid } from "./utils";
+import { nanoid } from "nanoid";
+
 import {
   ChatCraftAiMessage,
   ChatCraftMessage,
+  AiGreetingText,
   type SerializedChatCraftMessage,
 } from "./ChatCraftMessage";
 import { createOrUpdateShare } from "./share";
@@ -11,13 +13,11 @@ import type { ChatCraftMessageTable } from "./db";
 import { getToken, getUser } from "./storage";
 import summarize from "./summarize";
 
-// We store ChatCraft Chats as flat JSON
 export type SerializedChatCraftChat = {
   id: string;
-  version: string;
-  date: number;
+  date: Date;
   isPublic: boolean;
-  summary?: string;
+  summary: string;
   messages: SerializedChatCraftMessage[];
 };
 
@@ -28,15 +28,13 @@ function createSummary(messages: ChatCraftMessage[]) {
 
 export class ChatCraftChat {
   id: string;
-  version: string;
-  date: number;
+  date: Date;
   isPublic: boolean;
   summary: string;
   messages: ChatCraftMessage[];
 
   constructor({
     id,
-    version,
     date,
     isPublic,
     summary,
@@ -44,31 +42,35 @@ export class ChatCraftChat {
   }: {
     id?: string;
     version?: string;
-    date?: number;
+    date?: Date;
     isPublic?: boolean;
     summary?: string;
     messages?: ChatCraftMessage[];
   } = {}) {
-    this.id = id ?? uuid();
+    this.id = id ?? nanoid();
     this.messages = messages ?? [
-      new ChatCraftAiMessage({ text: "What can I help you do?", model: "gpt-3.5-turbo" }),
+      new ChatCraftAiMessage({
+        text: AiGreetingText,
+        model: "gpt-3.5-turbo",
+      }),
     ];
-    this.version = version ?? "1";
-    this.date = date ?? Date.now();
+    this.date = date ?? new Date();
     // All chats are private by default
     this.isPublic = isPublic ?? false;
     this.summary = summary ?? createSummary(this.messages);
   }
 
+  summarize() {
+    return createSummary(this.messages);
+  }
+
   async addMessage(message: ChatCraftMessage) {
     this.messages.push(message);
-    this.summary = createSummary(this.messages);
     return this.save();
   }
 
   async removeMessage(id: string) {
     this.messages = this.messages.filter((message) => message.id !== id);
-    this.summary = createSummary(this.messages);
     return this.save();
   }
 
@@ -86,7 +88,8 @@ export class ChatCraftChat {
       throw new Error("unable to get messages associated with chat");
     }
 
-    // Return a new ChatCraftChat object for this chat/messages
+    // Return a new ChatCraftChat object for this chat/messages, skipping any
+    // that were not found (e.g., user deleted)
     return ChatCraftChat.parse({
       ...chat,
       messages: messages.filter((message): message is ChatCraftMessageTable => !!message),
@@ -108,7 +111,6 @@ export class ChatCraftChat {
       await db.chats.put(
         {
           id: this.id,
-          version: this.version,
           date: this.date,
           isPublic: this.isPublic,
           summary: this.summary,
@@ -120,9 +122,17 @@ export class ChatCraftChat {
   }
 
   // Create a new chat based on the messages in this one
-  async fork() {
+  async fork(messageId?: string) {
+    let messages = this.messages;
+    if (messageId) {
+      const idx = messages.findIndex((message) => message.id === messageId);
+      if (idx) {
+        messages = messages.slice(idx);
+      }
+    }
+
     const chat = new ChatCraftChat({
-      messages: [...this.messages],
+      messages: [...messages],
       summary: this.summary,
     });
     await chat.save();
@@ -154,7 +164,6 @@ export class ChatCraftChat {
   serialize(): SerializedChatCraftChat {
     return {
       id: this.id,
-      version: this.version,
       date: this.date,
       isPublic: this.isPublic,
       summary: this.summary,
@@ -162,17 +171,9 @@ export class ChatCraftChat {
     };
   }
 
-  static parse({
-    id,
-    version,
-    date,
-    isPublic,
-    summary,
-    messages,
-  }: SerializedChatCraftChat): ChatCraftChat {
+  static parse({ id, date, isPublic, summary, messages }: SerializedChatCraftChat): ChatCraftChat {
     return new ChatCraftChat({
       id,
-      version,
       date,
       isPublic,
       summary,
