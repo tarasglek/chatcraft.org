@@ -24,8 +24,6 @@ export async function requestAccessToken(code: string, CLIENT_ID: string, CLIENT
     throw new Error(`Error in GitHub token response: ${result.error}`);
   }
 
-  console.log("login result", result);
-
   return result.access_token;
 }
 
