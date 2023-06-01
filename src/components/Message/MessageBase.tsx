@@ -120,7 +120,9 @@ function MessageBase({
                 <MenuItem onClick={() => handleCopy()}>Copy</MenuItem>
                 <MenuItem onClick={() => handleDownload()}>Download</MenuItem>
                 {!disableFork && (
-                  <MenuItem onClick={() => navigate(`./fork/${id}`)}>Fork from Message</MenuItem>
+                  <MenuItem onClick={() => navigate(`./fork/${id}`)}>
+                    Duplicate Chat from Message...
+                  </MenuItem>
                 )}
                 {!disableEdit && onDeleteClick && <MenuDivider />}
                 {!disableEdit && <MenuItem>Edit (TODO...)</MenuItem>}

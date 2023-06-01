@@ -9,9 +9,8 @@ import {
   useToast,
   Grid,
   GridItem,
-  ButtonGroup,
 } from "@chakra-ui/react";
-import { Link as ReactRouterLink, ScrollRestoration } from "react-router-dom";
+import { ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
 
 import PromptForm from "../components/PromptForm";
@@ -23,6 +22,7 @@ import useChatOpenAI from "../hooks/use-chat-openai";
 import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
+import NewButton from "../components/NewButton";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -213,24 +213,13 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
       <GridItem>
         <Box maxW="900px" mx="auto" h="100%">
           {readonly ? (
-            <Flex w="100%" h="40px" justify="end" align="center" px={2}>
-              <ButtonGroup gap={3}>
-                <ReactRouterLink to="/new">
-                  <Button variant="link" size="sm">
-                    New
-                  </Button>
-                </ReactRouterLink>
-                <ReactRouterLink to="./fork">
-                  <Button variant="link" size="sm">
-                    Fork
-                  </Button>
-                </ReactRouterLink>
-              </ButtonGroup>
+            <Flex w="100%" h="45px" justify="end" align="center" p={2}>
+              <NewButton forkUrl={`./fork`} variant="solid" />
             </Flex>
           ) : (
             <PromptForm
               messages={chat.messages}
-              forkUrl={`/c/${chat.id}/fork`}
+              forkUrl={`./fork`}
               onSendClick={onPrompt}
               isExpanded={isExpanded}
               toggleExpanded={toggleExpanded}
