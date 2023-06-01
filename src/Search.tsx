@@ -31,6 +31,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect("/");
   }
 
+  // Do a case insensitive search
+  const re = new RegExp(q, "i");
+
   return {
     searchText: q,
     // Return all messages that include the search text,
@@ -38,7 +41,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     messages: await db.messages
       .where("text")
       .notEqual(AiGreetingText)
-      .filter((message) => message.text.includes(q))
+      .filter((message) => re.test(message.text))
       .reverse()
       .sortBy("date"),
   };
