@@ -9,6 +9,7 @@ import {
   GridItem,
   Heading,
   Center,
+  Tag,
 } from "@chakra-ui/react";
 import {
   Link as ReactRouterLink,
@@ -97,11 +98,9 @@ export default function Search() {
         <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
           {hasResults ? (
             <>
-              <Heading as="h2" size="sm" mt={4}>
-                {`${messages.length} ${messages.length > 1 ? "Messages" : "Message"} Found in ${
-                  chatIds.length
-                } ${chatIds.length > 1 ? "Chats" : "Chat"}`}
-              </Heading>
+              <Tag maxW="fit-content" mt={4}>{`${messages.length} ${
+                messages.length > 1 ? "Messages" : "Message"
+              } Found in ${chatIds.length} ${chatIds.length > 1 ? "Chats" : "Chat"}`}</Tag>
               <Box flex={1}>
                 {messages.map((message) => (
                   <Message
