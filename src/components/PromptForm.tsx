@@ -26,7 +26,7 @@ import {
 } from "@chakra-ui/react";
 import { Link as ReactRouterLink } from "react-router-dom";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
-import { TbShare2 } from "react-icons/tb";
+import { TbShare2, TbPlus } from "react-icons/tb";
 import { useCopyToClipboard } from "react-use";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
@@ -42,6 +42,7 @@ import {
   messagesToMarkdown,
 } from "../lib/utils";
 import ShareModal from "./ShareModal";
+import NewButton from "./NewButton";
 import { ChatCraftMessage } from "../lib/ChatCraftMessage";
 
 type KeyboardHintProps = {
@@ -317,18 +318,8 @@ function PromptForm({
                   Single Message Mode
                 </Checkbox>
 
-                <Flex gap={4} align="center">
-                  <ReactRouterLink to="/new">
-                    <Button variant="link" size="sm" isDisabled={isLoading}>
-                      New
-                    </Button>
-                  </ReactRouterLink>
-                  <ReactRouterLink to={forkUrl}>
-                    <Button variant="link" size="sm" isDisabled={isLoading}>
-                      Fork
-                    </Button>
-                  </ReactRouterLink>
-
+                <Flex gap={2} align="center">
+                  <NewButton forkUrl={forkUrl} variant="outline" />
                   <Button type="submit" size="sm" isLoading={isLoading} loadingText="Send">
                     Send
                   </Button>

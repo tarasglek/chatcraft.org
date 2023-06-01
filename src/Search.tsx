@@ -23,6 +23,7 @@ import { ChatCraftMessageTable } from "./lib/db";
 import Message from "./components/Message";
 import { AiGreetingText, ChatCraftMessage } from "./lib/ChatCraftMessage";
 import db from "./lib/db";
+import NewButton from "./components/NewButton";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -127,12 +128,8 @@ export default function Search() {
       </GridItem>
 
       <GridItem>
-        <Flex w="100%" maxW="900px" mx="auto" h="40px" justify="end" align="center" px={2}>
-          <ReactRouterLink to="/new">
-            <Button variant="link" size="sm">
-              New
-            </Button>
-          </ReactRouterLink>
+        <Flex w="100%" maxW="900px" mx="auto" h="45px" justify="end" align="center" p={2}>
+          <NewButton variant="solid" />
         </Flex>
       </GridItem>
     </Grid>
