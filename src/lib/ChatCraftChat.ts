@@ -6,7 +6,7 @@ import {
   AiGreetingText,
   type SerializedChatCraftMessage,
 } from "./ChatCraftMessage";
-import { createOrUpdateShare } from "./share";
+import { createShareUrl, createOrUpdateShare } from "./share";
 import db from "./db";
 
 import type { ChatCraftMessageTable } from "./db";
@@ -123,15 +123,13 @@ export class ChatCraftChat {
 
   // Make this chat public, and share online
   async share() {
-    const shareUrl = await createOrUpdateShare(this);
-
     // Update db to indicate this is public, if necessary
     if (!this.shareUrl) {
-      this.shareUrl = shareUrl;
+      this.shareUrl = createShareUrl(this);
       await this.save();
     }
 
-    return shareUrl;
+    return createOrUpdateShare(this);
   }
 
   // Combine saving to db and updating online share if necessary

@@ -4,7 +4,12 @@ import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 import { ChatCraftHumanMessage, ChatCraftSystemMessage } from "./ChatCraftMessage";
 import { getToken, getUser } from "../lib/storage";
 
-function createShareUrl(user: User, chat: ChatCraftChat) {
+export function createShareUrl(chat: ChatCraftChat) {
+  const user = getUser();
+  if (!user) {
+    throw new Error("missing user info necessary for sharing");
+  }
+
   // Create a share URL we can give to other people
   const { origin } = new URL(location.href);
   const shareUrl = new URL(`/c/${user.username}/${chat.id}`, origin);
@@ -37,7 +42,7 @@ export async function createOrUpdateShare(chat: ChatCraftChat) {
     throw new Error(`Unable to share chat: ${message || "unknown error"}`);
   }
 
-  return createShareUrl(user, chat);
+  return createShareUrl(chat);
 }
 
 export async function loadShare(user: string, id: string) {

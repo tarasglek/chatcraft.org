@@ -63,8 +63,9 @@ function AuthenticatedForm({ chat }: AuthenticatedForm) {
     try {
       setIsSummarizing(true);
       const summary = await summarizeChat(settings.apiKey, chat);
-      chat.summary = summary;
       setSummary(summary);
+      chat.summary = summary;
+      await chat.save();
     } catch (err: any) {
       console.error(err);
       setError(err);
