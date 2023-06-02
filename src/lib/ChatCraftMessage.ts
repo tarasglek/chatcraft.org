@@ -1,9 +1,10 @@
 import { nanoid } from "nanoid";
 import { BaseChatMessage, type MessageType } from "langchain/schema";
+import { ChatCraftMessageTable } from "./db";
 
 export type SerializedChatCraftMessage = {
   id: string;
-  date: Date;
+  date: string;
   type: MessageType;
   model?: GptModel;
   user?: User;
@@ -64,7 +65,7 @@ export class ChatCraftMessage extends BaseChatMessage {
   serialize(): SerializedChatCraftMessage {
     return {
       id: this.id,
-      date: this.date,
+      date: this.date.toISOString(),
       type: this.type,
       model: this.model,
       user: this.user,
@@ -72,6 +73,7 @@ export class ChatCraftMessage extends BaseChatMessage {
     };
   }
 
+  // Parse from serialized JSON
   static parse({
     id,
     date,
@@ -81,12 +83,24 @@ export class ChatCraftMessage extends BaseChatMessage {
     text,
   }: SerializedChatCraftMessage): ChatCraftMessage {
     if (type === "ai") {
-      return new ChatCraftAiMessage({ id, date, model: model || "gpt-3.5-turbo", text });
+      return new ChatCraftAiMessage({
+        id,
+        date: new Date(date),
+        model: model || "gpt-3.5-turbo",
+        text,
+      });
     } else if (type === "human") {
-      return new ChatCraftHumanMessage({ id, date, user, text });
+      return new ChatCraftHumanMessage({ id, date: new Date(date), user, text });
     } else {
-      return new ChatCraftSystemMessage({ id, date, text });
+      return new ChatCraftSystemMessage({ id, date: new Date(date), text });
     }
+  }
+
+  // Parse from db representation
+  static fromDB(message: ChatCraftMessageTable) {
+    return new ChatCraftMessage({
+      ...message,
+    });
   }
 }
 

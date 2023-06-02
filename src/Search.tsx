@@ -109,7 +109,7 @@ export default function Search() {
                 {messages.map((message) => (
                   <Message
                     key={message.id}
-                    message={ChatCraftMessage.parse(message)}
+                    message={ChatCraftMessage.fromDB(message)}
                     chatId={message.chatId}
                     isLoading={false}
                   />
