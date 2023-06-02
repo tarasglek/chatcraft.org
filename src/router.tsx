@@ -8,10 +8,21 @@ import db from "./lib/db";
 import { getUser } from "./lib/storage";
 
 export default createBrowserRouter([
-  // Redirect users from / -> /new so they can create a chat
+  // Load the user's most recent chat, or start a new one the first time
   {
     path: "/",
-    element: <Navigate to="/new" />,
+    async loader() {
+      try {
+        const recentChat = await db.chats.orderBy("date").last();
+        if (recentChat) {
+          return redirect(`/c/${recentChat.id}`);
+        }
+      } catch (err) {
+        console.warn("Error getting most recent chat", err);
+      }
+
+      return redirect("/new");
+    },
   },
   // Create a new chat
   {
@@ -23,7 +34,7 @@ export default createBrowserRouter([
     },
   },
 
-  // People shouldn't end-up here, so create new chat if they do
+  // People shouldn't end-up here, so create a new chat if they do
   {
     path: "/c",
     element: <Navigate to="/new" />,
