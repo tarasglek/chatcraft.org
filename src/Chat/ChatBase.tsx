@@ -11,32 +11,25 @@ import {
   GridItem,
   ButtonGroup,
 } from "@chakra-ui/react";
-import { Link as ReactRouterLink, ScrollRestoration, useParams } from "react-router-dom";
+import { Link as ReactRouterLink, ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
-import { useLiveQuery } from "dexie-react-hooks";
 
-import PromptForm from "./components/PromptForm";
-import MessagesView from "./components/MessagesView";
-import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
-import useMessages from "./hooks/use-messages";
-import useChatOpenAI from "./hooks/use-chat-openai";
-import { ChatCraftHumanMessage } from "./lib/ChatCraftMessage";
-import { ChatCraftChat } from "./lib/ChatCraftChat";
-import { useUser } from "./hooks/use-user";
+import PromptForm from "../components/PromptForm";
+import MessagesView from "../components/MessagesView";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
+import useMessages from "../hooks/use-messages";
+import useChatOpenAI from "../hooks/use-chat-openai";
+import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
+import { ChatCraftChat } from "../lib/ChatCraftChat";
+import { useUser } from "../hooks/use-user";
 
-type ChatProps = {
+type ChatBaseProps = {
+  chat: ChatCraftChat;
   readonly: boolean;
 };
 
-function Chat({ readonly }: ChatProps) {
-  const { id: chatId } = useParams();
-  const chat = useLiveQuery<ChatCraftChat | undefined>(() => {
-    if (chatId) {
-      return Promise.resolve(ChatCraftChat.find(chatId));
-    }
-  }, [chatId]);
-
+function ChatBase({ chat, readonly }: ChatBaseProps) {
   // Messages are all the static, previous messages in the chat
   // TODO: this token stuff is no longer right and useMessages() needs to be removed
   const { tokenInfo } = useMessages();
@@ -120,10 +113,6 @@ function Chat({ readonly }: ChatProps) {
   // Handle prompt form submission
   const onPrompt = useCallback(
     async (prompt: string) => {
-      if (!chat) {
-        return;
-      }
-
       setShouldAutoScroll(true);
       setLoading(true);
 
@@ -159,11 +148,6 @@ function Chat({ readonly }: ChatProps) {
   function handleFollowChatClick() {
     setShouldAutoScroll(true);
     resume();
-  }
-
-  // Wait until we have a chat object to render
-  if (!chat) {
-    return null;
   }
 
   return (
@@ -236,7 +220,7 @@ function Chat({ readonly }: ChatProps) {
                     New
                   </Button>
                 </ReactRouterLink>
-                <ReactRouterLink to={`/c/${chat.id}/fork`}>
+                <ReactRouterLink to="./fork">
                   <Button variant="link" size="sm">
                     Fork
                   </Button>
@@ -264,4 +248,4 @@ function Chat({ readonly }: ChatProps) {
   );
 }
 
-export default Chat;
+export default ChatBase;

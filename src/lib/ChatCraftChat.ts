@@ -7,14 +7,12 @@ import {
   type SerializedChatCraftMessage,
 } from "./ChatCraftMessage";
 import { createShareUrl, createOrUpdateShare } from "./share";
-import db from "./db";
-
-import type { ChatCraftMessageTable } from "./db";
+import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
 
 export type SerializedChatCraftChat = {
   id: string;
-  date: Date;
+  date: string;
   shareUrl?: string;
   summary: string;
   messages: SerializedChatCraftMessage[];
@@ -82,16 +80,10 @@ export class ChatCraftChat {
 
     // Rehydrate the messages from their IDs
     const messages = await db.messages.bulkGet(chat.messageIds);
-    if (!messages?.length) {
-      throw new Error("unable to get messages associated with chat");
-    }
 
     // Return a new ChatCraftChat object for this chat/messages, skipping any
     // that were not found (e.g., user deleted)
-    return ChatCraftChat.parse({
-      ...chat,
-      messages: messages.filter((message): message is ChatCraftMessageTable => !!message),
-    });
+    return ChatCraftChat.fromDB(chat, messages);
   }
 
   // Save to db
@@ -103,9 +95,7 @@ export class ChatCraftChat {
 
     await db.transaction("rw", db.chats, db.messages, async () => {
       // Upsert Messages in Chat first
-      await db.messages.bulkPut(
-        this.messages.map((message) => ({ ...message.serialize(), chatId }))
-      );
+      await db.messages.bulkPut(this.messages.map((message) => ({ ...message, chatId })));
 
       // Upsert Chat itself
       await db.chats.put(
@@ -169,20 +159,33 @@ export class ChatCraftChat {
   serialize(): SerializedChatCraftChat {
     return {
       id: this.id,
-      date: this.date,
+      date: this.date.toISOString(),
       shareUrl: this.shareUrl,
       summary: this.summary,
       messages: this.messages.map((message) => message.serialize()),
     };
   }
 
+  // Parse from serialized JSON
   static parse({ id, date, shareUrl, summary, messages }: SerializedChatCraftChat): ChatCraftChat {
     return new ChatCraftChat({
       id,
-      date,
+      date: new Date(date),
       shareUrl,
       summary,
       messages: messages.map((message) => ChatCraftMessage.parse(message)),
+    });
+  }
+
+  // Parse from db representation, where chat and messages are separate.
+  // Assumes all messages have already been obtained for messageIds, but
+  // deals with any that are missing (undefined)
+  static fromDB(chat: ChatCraftChatTable, messages: (ChatCraftMessageTable | undefined)[]) {
+    return new ChatCraftChat({
+      ...chat,
+      messages: messages
+        .filter((message): message is ChatCraftMessageTable => !!message)
+        .map((message) => ChatCraftMessage.fromDB(message)),
     });
   }
 }

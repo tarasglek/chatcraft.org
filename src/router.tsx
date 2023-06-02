@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, redirect } from "react-router-dom";
 
-import Chat from "./Chat";
+import { LocalChat, RemoteChat } from "./Chat";
 import { loadShare } from "./lib/share";
 import { ChatCraftChat } from "./lib/ChatCraftChat";
 import Search, { loader as searchLoader } from "./Search";
@@ -28,7 +28,7 @@ export default createBrowserRouter([
     path: "/c",
     element: <Navigate to="/new" />,
   },
-  // Load a chat, making sure it exists first
+  // Load a chat from the local db, making sure it exists first
   {
     path: "/c/:id",
     async loader({ params }) {
@@ -39,11 +39,11 @@ export default createBrowserRouter([
         const chat = new ChatCraftChat({ id });
         await chat.save();
       }
-      return null;
+      return id;
     },
-    element: <Chat readonly={false} />,
+    element: <LocalChat readonly={false} />,
   },
-  // Fork an existing chat and redirect to it. If a `messageId` is included,
+  // Fork an existing local chat and redirect to it. If a `messageId` is included,
   // use that as our starting message vs. whole chat (partial fork)
   {
     path: "/c/:chatId/fork/:messageId?",
@@ -95,7 +95,50 @@ export default createBrowserRouter([
         redirect(`/`);
       }
     },
-    element: <Chat readonly={true} />,
+    element: <RemoteChat readonly={true} />,
+  },
+
+  // Fork a remote chat into the local db
+  {
+    path: "/c/:user/:chatId/fork/:messageId?",
+    async loader({ params }) {
+      const { user, chatId, messageId } = params;
+
+      if (!user) {
+        // Shouldn't happen, don't crash
+        console.error("No user info for remote chat to /fork");
+        return redirect("/new");
+      }
+
+      if (!chatId) {
+        // Shouldn't happen, don't crash
+        console.error("No chatId passed to /fork");
+        return redirect("/new");
+      }
+
+      // Load the chat remotely
+      let chat;
+      try {
+        chat = await loadShare(user, chatId);
+      } catch (err) {
+        console.warn(`Error loading shared chat ${user}/${chatId}`, err);
+        redirect(`/`);
+      }
+
+      if (!chat) {
+        console.error("Couldn't load remote chat with given chatId");
+        return redirect("/new");
+      }
+
+      // Pass the starting message id, if we have one
+      const forked = await chat.fork(messageId);
+      if (!forked) {
+        console.error("Couldn't fork");
+        return redirect("/new");
+      }
+
+      return redirect(`/c/${forked.id}`);
+    },
   },
 
   // Search. Process `GET /s?q=...` and return results
