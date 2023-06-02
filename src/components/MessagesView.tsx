@@ -8,6 +8,7 @@ import {
   ChatCraftMessage,
   ChatCraftAiMessage,
   ApiKeyInstructionsText,
+  AiGreetingText,
 } from "../lib/ChatCraftMessage";
 import { useSettings } from "../hooks/use-settings";
 
@@ -70,7 +71,14 @@ function MessagesView({
       }
     }
 
-    // Otherwise, show all messages in order
+    // Otherwise, show all messages in order, unless the only message in the chat
+    // is the AI Greeting AND the user has not entered an API Key.  In this case
+    // we'll show an instruction message instead (see below).
+    if (messages.length === 1 && messages[0].text === AiGreetingText && !settings.apiKey) {
+      return;
+    }
+
+    // OK to show them all
     return messages.map((message) => (
       <Message
         key={message.id}
@@ -81,7 +89,15 @@ function MessagesView({
         onPrompt={onPrompt}
       />
     ));
-  }, [messages, chatId, singleMessageMode, onPrompt, isLoading, memoizedOnRemoveMessage]);
+  }, [
+    messages,
+    settings.apiKey,
+    chatId,
+    singleMessageMode,
+    onPrompt,
+    isLoading,
+    memoizedOnRemoveMessage,
+  ]);
 
   const instructions = useMemo(() => {
     // If there's no API key in storage, show instructions so we get one
