@@ -2,14 +2,23 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 import { ChatCraftHumanMessage, ChatCraftSystemMessage } from "./ChatCraftMessage";
+import { getToken, getUser } from "../lib/storage";
 
-type ShareResponse = {
-  message: string;
-  url: string;
-  id: string;
-};
+function createShareUrl(user: User, chat: ChatCraftChat) {
+  // Create a share URL we can give to other people
+  const { origin } = new URL(location.href);
+  const shareUrl = new URL(`/c/${user.username}/${chat.id}`, origin);
 
-export async function createOrUpdateShare(user: User, token: string, chat: ChatCraftChat) {
+  return shareUrl.href;
+}
+
+export async function createOrUpdateShare(chat: ChatCraftChat) {
+  const token = getToken();
+  const user = getUser();
+  if (!(user && token)) {
+    throw new Error("missing user credentials necessary for sharing");
+  }
+
   const res = await fetch(`/api/share/${user.username}/${chat.id}`, {
     method: "PUT",
     headers: {
@@ -19,13 +28,16 @@ export async function createOrUpdateShare(user: User, token: string, chat: ChatC
     body: JSON.stringify(chat.serialize()),
   });
 
-  const { message, url }: ShareResponse = await res.json();
-
   if (!res.ok) {
+    const {
+      message,
+    }: {
+      message?: string;
+    } = await res.json();
     throw new Error(`Unable to share chat: ${message || "unknown error"}`);
   }
 
-  return url;
+  return createShareUrl(user, chat);
 }
 
 export async function loadShare(user: string, id: string) {

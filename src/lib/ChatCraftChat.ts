@@ -10,13 +10,12 @@ import { createOrUpdateShare } from "./share";
 import db from "./db";
 
 import type { ChatCraftMessageTable } from "./db";
-import { getToken, getUser } from "./storage";
 import summarize from "./summarize";
 
 export type SerializedChatCraftChat = {
   id: string;
   date: Date;
-  isPublic: boolean;
+  shareUrl?: string;
   summary: string;
   messages: SerializedChatCraftMessage[];
 };
@@ -29,21 +28,20 @@ function createSummary(messages: ChatCraftMessage[]) {
 export class ChatCraftChat {
   id: string;
   date: Date;
-  isPublic: boolean;
+  shareUrl?: string;
   summary: string;
   messages: ChatCraftMessage[];
 
   constructor({
     id,
     date,
-    isPublic,
+    shareUrl,
     summary,
     messages,
   }: {
     id?: string;
-    version?: string;
     date?: Date;
-    isPublic?: boolean;
+    shareUrl?: string;
     summary?: string;
     messages?: ChatCraftMessage[];
   } = {}) {
@@ -55,8 +53,8 @@ export class ChatCraftChat {
       }),
     ];
     this.date = date ?? new Date();
-    // All chats are private by default
-    this.isPublic = isPublic ?? false;
+    // All chats are private by default, unless we add a shareUrl
+    this.shareUrl = shareUrl;
     this.summary = summary ?? createSummary(this.messages);
   }
 
@@ -66,12 +64,12 @@ export class ChatCraftChat {
 
   async addMessage(message: ChatCraftMessage) {
     this.messages.push(message);
-    return this.save();
+    return this.update();
   }
 
   async removeMessage(id: string) {
     this.messages = this.messages.filter((message) => message.id !== id);
-    return this.save();
+    return this.update();
   }
 
   // Find in db - return
@@ -99,6 +97,8 @@ export class ChatCraftChat {
   // Save to db
   async save() {
     const chatId = this.id;
+    // Update the date to indicate we've update the chat
+    this.date = new Date();
     const messageIds = this.messages.map(({ id }) => id);
 
     await db.transaction("rw", db.chats, db.messages, async () => {
@@ -112,13 +112,37 @@ export class ChatCraftChat {
         {
           id: this.id,
           date: this.date,
-          isPublic: this.isPublic,
+          shareUrl: this.shareUrl,
           summary: this.summary,
           messageIds,
         },
         chatId
       );
     });
+  }
+
+  // Make this chat public, and share online
+  async share() {
+    const shareUrl = await createOrUpdateShare(this);
+
+    // Update db to indicate this is public, if necessary
+    if (!this.shareUrl) {
+      this.shareUrl = shareUrl;
+      await this.save();
+    }
+
+    return shareUrl;
+  }
+
+  // Combine saving to db and updating online share if necessary
+  async update() {
+    // If this chat is already shared, do both.
+    if (this.shareUrl) {
+      return Promise.all([this.save(), this.share()]);
+    } else {
+      // Otherwise only update db
+      return this.save();
+    }
   }
 
   // Create a new chat based on the messages in this one
@@ -139,23 +163,6 @@ export class ChatCraftChat {
     return chat;
   }
 
-  // Make this chat public, and share online
-  async share() {
-    // Update db to indicate this is public, if necessary
-    if (!this.isPublic) {
-      this.isPublic = true;
-      await this.save();
-    }
-
-    // Send over network
-    const token = getToken();
-    const user = getUser();
-    if (!(user && token)) {
-      throw new Error("missing user, token necessary for sharing");
-    }
-    return createOrUpdateShare(user, token, this);
-  }
-
   toJSON() {
     return this.serialize();
   }
@@ -165,17 +172,17 @@ export class ChatCraftChat {
     return {
       id: this.id,
       date: this.date,
-      isPublic: this.isPublic,
+      shareUrl: this.shareUrl,
       summary: this.summary,
       messages: this.messages.map((message) => message.serialize()),
     };
   }
 
-  static parse({ id, date, isPublic, summary, messages }: SerializedChatCraftChat): ChatCraftChat {
+  static parse({ id, date, shareUrl, summary, messages }: SerializedChatCraftChat): ChatCraftChat {
     return new ChatCraftChat({
       id,
       date,
-      isPublic,
+      shareUrl,
       summary,
       messages: messages.map((message) => ChatCraftMessage.parse(message)),
     });
