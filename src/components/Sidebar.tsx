@@ -3,7 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { MdOutlineChatBubbleOutline } from "react-icons/md";
 import { TbShare2 } from "react-icons/tb";
 
-import db from "../lib/db";
+import db, { type ChatCraftChatTable } from "../lib/db";
 import { Link } from "react-router-dom";
 
 function SidebarItem({ text, url }: { text: string; url: string }) {
@@ -24,10 +24,15 @@ function SidebarItem({ text, url }: { text: string; url: string }) {
 }
 
 function Sidebar() {
-  const sharedChats = useLiveQuery(async () => {
-    const chats = await db.chats.orderBy("date").toArray();
-    return chats.filter((chat) => chat.isPublic);
-  });
+  const sharedChats = useLiveQuery<ChatCraftChatTable[], ChatCraftChatTable[]>(
+    async () =>
+      db.chats
+        .filter((chat) => !!chat.shareUrl)
+        .sortBy("date")
+        .then((results) => results.reverse()),
+    [],
+    []
+  );
 
   return (
     <Flex direction="column" h="100%" p={4} gap={2}>
@@ -40,9 +45,11 @@ function Sidebar() {
       </Box>
 
       <>
-        {sharedChats?.length ? (
-          sharedChats.map(({ id, summary }) => (
-            <SidebarItem key={id} text={summary} url={`/c/${id}`} />
+        {sharedChats.length ? (
+          sharedChats.map(({ id, summary, shareUrl }) => (
+            // We've already filtered for all objects with shareUrl, so this is fine
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            <SidebarItem key={id} text={summary} url={shareUrl!} />
           ))
         ) : (
           <VStack align="left">

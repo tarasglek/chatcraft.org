@@ -4,7 +4,7 @@ import { type MessageType } from "langchain/schema";
 export type ChatCraftChatTable = {
   id: string;
   date: Date;
-  isPublic: boolean;
+  shareUrl?: string;
   summary: string;
   messageIds: string[];
 };
@@ -25,9 +25,15 @@ class ChatCraftDatabase extends Dexie {
 
   constructor() {
     super("ChatCraftDatabase");
+    // Initial Version
     this.version(1).stores({
       chats: "id, date, summary, messageIds",
       messages: "id, date, chatId, type, model, user, text",
+    });
+    // Version 2 Migration - remove isPublic from chats and add
+    // shareUrl instead. The messages table is unchanged
+    this.version(2).stores({
+      chats: "id, date, shareUrl, summary, messageIds",
     });
 
     this.chats = this.table("chats");
