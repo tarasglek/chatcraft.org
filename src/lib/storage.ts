@@ -25,12 +25,17 @@ export function setSettings(settings: Settings) {
 /**
  * GitHub OAuth App Token
  */
-export function getToken() {
-  return localStorage.getItem("gh_token");
+export function getToken(): string | undefined {
+  const gh_token = localStorage.getItem("gh_token");
+  if (!gh_token) {
+    return;
+  }
+
+  return JSON.parse(gh_token) as string;
 }
 
 export function setToken(token: string) {
-  localStorage.setItem("gh_token", token);
+  localStorage.setItem("gh_token", JSON.stringify(token));
 }
 
 /**
