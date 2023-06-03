@@ -1,14 +1,17 @@
 import { requestAccessToken, requestUserInfo } from "../github";
 import { buildUrl } from "../utils";
+import { createToken, serializeToken } from "../token";
 
 interface Env {
   CLIENT_ID: string;
   CLIENT_SECRET: string;
+  JWT_SECRET: string;
 }
 
-// Otherwise, exchange for an access_token
+// Authenticate the user with GitHub, then create a JWT for use in ChatCraft.
+// We store the token in a secure, HTTP-only cookie.
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
-  const { CLIENT_ID, CLIENT_SECRET } = env;
+  const { CLIENT_ID, CLIENT_SECRET, JWT_SECRET } = env;
   const reqUrl = new URL(request.url);
   const code = reqUrl.searchParams.get("code");
 
@@ -19,12 +22,19 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   // Otherwise, exchange the code for an access_token, then get user info
+  // and use that to create a JWT for ChatCraft.
   try {
-    const token = await requestAccessToken(code, CLIENT_ID, CLIENT_SECRET);
-    const { login, name, avatar } = await requestUserInfo(token);
-    const url = buildUrl("https://chatcraft.org/", { token, login, name, avatar });
+    const ghAccessToken = await requestAccessToken(code, CLIENT_ID, CLIENT_SECRET);
+    const user = await requestUserInfo(ghAccessToken);
+    const chatCraftToken = createToken(user, JWT_SECRET);
 
-    return Response.redirect(url, 302);
+    return new Response(null, {
+      status: 302,
+      headers: new Headers({
+        Location: "https://chatcraft.org/",
+        "Set-Cookie": serializeToken(chatCraftToken),
+      }),
+    });
   } catch (err) {
     console.error(err);
     return Response.redirect(`https://chatcraft.org/?github_login_error`, 302);

@@ -1,37 +1,49 @@
-import { validateToken } from "../../github";
-import { getAccessToken, successResponse, errorResponse } from "../../utils";
+import { errorResponse } from "../../utils";
+import { refreshToken, serializeToken, getToken, verifyToken } from "../../token";
 
 interface Env {
   CHATCRAFT_ORG_BUCKET: R2Bucket;
   CLIENT_ID: string;
   CLIENT_SECRET: string;
+  JWT_SECRET: string;
 }
 
-// POST https://chatcraft.org/api/share/{user}
+// POST https://chatcraft.org/api/share/:user/:id
+// Must include JWT in cookie, and user must match token owner
 export const onRequestPut: PagesFunction<Env> = async ({ request, env, params }) => {
-  const { CLIENT_ID, CLIENT_SECRET, CHATCRAFT_ORG_BUCKET } = env;
-  const token = getAccessToken(request);
-  // `user/id` is available as user_id
-  const { user_id } = params;
+  const { CHATCRAFT_ORG_BUCKET, JWT_SECRET } = env;
+
+  // There has to be a token in the cookies
+  const token = getToken(request);
+  if (!token) {
+    return errorResponse(403, "Missing token");
+  }
 
   // We expect JSON
-  if (!request.headers.get("content-type").includes("application/json")) {
+  const contentType = request.headers.get("Content-Type");
+  if (!contentType?.includes("application/json")) {
     return errorResponse(400, "Expected JSON");
   }
 
-  // We should receive [username, id]
+  // We should receive [username, id] (i.e., `user/id` on path)
+  const { user_id } = params;
   if (!(Array.isArray(user_id) && user_id.length === 2)) {
     return errorResponse(400, "Expected share URL of the form /api/share/{user}/{id}");
   }
 
   // Make sure we have a token, and that it matches the expected user
   try {
-    const ghUsername = await validateToken(token, CLIENT_ID, CLIENT_SECRET);
-    const [user] = user_id;
+    const payload = verifyToken(token, JWT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
-    if (user !== ghUsername) {
-      return errorResponse(403, "GitHub token does not match username");
+    if (!(payload && payload.sub !== params.user)) {
+      return errorResponse(403, "Token does not match user");
+    }
+
+    // Make sure this is the same username as the user who owns this token
+    const [user] = user_id;
+    if (user !== payload.sub) {
+      return errorResponse(403, "Token does not match username");
     }
   } catch (err) {
     return errorResponse(400, err.message);
@@ -42,16 +54,22 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
     const key = user_id.join("/");
     await CHATCRAFT_ORG_BUCKET.put(key, request.body);
 
-    const url = `https://chatcraft.org/${key}`;
-    return successResponse(
-      {
+    // Update token/cookie to further delay expiry
+    const chatCraftToken = refreshToken(token, JWT_SECRET);
+    if (!chatCraftToken) {
+      throw new Error("Unable to refresh token");
+    }
+
+    return new Response(
+      JSON.stringify({
         message: "Chat shared successfully",
-        url,
-      },
-      200,
-      new Headers({
-        Location: url,
-      })
+      }),
+      {
+        status: 200,
+        headers: new Headers({
+          "Set-Cookie": serializeToken(chatCraftToken),
+        }),
+      }
     );
   } catch (err) {
     console.error(err);
@@ -59,7 +77,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
   }
 };
 
-// GET https://chatcraft.org/api/share/{user}/{id}
+// GET https://chatcraft.org/api/share/:user/:id
 // Anyone can request a shared chat (don't need a token)
 export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
   const { CHATCRAFT_ORG_BUCKET } = env;
@@ -91,33 +109,62 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
   }
 };
 
-// DELETE https://chatcraft.org/api/share/{user}/{id}
-// Must include a bearer token and GitHub user must match token owner
+// DELETE https://chatcraft.org/api/share/:user/:id
+// Must include JWT in cookie, and user must match token owner
 export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params }) => {
-  const { CLIENT_ID, CLIENT_SECRET, CHATCRAFT_ORG_BUCKET } = env;
-  const token = getAccessToken(request);
-  const { user_id } = params;
+  const { CHATCRAFT_ORG_BUCKET, JWT_SECRET } = env;
 
-  // We should receive [username, id]
+  // There has to be a token in the cookies
+  const token = getToken(request);
+  if (!token) {
+    return errorResponse(403, "Missing token");
+  }
+
+  // We should receive [username, id] (i.e., `user/id` on path)
+  const { user_id } = params;
   if (!(Array.isArray(user_id) && user_id.length === 2)) {
     return errorResponse(400, "Expected share URL of the form /api/share/{user}/{id}");
   }
 
+  // Make sure we have a token, and that it matches the expected user
   try {
-    const [user] = user_id;
-    const ghUsername = await validateToken(token, CLIENT_ID, CLIENT_SECRET);
+    const payload = verifyToken(token, JWT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
-    if (user !== ghUsername) {
-      return errorResponse(403, "GitHub token does not match username");
+    if (!(payload && payload.sub !== params.user)) {
+      return errorResponse(403, "Token does not match user");
     }
 
+    // Make sure this is the same username as the user who owns this token
+    const [user] = user_id;
+    if (user !== payload.sub) {
+      return errorResponse(403, "Token does not match username");
+    }
+  } catch (err) {
+    return errorResponse(400, err.message);
+  }
+
+  try {
     const key = user_id.join("/");
     await CHATCRAFT_ORG_BUCKET.delete(key);
 
-    return successResponse({
-      message: "Chat deleted successfully",
-    });
+    // Update token/cookie to further delay expiry
+    const chatCraftToken = refreshToken(token, JWT_SECRET);
+    if (!chatCraftToken) {
+      throw new Error("Unable to refresh token");
+    }
+
+    return new Response(
+      JSON.stringify({
+        message: "Chat deleted successfully",
+      }),
+      {
+        status: 200,
+        headers: new Headers({
+          "Set-Cookie": serializeToken(chatCraftToken),
+        }),
+      }
+    );
   } catch (err) {
     console.error(err);
     return errorResponse(500, `Unable to share chat: ${err.message}`);

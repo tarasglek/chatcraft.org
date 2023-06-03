@@ -2,7 +2,7 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 import { ChatCraftHumanMessage, ChatCraftSystemMessage } from "./ChatCraftMessage";
-import { getToken, getUser } from "../lib/storage";
+import { getUser } from "../lib/storage";
 
 export function createShareUrl(chat: ChatCraftChat) {
   const user = getUser();
@@ -18,17 +18,16 @@ export function createShareUrl(chat: ChatCraftChat) {
 }
 
 export async function createOrUpdateShare(chat: ChatCraftChat) {
-  const token = getToken();
   const user = getUser();
-  if (!(user && token)) {
+  if (!user) {
     throw new Error("missing user credentials necessary for sharing");
   }
 
   const res = await fetch(`/api/share/${user.username}/${chat.id}`, {
     method: "PUT",
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(chat.serialize()),
   });
@@ -46,6 +45,7 @@ export async function createOrUpdateShare(chat: ChatCraftChat) {
 }
 
 export async function loadShare(user: string, id: string) {
+  // We don't need to send credentials for this request
   const res = await fetch(`/api/share/${user}/${id}`);
   if (!res.ok) {
     throw new Error("Unable to load shared chat" + (await res.json()).message);

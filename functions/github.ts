@@ -1,4 +1,4 @@
-import { buildUrl, base64 } from "./utils";
+import { buildUrl } from "./utils";
 
 export async function requestAccessToken(code: string, CLIENT_ID: string, CLIENT_SECRET: string) {
   const url = buildUrl("https://github.com/login/oauth/access_token", {
@@ -19,7 +19,10 @@ export async function requestAccessToken(code: string, CLIENT_ID: string, CLIENT
     throw new Error(`Failed to get GitHub token: ${res.status} ${await res.text()}`);
   }
 
-  const result = (await res.json()) as AccessTokenResponse;
+  const result = (await res.json()) as {
+    error?: string;
+    access_token: string;
+  };
   if (result.error) {
     throw new Error(`Error in GitHub token response: ${result.error}`);
   }
@@ -28,7 +31,7 @@ export async function requestAccessToken(code: string, CLIENT_ID: string, CLIENT
 }
 
 // https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-the-authenticated-user
-export async function requestUserInfo(token: string) {
+export async function requestUserInfo(token: string): Promise<User> {
   const res = await fetch("https://api.github.com/user", {
     headers: {
       Accept: "application/json",
@@ -42,38 +45,11 @@ export async function requestUserInfo(token: string) {
     throw new Error(`Failed to get GitHub User info: ${res.status} ${await res.text()}`);
   }
 
-  const { login, name, avatar_url } = (await res.json()) as UserInfoResponse;
-  return { login, name, avatar: avatar_url };
-}
+  const { login, name, avatar_url } = (await res.json()) as {
+    login: string;
+    name: string;
+    avatar_url: string;
+  };
 
-// https://docs.github.com/en/rest/apps/oauth-applications?apiVersion=2022-11-28#check-a-token
-export async function validateToken(
-  token: string | null,
-  client_id: string,
-  client_secret: string
-) {
-  if (typeof token !== "string") {
-    throw new Error("Missing GitHub Access Token");
-  }
-
-  const credentials = base64(`${client_id}:${client_secret}`);
-  const res = await fetch(`https://api.github.com/applications/${client_id}/token`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      Authorization: `Basic ${credentials}`,
-      "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "chatcraft.org",
-    },
-    body: JSON.stringify({
-      access_token: token,
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`GitHub token validation failed: ${res.status} ${await res.text()}`);
-  }
-
-  const { user } = (await res.json()) as ValidateTokenResponse;
-  return user.login;
+  return { username: login, name, avatarUrl: avatar_url };
 }

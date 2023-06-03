@@ -1,95 +1,68 @@
-import { createContext, useEffect, useCallback, useContext, type FC, type ReactNode } from "react";
-import { useLocalStorage } from "react-use";
+import {
+  createContext,
+  useEffect,
+  useCallback,
+  useContext,
+  type FC,
+  type ReactNode,
+  useState,
+} from "react";
+import { useCookie } from "react-use";
+import jwtDecode from "jwt-decode";
 
 type UserContextType = {
   user?: User;
-  token?: string;
   login: () => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType>({
   user: undefined,
-  token: undefined,
   login: () => {
     /* do nothing */
   },
   logout: () => {
-    /* do nothing */
+    return new Promise(() => {
+      /* do nothing */
+    });
   },
 });
 
 export const useUser = () => useContext(UserContext);
 
-// We may or may not have user info on the search params. Consume if we do.
-function extractUser(queryParams: URLSearchParams) {
-  const username = queryParams.get("login");
-  const name = queryParams.get("name");
-  const avatarUrl = queryParams.get("avatar");
-
-  if (username && name && avatarUrl) {
-    queryParams.delete("login");
-    queryParams.delete("name");
-    queryParams.delete("avatar");
-
-    return { username, name, avatarUrl };
-  }
-}
-
-// We may or may not have a token on the search params. Consume if we do.
-function extractToken(queryParams: URLSearchParams) {
-  const token = queryParams.get("token");
-
-  if (token) {
-    queryParams.delete("token");
-    return token;
-  }
-}
-
 export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [token, setToken] = useLocalStorage<string | undefined>("gh_token");
-  const [user, setUser] = useLocalStorage<User | undefined>("gh_user");
+  const [token] = useCookie("token");
+  const [user, setUser] = useState<User | undefined>();
 
   useEffect(() => {
-    const { pathname, search, hash } = location;
-
-    if (!search) {
+    if (!token) {
       return;
     }
 
-    const queryParams = new URLSearchParams(search);
-    let shouldUpdateUrl = false;
-
-    const user = extractUser(queryParams);
-    if (user) {
-      setUser(user);
-      shouldUpdateUrl = true;
+    try {
+      const payload = jwtDecode(token) as JwtTokenPayload;
+      setUser(payload.user);
+    } catch (err) {
+      console.error("Unable to decode token", { err, token });
     }
+  }, [token, setUser]);
 
-    const token = extractToken(queryParams);
-    if (token) {
-      setToken(token);
-      shouldUpdateUrl = true;
-    }
-
-    if (shouldUpdateUrl) {
-      let url = `${pathname}?${queryParams}`;
-      if (hash) {
-        url += `${hash}`;
+  const logout = useCallback(async () => {
+    try {
+      const res = await fetch("/api/logout", { credentials: "same-origin" });
+      if (!res.ok) {
+        throw new Error("Unable to logout");
       }
-
-      history.replaceState({}, "", url);
+    } catch (err) {
+      console.warn("Logout error", err);
+    } finally {
+      // No matter what, remove the user in storage
+      setUser(undefined);
     }
-  }, [setUser, setToken]);
-
-  const logout = useCallback(() => {
-    setUser(undefined);
-    setToken(undefined);
-  }, [setUser, setToken]);
+  }, [setUser]);
 
   const value = {
     user,
-    token,
     login() {
       window.location.href = "/api/login";
     },

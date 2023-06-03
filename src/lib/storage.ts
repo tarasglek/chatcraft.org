@@ -23,22 +23,6 @@ export function setSettings(settings: Settings) {
 }
 
 /**
- * GitHub OAuth App Token
- */
-export function getToken(): string | undefined {
-  const gh_token = localStorage.getItem("gh_token");
-  if (!gh_token) {
-    return;
-  }
-
-  return JSON.parse(gh_token) as string;
-}
-
-export function setToken(token: string) {
-  localStorage.setItem("gh_token", JSON.stringify(token));
-}
-
-/**
  * GitHub User
  */
 export function getUser(): User | undefined {
