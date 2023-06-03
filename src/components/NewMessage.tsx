@@ -23,7 +23,7 @@ function NewMessage({ message, chatId, isPaused, onTogglePause, onCancel }: NewM
   return (
     <Flex flexDir="column" w="100%">
       <Box flex={1} onMouseDown={handleMouseDown}>
-        <Message message={message} chatId={chatId} isLoading />
+        <Message key={chatId} message={message} chatId={chatId} isLoading />
       </Box>
       <Box textAlign="center">
         <ButtonGroup>

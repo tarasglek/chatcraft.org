@@ -30,3 +30,9 @@ type User = {
   username: string;
   avatarUrl: string;
 };
+
+type JwtTokenPayload = {
+  aud: string;
+  sub: string;
+  user: User;
+};

@@ -151,7 +151,7 @@ type ShareModalProps = {
 };
 
 function ShareModal({ messages, isOpen, onClose, finalFocusRef }: ShareModalProps) {
-  const { user, token, login } = useUser();
+  const { user, login } = useUser();
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
@@ -160,7 +160,7 @@ function ShareModal({ messages, isOpen, onClose, finalFocusRef }: ShareModalProp
         <ModalHeader>Sharing</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {user && token ? (
+          {user ? (
             <AuthenticatedForm chat={new ChatCraftChat({ messages })} />
           ) : (
             <UnauthenticatedForm onLoginClick={login} />
