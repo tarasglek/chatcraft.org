@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useCookie } from "react-use";
-import jwtDecode from "jwt-decode";
+import { decodeJwt } from "jose";
 
 type UserContextType = {
   user?: User;
@@ -40,7 +40,7 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
 
     try {
-      const payload = jwtDecode(token) as JwtTokenPayload;
+      const payload = decodeJwt(token) as JwtTokenPayload;
       setUser(payload.user);
     } catch (err) {
       console.error("Unable to decode token", { err, token });

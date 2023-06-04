@@ -33,7 +33,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
 
   // Make sure we have a token, and that it matches the expected user
   try {
-    const payload = verifyToken(token, JWT_SECRET);
+    const payload = await verifyToken(token, JWT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
     if (!(payload && payload.sub !== params.user)) {
@@ -55,7 +55,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
     await CHATCRAFT_ORG_BUCKET.put(key, request.body);
 
     // Update token/cookie to further delay expiry
-    const chatCraftToken = refreshToken(token, JWT_SECRET);
+    const chatCraftToken = await refreshToken(token, JWT_SECRET);
     if (!chatCraftToken) {
       throw new Error("Unable to refresh token");
     }
@@ -128,7 +128,7 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
 
   // Make sure we have a token, and that it matches the expected user
   try {
-    const payload = verifyToken(token, JWT_SECRET);
+    const payload = await verifyToken(token, JWT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
     if (!(payload && payload.sub !== params.user)) {
@@ -149,7 +149,7 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
     await CHATCRAFT_ORG_BUCKET.delete(key);
 
     // Update token/cookie to further delay expiry
-    const chatCraftToken = refreshToken(token, JWT_SECRET);
+    const chatCraftToken = await refreshToken(token, JWT_SECRET);
     if (!chatCraftToken) {
       throw new Error("Unable to refresh token");
     }

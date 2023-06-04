@@ -20,7 +20,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params })
   // Make sure we have a token, and that it matches the expected user
   const { user } = params;
   try {
-    const payload = verifyToken(token, JWT_SECRET);
+    const payload = await verifyToken(token, JWT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
     if (payload?.sub !== params.user) {
@@ -40,7 +40,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params })
     }));
 
     // Update token/cookie to further delay expiry
-    const chatCraftToken = refreshToken(token, JWT_SECRET);
+    const chatCraftToken = await refreshToken(token, JWT_SECRET);
     if (!chatCraftToken) {
       throw new Error("Unable to refresh token");
     }
