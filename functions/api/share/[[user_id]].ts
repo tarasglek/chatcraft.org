@@ -1,5 +1,5 @@
 import { errorResponse } from "../../utils";
-import { refreshToken, serializeToken, getToken, verifyToken } from "../../token";
+import { serializeToken, getTokens, verifyToken } from "../../token";
 
 interface Env {
   CHATCRAFT_ORG_BUCKET: R2Bucket;
@@ -13,10 +13,10 @@ interface Env {
 export const onRequestPut: PagesFunction<Env> = async ({ request, env, params }) => {
   const { CHATCRAFT_ORG_BUCKET, JWT_SECRET } = env;
 
-  // There has to be a token in the cookies
-  const token = getToken(request);
-  if (!token) {
-    return errorResponse(403, "Missing token");
+  // There should be tokens in the cookies
+  const { accessToken, idToken } = getTokens(request);
+  if (!accessToken) {
+    return errorResponse(403, "Missing Access Token");
   }
 
   // We expect JSON
@@ -33,17 +33,12 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
 
   // Make sure we have a token, and that it matches the expected user
   try {
-    const payload = await verifyToken(token, JWT_SECRET);
-
-    // Make sure this is the same username as the user who owns this token
-    if (!(payload && payload.sub !== params.user)) {
-      return errorResponse(403, "Token does not match user");
-    }
+    const payload = await verifyToken(accessToken, JWT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
     const [user] = user_id;
-    if (user !== payload.sub) {
-      return errorResponse(403, "Token does not match username");
+    if (user !== payload?.sub) {
+      return errorResponse(403, "Access Token does not match username");
     }
   } catch (err) {
     return errorResponse(400, err.message);
@@ -54,21 +49,17 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
     const key = user_id.join("/");
     await CHATCRAFT_ORG_BUCKET.put(key, request.body);
 
-    // Update token/cookie to further delay expiry
-    const chatCraftToken = await refreshToken(token, JWT_SECRET);
-    if (!chatCraftToken) {
-      throw new Error("Unable to refresh token");
-    }
-
     return new Response(
       JSON.stringify({
         message: "Chat shared successfully",
       }),
       {
         status: 200,
-        headers: new Headers({
-          "Set-Cookie": serializeToken(chatCraftToken),
-        }),
+        // Update cookies to further delay expiry
+        headers: new Headers([
+          ["Set-Cookie", serializeToken("access_token", accessToken)],
+          ["Set-Cookie", serializeToken("id_token", idToken)],
+        ]),
       }
     );
   } catch (err) {
@@ -114,10 +105,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
 export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params }) => {
   const { CHATCRAFT_ORG_BUCKET, JWT_SECRET } = env;
 
-  // There has to be a token in the cookies
-  const token = getToken(request);
-  if (!token) {
-    return errorResponse(403, "Missing token");
+  // There should be tokens in the cookies
+  const { accessToken, idToken } = getTokens(request);
+  if (!accessToken) {
+    return errorResponse(403, "Missing Access Token");
   }
 
   // We should receive [username, id] (i.e., `user/id` on path)
@@ -128,17 +119,12 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
 
   // Make sure we have a token, and that it matches the expected user
   try {
-    const payload = await verifyToken(token, JWT_SECRET);
-
-    // Make sure this is the same username as the user who owns this token
-    if (!(payload && payload.sub !== params.user)) {
-      return errorResponse(403, "Token does not match user");
-    }
+    const payload = await verifyToken(accessToken, JWT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
     const [user] = user_id;
-    if (user !== payload.sub) {
-      return errorResponse(403, "Token does not match username");
+    if (user !== payload?.sub) {
+      return errorResponse(403, "Access Token does not match username");
     }
   } catch (err) {
     return errorResponse(400, err.message);
@@ -148,21 +134,17 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
     const key = user_id.join("/");
     await CHATCRAFT_ORG_BUCKET.delete(key);
 
-    // Update token/cookie to further delay expiry
-    const chatCraftToken = await refreshToken(token, JWT_SECRET);
-    if (!chatCraftToken) {
-      throw new Error("Unable to refresh token");
-    }
-
     return new Response(
       JSON.stringify({
         message: "Chat deleted successfully",
       }),
       {
         status: 200,
-        headers: new Headers({
-          "Set-Cookie": serializeToken(chatCraftToken),
-        }),
+        // Update cookies to further delay expiry
+        headers: new Headers([
+          ["Set-Cookie", serializeToken("access_token", accessToken)],
+          ["Set-Cookie", serializeToken("id_token", idToken)],
+        ]),
       }
     );
   } catch (err) {

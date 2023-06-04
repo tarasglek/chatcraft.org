@@ -22,18 +22,22 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   // Otherwise, exchange the code for an access_token, then get user info
-  // and use that to create a JWT for ChatCraft.
+  // and use that to create JWTs for ChatCraft.
   try {
     const ghAccessToken = await requestAccessToken(code, CLIENT_ID, CLIENT_SECRET);
     const user = await requestUserInfo(ghAccessToken);
-    const chatCraftToken = await createToken(user, JWT_SECRET);
+    // User info goes in a non HTTP-Only cookie that browser can read
+    const idToken = await createToken(user.username, user, JWT_SECRET);
+    // API authorization goes in an HTTP-Only cookie that only functions can read
+    const accessToken = await createToken(user.username, {}, JWT_SECRET);
 
     return new Response(null, {
       status: 302,
-      headers: new Headers({
-        Location: "https://chatcraft.org/",
-        "Set-Cookie": serializeToken(chatCraftToken),
-      }),
+      headers: new Headers([
+        ["Location", "https://chatcraft.org/"],
+        ["Set-Cookie", serializeToken("access_token", accessToken)],
+        ["Set-Cookie", serializeToken("id_token", idToken)],
+      ]),
     });
   } catch (err) {
     console.error(err);

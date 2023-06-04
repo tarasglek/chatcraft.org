@@ -31,21 +31,30 @@ const UserContext = createContext<UserContextType>({
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [token] = useCookie("token");
+  // We set both an id_token and access_token in the serverless functions, but
+  // only the id_token is available to the browser.
+  const [idToken] = useCookie("id_token");
   const [user, setUser] = useState<User | undefined>();
 
   useEffect(() => {
-    if (!token) {
+    if (!idToken) {
       return;
     }
 
+    // Try to extract user info from the idToken's payload
     try {
-      const payload = decodeJwt(token) as JwtTokenPayload;
-      setUser(payload.user);
+      const { username, name, avatarUrl } = decodeJwt(idToken);
+      if (
+        typeof username === "string" &&
+        typeof name === "string" &&
+        typeof avatarUrl === "string"
+      ) {
+        setUser({ username, name, avatarUrl });
+      }
     } catch (err) {
-      console.error("Unable to decode token", { err, token });
+      console.error("Unable to decode id token", { err, idToken });
     }
-  }, [token, setUser]);
+  }, [idToken, setUser]);
 
   const logout = useCallback(async () => {
     try {

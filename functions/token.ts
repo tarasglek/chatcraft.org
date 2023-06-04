@@ -1,17 +1,15 @@
-import { parse } from "cookie";
-import { SignJWT, jwtVerify } from "jose";
+import { parse, serialize } from "cookie";
+import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
-export const createToken = async (user: User, secretKey: string) => {
-  const payload = {
-    sub: user.username,
-    user,
-  };
+// We allow passing a full User, or just a username
+export const createToken = async (subject: string, payload: JWTPayload, secretKey: string) => {
   const secret = new TextEncoder().encode(secretKey);
   const claims = new SignJWT(payload);
   const jwt = await claims
     .setProtectedHeader({ alg: "HS256 " })
     .setIssuer("https://chatcraft.org")
     .setAudience("https://chatcraft.org")
+    .setSubject(subject)
     .sign(secret);
 
   return jwt;
@@ -31,36 +29,29 @@ export const verifyToken = async (token: string, secretKey: string) => {
   }
 };
 
-// Given an existing token, make a new one that expires later
-export const refreshToken = async (token: string, secretKey: string) => {
-  const payload = await verifyToken(token, secretKey);
-  if (!payload) {
-    return null;
-  }
-
-  const { user } = payload;
-  if (!user || !(user["name"] && user["username"] && user["avatarUrl"])) {
-    return null;
-  }
-
-  const newToken = await createToken(user as User, secretKey);
-  return newToken;
-};
-
 // Extract the JWT from a request's cookies
-export function getToken(request: Request) {
+export function getTokens(request: Request) {
   const cookieHeader = request.headers.get("Cookie");
   if (!cookieHeader) {
-    return null;
+    return { accessToken: null, idToken: null };
   }
 
   const cookies = parse(cookieHeader);
-  return cookies.token ?? null;
+  return { accessToken: cookies["access_token"] ?? null, idToken: cookies["id_token"] ?? null };
 }
 
 // Format for inclusion in Set-Cookie header. By default
 // use 30 day expiry, but allow override (e.g., 0 to remove cookie)
-// We allow the client to read this cookie, since it contains user info.
-export function serializeToken(token: string, maxAge = 2592000) {
-  return `token=${token}; Secure; Domain=chatcraft.org; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
+export function serializeToken(name: "access_token" | "id_token", token: string, maxAge = 2592000) {
+  // Access tokens can't be read by browser, but id tokens can
+  const httpOnly = name === "access_token" ? true : false;
+
+  return serialize(name, token, {
+    domain: "chatcraft.org",
+    httpOnly,
+    maxAge,
+    path: "/",
+    sameSite: true,
+    secure: true,
+  });
 }
