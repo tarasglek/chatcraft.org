@@ -26,7 +26,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const ghAccessToken = await requestAccessToken(code, CLIENT_ID, CLIENT_SECRET);
     const user = await requestUserInfo(ghAccessToken);
-    const chatCraftToken = createToken(user, JWT_SECRET);
+    const chatCraftToken = await createToken(user, JWT_SECRET);
 
     return new Response(null, {
       status: 302,

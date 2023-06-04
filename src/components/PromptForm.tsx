@@ -24,9 +24,8 @@ import {
   MenuDivider,
   useToast,
 } from "@chakra-ui/react";
-import { Link as ReactRouterLink } from "react-router-dom";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
-import { TbShare2, TbPlus } from "react-icons/tb";
+import { TbShare2 } from "react-icons/tb";
 import { useCopyToClipboard } from "react-use";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";

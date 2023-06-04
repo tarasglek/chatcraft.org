@@ -1,20 +1,30 @@
 import { parse } from "cookie";
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
 
-export const createToken = (user: User, secretKey: string) => {
-  const expiresIn = "30d";
+export const createToken = async (user: User, secretKey: string) => {
   const payload = {
-    aud: "https://chatcraft.org",
     sub: user.username,
     user,
   };
-  return jwt.sign(payload, secretKey, { expiresIn });
+  const secret = new TextEncoder().encode(secretKey);
+  const claims = new SignJWT(payload);
+  const jwt = await claims
+    .setProtectedHeader({ alg: "HS256 " })
+    .setIssuer("https://chatcraft.org")
+    .setAudience("https://chatcraft.org")
+    .sign(secret);
+
+  return jwt;
 };
 
-export const verifyToken = (token: string, secretKey: string) => {
+export const verifyToken = async (token: string, secretKey: string) => {
   try {
-    const decoded = jwt.verify(token, secretKey) as JwtTokenPayload;
-    return decoded;
+    const secret = new TextEncoder().encode(secretKey);
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: "https://chatcraft.org",
+      audience: "https://chatcraft.org",
+    });
+    return payload;
   } catch (err) {
     console.warn(`Unable to verify token: ${err.message}`);
     return null;
@@ -22,13 +32,19 @@ export const verifyToken = (token: string, secretKey: string) => {
 };
 
 // Given an existing token, make a new one that expires later
-export const refreshToken = (token: string, secretKey: string) => {
-  const payload = verifyToken(token, secretKey);
+export const refreshToken = async (token: string, secretKey: string) => {
+  const payload = await verifyToken(token, secretKey);
   if (!payload) {
     return null;
   }
 
-  return createToken(payload.user, secretKey);
+  const { user } = payload;
+  if (!user || !(user["name"] && user["username"] && user["avatarUrl"])) {
+    return null;
+  }
+
+  const newToken = await createToken(user as User, secretKey);
+  return newToken;
 };
 
 // Extract the JWT from a request's cookies

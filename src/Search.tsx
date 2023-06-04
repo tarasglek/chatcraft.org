@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import {
   Box,
-  Button,
   Flex,
   useDisclosure,
   useBreakpoint,
@@ -11,12 +10,7 @@ import {
   Center,
   Tag,
 } from "@chakra-ui/react";
-import {
-  Link as ReactRouterLink,
-  type LoaderFunctionArgs,
-  redirect,
-  useLoaderData,
-} from "react-router-dom";
+import { type LoaderFunctionArgs, redirect, useLoaderData } from "react-router-dom";
 
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
