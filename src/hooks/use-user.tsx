@@ -33,7 +33,7 @@ export const useUser = () => useContext(UserContext);
 export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
   // We set both an id_token and access_token in the serverless functions, but
   // only the id_token is available to the browser.
-  const [idToken] = useCookie("id_token");
+  const [idToken] = useCookie("__Host-id_token");
   const [user, setUser] = useState<User | undefined>();
 
   useEffect(() => {

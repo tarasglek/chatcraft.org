@@ -6,7 +6,7 @@ export const createToken = async (subject: string, payload: JWTPayload, secretKe
   const secret = new TextEncoder().encode(secretKey);
   const claims = new SignJWT(payload);
   const jwt = await claims
-    .setProtectedHeader({ alg: "HS256 " })
+    .setProtectedHeader({ alg: "HS256" })
     .setIssuer("https://chatcraft.org")
     .setAudience("https://chatcraft.org")
     .setSubject(subject)
@@ -37,17 +37,22 @@ export function getTokens(request: Request) {
   }
 
   const cookies = parse(cookieHeader);
-  return { accessToken: cookies["access_token"] ?? null, idToken: cookies["id_token"] ?? null };
+  return {
+    accessToken: cookies["__Host-access_token"] ?? null,
+    idToken: cookies["__Host-id_token"] ?? null,
+  };
 }
 
 // Format for inclusion in Set-Cookie header. By default
 // use 30 day expiry, but allow override (e.g., 0 to remove cookie)
+
+// Set-Cookie: __Host-SID=<session token>; path=/; Secure; HttpOnly; SameSite=Strict.
+
 export function serializeToken(name: "access_token" | "id_token", token: string, maxAge = 2592000) {
   // Access tokens can't be read by browser, but id tokens can
   const httpOnly = name === "access_token" ? true : false;
 
-  return serialize(name, token, {
-    domain: "chatcraft.org",
+  return serialize(`__Host-${name}`, token, {
     httpOnly,
     maxAge,
     path: "/",
