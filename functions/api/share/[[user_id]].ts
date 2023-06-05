@@ -43,7 +43,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
     if (user !== payload?.sub) {
       return errorResponse(403, "Access Token does not match username");
     }
-    if (payload?.role === "api") {
+    if (payload?.role !== "api") {
       return errorResponse(403, "Access Token missing 'api' role");
     }
   } catch (err) {
@@ -136,7 +136,7 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
     if (user !== payload?.sub) {
       return errorResponse(403, "Access Token does not match username");
     }
-    if (payload?.role === "api") {
+    if (payload?.role !== "api") {
       return errorResponse(403, "Access Token missing 'api' role");
     }
   } catch (err) {

@@ -51,7 +51,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
       setUrl(url);
     } catch (err: any) {
       console.error(err);
-      setError(err);
+      setError(err.message);
     } finally {
       setIsSharing(false);
     }
@@ -69,7 +69,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
       await chat.save();
     } catch (err: any) {
       console.error(err);
-      setError(err);
+      setError(err.message);
     } finally {
       setIsSummarizing(false);
     }
@@ -106,7 +106,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
           </Button>
         </ButtonGroup>
 
-        {error && <FormErrorMessage>{error.message}</FormErrorMessage>}
+        {error && <FormErrorMessage>{error}</FormErrorMessage>}
       </FormControl>
 
       {url && (
