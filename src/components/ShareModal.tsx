@@ -38,7 +38,7 @@ type AuthenticatedForm = {
 function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
   const { settings } = useSettings();
   const [url, setUrl] = useState<string>("");
-  const [error, setError] = useState<Error | undefined>();
+  const [error, setError] = useState<string | undefined>();
   const [summary, setSummary] = useState<string>(chat.summary || chat.summarize());
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
