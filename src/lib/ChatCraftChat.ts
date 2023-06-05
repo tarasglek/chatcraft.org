@@ -60,14 +60,14 @@ export class ChatCraftChat {
     return createSummary(this.messages);
   }
 
-  async addMessage(message: ChatCraftMessage) {
+  async addMessage(message: ChatCraftMessage, user?: User) {
     this.messages.push(message);
-    return this.update();
+    return this.update(user);
   }
 
-  async removeMessage(id: string) {
+  async removeMessage(id: string, user?: User) {
     this.messages = this.messages.filter((message) => message.id !== id);
-    return this.update();
+    return this.update(user);
   }
 
   // Find in db - return
@@ -112,21 +112,24 @@ export class ChatCraftChat {
   }
 
   // Make this chat public, and share online
-  async share() {
+  async share(user: User) {
     // Update db to indicate this is public, if necessary
     if (!this.shareUrl) {
-      this.shareUrl = createShareUrl(this);
+      this.shareUrl = createShareUrl(this, user);
       await this.save();
     }
 
-    return createOrUpdateShare(this);
+    return createOrUpdateShare(this, user);
   }
 
   // Combine saving to db and updating online share if necessary
-  async update() {
+  async update(user?: User) {
     // If this chat is already shared, do both.
     if (this.shareUrl) {
-      return Promise.all([this.save(), this.share()]);
+      await this.save();
+      if (user) {
+        this.share(user);
+      }
     } else {
       // Otherwise only update db
       return this.save();

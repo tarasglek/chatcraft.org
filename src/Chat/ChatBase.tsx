@@ -118,7 +118,7 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
 
       try {
         // Add this prompt message to the chat
-        await chat.addMessage(new ChatCraftHumanMessage({ text: prompt, user }));
+        await chat.addMessage(new ChatCraftHumanMessage({ text: prompt, user }), user);
 
         // In single-message-mode, trim messages to last few. Otherwise send all
         const messagesToSend = singleMessageMode
@@ -127,7 +127,7 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
         const response = await callChatApi(messagesToSend);
 
         // Add this response message to the chat
-        await chat.addMessage(response);
+        await chat.addMessage(response, user);
       } catch (err: any) {
         toast({
           title: `OpenAI Response Error`,
@@ -200,7 +200,7 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
             chatId={chat.id}
             newMessage={streamingMessage}
             isLoading={loading}
-            onRemoveMessage={(message) => chat.removeMessage(message.id)}
+            onRemoveMessage={(message) => chat.removeMessage(message.id, user)}
             singleMessageMode={singleMessageMode}
             isPaused={paused}
             onTogglePause={togglePause}

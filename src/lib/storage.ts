@@ -21,19 +21,3 @@ export function getSettings(): Settings {
 export function setSettings(settings: Settings) {
   localStorage.setItem("settings", JSON.stringify(settings));
 }
-
-/**
- * GitHub User
- */
-export function getUser(): User | undefined {
-  const user = localStorage.getItem("gh_user");
-  if (!user) {
-    return;
-  }
-
-  return JSON.parse(user) as User;
-}
-
-export function setUser(user: User) {
-  localStorage.setItem("gh_user", JSON.stringify(user));
-}

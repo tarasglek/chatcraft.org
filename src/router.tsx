@@ -5,7 +5,6 @@ import { loadShare } from "./lib/share";
 import { ChatCraftChat } from "./lib/ChatCraftChat";
 import Search, { loader as searchLoader } from "./Search";
 import db from "./lib/db";
-import { getUser } from "./lib/storage";
 
 export default createBrowserRouter([
   // Load the user's most recent chat, or start a new one the first time
@@ -92,9 +91,10 @@ export default createBrowserRouter([
         return redirect("/");
       }
 
-      // Check if we own this share
-      const currentUser = getUser();
-      if (currentUser?.username === user && (await db.chats.get(chatId))) {
+      // Check if we actually own this chat
+      const chat = await ChatCraftChat.find(chatId);
+      if (chat) {
+        // Go to our local version instead
         return redirect(`/c/${chatId}`);
       }
 

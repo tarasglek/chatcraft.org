@@ -2,14 +2,8 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 import { ChatCraftHumanMessage, ChatCraftSystemMessage } from "./ChatCraftMessage";
-import { getUser } from "../lib/storage";
 
-export function createShareUrl(chat: ChatCraftChat) {
-  const user = getUser();
-  if (!user) {
-    throw new Error("missing user info necessary for sharing");
-  }
-
+export function createShareUrl(chat: ChatCraftChat, user: User) {
   // Create a share URL we can give to other people
   const { origin } = new URL(location.href);
   const shareUrl = new URL(`/c/${user.username}/${chat.id}`, origin);
@@ -17,12 +11,7 @@ export function createShareUrl(chat: ChatCraftChat) {
   return shareUrl.href;
 }
 
-export async function createOrUpdateShare(chat: ChatCraftChat) {
-  const user = getUser();
-  if (!user) {
-    throw new Error("missing user credentials necessary for sharing");
-  }
-
+export async function createOrUpdateShare(chat: ChatCraftChat, user: User) {
   const res = await fetch(`/api/share/${user.username}/${chat.id}`, {
     method: "PUT",
     credentials: "same-origin",
@@ -41,7 +30,7 @@ export async function createOrUpdateShare(chat: ChatCraftChat) {
     throw new Error(`Unable to share chat: ${message || "unknown error"}`);
   }
 
-  return createShareUrl(chat);
+  return createShareUrl(chat, user);
 }
 
 export async function loadShare(user: string, id: string) {

@@ -32,9 +32,10 @@ import { useSettings } from "../hooks/use-settings";
 
 type AuthenticatedForm = {
   chat: ChatCraftChat;
+  user: User;
 };
 
-function AuthenticatedForm({ chat }: AuthenticatedForm) {
+function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
   const { settings } = useSettings();
   const [url, setUrl] = useState<string>("");
   const [error, setError] = useState<Error | undefined>();
@@ -46,7 +47,7 @@ function AuthenticatedForm({ chat }: AuthenticatedForm) {
   const handleShareClick = async () => {
     setIsSharing(true);
     try {
-      const url = await chat.share();
+      const url = await chat.share(user);
       setUrl(url);
     } catch (err: any) {
       console.error(err);
@@ -161,7 +162,7 @@ function ShareModal({ messages, isOpen, onClose, finalFocusRef }: ShareModalProp
         <ModalCloseButton />
         <ModalBody>
           {user ? (
-            <AuthenticatedForm chat={new ChatCraftChat({ messages })} />
+            <AuthenticatedForm chat={new ChatCraftChat({ messages })} user={user} />
           ) : (
             <UnauthenticatedForm onLoginClick={login} />
           )}
