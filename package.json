@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "prepare": "husky install",
     "lint": "eslint . --ext .ts,.tsx,.js",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "test": "vitest"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.6.1",
@@ -59,6 +60,8 @@
     "vite": "^4.3.8",
     "vite-plugin-pwa": "^0.15.0",
     "vite-plugin-wasm": "^3.2.2",
+    "vitest": "^0.31.4",
+    "vitest-environment-miniflare": "^2.14.0",
     "wrangler": "^3.0.1",
     "yarn-audit-fix": "^9.3.10"
   },

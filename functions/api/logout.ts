@@ -5,12 +5,17 @@ interface Env {
 }
 
 // Log a user out by setting the max-age of the `token` cookie to 0
-export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
-  const { JWT_SECRET } = env;
-  const { accessToken, idToken } = getTokens(request);
-
+export async function handleLogout({
+  accessToken,
+  idToken,
+  JWT_SECRET,
+}: {
+  accessToken: string | null;
+  idToken: string | null;
+  JWT_SECRET: string;
+}) {
   // No token means user isn't logged in
-  if (!accessToken) {
+  if (!(accessToken && idToken)) {
     return new Response(null, { status: 401 });
   }
 
@@ -29,4 +34,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       ["Set-Cookie", serializeToken("id_token", idToken, 0)],
     ]),
   });
+}
+
+export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
+  const { JWT_SECRET } = env;
+  const { accessToken, idToken } = getTokens(request);
+
+  return handleLogout({ accessToken, idToken, JWT_SECRET });
 };

@@ -18,6 +18,9 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
   if (!accessToken) {
     return errorResponse(403, "Missing Access Token");
   }
+  if (!idToken) {
+    return errorResponse(403, "Missing ID Token");
+  }
 
   // We expect JSON
   const contentType = request.headers.get("Content-Type");
@@ -40,6 +43,9 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
     if (user !== payload?.sub) {
       return errorResponse(403, "Access Token does not match username");
     }
+    if (payload?.role === "api") {
+      return errorResponse(403, "Access Token missing 'api' role");
+    }
   } catch (err) {
     return errorResponse(400, err.message);
   }
@@ -57,6 +63,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
         status: 200,
         // Update cookies to further delay expiry
         headers: new Headers([
+          ["Content-Type", "application/json; charset=utf-8"],
           ["Set-Cookie", serializeToken("access_token", accessToken)],
           ["Set-Cookie", serializeToken("id_token", idToken)],
         ]),
@@ -110,6 +117,9 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
   if (!accessToken) {
     return errorResponse(403, "Missing Access Token");
   }
+  if (!idToken) {
+    return errorResponse(403, "Missing ID Token");
+  }
 
   // We should receive [username, id] (i.e., `user/id` on path)
   const { user_id } = params;
@@ -125,6 +135,9 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
     const [user] = user_id;
     if (user !== payload?.sub) {
       return errorResponse(403, "Access Token does not match username");
+    }
+    if (payload?.role === "api") {
+      return errorResponse(403, "Access Token missing 'api' role");
     }
   } catch (err) {
     return errorResponse(400, err.message);
@@ -142,6 +155,7 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
         status: 200,
         // Update cookies to further delay expiry
         headers: new Headers([
+          ["Content-Type", "application/json; charset=utf-8"],
           ["Set-Cookie", serializeToken("access_token", accessToken)],
           ["Set-Cookie", serializeToken("id_token", idToken)],
         ]),
