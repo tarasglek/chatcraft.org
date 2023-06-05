@@ -45,7 +45,7 @@ function Sidebar() {
       </Box>
 
       <>
-        {sharedChats.length ? (
+        {sharedChats?.length ? (
           sharedChats.map(({ id, summary, shareUrl }) => (
             // We've already filtered for all objects with shareUrl, so this is fine
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

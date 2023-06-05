@@ -47,7 +47,7 @@ function Header({
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, login, logout } = useUser();
-  const chatsCount = useLiveQuery<number, 0>(() => db.chats.count(), [], 0);
+  const chatsCount = useLiveQuery<number>(() => db.chats.count());
 
   return (
     <Flex
@@ -86,7 +86,7 @@ function Header({
 
       <ButtonGroup isAttached pr={2} alignItems="center">
         <Tag size="sm" variant="outline" mr={1}>
-          {formatNumber(chatsCount)} Saved Chats
+          {formatNumber(chatsCount || 0)} Saved Chats
         </Tag>
 
         <IconButton
