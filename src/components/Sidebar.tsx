@@ -3,6 +3,7 @@ import {
   Flex,
   VStack,
   Heading,
+  Tag,
   Text,
   Button,
   Center,
@@ -109,9 +110,15 @@ function Sidebar({ selectedChat }: SidebarProps) {
   return (
     <Flex direction="column" h="100%" p={2} gap={4}>
       <VStack align="left">
-        <Heading as="h3" size="sm">
-          Recent Chats
-        </Heading>
+        <Flex justify="space-between">
+          <Heading as="h3" size="sm">
+            Recent Chats
+          </Heading>
+
+          <Tag size="sm" variant="subtle" mr={1}>
+            {formatNumber(chatsTotal || 0)} Saved Chats
+          </Tag>
+        </Flex>
 
         <Box>
           {recentChats?.length &&
