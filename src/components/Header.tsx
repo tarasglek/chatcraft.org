@@ -14,7 +14,6 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
-  Tag,
   Text,
   useColorMode,
   useColorModeValue,
@@ -24,12 +23,9 @@ import { BiSun, BiMoon } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
 import { TbSearch, TbLayoutSidebarLeftExpand, TbLayoutSidebarRightExpand } from "react-icons/tb";
 import { Form } from "react-router-dom";
-import { useLiveQuery } from "dexie-react-hooks";
 
 import PreferencesModal from "./PreferencesModal";
 import { useUser } from "../hooks/use-user";
-import db from "../lib/db";
-import { formatNumber } from "../lib/utils";
 
 type HeaderProps = {
   chatId?: string;
@@ -49,7 +45,6 @@ function Header({
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, login, logout } = useUser();
-  const chatsCount = useLiveQuery<number>(() => db.chats.count());
 
   const handleLoginLogout = useCallback(() => {
     if (user) {
@@ -95,10 +90,6 @@ function Header({
       </Box>
 
       <ButtonGroup isAttached pr={2} alignItems="center">
-        <Tag size="sm" variant="outline" mr={1}>
-          {formatNumber(chatsCount || 0)} Saved Chats
-        </Tag>
-
         <IconButton
           aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
           title={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
