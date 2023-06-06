@@ -53,6 +53,21 @@ export default createBrowserRouter([
     },
     element: <LocalChat readonly={false} />,
   },
+  // Delete a chat from the local db
+  {
+    path: "/c/:id/delete",
+    async action({ params }) {
+      const { id } = params;
+      if (id) {
+        try {
+          await ChatCraftChat.delete(id);
+        } catch (err) {
+          console.warn("Unable to delete chat", { id, err });
+        }
+      }
+      return redirect("/");
+    },
+  },
   // Fork an existing local chat and redirect to it. If a `messageId` is included,
   // use that as our starting message vs. whole chat (partial fork)
   {

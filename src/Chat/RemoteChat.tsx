@@ -12,5 +12,5 @@ export default function LocalChat({ readonly }: LocalChatProps) {
   const chat = useLoaderData() as ChatCraftChat;
 
   // TODO: need some kind of error handling here if `chat` doesn't exist
-  return chat ? <ChatBase chat={chat} readonly={readonly} /> : null;
+  return chat ? <ChatBase chat={chat} readonly={readonly} canDelete={false} /> : null;
 }

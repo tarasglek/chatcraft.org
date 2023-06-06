@@ -169,6 +169,22 @@ export class ChatCraftChat {
     };
   }
 
+  static async delete(id: string) {
+    const chat = await ChatCraftChat.find(id);
+    if (chat) {
+      await Promise.all(
+        chat.messages.map((message) => {
+          try {
+            ChatCraftMessage.delete(message.id);
+          } catch (_) {
+            /* empty */
+          }
+        })
+      );
+      return db.chats.delete(id);
+    }
+  }
+
   // Parse from serialized JSON
   static parse({ id, date, shareUrl, summary, messages }: SerializedChatCraftChat): ChatCraftChat {
     return new ChatCraftChat({

@@ -18,5 +18,5 @@ export default function LocalChat({ readonly }: LocalChatProps) {
   }, [chatId]);
 
   // TODO: need some kind of error handling here if `chat` doesn't exist
-  return chat ? <ChatBase chat={chat} readonly={readonly} /> : null;
+  return chat ? <ChatBase chat={chat} readonly={readonly} canDelete={true} /> : null;
 }

@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { BaseChatMessage, type MessageType } from "langchain/schema";
-import { ChatCraftMessageTable } from "./db";
+import db, { type ChatCraftMessageTable } from "./db";
 
 export type SerializedChatCraftMessage = {
   id: string;
@@ -71,6 +71,10 @@ export class ChatCraftMessage extends BaseChatMessage {
       user: this.user,
       text: this.text,
     };
+  }
+
+  static async delete(id: string) {
+    return db.messages.delete(id);
   }
 
   // Parse from serialized JSON
