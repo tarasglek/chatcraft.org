@@ -1,4 +1,4 @@
-import { Button, Menu, MenuButton, MenuList, MenuItem } from "@chakra-ui/react";
+import { Button, Menu, MenuButton, MenuList, MenuItem, MenuDivider } from "@chakra-ui/react";
 import { Link as ReactRouterLink } from "react-router-dom";
 import { TbPlus } from "react-icons/tb";
 
@@ -15,13 +15,17 @@ function NewButton({ forkUrl, variant = "outline" }: NewButtonProps) {
       </MenuButton>
       <MenuList>
         <MenuItem as={ReactRouterLink} to="/new" target="_blank">
-          Blank Chat...
+          New Blank Chat...
         </MenuItem>
         {forkUrl && (
           <MenuItem as={ReactRouterLink} to={forkUrl} target="_blank">
-            Duplicate Chat...
+            New Duplicate Chat...
           </MenuItem>
         )}
+        <MenuDivider />
+        <MenuItem as={ReactRouterLink} to="./reset-messages">
+          Clear Messages
+        </MenuItem>
       </MenuList>
     </Menu>
   );
