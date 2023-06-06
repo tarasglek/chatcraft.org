@@ -3,7 +3,7 @@ import { ChatCraftMessage } from "./ChatCraftMessage";
 export const isMac = () => navigator.userAgent.includes("Macintosh");
 export const isWindows = () => !isMac();
 
-export const formatNumber = (n: number) => n.toLocaleString();
+export const formatNumber = (n: number) => (n ? n.toLocaleString() : "0");
 
 export const shorten = (s: string, max = 50) => s.slice(0, max).concat("...");
 

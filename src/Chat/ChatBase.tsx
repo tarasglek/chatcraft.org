@@ -3,14 +3,16 @@ import {
   Box,
   Button,
   Flex,
+  Link,
   Text,
   useDisclosure,
   useBreakpoint,
   useToast,
   Grid,
   GridItem,
+  Heading,
 } from "@chakra-ui/react";
-import { ScrollRestoration } from "react-router-dom";
+import { Form, Link as ReactRouterLink, ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
 
 import PromptForm from "../components/PromptForm";
@@ -23,13 +25,15 @@ import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import NewButton from "../components/NewButton";
+import { formatDate } from "../lib/utils";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
   readonly: boolean;
+  canDelete: boolean;
 };
 
-function ChatBase({ chat, readonly }: ChatBaseProps) {
+function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
   // Messages are all the static, previous messages in the chat
   // TODO: this token stuff is no longer right and useMessages() needs to be removed
   const { tokenInfo } = useMessages();
@@ -169,7 +173,7 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
       </GridItem>
 
       <GridItem rowSpan={2} overflowY="auto">
-        <Sidebar />
+        <Sidebar selectedChat={chat} />
       </GridItem>
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">
@@ -195,6 +199,21 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
           }
 
           <ScrollRestoration />
+
+          <Flex justify={canDelete ? "space-between" : "end"} align="center">
+            <Heading as="h2" fontSize="lg">
+              <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
+                {formatDate(chat.date)}
+              </Link>
+            </Heading>
+            {canDelete && (
+              <Form action={`/c/${chat.id}/delete`} method="post">
+                <Button type="submit" size="sm" variant="ghost" colorScheme="red">
+                  Delete
+                </Button>
+              </Form>
+            )}
+          </Flex>
 
           <MessagesView
             messages={chat.messages}

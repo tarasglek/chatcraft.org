@@ -94,7 +94,7 @@ function MessageBase({
                   <Heading as="h2" size="xs">
                     {heading}
                   </Heading>
-                  <Text as="span" fontSize="sm" textDecoration="underline">
+                  <Text as="span" fontSize="sm">
                     <Link
                       as={ReactRouterLink}
                       to={`/c/${chatId}#${id}`}
