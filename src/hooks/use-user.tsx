@@ -12,16 +12,18 @@ import { decodeJwt } from "jose";
 
 type UserContextType = {
   user?: User;
-  login: () => void;
-  logout: () => Promise<void>;
+  login: (chatId?: string) => void;
+  logout: (chatId?: string) => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType>({
   user: undefined,
-  login: () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  login: (chatId?: string) => {
     /* do nothing */
   },
-  logout: () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  logout: (chatId?: string) => {
     return new Promise(() => {
       /* do nothing */
     });
@@ -56,24 +58,30 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
   }, [idToken, setUser]);
 
-  const logout = useCallback(async () => {
-    try {
-      const res = await fetch("/api/logout", { credentials: "same-origin" });
-      if (!res.ok) {
-        throw new Error("Unable to logout");
+  const logout = useCallback(
+    async (chatId?: string) => {
+      const logoutUrl = chatId ? `/api/logout?chat_id=${chatId}` : `/api/login`;
+
+      try {
+        const res = await fetch(logoutUrl, { credentials: "same-origin" });
+        if (!res.ok) {
+          throw new Error("Unable to logout");
+        }
+      } catch (err) {
+        console.warn("Logout error", err);
+      } finally {
+        // No matter what, remove the user in storage
+        setUser(undefined);
       }
-    } catch (err) {
-      console.warn("Logout error", err);
-    } finally {
-      // No matter what, remove the user in storage
-      setUser(undefined);
-    }
-  }, [setUser]);
+    },
+    [setUser]
+  );
 
   const value = {
     user,
-    login() {
-      window.location.href = "/api/login";
+    login(chatId?: string) {
+      const loginUrl = chatId ? `/api/login?chat_id=${chatId}` : `/api/login`;
+      window.location.href = loginUrl;
     },
     logout,
   };

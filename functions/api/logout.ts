@@ -9,10 +9,12 @@ export async function handleLogout({
   accessToken,
   idToken,
   JWT_SECRET,
+  chatId,
 }: {
   accessToken: string | null;
   idToken: string | null;
   JWT_SECRET: string;
+  chatId: string | null;
 }) {
   // No token means user isn't logged in
   if (!(accessToken && idToken)) {
@@ -25,11 +27,15 @@ export async function handleLogout({
     return new Response(null, { status: 401 });
   }
 
-  // User is logged in, expire their token/cookie
+  // Return to the root or a specific chat if we have an id
+  const url = new URL(chatId ? `/c/${chatId}` : "/", "https://chatcraft.org").href;
+
+  // Expire the user's cookies
   return new Response(null, {
-    status: 204,
+    status: 302,
     // Set max-age to 0 so browser deletes the cookie
     headers: new Headers([
+      ["Location", url],
       ["Set-Cookie", serializeToken("access_token", accessToken, 0)],
       ["Set-Cookie", serializeToken("id_token", idToken, 0)],
     ]),
@@ -39,6 +45,9 @@ export async function handleLogout({
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const { JWT_SECRET } = env;
   const { accessToken, idToken } = getTokens(request);
+  const reqUrl = new URL(request.url);
+  // Include ?chat_id=... to redirect back to a given chat in the client.
+  const chatId = reqUrl.searchParams.get("chat_id");
 
-  return handleLogout({ accessToken, idToken, JWT_SECRET });
+  return handleLogout({ accessToken, idToken, chatId, JWT_SECRET });
 };

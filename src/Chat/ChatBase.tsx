@@ -161,6 +161,7 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
     >
       <GridItem colSpan={2}>
         <Header
+          chatId={chat.id}
           inputPromptRef={inputPromptRef}
           isSidebarVisible={isSidebarVisible}
           onSidebarVisibleClick={toggleSidebarVisible}
@@ -218,7 +219,7 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
             </Flex>
           ) : (
             <PromptForm
-              messages={chat.messages}
+              chat={chat}
               forkUrl={`./fork`}
               onSendClick={onPrompt}
               isExpanded={isExpanded}

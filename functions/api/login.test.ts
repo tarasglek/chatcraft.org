@@ -8,6 +8,7 @@ describe("/api/login", () => {
   test("/api/login without code should redirect to GitHub's OAuth login", async () => {
     const res = await handleLogin({
       code: null,
+      chatId: null,
       CLIENT_ID: "client_id_1234",
       CLIENT_SECRET: "client_secret",
       JWT_SECRET: "jwt_secret",
@@ -19,6 +20,24 @@ describe("/api/login", () => {
     );
   });
 
+  test("/api/login without code and with chatId should redirect to GitHub's OAuth login with state", async () => {
+    const res = await handleLogin({
+      code: null,
+      chatId: "123456",
+      CLIENT_ID: "client_id_1234",
+      CLIENT_SECRET: "client_secret",
+      JWT_SECRET: "jwt_secret",
+    });
+
+    expect(res.status).toBe(302);
+    const location = res.headers.get("Location");
+    expect(typeof location).toBe("string");
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const params = new URL(location!).searchParams;
+    expect(params.get("client_id")).toEqual("client_id_1234");
+    expect(params.get("state")).toEqual("123456");
+  });
+
   test("/api/login with code should redirect to ChatCraft.org with cookies", async () => {
     // Mock GitHub OAuth and /user flow
     const mocks = githubMocks();
@@ -26,6 +45,7 @@ describe("/api/login", () => {
 
     const res = await handleLogin({
       code: "ghcode",
+      chatId: null,
       CLIENT_ID: "client_id_1234",
       CLIENT_SECRET: "client_secret",
       JWT_SECRET: "jwt_secret",
@@ -73,5 +93,22 @@ describe("/api/login", () => {
         }
       }
     });
+  });
+
+  test("/api/login with code and state should redirect to ChatCraft.org/c/:chatId", async () => {
+    // Mock GitHub OAuth and /user flow
+    const mocks = githubMocks();
+    mocks.all();
+
+    const res = await handleLogin({
+      code: "ghcode",
+      chatId: "123456",
+      CLIENT_ID: "client_id_1234",
+      CLIENT_SECRET: "client_secret",
+      JWT_SECRET: "jwt_secret",
+    });
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toEqual("https://chatcraft.org/c/123456");
   });
 });
