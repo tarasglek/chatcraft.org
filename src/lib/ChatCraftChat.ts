@@ -66,7 +66,22 @@ export class ChatCraftChat {
   }
 
   async removeMessage(id: string, user?: User) {
+    await ChatCraftMessage.delete(id);
     this.messages = this.messages.filter((message) => message.id !== id);
+    return this.update(user);
+  }
+
+  async resetMessages(user?: User) {
+    // Delete existing messages from db
+    await db.messages.bulkDelete(this.messages.map(({ id }) => id));
+    // Make a new set of messages
+    this.messages = [
+      new ChatCraftAiMessage({
+        text: AiGreetingText,
+        model: "gpt-3.5-turbo",
+      }),
+    ];
+    // Update the db
     return this.update(user);
   }
 

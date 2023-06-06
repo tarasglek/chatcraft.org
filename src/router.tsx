@@ -68,6 +68,27 @@ export default createBrowserRouter([
       return redirect("/");
     },
   },
+  // Reset the current set of messages in a chat
+  {
+    path: "/c/:id/reset-messages",
+    async loader({ params }) {
+      const { id } = params;
+      if (!id) {
+        return redirect(`/`);
+      }
+
+      try {
+        const chat = await ChatCraftChat.find(id);
+        if (chat) {
+          await chat.resetMessages();
+        }
+      } catch (err) {
+        console.warn("Unable to reset chat messages", { id, err });
+      }
+
+      return redirect(`/c/${id}`);
+    },
+  },
   // Fork an existing local chat and redirect to it. If a `messageId` is included,
   // use that as our starting message vs. whole chat (partial fork)
   {
