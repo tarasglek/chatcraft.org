@@ -42,7 +42,7 @@ import {
 } from "../lib/utils";
 import ShareModal from "./ShareModal";
 import NewButton from "./NewButton";
-import { ChatCraftMessage } from "../lib/ChatCraftMessage";
+import { ChatCraftChat } from "../lib/ChatCraftChat";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -76,7 +76,7 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
 }
 
 type PromptFormProps = {
-  messages: ChatCraftMessage[];
+  chat: ChatCraftChat;
   forkUrl: string;
   onSendClick: (prompt: string) => void;
   // Whether or not to automatically manage the height of the prompt.
@@ -93,7 +93,7 @@ type PromptFormProps = {
 };
 
 function PromptForm({
-  messages,
+  chat,
   forkUrl,
   onSendClick,
   isExpanded,
@@ -112,6 +112,7 @@ function PromptForm({
   const { settings, setSettings } = useSettings();
   const [, copyToClipboard] = useCopyToClipboard();
   const toast = useToast();
+  const { messages } = chat;
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -256,7 +257,7 @@ function PromptForm({
               </Menu>
             </Box>
             <ShareModal
-              messages={messages}
+              chat={chat}
               isOpen={isOpen}
               onClose={onClose}
               finalFocusRef={inputPromptRef}

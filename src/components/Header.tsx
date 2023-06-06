@@ -1,4 +1,4 @@
-import { type RefObject } from "react";
+import { useCallback, type RefObject } from "react";
 import {
   Avatar,
   Box,
@@ -32,6 +32,7 @@ import db from "../lib/db";
 import { formatNumber } from "../lib/utils";
 
 type HeaderProps = {
+  chatId?: string;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   searchText?: string;
   isSidebarVisible: boolean;
@@ -39,6 +40,7 @@ type HeaderProps = {
 };
 
 function Header({
+  chatId,
   inputPromptRef,
   searchText,
   isSidebarVisible,
@@ -48,6 +50,14 @@ function Header({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, login, logout } = useUser();
   const chatsCount = useLiveQuery<number>(() => db.chats.count());
+
+  const handleLoginLogout = useCallback(() => {
+    if (user) {
+      logout(chatId);
+    } else {
+      login(chatId);
+    }
+  }, [chatId, user, login, logout]);
 
   return (
     <Flex
@@ -120,7 +130,7 @@ function Header({
             />
             <MenuList>
               <MenuItem onClick={onOpen}>Settings...</MenuItem>
-              <MenuItem onClick={user ? logout : login}>
+              <MenuItem onClick={handleLoginLogout}>
                 {user ? (
                   "Logout"
                 ) : (

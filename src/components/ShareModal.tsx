@@ -26,7 +26,6 @@ import { TbCopy } from "react-icons/tb";
 
 import { useUser } from "../hooks/use-user";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { ChatCraftMessage } from "../lib/ChatCraftMessage";
 import { summarizeChat } from "../lib/share";
 import { useSettings } from "../hooks/use-settings";
 
@@ -145,13 +144,13 @@ function UnauthenticatedForm({ onLoginClick }: { onLoginClick: () => void }) {
 }
 
 type ShareModalProps = {
-  messages: ChatCraftMessage[];
+  chat: ChatCraftChat;
   isOpen: boolean;
   onClose: () => void;
   finalFocusRef: RefObject<HTMLTextAreaElement>;
 };
 
-function ShareModal({ messages, isOpen, onClose, finalFocusRef }: ShareModalProps) {
+function ShareModal({ chat, isOpen, onClose, finalFocusRef }: ShareModalProps) {
   const { user, login } = useUser();
 
   return (
@@ -162,9 +161,9 @@ function ShareModal({ messages, isOpen, onClose, finalFocusRef }: ShareModalProp
         <ModalCloseButton />
         <ModalBody>
           {user ? (
-            <AuthenticatedForm chat={new ChatCraftChat({ messages })} user={user} />
+            <AuthenticatedForm chat={chat} user={user} />
           ) : (
-            <UnauthenticatedForm onLoginClick={login} />
+            <UnauthenticatedForm onLoginClick={() => login(chat.id)} />
           )}
         </ModalBody>
         <ModalFooter></ModalFooter>
