@@ -234,7 +234,7 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
         <Box maxW="900px" mx="auto" h="100%">
           {readonly ? (
             <Flex w="100%" h="45px" justify="end" align="center" p={2}>
-              <NewButton forkUrl={`./fork`} variant="solid" />
+              <NewButton forkUrl={`./fork`} variant="solid" disableClear={readonly} />
             </Flex>
           ) : (
             <PromptForm

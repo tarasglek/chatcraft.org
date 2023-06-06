@@ -122,7 +122,7 @@ export default function Search() {
 
       <GridItem>
         <Flex w="100%" maxW="900px" mx="auto" h="45px" justify="end" align="center" p={2}>
-          <NewButton variant="solid" />
+          <NewButton variant="solid" disableClear={true} />
         </Flex>
       </GridItem>
     </Grid>
