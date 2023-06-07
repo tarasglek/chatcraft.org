@@ -1,11 +1,7 @@
-import { ChatCraftMessage } from "./ChatCraftMessage";
-
 export const isMac = () => navigator.userAgent.includes("Macintosh");
 export const isWindows = () => !isMac();
 
 export const formatNumber = (n: number) => (n ? n.toLocaleString() : "0");
-
-export const shorten = (s: string, max = 50) => s.slice(0, max).concat("...");
 
 export const formatCurrency = (n: number) =>
   Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(n);
@@ -18,9 +14,6 @@ export const formatDate = (d: Date) =>
     hour: "numeric",
     minute: "numeric",
   });
-
-let current = Date.now();
-export const unique = () => String(current++);
 
 export function download(data: string | Blob, filename: string, type = "text/plain") {
   let blob;
@@ -35,7 +28,3 @@ export function download(data: string | Blob, filename: string, type = "text/pla
   anchor.setAttribute("href", url);
   anchor.click();
 }
-
-// Turn the messages into Markdown, with each message separated with an hr
-export const messagesToMarkdown = (messages: ChatCraftMessage[]) =>
-  messages.map((message) => message.text).join("\n\n---\n\n");

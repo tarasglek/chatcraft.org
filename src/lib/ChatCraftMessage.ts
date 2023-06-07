@@ -2,6 +2,13 @@ import { nanoid } from "nanoid";
 import { BaseChatMessage, type MessageType } from "langchain/schema";
 import db, { type ChatCraftMessageTable } from "./db";
 
+export type ChatCraftAiMessageVersion = {
+  id: string;
+  date: Date;
+  model: GptModel;
+  text: string;
+};
+
 export type SerializedChatCraftMessage = {
   id: string;
   date: string;
@@ -9,6 +16,7 @@ export type SerializedChatCraftMessage = {
   model?: GptModel;
   user?: User;
   text: string;
+  versions?: ChatCraftAiMessageVersion[];
 };
 
 // A decorated langchain chat message, with extra metadata
@@ -16,22 +24,16 @@ export class ChatCraftMessage extends BaseChatMessage {
   id: string;
   date: Date;
   type: MessageType;
-  model?: GptModel;
-  user?: User;
 
   constructor({
     id,
     date,
     type,
-    model,
-    user,
     text,
   }: {
     id?: string;
     date?: Date;
     type: MessageType;
-    model?: GptModel;
-    user?: User;
     text: string;
   }) {
     super(text);
@@ -39,21 +41,6 @@ export class ChatCraftMessage extends BaseChatMessage {
     this.id = id ?? nanoid();
     this.date = date ?? new Date();
     this.type = type;
-    // We may or may not have info about the model (e.g., ai message will)
-    if (model) {
-      this.model = model;
-    }
-    // We may or may not have user info (e.g., human message will)
-    if (user) {
-      this.user = user;
-    }
-  }
-
-  clone() {
-    // Create a new message (don't use current id)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...rest } = this;
-    return new ChatCraftMessage(rest);
   }
 
   // Comply with BaseChatMessage's need for _getType()
@@ -61,78 +48,177 @@ export class ChatCraftMessage extends BaseChatMessage {
     return this.type;
   }
 
-  // XXX: we can't override .toJSON() from BaseChatMessage
+  static async delete(id: string) {
+    return db.messages.delete(id);
+  }
+
+  // XXX: we can't use toJSON() because langchain depends on it
+  serialize(): SerializedChatCraftMessage {
+    return {
+      id: this.id,
+      date: this.date.toISOString(),
+      type: this.type,
+      text: this.text,
+    };
+  }
+
+  // Parse from serialized JSON
+  static parse(message: SerializedChatCraftMessage): ChatCraftMessage {
+    switch (message.type) {
+      case "ai":
+        return ChatCraftAiMessage.parse(message);
+      case "human":
+        return ChatCraftHumanMessage.parse(message);
+      case "system":
+        return ChatCraftSystemMessage.parse(message);
+      default:
+        throw new Error(`Error parsing unknown message type: ${message.type}`);
+    }
+  }
+
+  // Parse from db representation
+  static fromDB(message: ChatCraftMessageTable): ChatCraftMessage {
+    switch (message.type) {
+      case "ai":
+        return ChatCraftAiMessage.fromDB(message);
+      case "human":
+        return ChatCraftHumanMessage.fromDB(message);
+      case "system":
+        return ChatCraftSystemMessage.fromDB(message);
+      default:
+        throw new Error(`Error parsing unknown message type: ${message.type}`);
+    }
+  }
+}
+
+export class ChatCraftAiMessage extends ChatCraftMessage {
+  model: GptModel;
+  versions: ChatCraftAiMessageVersion[];
+
+  constructor({
+    id,
+    date,
+    model,
+    text,
+    versions,
+  }: {
+    id?: string;
+    date?: Date;
+    model: GptModel;
+    text: string;
+    versions?: ChatCraftAiMessageVersion[];
+  }) {
+    super({ id, date, type: "ai", text });
+
+    this.model = model;
+    this.versions = versions ?? [{ id: nanoid(), date: date ?? new Date(), model, text }];
+  }
+
+  addVersion(version: ChatCraftAiMessageVersion) {
+    this.versions.push(version);
+  }
+
+  switchVersion(id: string) {
+    const version = this.versions.find((v) => v.id === id);
+    if (!version) {
+      throw new Error(`no such version: ${id}`);
+    }
+
+    const { date, model, text } = version;
+    this.date = date;
+    this.model = model;
+    this.text = text;
+  }
+
   serialize(): SerializedChatCraftMessage {
     return {
       id: this.id,
       date: this.date.toISOString(),
       type: this.type,
       model: this.model,
+      text: this.text,
+      versions: this.versions,
+    };
+  }
+
+  static parse(message: SerializedChatCraftMessage) {
+    return new ChatCraftAiMessage({
+      id: message.id,
+      date: new Date(message.date),
+      model: message.model || "gpt-3.5-turbo",
+      text: message.text,
+      versions: message.versions,
+    });
+  }
+
+  static fromDB(message: ChatCraftMessageTable) {
+    return new ChatCraftAiMessage({
+      id: message.id,
+      date: message.date,
+      model: message.model || "gpt-3.5-turbo",
+      text: message.text,
+      versions: message.versions,
+    });
+  }
+}
+
+export class ChatCraftHumanMessage extends ChatCraftMessage {
+  user?: User;
+
+  constructor({ id, date, user, text }: { id?: string; date?: Date; user?: User; text: string }) {
+    super({ id, date, type: "human", text });
+
+    this.user = user;
+  }
+
+  serialize(): SerializedChatCraftMessage {
+    return {
+      id: this.id,
+      date: this.date.toISOString(),
+      type: this.type,
       user: this.user,
       text: this.text,
     };
   }
 
-  static async delete(id: string) {
-    return db.messages.delete(id);
-  }
-
-  // Parse from serialized JSON
-  static parse({
-    id,
-    date,
-    type,
-    model,
-    user,
-    text,
-  }: SerializedChatCraftMessage): ChatCraftMessage {
-    if (type === "ai") {
-      return new ChatCraftAiMessage({
-        id,
-        date: new Date(date),
-        model: model || "gpt-3.5-turbo",
-        text,
-      });
-    } else if (type === "human") {
-      return new ChatCraftHumanMessage({ id, date: new Date(date), user, text });
-    } else {
-      return new ChatCraftSystemMessage({ id, date: new Date(date), text });
-    }
-  }
-
-  // Parse from db representation
-  static fromDB(message: ChatCraftMessageTable) {
-    return new ChatCraftMessage({
-      ...message,
+  static parse(message: SerializedChatCraftMessage) {
+    return new ChatCraftHumanMessage({
+      id: message.id,
+      date: new Date(message.date),
+      user: message.user,
+      text: message.text,
     });
   }
-}
 
-export class ChatCraftAiMessage extends ChatCraftMessage {
-  constructor({
-    id,
-    date,
-    model,
-    text,
-  }: {
-    id?: string;
-    date?: Date;
-    model: GptModel;
-    text: string;
-  }) {
-    super({ id, date, type: "ai", model, text });
-  }
-}
-
-export class ChatCraftHumanMessage extends ChatCraftMessage {
-  constructor({ id, date, user, text }: { id?: string; date?: Date; user?: User; text: string }) {
-    super({ id, date, type: "human", user, text });
+  static fromDB(message: ChatCraftMessageTable) {
+    return new ChatCraftHumanMessage({
+      id: message.id,
+      date: message.date,
+      user: message.user,
+      text: message.text,
+    });
   }
 }
 
 export class ChatCraftSystemMessage extends ChatCraftMessage {
   constructor({ id, date, text }: { id?: string; date?: Date; text: string }) {
     super({ id, date, type: "system", text });
+  }
+
+  static parse(message: SerializedChatCraftMessage) {
+    return new ChatCraftSystemMessage({
+      id: message.id,
+      date: new Date(message.date),
+      text: message.text,
+    });
+  }
+
+  static fromDB(message: ChatCraftMessageTable) {
+    return new ChatCraftSystemMessage({
+      id: message.id,
+      date: message.date,
+      text: message.text,
+    });
   }
 }
 

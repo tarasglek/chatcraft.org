@@ -32,14 +32,7 @@ import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
-import {
-  isMac,
-  isWindows,
-  formatNumber,
-  formatCurrency,
-  download,
-  messagesToMarkdown,
-} from "../lib/utils";
+import { isMac, isWindows, formatNumber, formatCurrency, download } from "../lib/utils";
 import ShareModal from "./ShareModal";
 import NewButton from "./NewButton";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
@@ -112,7 +105,6 @@ function PromptForm({
   const { settings, setSettings } = useSettings();
   const [, copyToClipboard] = useCopyToClipboard();
   const toast = useToast();
-  const { messages } = chat;
   const modelName = settings.model === "gpt-3.5-turbo" ? "GPT-3.5" : "GPT-4";
 
   // If the user clears the prompt, allow up-arrow again
@@ -183,7 +175,7 @@ function PromptForm({
   };
 
   const handleCopyMessages = useCallback(() => {
-    const text = messagesToMarkdown(messages);
+    const text = chat.toMarkdown();
     copyToClipboard(text);
     toast({
       colorScheme: "blue",
@@ -192,10 +184,10 @@ function PromptForm({
       position: "top",
       isClosable: true,
     });
-  }, [messages, copyToClipboard, toast]);
+  }, [chat, copyToClipboard, toast]);
 
   const handleDownloadMessages = useCallback(() => {
-    const text = messagesToMarkdown(messages);
+    const text = chat.toMarkdown();
     download(text, "chat.md", "text/markdown");
     toast({
       colorScheme: "blue",
@@ -204,7 +196,7 @@ function PromptForm({
       position: "top",
       isClosable: true,
     });
-  }, [messages, toast]);
+  }, [chat, toast]);
 
   return (
     <Flex direction="column" h="100%" px={1}>
