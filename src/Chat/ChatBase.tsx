@@ -6,14 +6,16 @@ import {
   Link,
   Text,
   useDisclosure,
-  useBreakpoint,
   useToast,
   Grid,
   GridItem,
   Heading,
+  Card,
+  CardBody,
 } from "@chakra-ui/react";
 import { Form, Link as ReactRouterLink, ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
+import { MdOutlineChatBubbleOutline } from "react-icons/md";
 
 import PromptForm from "../components/PromptForm";
 import MessagesView from "../components/MessagesView";
@@ -26,6 +28,7 @@ import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import NewButton from "../components/NewButton";
 import { formatDate } from "../lib/utils";
+import { useSettings } from "../hooks/use-settings";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -42,13 +45,10 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
   // Whether to include the whole message chat history or just the last response
   const [singleMessageMode, setSingleMessageMode] = useState(false);
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
-  const {
-    isOpen: isSidebarVisible,
-    onOpen: showSidebar,
-    onClose: hideSidebar,
-    onToggle: toggleSidebarVisible,
-  } = useDisclosure();
-  const breakpoint = useBreakpoint();
+  const { settings, setSettings } = useSettings();
+  const { isOpen: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
+    defaultIsOpen: settings.sidebarVisible,
+  });
   const [loading, setLoading] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const messageListRef = useRef<HTMLDivElement | null>(null);
@@ -56,14 +56,11 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
   const toast = useToast();
   const { user } = useUser();
 
-  // Hide the sidebar on small/mobile screens by default
-  useEffect(() => {
-    if (breakpoint === "base" || breakpoint === "sm") {
-      hideSidebar();
-    } else {
-      showSidebar();
-    }
-  }, [breakpoint, hideSidebar, showSidebar]);
+  const handleToggleSidebarVisible = useCallback(() => {
+    const newValue = !isSidebarVisible;
+    toggleSidebarVisible();
+    setSettings({ ...settings, sidebarVisible: newValue });
+  }, [isSidebarVisible, settings, setSettings, toggleSidebarVisible]);
 
   // Auto scroll chat to bottom, but only if user isn't trying to scroll manually
   // Also add a dependency on the streamingMessage, since its content (and therefore
@@ -159,7 +156,11 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
       w="100%"
       h="100%"
       gridTemplateRows={isExpanded ? "min-content 1fr 1fr" : "min-content 1fr min-content"}
-      gridTemplateColumns={isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0 1fr"}
+      gridTemplateColumns={{
+        base: isSidebarVisible ? "300px 1fr" : "0 1fr",
+        sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
+        md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
+      }}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
@@ -167,12 +168,11 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
         <Header
           chatId={chat.id}
           inputPromptRef={inputPromptRef}
-          isSidebarVisible={isSidebarVisible}
-          onSidebarVisibleClick={toggleSidebarVisible}
+          onToggleSidebar={handleToggleSidebarVisible}
         />
       </GridItem>
 
-      <GridItem rowSpan={2} overflowY="auto">
+      <GridItem rowSpan={3} overflowY="auto">
         <Sidebar selectedChat={chat} />
       </GridItem>
 
@@ -198,22 +198,40 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
             )
           }
 
-          <ScrollRestoration />
+          <Card
+            variant="filled"
+            bg="gray.100"
+            size="sm"
+            border="1px solid"
+            borderColor="gray.200"
+            _dark={{
+              bg: "gray.800",
+              borderColor: "gray.900",
+            }}
+            mt={2}
+          >
+            <CardBody>
+              <Flex justify={canDelete ? "space-between" : "end"} align="center">
+                <Heading as="h2" fontSize="lg">
+                  <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
+                    <Flex align="center" gap={2}>
+                      <MdOutlineChatBubbleOutline />
+                      {formatDate(chat.date)}
+                    </Flex>
+                  </Link>
+                </Heading>
+                {canDelete && (
+                  <Form action={`/c/${chat.id}/delete`} method="post">
+                    <Button type="submit" size="sm" variant="ghost" colorScheme="red">
+                      Delete
+                    </Button>
+                  </Form>
+                )}
+              </Flex>
+            </CardBody>
+          </Card>
 
-          <Flex justify={canDelete ? "space-between" : "end"} align="center">
-            <Heading as="h2" fontSize="lg">
-              <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
-                {formatDate(chat.date)}
-              </Link>
-            </Heading>
-            {canDelete && (
-              <Form action={`/c/${chat.id}/delete`} method="post">
-                <Button type="submit" size="sm" variant="ghost" colorScheme="red">
-                  Delete
-                </Button>
-              </Form>
-            )}
-          </Flex>
+          <ScrollRestoration />
 
           <MessagesView
             messages={chat.messages}

@@ -10,15 +10,6 @@ type GptModel =
 // Enter key either sends message or adds newline
 type EnterBehaviour = "send" | "newline";
 
-// Settings
-type Settings = {
-  apiKey?: string;
-  model: GptModel;
-  enterBehaviour: EnterBehaviour;
-  justShowMeTheCode: boolean;
-  countTokens: boolean;
-};
-
 // Information about tokens in a chat
 type TokenInfo = {
   count: number;

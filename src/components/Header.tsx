@@ -4,7 +4,6 @@ import {
   Box,
   ButtonGroup,
   Flex,
-  HStack,
   IconButton,
   Input,
   InputGroup,
@@ -19,9 +18,9 @@ import {
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
-import { BiSun, BiMoon } from "react-icons/bi";
+import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
-import { TbSearch, TbLayoutSidebarLeftExpand, TbLayoutSidebarRightExpand } from "react-icons/tb";
+import { TbSearch } from "react-icons/tb";
 import { Form } from "react-router-dom";
 
 import PreferencesModal from "./PreferencesModal";
@@ -31,17 +30,10 @@ type HeaderProps = {
   chatId?: string;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   searchText?: string;
-  isSidebarVisible: boolean;
-  onSidebarVisibleClick: () => void;
+  onToggleSidebar: () => void;
 };
 
-function Header({
-  chatId,
-  inputPromptRef,
-  searchText,
-  isSidebarVisible,
-  onSidebarVisibleClick,
-}: HeaderProps) {
+function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, login, logout } = useUser();
@@ -57,19 +49,22 @@ function Header({
   return (
     <Flex
       w="100%"
+      gap={1}
       bg={useColorModeValue("white", "gray.700")}
       justify="space-between"
       align="center"
       borderBottom="2px"
       borderColor={useColorModeValue("gray.50", "gray.600")}
     >
-      <HStack>
+      <Flex pl={1} align="center" gap={2}>
         <IconButton
-          icon={isSidebarVisible ? <TbLayoutSidebarRightExpand /> : <TbLayoutSidebarLeftExpand />}
+          icon={<BiMenu />}
           variant="ghost"
           aria-label="Toggle Sidebar Menu"
-          onClick={() => onSidebarVisibleClick()}
+          title="Toggle Sidebar Menu"
+          onClick={onToggleSidebar}
         />
+
         <Text fontWeight="bold" color={useColorModeValue("blue.600", "blue.200")}>
           <Link
             href="/"
@@ -78,9 +73,9 @@ function Header({
             &lt;ChatCraft /&gt;
           </Link>
         </Text>
-      </HStack>
+      </Flex>
 
-      <Box flex={1} maxW="500px" px={4}>
+      <Box flex={1} maxW="500px">
         <Form action="/s" method="get">
           <InputGroup size="sm" variant="outline">
             <Input type="search" name="q" defaultValue={searchText} isRequired />
@@ -144,9 +139,9 @@ function Header({
             </MenuList>
           </Menu>
         </Box>
-
-        <PreferencesModal isOpen={isOpen} onClose={onClose} finalFocusRef={inputPromptRef} />
       </ButtonGroup>
+
+      <PreferencesModal isOpen={isOpen} onClose={onClose} finalFocusRef={inputPromptRef} />
     </Flex>
   );
 }
