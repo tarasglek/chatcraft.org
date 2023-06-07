@@ -9,12 +9,22 @@ import {
 } from "react";
 import { useLocalStorage } from "react-use";
 
+type Settings = {
+  apiKey?: string;
+  model: GptModel;
+  enterBehaviour: EnterBehaviour;
+  justShowMeTheCode: boolean;
+  countTokens: boolean;
+  sidebarVisible: boolean;
+};
+
 const defaultSettings: Settings = {
   model: "gpt-3.5-turbo",
   enterBehaviour: "send",
   // Disabled by default, since token parsing requires downloading larger deps
   countTokens: false,
   justShowMeTheCode: false,
+  sidebarVisible: false,
 };
 
 type SettingsContextType = {

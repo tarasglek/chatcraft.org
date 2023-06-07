@@ -1,24 +1,25 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import {
   Box,
   Flex,
   useDisclosure,
-  useBreakpoint,
   Grid,
   GridItem,
   Heading,
   Center,
-  Tag,
+  Card,
+  CardBody,
 } from "@chakra-ui/react";
 import { type LoaderFunctionArgs, redirect, useLoaderData } from "react-router-dom";
+import { TbListSearch } from "react-icons/tb";
 
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
-import { ChatCraftMessageTable } from "./lib/db";
+import db, { ChatCraftMessageTable } from "./lib/db";
 import Message from "./components/Message";
 import { AiGreetingText, ChatCraftMessage } from "./lib/ChatCraftMessage";
-import db from "./lib/db";
 import NewButton from "./components/NewButton";
+import { useSettings } from "./hooks/use-settings";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -50,32 +51,29 @@ export default function Search() {
   };
   const chatIds = messages ? [...new Set(messages.map((message) => message.chatId))] : [];
   const hasResults = !!messages?.length;
-
-  const {
-    isOpen: isSidebarVisible,
-    onOpen: showSidebar,
-    onClose: hideSidebar,
-    onToggle: toggleSidebarVisible,
-  } = useDisclosure();
-  const breakpoint = useBreakpoint();
+  const { settings, setSettings } = useSettings();
+  const { isOpen: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
+    defaultIsOpen: settings.sidebarVisible,
+  });
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
 
-  // Hide the sidebar on small/mobile screens by default
-  useEffect(() => {
-    if (breakpoint === "base" || breakpoint === "sm") {
-      hideSidebar();
-    } else {
-      showSidebar();
-    }
-  }, [breakpoint, hideSidebar, showSidebar]);
+  const handleToggleSidebarVisible = useCallback(() => {
+    const newValue = !isSidebarVisible;
+    toggleSidebarVisible();
+    setSettings({ ...settings, sidebarVisible: newValue });
+  }, [isSidebarVisible, settings, setSettings, toggleSidebarVisible]);
 
   return (
     <Grid
       w="100%"
       h="100%"
       gridTemplateRows="min-content 1fr min-content"
-      gridTemplateColumns={isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0 1fr"}
+      gridTemplateColumns={{
+        base: isSidebarVisible ? "300px 1fr" : "0 1fr",
+        sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
+        md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
+      }}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
@@ -83,12 +81,11 @@ export default function Search() {
         <Header
           inputPromptRef={inputPromptRef}
           searchText={searchText}
-          isSidebarVisible={isSidebarVisible}
-          onSidebarVisibleClick={toggleSidebarVisible}
+          onToggleSidebar={handleToggleSidebarVisible}
         />
       </GridItem>
 
-      <GridItem rowSpan={2} overflowY="auto">
+      <GridItem rowSpan={3} overflowY="auto">
         <Sidebar />
       </GridItem>
 
@@ -96,9 +93,30 @@ export default function Search() {
         <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
           {hasResults ? (
             <>
-              <Tag maxW="fit-content" mt={4}>{`${messages.length} ${
-                messages.length > 1 ? "Messages" : "Message"
-              } Found in ${chatIds.length} ${chatIds.length > 1 ? "Chats" : "Chat"}`}</Tag>
+              <Card
+                variant="filled"
+                bg="gray.100"
+                size="sm"
+                border="1px solid"
+                borderColor="gray.200"
+                _dark={{
+                  bg: "gray.800",
+                  borderColor: "gray.900",
+                }}
+                mt={2}
+              >
+                <CardBody>
+                  <Heading as="h2" fontSize="lg">
+                    <Flex align="center" gap={2}>
+                      <TbListSearch />
+                      {`${messages.length} ${
+                        messages.length > 1 ? "Messages" : "Message"
+                      } found in ${chatIds.length} ${chatIds.length > 1 ? "Chats" : "Chat"}`}
+                    </Flex>
+                  </Heading>
+                </CardBody>
+              </Card>
+
               <Box flex={1}>
                 {messages.map((message) => (
                   <Message
