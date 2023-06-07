@@ -1,5 +1,9 @@
 import { memo } from "react";
-import { ChatCraftMessage } from "../../lib/ChatCraftMessage";
+import {
+  ChatCraftHumanMessage,
+  ChatCraftAiMessage,
+  ChatCraftMessage,
+} from "../../lib/ChatCraftMessage";
 import HumanMessage from "./HumanMessage";
 import OpenAiMessage from "./OpenAiMessage";
 
@@ -24,8 +28,7 @@ function Message({
   disableFork,
   disableEdit,
 }: MessageProps) {
-  // AI Message
-  if (message.type === "ai" && message.model) {
+  if (message instanceof ChatCraftAiMessage) {
     return (
       <OpenAiMessage
         id={message.id}
@@ -43,26 +46,29 @@ function Message({
     );
   }
 
-  // Human Message
-  const { user } = message;
-  return (
-    <HumanMessage
-      id={message.id}
-      chatId={chatId}
-      date={message.date}
-      name={user?.name || "User"}
-      avatarUrl={user?.avatarUrl}
-      text={message.text}
-      isLoading={isLoading}
-      hidePreviews={hidePreviews}
-      onPrompt={onPrompt}
-      onDeleteClick={onDeleteClick}
-      disableFork={disableFork}
-      disableEdit={disableEdit}
-    />
-  );
+  if (message instanceof ChatCraftHumanMessage) {
+    const { user } = message;
+    return (
+      <HumanMessage
+        id={message.id}
+        chatId={chatId}
+        date={message.date}
+        name={user?.name || "User"}
+        avatarUrl={user?.avatarUrl}
+        text={message.text}
+        isLoading={isLoading}
+        hidePreviews={hidePreviews}
+        onPrompt={onPrompt}
+        onDeleteClick={onDeleteClick}
+        disableFork={disableFork}
+        disableEdit={disableEdit}
+      />
+    );
+  }
 
   // TODO: we don't currently show system messages, but could?
+  console.warn(`Message type ${message.type} not yet supported`);
+  return null;
 }
 
 export default memo(Message);

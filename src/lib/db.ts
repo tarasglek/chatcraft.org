@@ -1,6 +1,8 @@
 import Dexie, { Table } from "dexie";
 import { type MessageType } from "langchain/schema";
 
+import { ChatCraftAiMessageVersion } from "./ChatCraftMessage";
+
 export type ChatCraftChatTable = {
   id: string;
   date: Date;
@@ -17,6 +19,7 @@ export type ChatCraftMessageTable = {
   model?: GptModel;
   user?: User;
   text: string;
+  versions?: ChatCraftAiMessageVersion[];
 };
 
 class ChatCraftDatabase extends Dexie {
@@ -34,6 +37,10 @@ class ChatCraftDatabase extends Dexie {
     // shareUrl instead. The messages table is unchanged
     this.version(2).stores({
       chats: "id, date, shareUrl, summary, messageIds",
+    });
+    // Version 3 Migration - add versions to messages
+    this.version(3).stores({
+      messages: "id, date, chatId, type, model, user, text, versions",
     });
 
     this.chats = this.table("chats");

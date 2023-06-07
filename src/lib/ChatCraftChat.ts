@@ -85,6 +85,11 @@ export class ChatCraftChat {
     return this.update(user);
   }
 
+  toMarkdown() {
+    // Turn the messages into Markdown, with each message separated with an <hr />
+    return this.messages.map((message) => message.text).join("\n\n---\n\n");
+  }
+
   // Find in db - return
   static async find(id: string) {
     // Get the chat itself

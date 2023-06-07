@@ -2,8 +2,7 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import { Card, CardBody, IconButton, useClipboard, useToast } from "@chakra-ui/react";
 import mermaid from "mermaid";
 import { TbCopy } from "react-icons/tb";
-
-import { unique } from "../lib/utils";
+import { nanoid } from "nanoid";
 
 type MermaidPreviewProps = {
   children: React.ReactNode & React.ReactNode[];
@@ -34,7 +33,7 @@ const MermaidPreview = ({ children }: MermaidPreviewProps) => {
       return;
     }
 
-    const mermaidDiagramId = `mermaid-diagram-${unique()}`;
+    const mermaidDiagramId = `mermaid-diagram-${nanoid().toLowerCase()}`;
     mermaid
       .render(mermaidDiagramId, code, diagramDiv)
       .then(({ svg, bindFunctions }) => {

@@ -29,7 +29,7 @@ const calculateTokenCost = (tokens: number, model: GptModel): number | undefined
 
 function useChatOpenAI() {
   const systemMessage = useSystemMessage();
-  const [streamingMessage, setStreamingMessage] = useState<ChatCraftMessage>();
+  const [streamingMessage, setStreamingMessage] = useState<ChatCraftAiMessage>();
   const { settings } = useSettings();
   const [cancel, setCancel] = useState<() => void>(() => {});
   const [paused, setPaused] = useState(false);

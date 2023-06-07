@@ -37,7 +37,6 @@ type ChatBaseProps = {
 };
 
 function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
-  // Messages are all the static, previous messages in the chat
   // TODO: this token stuff is no longer right and useMessages() needs to be removed
   const { tokenInfo } = useMessages();
   // When chatting with OpenAI, a streaming message is returned during loading
