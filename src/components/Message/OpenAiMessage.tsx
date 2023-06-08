@@ -1,14 +1,18 @@
 import { memo, useCallback, useEffect, useState } from "react";
-import { Avatar } from "@chakra-ui/react";
+import { Avatar, Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import { TbChevronDown } from "react-icons/tb";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import * as ai from "../../lib/ai";
 import { useSettings } from "../../hooks/use-settings";
+import { ChatCraftAiMessage, ChatCraftAiMessageVersion } from "../../lib/ChatCraftMessage";
+import db from "../../lib/db";
+import useSystemMessage from "../../hooks/use-system-message";
 
-interface OpenAiMessageProps extends Omit<MessageBaseProps, "avatar"> {
-  model: GptModel;
-}
+type OpenAiMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
+  message: ChatCraftAiMessage;
+};
 
 const getHeading = (model: GptModel) => {
   switch (model) {
@@ -33,19 +37,16 @@ const getAvatar = (model: GptModel) => {
 };
 
 function OpenAiMessage(props: OpenAiMessageProps) {
-  // We may or many not need to adjust the displayed text (e.g., if retrying)
-  const [text, setText] = useState(props.text);
-  const [heading, setHeading] = useState(getHeading(props.model));
-  const [avatar, setAvatar] = useState(getAvatar(props.model));
+  // We may or many not need to adjust the message (e.g., when retrying)
+  const [message, setMessage] = useState(props.message);
+  const [retrying, setRetrying] = useState(false);
   const { settings } = useSettings();
+  const systemMessage = useSystemMessage();
 
   useEffect(() => {
-    setText(props.text);
-    setHeading(getHeading(props.model));
-    setAvatar(getAvatar(props.model));
-  }, [props.text, props.model]);
+    setMessage(props.message);
+  }, [props.message]);
 
-  // TODO: convert this to use message.* props once other PRs land
   const handleRetryClick = useCallback(
     async (model: GptModel) => {
       if (!settings.apiKey) {
@@ -58,42 +59,85 @@ function OpenAiMessage(props: OpenAiMessageProps) {
           throw new Error(`Unable to find chat with chatId=${props.chatId}`);
         }
 
-        const idx = chat.messages.findIndex((message) => message.id === props.id);
+        const idx = chat.messages.findIndex((m) => m.id === message.id);
         if (!idx) {
-          throw new Error(`Unable to find message within chat with id=${props.id}`);
+          throw new Error(`Unable to find message within chat with id=${message.id}`);
         }
-
-        setHeading(getHeading(model));
-        setAvatar(getAvatar(model));
-        setText("");
-
         const context = chat.messages.slice(0, idx);
 
-        const newText = await ai.chat(context, {
+        const date = new Date();
+        const { id, versions } = message;
+        setMessage(new ChatCraftAiMessage({ id, date, model, text: "", versions }));
+
+        setRetrying(true);
+        const newVersionText = await ai.chat(context, {
           apiKey: settings.apiKey,
           model: settings.model,
           onToken(_token: string, currentText: string) {
-            setText(currentText);
-            console.log(currentText);
+            setMessage(new ChatCraftAiMessage({ id, date, model, text: currentText, versions }));
           },
+          systemMessage,
         });
 
-        setText(newText);
+        // Update db with new message info, and also add this as a new version
+        await db.messages.update(message.id, {
+          date,
+          model,
+          text: newVersionText,
+          versions: [
+            ...message.versions,
+            new ChatCraftAiMessageVersion({ date, model, text: newVersionText }),
+          ],
+        });
       } catch (err) {
         // TODO: UI error handling
         console.warn("Unable to retry message", { model, err });
+      } finally {
+        setRetrying(false);
       }
     },
-    [props.chatId, props.id, settings.apiKey, settings.model]
+    [props.chatId, settings.apiKey, settings.model, message, systemMessage]
   );
+
+  // If there are multiple versions in an AI message, add some UI to switch between them
+  const versionsDropDown =
+    message.versions?.length > 1 ? (
+      <Menu>
+        <MenuButton as={Button} size="xs" variant="outline" rightIcon={<TbChevronDown />}>
+          Versions
+        </MenuButton>
+        <MenuList>
+          {message.versions.map((version) => {
+            const { id, model } = version;
+
+            // Name each version for the model, and try to identify which one is the current
+            let name = getHeading(model);
+            if (message.currentVersion?.id === id) {
+              name += " (current)";
+            }
+
+            return (
+              <MenuItem key={id} value={id} onClick={() => message.switchVersion(id)}>
+                {name}
+              </MenuItem>
+            );
+          })}
+        </MenuList>
+      </Menu>
+    ) : null;
 
   return (
     <MessageBase
       {...props}
-      text={text}
-      avatar={avatar}
-      heading={heading}
-      onRetryClick={handleRetryClick}
+      message={message}
+      hidePreviews={retrying}
+      avatar={getAvatar(message.model)}
+      heading={retrying ? `${getHeading(message.model)} (retrying...)` : getHeading(message.model)}
+      headingComponent={versionsDropDown}
+      onRetryClick={retrying ? undefined : handleRetryClick}
+      onDeleteClick={retrying ? undefined : props.onDeleteClick}
+      disableFork={retrying}
+      disableEdit={retrying}
     />
   );
 }

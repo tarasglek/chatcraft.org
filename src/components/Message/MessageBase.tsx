@@ -28,7 +28,11 @@ import { Link as ReactRouterLink, useNavigate } from "react-router-dom";
 import db from "../../lib/db";
 import { formatDate, download } from "../../lib/utils";
 import Markdown from "../Markdown";
-import { ChatCraftMessage } from "../../lib/ChatCraftMessage";
+import {
+  ChatCraftAiMessage,
+  ChatCraftAiMessageVersion,
+  ChatCraftMessage,
+} from "../../lib/ChatCraftMessage";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
@@ -37,6 +41,7 @@ export interface MessageBaseProps {
   message: ChatCraftMessage;
   chatId: string;
   heading?: string;
+  headingComponent?: ReactNode;
   avatar: ReactNode;
   isLoading: boolean;
   hidePreviews?: boolean;
@@ -51,6 +56,7 @@ function MessageBase({
   message,
   chatId,
   heading,
+  headingComponent,
   avatar,
   isLoading,
   hidePreviews,
@@ -96,9 +102,34 @@ function MessageBase({
 
       const data = new FormData(e.target as HTMLFormElement);
       const text = data.get("text");
-      if (typeof text === "string") {
+      if (typeof text !== "string") {
+        return;
+      }
+
+      // For AI messages, where we track versions, add this edited version.
+      // to the list of all versions. For other message types, just update
+      // the text of the message in place.
+      const editedAt = new Date();
+      if (message instanceof ChatCraftAiMessage) {
         db.messages
-          .update(message.id, { text, date: new Date() })
+          .update(message.id, {
+            date: editedAt,
+            text,
+            versions: [
+              ...message.versions,
+              new ChatCraftAiMessageVersion({
+                date: editedAt,
+                model: (message as ChatCraftAiMessage).model,
+                text,
+              }),
+            ],
+          })
+          // TODO: UI for error..
+          .catch((err) => console.warn("Unable to update message", err))
+          .finally(() => setEditing(false));
+      } else {
+        db.messages
+          .update(message.id, { text, date: editedAt })
           // TODO: UI for error..
           .catch((err) => console.warn("Unable to update message", err))
           .finally(() => setEditing(false));
@@ -115,11 +146,11 @@ function MessageBase({
             <Flex gap={3}>
               <Box>{avatar}</Box>
               <Flex direction="column" justify="center">
-                <Flex h="100%" align="center" gap={3}>
-                  <Heading as="h2" size="xs">
+                <Flex h="100%" align="center" gap={2}>
+                  <Heading as="h2" size="xs" minW="fit-content">
                     {heading}
                   </Heading>
-                  <Text as="span" fontSize="sm">
+                  <Text as="span" fontSize="sm" minW="fit-content">
                     <Link
                       as={ReactRouterLink}
                       to={`/c/${chatId}#${id}`}
@@ -129,6 +160,7 @@ function MessageBase({
                       {formatDate(date)}
                     </Link>
                   </Text>
+                  {headingComponent}
                 </Flex>
               </Flex>
             </Flex>

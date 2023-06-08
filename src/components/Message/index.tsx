@@ -35,7 +35,6 @@ function Message({
         chatId={chatId}
         isLoading={isLoading}
         hidePreviews={hidePreviews}
-        model={message.model}
         onPrompt={onPrompt}
         onDeleteClick={onDeleteClick}
         disableFork={disableFork}
