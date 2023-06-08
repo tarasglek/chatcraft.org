@@ -2,12 +2,19 @@ import { nanoid } from "nanoid";
 import { BaseChatMessage, type MessageType } from "langchain/schema";
 import db, { type ChatCraftMessageTable } from "./db";
 
-export type ChatCraftAiMessageVersion = {
+export class ChatCraftAiMessageVersion {
   id: string;
   date: Date;
   model: GptModel;
   text: string;
-};
+
+  constructor({ date, model, text }: { date?: Date; model: GptModel; text: string }) {
+    this.id = nanoid();
+    this.date = date ?? new Date();
+    this.model = model;
+    this.text = text;
+  }
+}
 
 export type SerializedChatCraftMessage = {
   id: string;
@@ -111,11 +118,7 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     super({ id, date, type: "ai", text });
 
     this.model = model;
-    this.versions = versions ?? [{ id: nanoid(), date: date ?? new Date(), model, text }];
-  }
-
-  addVersion(version: ChatCraftAiMessageVersion) {
-    this.versions.push(version);
+    this.versions = versions ?? [new ChatCraftAiMessageVersion({ date, model, text })];
   }
 
   switchVersion(id: string) {
@@ -125,9 +128,23 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     }
 
     const { date, model, text } = version;
-    this.date = date;
-    this.model = model;
-    this.text = text;
+    db.messages.update(this.id, { date, model, text });
+  }
+
+  // Get the first version that matches the current state of the message (there could be multiple)
+  get currentVersion() {
+    if (!this.versions?.length) {
+      return null;
+    }
+
+    const { model, text, versions } = this;
+    for (const version of versions) {
+      if (version.model === model && version.text === text) {
+        return version;
+      }
+    }
+
+    return null;
   }
 
   serialize(): SerializedChatCraftMessage {

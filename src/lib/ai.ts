@@ -11,6 +11,7 @@ export type ChatOptions = {
   temperature?: number;
   onToken: (token: string, currentText: string) => void;
   controller?: AbortController;
+  systemMessage?: string;
 };
 
 export const chat = (messages: ChatCraftMessage[], options: ChatOptions) => {
@@ -26,7 +27,9 @@ export const chat = (messages: ChatCraftMessage[], options: ChatOptions) => {
   const controller = options.controller ?? new AbortController();
 
   // Send the chat history + user's prompt, and prefix it all with our system message
-  const systemChatMessage = new ChatCraftSystemMessage({ text: defaultSystemMessage });
+  const systemChatMessage = new ChatCraftSystemMessage({
+    text: options.systemMessage ?? defaultSystemMessage,
+  });
 
   return chatOpenAI
     .call(
