@@ -1,6 +1,8 @@
-import { memo, useCallback, type ReactNode } from "react";
+import { memo, useCallback, type ReactNode, useState, FormEvent } from "react";
 import {
   Box,
+  Button,
+  ButtonGroup,
   Card,
   CardBody,
   CardHeader,
@@ -14,23 +16,27 @@ import {
   MenuItem,
   MenuList,
   Text,
+  Textarea,
+  VStack,
   useClipboard,
   useToast,
 } from "@chakra-ui/react";
+import ResizeTextarea from "react-textarea-autosize";
 import { TbDots } from "react-icons/tb";
 import { Link as ReactRouterLink, useNavigate } from "react-router-dom";
 
+import db from "../../lib/db";
 import { formatDate, download } from "../../lib/utils";
 import Markdown from "../Markdown";
+import { ChatCraftMessage } from "../../lib/ChatCraftMessage";
+
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 
 export interface MessageBaseProps {
-  id: string;
+  message: ChatCraftMessage;
   chatId: string;
-  date: Date;
   heading?: string;
-  text: string;
   avatar: ReactNode;
   isLoading: boolean;
   hidePreviews?: boolean;
@@ -42,11 +48,9 @@ export interface MessageBaseProps {
 }
 
 function MessageBase({
-  id,
+  message,
   chatId,
-  date,
   heading,
-  text,
   avatar,
   isLoading,
   hidePreviews,
@@ -56,6 +60,8 @@ function MessageBase({
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
+  const { id, date, text } = message;
+  const [editing, setEditing] = useState(false);
   const { onCopy } = useClipboard(text);
   const toast = useToast();
   const navigate = useNavigate();
@@ -83,6 +89,23 @@ function MessageBase({
       isClosable: true,
     });
   }, [toast, text]);
+
+  const handleSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+
+      const data = new FormData(e.target as HTMLFormElement);
+      const text = data.get("text");
+      if (typeof text === "string") {
+        db.messages
+          .update(message.id, { text, date: new Date() })
+          // TODO: UI for error..
+          .catch((err) => console.warn("Unable to update message", err))
+          .finally(() => setEditing(false));
+      }
+    },
+    [message]
+  );
 
   return (
     <Box id={id} my={6} flex={1}>
@@ -138,7 +161,11 @@ function MessageBase({
                 )}
 
                 {!disableEdit && onDeleteClick && <MenuDivider />}
-                {!disableEdit && <MenuItem>Edit (TODO...)</MenuItem>}
+                {!disableEdit && (
+                  <MenuItem onClick={() => setEditing(!editing)}>
+                    {editing ? "Cancel Editing" : "Edit"}
+                  </MenuItem>
+                )}
                 {onDeleteClick && (
                   <MenuItem onClick={() => onDeleteClick()} color="red.400">
                     Delete
@@ -151,10 +178,36 @@ function MessageBase({
         <CardBody p={0}>
           <Flex direction="column" gap={3}>
             <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
-              {/* Messages are being rendered in Markdown format */}
-              <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
-                {text}
-              </Markdown>
+              {editing ? (
+                <form onSubmit={handleSubmit}>
+                  <VStack align="end">
+                    <Textarea
+                      as={ResizeTextarea}
+                      name="text"
+                      minH="unset"
+                      overflow="hidden"
+                      w="100%"
+                      maxH="30vh"
+                      resize="vertical"
+                      minRows={1}
+                      defaultValue={text}
+                      autoFocus={true}
+                    />
+                    <ButtonGroup>
+                      <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
+                        Cancel
+                      </Button>
+                      <Button size="sm" type="submit">
+                        Save
+                      </Button>
+                    </ButtonGroup>
+                  </VStack>
+                </form>
+              ) : (
+                <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
+                  {text}
+                </Markdown>
+              )}
             </Box>
           </Flex>
         </CardBody>

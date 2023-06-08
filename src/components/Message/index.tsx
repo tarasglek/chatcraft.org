@@ -31,10 +31,8 @@ function Message({
   if (message instanceof ChatCraftAiMessage) {
     return (
       <OpenAiMessage
-        id={message.id}
+        message={message}
         chatId={chatId}
-        date={message.date}
-        text={message.text}
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         model={message.model}
@@ -50,12 +48,10 @@ function Message({
     const { user } = message;
     return (
       <HumanMessage
-        id={message.id}
+        message={message}
         chatId={chatId}
-        date={message.date}
         name={user?.name || "User"}
         avatarUrl={user?.avatarUrl}
-        text={message.text}
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
