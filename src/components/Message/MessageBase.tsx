@@ -36,6 +36,7 @@ export interface MessageBaseProps {
   hidePreviews?: boolean;
   onPrompt?: (prompt: string) => void;
   onDeleteClick?: () => void;
+  onRetryClick?: (model: GptModel) => void;
   disableFork?: boolean;
   disableEdit?: boolean;
 }
@@ -51,6 +52,7 @@ function MessageBase({
   hidePreviews,
   onDeleteClick,
   onPrompt,
+  onRetryClick,
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
@@ -124,6 +126,17 @@ function MessageBase({
                     Duplicate Chat from Message...
                   </MenuItem>
                 )}
+
+                {onRetryClick && <MenuDivider />}
+                {onRetryClick && (
+                  <MenuItem onClick={() => onRetryClick("gpt-3.5-turbo")}>
+                    Retry with GPT 3.5
+                  </MenuItem>
+                )}
+                {onRetryClick && (
+                  <MenuItem onClick={() => onRetryClick("gpt-4")}>Retry with GPT 4</MenuItem>
+                )}
+
                 {!disableEdit && onDeleteClick && <MenuDivider />}
                 {!disableEdit && <MenuItem>Edit (TODO...)</MenuItem>}
                 {onDeleteClick && (
