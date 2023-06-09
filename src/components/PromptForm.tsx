@@ -25,7 +25,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
-import { TbShare2, TbChevronUp } from "react-icons/tb";
+import { TbShare2 } from "react-icons/tb";
 import { useCopyToClipboard } from "react-use";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
@@ -113,7 +113,6 @@ function PromptForm({
   const [, copyToClipboard] = useCopyToClipboard();
   const toast = useToast();
   const { messages } = chat;
-  const modelName = settings.model === "gpt-3.5-turbo" ? "GPT-3.5" : "GPT-4";
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -316,35 +315,14 @@ function PromptForm({
                   checked={singleMessageMode}
                   onChange={(e) => onSingleMessageModeChange(e.target.checked)}
                 >
-                  Single Message
+                  Single Message Mode
                 </Checkbox>
 
                 <Flex gap={2} align="center">
                   <NewButton forkUrl={forkUrl} variant="outline" />
-                  <ButtonGroup isAttached>
-                    <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
-                      Ask {modelName}
-                    </Button>
-                    <Menu>
-                      <MenuButton
-                        as={IconButton}
-                        size="sm"
-                        aria-label="Choose Model"
-                        title="Choose Model"
-                        icon={<TbChevronUp />}
-                      />
-                      <MenuList>
-                        <MenuItem
-                          onClick={() => setSettings({ ...settings, model: "gpt-3.5-turbo" })}
-                        >
-                          GPT-3.5
-                        </MenuItem>
-                        <MenuItem onClick={() => setSettings({ ...settings, model: "gpt-4" })}>
-                          GPT-4
-                        </MenuItem>
-                      </MenuList>
-                    </Menu>
-                  </ButtonGroup>
+                  <Button type="submit" size="sm" isLoading={isLoading} loadingText="Send">
+                    Send
+                  </Button>
                 </Flex>
               </Flex>
             </Flex>
