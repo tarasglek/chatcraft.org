@@ -20,10 +20,6 @@ import db from "../../lib/db";
 import useSystemMessage from "../../hooks/use-system-message";
 import { formatDate } from "../../lib/utils";
 
-type OpenAiMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
-  message: ChatCraftAiMessage;
-};
-
 const getHeading = (model: GptModel) => {
   switch (model) {
     case "gpt-4":
@@ -44,6 +40,62 @@ const getAvatar = (model: GptModel, size: "sm" | "xs") => {
     default:
       return <Avatar size={size} bg="#75AB9C" src={`/openai-logo.png`} title="ChatGPT" />;
   }
+};
+
+// If there are multiple versions in an AI message, add some UI to switch between them
+function MessageVersionsMenu({
+  message,
+  isDisabled,
+}: {
+  message: ChatCraftAiMessage;
+  isDisabled: boolean;
+}) {
+  const { versions } = message;
+  if (versions?.length <= 1) {
+    return null;
+  }
+
+  return (
+    <Menu placement="bottom-end">
+      <MenuButton
+        as={IconButton}
+        size="xs"
+        variant="ghost"
+        isDisabled={isDisabled}
+        icon={<TbChevronDown title={`${versions.length} Versions`} />}
+      >
+        Versions
+      </MenuButton>
+      <MenuList>
+        {versions
+          .sort((a, b) => b.date.getTime() - a.date.getTime())
+          .map((version) => {
+            const { id, model, date } = version;
+
+            return (
+              <MenuItem
+                key={id}
+                value={id}
+                onClick={() => message.switchVersion(id)}
+                icon={getAvatar(model, "xs")}
+              >
+                <HStack>
+                  <Box>
+                    <strong>{getHeading(model)}</strong>
+                  </Box>
+                  <Box>{formatDate(date)}</Box>
+                  <Box>{message.currentVersion?.id === id ? <strong>✓</strong> : " "}</Box>
+                </HStack>
+              </MenuItem>
+            );
+          })}
+      </MenuList>
+    </Menu>
+  );
+}
+
+type OpenAiMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
+  message: ChatCraftAiMessage;
 };
 
 function OpenAiMessage(props: OpenAiMessageProps) {
@@ -109,43 +161,6 @@ function OpenAiMessage(props: OpenAiMessageProps) {
     [props.chatId, settings.apiKey, settings.model, message, systemMessage]
   );
 
-  // If there are multiple versions in an AI message, add some UI to switch between them
-  const versionsDropDown =
-    message.versions?.length > 1 ? (
-      <Menu placement="bottom-end">
-        <MenuButton
-          as={IconButton}
-          size="xs"
-          variant="ghost"
-          icon={<TbChevronDown title={`${message.versions.length} Versions`} />}
-        >
-          Versions
-        </MenuButton>
-        <MenuList>
-          {message.versions.map((version) => {
-            const { id, model, date } = version;
-
-            return (
-              <MenuItem
-                key={id}
-                value={id}
-                onClick={() => message.switchVersion(id)}
-                icon={getAvatar(model, "xs")}
-              >
-                <HStack>
-                  <Box>
-                    <strong>{getHeading(model)}</strong>
-                  </Box>
-                  <Box>{formatDate(date)}</Box>
-                  <Box>{message.currentVersion?.id === id ? <strong>✓</strong> : " "}</Box>
-                </HStack>
-              </MenuItem>
-            );
-          })}
-        </MenuList>
-      </Menu>
-    ) : null;
-
   return (
     <MessageBase
       {...props}
@@ -153,7 +168,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
       hidePreviews={retrying}
       avatar={getAvatar(message.model, "sm")}
       heading={retrying ? `${getHeading(message.model)} (retrying...)` : getHeading(message.model)}
-      headingComponent={versionsDropDown}
+      headingMenu={<MessageVersionsMenu message={message} isDisabled={retrying} />}
       onRetryClick={retrying ? undefined : handleRetryClick}
       onDeleteClick={retrying ? undefined : props.onDeleteClick}
       disableFork={retrying}

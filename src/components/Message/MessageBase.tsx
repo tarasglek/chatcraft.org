@@ -41,7 +41,7 @@ export interface MessageBaseProps {
   message: ChatCraftMessage;
   chatId: string;
   heading?: string;
-  headingComponent?: ReactNode;
+  headingMenu?: ReactNode;
   avatar: ReactNode;
   isLoading: boolean;
   hidePreviews?: boolean;
@@ -56,7 +56,7 @@ function MessageBase({
   message,
   chatId,
   heading,
-  headingComponent,
+  headingMenu,
   avatar,
   isLoading,
   hidePreviews,
@@ -119,23 +119,39 @@ function MessageBase({
               ...message.versions,
               new ChatCraftAiMessageVersion({
                 date: editedAt,
-                model: (message as ChatCraftAiMessage).model,
+                model: message.model,
                 text,
               }),
             ],
           })
-          // TODO: UI for error..
-          .catch((err) => console.warn("Unable to update message", err))
+          .catch((err) => {
+            console.warn("Unable to update message", err);
+            toast({
+              title: `Error Updating Message`,
+              description: "message" in err ? err.message : undefined,
+              status: "error",
+              position: "top",
+              isClosable: true,
+            });
+          })
           .finally(() => setEditing(false));
       } else {
         db.messages
           .update(message.id, { text, date: editedAt })
-          // TODO: UI for error..
-          .catch((err) => console.warn("Unable to update message", err))
+          .catch((err) => {
+            console.warn("Unable to update message", err);
+            toast({
+              title: `Error Updating Message`,
+              description: "message" in err ? err.message : undefined,
+              status: "error",
+              position: "top",
+              isClosable: true,
+            });
+          })
           .finally(() => setEditing(false));
       }
     },
-    [message]
+    [message, toast]
   );
 
   return (
@@ -160,7 +176,7 @@ function MessageBase({
                       {formatDate(date)}
                     </Link>
                   </Text>
-                  {headingComponent}
+                  {headingMenu}
                 </Flex>
               </Flex>
             </Flex>
@@ -185,11 +201,11 @@ function MessageBase({
                 {onRetryClick && <MenuDivider />}
                 {onRetryClick && (
                   <MenuItem onClick={() => onRetryClick("gpt-3.5-turbo")}>
-                    Retry with GPT 3.5
+                    Retry with ChatGPT
                   </MenuItem>
                 )}
                 {onRetryClick && (
-                  <MenuItem onClick={() => onRetryClick("gpt-4")}>Retry with GPT 4</MenuItem>
+                  <MenuItem onClick={() => onRetryClick("gpt-4")}>Retry with GPT - 4</MenuItem>
                 )}
 
                 {!disableEdit && onDeleteClick && <MenuDivider />}

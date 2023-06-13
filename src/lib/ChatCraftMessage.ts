@@ -128,6 +128,9 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     }
 
     const { date, model, text } = version;
+    this.date = date;
+    this.model = model;
+    this.text = text;
     db.messages.update(this.id, { date, model, text });
   }
 
