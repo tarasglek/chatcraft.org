@@ -105,7 +105,7 @@ function PromptForm({
   const { settings, setSettings } = useSettings();
   const [, copyToClipboard] = useCopyToClipboard();
   const toast = useToast();
-  const modelName = settings.model === "gpt-3.5-turbo" ? "GPT-3.5" : "GPT-4";
+  const modelName = settings.model === "gpt-3.5-turbo" ? "ChatGPT" : "GPT - 4";
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -329,10 +329,10 @@ function PromptForm({
                         <MenuItem
                           onClick={() => setSettings({ ...settings, model: "gpt-3.5-turbo" })}
                         >
-                          GPT-3.5
+                          ChatGPT
                         </MenuItem>
                         <MenuItem onClick={() => setSettings({ ...settings, model: "gpt-4" })}>
-                          GPT-4
+                          GPT - 4
                         </MenuItem>
                       </MenuList>
                     </Menu>
