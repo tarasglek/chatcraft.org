@@ -161,8 +161,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 value={settings.model}
                 onChange={(e) => setSettings({ ...settings, model: e.target.value as GptModel })}
               >
-                <option value="gpt-4">GPT-4</option>
-                <option value="gpt-3.5-turbo">ChatGPT (GPT-3.5-turbo)</option>
+                <option value="gpt-4">GPT - 4</option>
+                <option value="gpt-3.5-turbo">ChatGPT</option>
               </Select>
               <FormHelperText>
                 See{" "}
@@ -183,7 +183,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 >
                   pricing
                 </Link>
-                . NOTE: not all accounts have access to GPT-4
+                . NOTE: not all accounts have access to GPT - 4
               </FormHelperText>
             </FormControl>
 

@@ -1,5 +1,14 @@
 import { memo, useCallback, useEffect, useState } from "react";
-import { Avatar, Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import {
+  Avatar,
+  Box,
+  HStack,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+} from "@chakra-ui/react";
 import { TbChevronDown } from "react-icons/tb";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
@@ -9,6 +18,7 @@ import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftAiMessage, ChatCraftAiMessageVersion } from "../../lib/ChatCraftMessage";
 import db from "../../lib/db";
 import useSystemMessage from "../../hooks/use-system-message";
+import { formatDate } from "../../lib/utils";
 
 type OpenAiMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
   message: ChatCraftAiMessage;
@@ -17,7 +27,7 @@ type OpenAiMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
 const getHeading = (model: GptModel) => {
   switch (model) {
     case "gpt-4":
-      return "GPT-4";
+      return "GPT - 4";
     case "gpt-3.5-turbo":
     // falls through
     default:
@@ -25,14 +35,14 @@ const getHeading = (model: GptModel) => {
   }
 };
 
-const getAvatar = (model: GptModel) => {
+const getAvatar = (model: GptModel, size: "sm" | "xs") => {
   switch (model) {
     case "gpt-4":
-      return <Avatar size="sm" bg="#A96CF9" src={`/openai-logo.png`} title="GPT-4" />;
+      return <Avatar size={size} bg="#A96CF9" src={`/openai-logo.png`} title="GPT - 4" />;
     case "gpt-3.5-turbo":
     // falls through
     default:
-      return <Avatar size="sm" bg="#75AB9C" src={`/openai-logo.png`} title="ChatGPT" />;
+      return <Avatar size={size} bg="#75AB9C" src={`/openai-logo.png`} title="ChatGPT" />;
   }
 };
 
@@ -102,23 +112,33 @@ function OpenAiMessage(props: OpenAiMessageProps) {
   // If there are multiple versions in an AI message, add some UI to switch between them
   const versionsDropDown =
     message.versions?.length > 1 ? (
-      <Menu>
-        <MenuButton as={Button} size="xs" variant="outline" rightIcon={<TbChevronDown />}>
+      <Menu placement="bottom-end">
+        <MenuButton
+          as={IconButton}
+          size="xs"
+          variant="ghost"
+          icon={<TbChevronDown title={`${message.versions.length} Versions`} />}
+        >
           Versions
         </MenuButton>
         <MenuList>
           {message.versions.map((version) => {
-            const { id, model } = version;
-
-            // Name each version for the model, and try to identify which one is the current
-            let name = getHeading(model);
-            if (message.currentVersion?.id === id) {
-              name += " (current)";
-            }
+            const { id, model, date } = version;
 
             return (
-              <MenuItem key={id} value={id} onClick={() => message.switchVersion(id)}>
-                {name}
+              <MenuItem
+                key={id}
+                value={id}
+                onClick={() => message.switchVersion(id)}
+                icon={getAvatar(model, "xs")}
+              >
+                <HStack>
+                  <Box>
+                    <strong>{getHeading(model)}</strong>
+                  </Box>
+                  <Box>{formatDate(date)}</Box>
+                  <Box>{message.currentVersion?.id === id ? <strong>✓</strong> : " "}</Box>
+                </HStack>
               </MenuItem>
             );
           })}
@@ -131,7 +151,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
       {...props}
       message={message}
       hidePreviews={retrying}
-      avatar={getAvatar(message.model)}
+      avatar={getAvatar(message.model, "sm")}
       heading={retrying ? `${getHeading(message.model)} (retrying...)` : getHeading(message.model)}
       headingComponent={versionsDropDown}
       onRetryClick={retrying ? undefined : handleRetryClick}
