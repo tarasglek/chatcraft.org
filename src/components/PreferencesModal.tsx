@@ -29,6 +29,7 @@ import RevealablePasswordInput from "./RevealablePasswordInput";
 import { useSettings } from "../hooks/use-settings";
 import { download, isMac } from "../lib/utils";
 import db from "../lib/db";
+import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -51,6 +52,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const [, copyToClipboard] = useCopyToClipboard();
   // Whether our db is being persisted
   const [isPersisted, setIsPersisted] = useState(false);
+  const [models, setModels] = useState<ChatCraftModel[]>([]);
   const toast = useToast();
 
   useEffect(() => {
@@ -58,6 +60,25 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       .then((value) => setIsPersisted(value))
       .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    async function fetchModels() {
+      const response = await fetch("https://api.openai.com/v1/models", {
+        headers: {
+          Authorization: `Bearer ${settings.apiKey}`,
+        },
+      });
+      const data = await response.json();
+      setModels(
+        data.data
+          .filter((model: any) => model.id.includes("gpt") && !/\d{4}$/.test(model.id))
+          .map((model: any) => new ChatCraftModel(`OpenAI/${model.id}`))
+      );
+    }
+    if (isOpen) {
+      fetchModels();
+    }
+  }, [settings.apiKey, isOpen]);
 
   async function handlePersistClick() {
     if (navigator.storage?.persist) {
@@ -161,8 +182,11 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 value={settings.model}
                 onChange={(e) => setSettings({ ...settings, model: e.target.value as GptModel })}
               >
-                <option value="gpt-4">GPT - 4</option>
-                <option value="gpt-3.5-turbo">ChatGPT</option>
+                {models.map((model) => (
+                  <option key={model.prettyModel} value={model.id}>
+                    {model.prettyModel}
+                  </option>
+                ))}
               </Select>
               <FormHelperText>
                 See{" "}
