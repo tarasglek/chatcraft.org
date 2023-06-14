@@ -19,17 +19,7 @@ import { ChatCraftAiMessage, ChatCraftAiMessageVersion } from "../../lib/ChatCra
 import db from "../../lib/db";
 import useSystemMessage from "../../hooks/use-system-message";
 import { formatDate } from "../../lib/utils";
-
-const getHeading = (model: GptModel) => {
-  switch (model) {
-    case "gpt-4":
-      return "GPT - 4";
-    case "gpt-3.5-turbo":
-    // falls through
-    default:
-      return "ChatGPT";
-  }
-};
+import { ChatCraftModel } from "../../lib/ChatCraftModel";
 
 const getAvatar = (model: GptModel, size: "sm" | "xs") => {
   switch (model) {
@@ -81,7 +71,7 @@ function MessageVersionsMenu({
               >
                 <HStack>
                   <Box>
-                    <strong>{getHeading(model)}</strong>
+                    <strong>{new ChatCraftModel(model).prettyModel}</strong>
                   </Box>
                   <Box>{formatDate(date)}</Box>
                   <Box>{message.currentVersion?.id === id ? <strong>✓</strong> : " "}</Box>
@@ -167,7 +157,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
       message={message}
       hidePreviews={retrying}
       avatar={getAvatar(message.model, "sm")}
-      heading={retrying ? `${getHeading(message.model)} (retrying...)` : getHeading(message.model)}
+      heading={new ChatCraftModel(message.model).prettyModel + (retrying ? ` (retrying...)` : "")}
       headingMenu={<MessageVersionsMenu message={message} isDisabled={retrying} />}
       onRetryClick={retrying ? undefined : handleRetryClick}
       onDeleteClick={retrying ? undefined : props.onDeleteClick}
