@@ -71,7 +71,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       const data = await response.json();
       setModels(
         data.data
-          .filter((model: any) => model.id.includes("gpt") && !/\d{4}$/.test(model.id))
+          // Hide all pinned models (visual noise) except gpt-3.5-turbo-0613 as that wont be default till June 27 :(
+          .filter(
+            (model: any) =>
+              model.id.includes("gpt") &&
+              (model.id == "gpt-3.5-turbo-0613" || !/\d{4}$/.test(model.id))
+          )
           .map((model: any) => new ChatCraftModel(`OpenAI/${model.id}`))
       );
     }
