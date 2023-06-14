@@ -36,6 +36,7 @@ import { isMac, isWindows, formatNumber, formatCurrency, download } from "../lib
 import ShareModal from "./ShareModal";
 import NewButton from "./NewButton";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
+import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -315,7 +316,7 @@ function PromptForm({
                   <NewButton forkUrl={forkUrl} variant="outline" />
                   <ButtonGroup isAttached>
                     <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
-                      Ask {modelName}
+                      Ask {new ChatCraftModel(settings.model).prettyModel}
                     </Button>
                     <Menu>
                       <MenuButton
