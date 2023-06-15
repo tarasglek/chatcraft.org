@@ -32,11 +32,11 @@ import AutoResizingTextarea from "./AutoResizingTextarea";
 import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
+import { useModels } from "../hooks/use-models";
 import { isMac, isWindows, formatNumber, formatCurrency, download } from "../lib/utils";
 import ShareModal from "./ShareModal";
 import NewButton from "./NewButton";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -104,9 +104,9 @@ function PromptForm({
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
   const { settings, setSettings } = useSettings();
+  const { models } = useModels();
   const [, copyToClipboard] = useCopyToClipboard();
   const toast = useToast();
-  const modelName = settings.model === "gpt-3.5-turbo" ? "ChatGPT" : "GPT - 4";
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -316,7 +316,7 @@ function PromptForm({
                   <NewButton forkUrl={forkUrl} variant="outline" />
                   <ButtonGroup isAttached>
                     <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
-                      Ask {new ChatCraftModel(settings.model).prettyModel}
+                      Ask {settings.model.prettyModel}
                     </Button>
                     <Menu>
                       <MenuButton
@@ -327,14 +327,14 @@ function PromptForm({
                         icon={<TbChevronUp />}
                       />
                       <MenuList>
-                        <MenuItem
-                          onClick={() => setSettings({ ...settings, model: "gpt-3.5-turbo" })}
-                        >
-                          ChatGPT
-                        </MenuItem>
-                        <MenuItem onClick={() => setSettings({ ...settings, model: "gpt-4" })}>
-                          GPT - 4
-                        </MenuItem>
+                        {models.map((model) => (
+                          <MenuItem
+                            key={model.id}
+                            onClick={() => setSettings({ ...settings, model })}
+                          >
+                            {model.prettyModel}
+                          </MenuItem>
+                        ))}
                       </MenuList>
                     </Menu>
                   </ButtonGroup>

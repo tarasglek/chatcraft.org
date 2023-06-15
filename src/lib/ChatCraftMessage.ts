@@ -1,29 +1,38 @@
 import { nanoid } from "nanoid";
 import { BaseChatMessage, type MessageType } from "langchain/schema";
 import db, { type ChatCraftMessageTable } from "./db";
+import { ChatCraftModel } from "./ChatCraftModel";
 
 export class ChatCraftAiMessageVersion {
   id: string;
   date: Date;
-  model: GptModel;
+  model: ChatCraftModel;
   text: string;
 
-  constructor({ date, model, text }: { date?: Date; model: GptModel; text: string }) {
+  constructor({ date, model, text }: { date?: Date; model: ChatCraftModel; text: string }) {
     this.id = nanoid();
     this.date = date ?? new Date();
     this.model = model;
     this.text = text;
   }
+
+  toJSON() {
+    return {
+      ...this,
+      model: this.model.toString(),
+    };
+  }
 }
 
+// When we serialize to JSON, flatten Dates to strings, model etc.
 export type SerializedChatCraftMessage = {
   id: string;
   date: string;
   type: MessageType;
-  model?: GptModel;
+  model?: string;
   user?: User;
   text: string;
-  versions?: ChatCraftAiMessageVersion[];
+  versions?: { id: string; date: string; model: string; text: string }[];
 };
 
 // A decorated langchain chat message, with extra metadata
@@ -69,15 +78,29 @@ export class ChatCraftMessage extends BaseChatMessage {
     };
   }
 
+  toDB(chatId: string): ChatCraftMessageTable {
+    return {
+      id: this.id,
+      date: this.date,
+      chatId,
+      type: this.type,
+      text: this.text,
+    };
+  }
+
+  save(chatId: string) {
+    return db.messages.put(this.toDB(chatId));
+  }
+
   // Parse from serialized JSON
-  static parse(message: SerializedChatCraftMessage): ChatCraftMessage {
+  static fromJSON(message: SerializedChatCraftMessage): ChatCraftMessage {
     switch (message.type) {
       case "ai":
-        return ChatCraftAiMessage.parse(message);
+        return ChatCraftAiMessage.fromJSON(message);
       case "human":
-        return ChatCraftHumanMessage.parse(message);
+        return ChatCraftHumanMessage.fromJSON(message);
       case "system":
-        return ChatCraftSystemMessage.parse(message);
+        return ChatCraftSystemMessage.fromJSON(message);
       default:
         throw new Error(`Error parsing unknown message type: ${message.type}`);
     }
@@ -99,7 +122,7 @@ export class ChatCraftMessage extends BaseChatMessage {
 }
 
 export class ChatCraftAiMessage extends ChatCraftMessage {
-  model: GptModel;
+  model: ChatCraftModel;
   versions: ChatCraftAiMessageVersion[];
 
   constructor({
@@ -111,7 +134,7 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
   }: {
     id?: string;
     date?: Date;
-    model: GptModel;
+    model: ChatCraftModel;
     text: string;
     versions?: ChatCraftAiMessageVersion[];
   }) {
@@ -119,6 +142,10 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
 
     this.model = model;
     this.versions = versions ?? [new ChatCraftAiMessageVersion({ date, model, text })];
+  }
+
+  addVersion(version: ChatCraftAiMessageVersion) {
+    this.versions.push(version);
   }
 
   switchVersion(id: string) {
@@ -131,7 +158,6 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     this.date = date;
     this.model = model;
     this.text = text;
-    db.messages.update(this.id, { date, model, text });
   }
 
   // Get the first version that matches the current state of the message (there could be multiple)
@@ -152,22 +178,47 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
 
   serialize(): SerializedChatCraftMessage {
     return {
-      id: this.id,
-      date: this.date.toISOString(),
-      type: this.type,
-      model: this.model,
-      text: this.text,
-      versions: this.versions,
+      ...super.serialize(),
+      model: this.model.toString(),
+      versions: this.versions.map((version) => ({
+        ...version,
+        date: version.date.toISOString(),
+        model: version.model.toString(),
+      })),
     };
   }
 
-  static parse(message: SerializedChatCraftMessage) {
+  toDB(chatId: string): ChatCraftMessageTable {
+    return {
+      id: this.id,
+      date: this.date,
+      chatId,
+      type: this.type,
+      text: this.text,
+      model: this.model.toString(),
+      versions: this.versions.map((version) => ({
+        id: version.id,
+        date: version.date,
+        model: version.model.toString(),
+        text: version.text,
+      })),
+    };
+  }
+
+  static fromJSON(message: SerializedChatCraftMessage) {
     return new ChatCraftAiMessage({
       id: message.id,
       date: new Date(message.date),
-      model: message.model || "gpt-3.5-turbo",
+      model: new ChatCraftModel(message.model || "gpt-3.5-turbo"),
       text: message.text,
-      versions: message.versions,
+      versions: message.versions?.map(
+        (version) =>
+          new ChatCraftAiMessageVersion({
+            ...version,
+            date: new Date(version.date),
+            model: new ChatCraftModel(version.model),
+          })
+      ),
     });
   }
 
@@ -175,9 +226,12 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     return new ChatCraftAiMessage({
       id: message.id,
       date: message.date,
-      model: message.model || "gpt-3.5-turbo",
+      model: new ChatCraftModel(message.model || "gpt-3.5-turbo"),
       text: message.text,
-      versions: message.versions,
+      versions: message.versions?.map(
+        (version) =>
+          new ChatCraftAiMessageVersion({ ...version, model: new ChatCraftModel(version.model) })
+      ),
     });
   }
 }
@@ -193,15 +247,23 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
 
   serialize(): SerializedChatCraftMessage {
     return {
-      id: this.id,
-      date: this.date.toISOString(),
-      type: this.type,
+      ...super.serialize(),
       user: this.user,
-      text: this.text,
     };
   }
 
-  static parse(message: SerializedChatCraftMessage) {
+  toDB(chatId: string): ChatCraftMessageTable {
+    return {
+      id: this.id,
+      date: this.date,
+      chatId,
+      type: this.type,
+      text: this.text,
+      user: this.user,
+    };
+  }
+
+  static fromJSON(message: SerializedChatCraftMessage) {
     return new ChatCraftHumanMessage({
       id: message.id,
       date: new Date(message.date),
@@ -225,7 +287,7 @@ export class ChatCraftSystemMessage extends ChatCraftMessage {
     super({ id, date, type: "system", text });
   }
 
-  static parse(message: SerializedChatCraftMessage) {
+  static fromJSON(message: SerializedChatCraftMessage) {
     return new ChatCraftSystemMessage({
       id: message.id,
       date: new Date(message.date),

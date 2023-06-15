@@ -41,7 +41,7 @@ export async function loadShare(user: string, id: string) {
   }
 
   const serialized: SerializedChatCraftChat = await res.json();
-  return ChatCraftChat.parse(serialized);
+  return ChatCraftChat.fromJSON(serialized);
 }
 
 export async function summarizeChat(openaiApiKey: string, chat: ChatCraftChat) {

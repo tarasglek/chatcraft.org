@@ -25,7 +25,6 @@ import ResizeTextarea from "react-textarea-autosize";
 import { TbDots } from "react-icons/tb";
 import { Link as ReactRouterLink, useNavigate } from "react-router-dom";
 
-import db from "../../lib/db";
 import { formatDate, download } from "../../lib/utils";
 import Markdown from "../Markdown";
 import {
@@ -33,6 +32,8 @@ import {
   ChatCraftAiMessageVersion,
   ChatCraftMessage,
 } from "../../lib/ChatCraftMessage";
+import { useModels } from "../../hooks/use-models";
+import { ChatCraftModel } from "../../lib/ChatCraftModel";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
@@ -47,7 +48,7 @@ export interface MessageBaseProps {
   hidePreviews?: boolean;
   onPrompt?: (prompt: string) => void;
   onDeleteClick?: () => void;
-  onRetryClick?: (model: GptModel) => void;
+  onRetryClick?: (model: ChatCraftModel) => void;
   disableFork?: boolean;
   disableEdit?: boolean;
 }
@@ -67,6 +68,7 @@ function MessageBase({
   disableEdit,
 }: MessageBaseProps) {
   const { id, date, text } = message;
+  const { models } = useModels();
   const [editing, setEditing] = useState(false);
   const { onCopy } = useClipboard(text);
   const toast = useToast();
@@ -111,19 +113,15 @@ function MessageBase({
       // the text of the message in place.
       const editedAt = new Date();
       if (message instanceof ChatCraftAiMessage) {
-        db.messages
-          .update(message.id, {
-            date: editedAt,
-            text,
-            versions: [
-              ...message.versions,
-              new ChatCraftAiMessageVersion({
-                date: editedAt,
-                model: message.model,
-                text,
-              }),
-            ],
-          })
+        const version = new ChatCraftAiMessageVersion({
+          date: editedAt,
+          text,
+          model: message.model,
+        });
+        message.addVersion(version);
+        message.switchVersion(version.id);
+        message
+          .save(chatId)
           .catch((err) => {
             console.warn("Unable to update message", err);
             toast({
@@ -136,8 +134,10 @@ function MessageBase({
           })
           .finally(() => setEditing(false));
       } else {
-        db.messages
-          .update(message.id, { text, date: editedAt })
+        message.text = text;
+        message.date = editedAt;
+        message
+          .save(chatId)
           .catch((err) => {
             console.warn("Unable to update message", err);
             toast({
@@ -151,7 +151,7 @@ function MessageBase({
           .finally(() => setEditing(false));
       }
     },
-    [message, toast]
+    [message, toast, chatId]
   );
 
   return (
@@ -198,14 +198,15 @@ function MessageBase({
                   </MenuItem>
                 )}
 
-                {onRetryClick && <MenuDivider />}
                 {onRetryClick && (
-                  <MenuItem onClick={() => onRetryClick("gpt-3.5-turbo")}>
-                    Retry with ChatGPT
-                  </MenuItem>
-                )}
-                {onRetryClick && (
-                  <MenuItem onClick={() => onRetryClick("gpt-4")}>Retry with GPT - 4</MenuItem>
+                  <>
+                    <MenuDivider />
+                    {models.map((model) => (
+                      <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
+                        Retry with {model.prettyModel}
+                      </MenuItem>
+                    ))}
+                  </>
                 )}
 
                 {!disableEdit && onDeleteClick && <MenuDivider />}
