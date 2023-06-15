@@ -7,15 +7,18 @@ import router from "./router";
 import theme from "./theme";
 import { SettingsProvider } from "./hooks/use-settings";
 import { UserProvider } from "./hooks/use-user";
+import { ModelsProvider } from "./hooks/use-models";
 
 ReactDOM.createRoot(document.querySelector("main") as HTMLElement).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
       <SettingsProvider>
-        <UserProvider>
-          <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-          <RouterProvider router={router} />
-        </UserProvider>
+        <ModelsProvider>
+          <UserProvider>
+            <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+            <RouterProvider router={router} />
+          </UserProvider>
+        </ModelsProvider>
       </SettingsProvider>
     </ChakraProvider>
   </React.StrictMode>

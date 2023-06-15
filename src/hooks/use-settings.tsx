@@ -8,10 +8,11 @@ import {
   type FC,
 } from "react";
 import { useLocalStorage } from "react-use";
+import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 type Settings = {
   apiKey?: string;
-  model: GptModel;
+  model: ChatCraftModel;
   enterBehaviour: EnterBehaviour;
   justShowMeTheCode: boolean;
   countTokens: boolean;
@@ -19,7 +20,7 @@ type Settings = {
 };
 
 const defaultSettings: Settings = {
-  model: "gpt-3.5-turbo",
+  model: new ChatCraftModel("gpt-3.5-turbo", "OpenAI"),
   enterBehaviour: "send",
   // Disabled by default, since token parsing requires downloading larger deps
   countTokens: false,
@@ -42,7 +43,24 @@ const SettingsContext = createContext<SettingsContextType>({
 export const useSettings = () => useContext(SettingsContext);
 
 export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [settings, setSettings] = useLocalStorage<Settings>("settings", defaultSettings);
+  const [settings, setSettings] = useLocalStorage<Settings>("settings", defaultSettings, {
+    raw: false,
+    serializer(value: Settings) {
+      return JSON.stringify(value);
+    },
+    deserializer(value: string) {
+      const settings = JSON.parse(value);
+      if (!settings.model) {
+        settings.model = defaultSettings.model;
+      }
+
+      if (typeof settings.model === "string") {
+        settings.model = new ChatCraftModel(settings.model);
+      }
+
+      return settings;
+    },
+  });
   const [state, setState] = useState<Settings>(settings || defaultSettings);
 
   useEffect(() => {

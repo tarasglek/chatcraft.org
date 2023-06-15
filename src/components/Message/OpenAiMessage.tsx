@@ -8,6 +8,7 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  useToast,
 } from "@chakra-ui/react";
 import { TbChevronDown } from "react-icons/tb";
 
@@ -16,34 +17,53 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import * as ai from "../../lib/ai";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftAiMessage, ChatCraftAiMessageVersion } from "../../lib/ChatCraftMessage";
-import db from "../../lib/db";
 import useSystemMessage from "../../hooks/use-system-message";
 import { formatDate } from "../../lib/utils";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 
-const getAvatar = (model: GptModel, size: "sm" | "xs") => {
-  switch (model) {
-    case "gpt-4":
-      return <Avatar size={size} bg="#A96CF9" src={`/openai-logo.png`} title="GPT - 4" />;
-    case "gpt-3.5-turbo":
-    // falls through
-    default:
-      return <Avatar size={size} bg="#75AB9C" src={`/openai-logo.png`} title="ChatGPT" />;
+const getAvatar = (model: ChatCraftModel, size: "sm" | "xs") => {
+  if (model.id.startsWith("gpt-4")) {
+    return <Avatar size={size} bg="#A96CF9" src={`/openai-logo.png`} title={model.prettyModel} />;
   }
+
+  if (model.id.startsWith("gpt-3.5-turbo")) {
+    return <Avatar size={size} bg="#75AB9C" src={`/openai-logo.png`} title={model.prettyModel} />;
+  }
+
+  // Shouldn't happen, but make sure we always return something...
+  return <Avatar size={size} bg="#75AB9C" src={`/openai-logo.png`} title={model.prettyModel} />;
 };
 
 // If there are multiple versions in an AI message, add some UI to switch between them
+// If there are multiple versions in an AI message, add some UI to switch between them
 function MessageVersionsMenu({
   message,
+  chatId,
   isDisabled,
 }: {
   message: ChatCraftAiMessage;
+  chatId: string;
   isDisabled: boolean;
 }) {
+  const toast = useToast();
   const { versions } = message;
   if (versions?.length <= 1) {
     return null;
   }
+
+  const handleVersionChange = (versionId: string) => {
+    message.switchVersion(versionId);
+    message.save(chatId).catch((err) => {
+      console.warn("Unable to switch versions", err);
+      toast({
+        title: `Error Updating Message to Version`,
+        description: "message" in err ? err.message : undefined,
+        status: "error",
+        position: "top",
+        isClosable: true,
+      });
+    });
+  };
 
   return (
     <Menu placement="bottom-end">
@@ -66,12 +86,12 @@ function MessageVersionsMenu({
               <MenuItem
                 key={id}
                 value={id}
-                onClick={() => message.switchVersion(id)}
+                onClick={() => handleVersionChange(id)}
                 icon={getAvatar(model, "xs")}
               >
                 <HStack>
                   <Box>
-                    <strong>{new ChatCraftModel(model).prettyModel}</strong>
+                    <strong>{model.prettyModel}</strong>
                   </Box>
                   <Box>{formatDate(date)}</Box>
                   <Box>{message.currentVersion?.id === id ? <strong>✓</strong> : " "}</Box>
@@ -100,7 +120,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
   }, [props.message]);
 
   const handleRetryClick = useCallback(
-    async (model: GptModel) => {
+    async (model: ChatCraftModel) => {
       if (!settings.apiKey) {
         return;
       }
@@ -124,7 +144,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
         setRetrying(true);
         const newVersionText = await ai.chat(context, {
           apiKey: settings.apiKey,
-          model: settings.model,
+          model: settings.model.id,
           onToken(_token: string, currentText: string) {
             setMessage(new ChatCraftAiMessage({ id, date, model, text: currentText, versions }));
           },
@@ -132,15 +152,10 @@ function OpenAiMessage(props: OpenAiMessageProps) {
         });
 
         // Update db with new message info, and also add this as a new version
-        await db.messages.update(message.id, {
-          date,
-          model,
-          text: newVersionText,
-          versions: [
-            ...message.versions,
-            new ChatCraftAiMessageVersion({ date, model, text: newVersionText }),
-          ],
-        });
+        const version = new ChatCraftAiMessageVersion({ date, model, text: newVersionText });
+        message.addVersion(version);
+        message.switchVersion(version.id);
+        await message.save(chat.id);
       } catch (err) {
         // TODO: UI error handling
         console.warn("Unable to retry message", { model, err });
@@ -157,8 +172,10 @@ function OpenAiMessage(props: OpenAiMessageProps) {
       message={message}
       hidePreviews={retrying}
       avatar={getAvatar(message.model, "sm")}
-      heading={new ChatCraftModel(message.model).prettyModel + (retrying ? ` (retrying...)` : "")}
-      headingMenu={<MessageVersionsMenu message={message} isDisabled={retrying} />}
+      heading={`${message.model.prettyModel} ${retrying ? ` (retrying...)` : ""}`}
+      headingMenu={
+        <MessageVersionsMenu message={message} chatId={props.chatId} isDisabled={retrying} />
+      }
       onRetryClick={retrying ? undefined : handleRetryClick}
       onDeleteClick={retrying ? undefined : props.onDeleteClick}
       disableFork={retrying}

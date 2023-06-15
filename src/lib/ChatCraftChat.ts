@@ -9,6 +9,7 @@ import {
 import { createShareUrl, createOrUpdateShare } from "./share";
 import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
+import { ChatCraftModel } from "./ChatCraftModel";
 
 export type SerializedChatCraftChat = {
   id: string;
@@ -47,7 +48,7 @@ export class ChatCraftChat {
     this.messages = messages ?? [
       new ChatCraftAiMessage({
         text: AiGreetingText,
-        model: "gpt-3.5-turbo",
+        model: new ChatCraftModel("gpt-3.5-turbo"),
       }),
     ];
     this.date = date ?? new Date();
@@ -78,7 +79,7 @@ export class ChatCraftChat {
     this.messages = [
       new ChatCraftAiMessage({
         text: AiGreetingText,
-        model: "gpt-3.5-turbo",
+        model: new ChatCraftModel("gpt-3.5-turbo"),
       }),
     ];
     // Update the db
@@ -111,23 +112,13 @@ export class ChatCraftChat {
     const chatId = this.id;
     // Update the date to indicate we've update the chat
     this.date = new Date();
-    const messageIds = this.messages.map(({ id }) => id);
 
     await db.transaction("rw", db.chats, db.messages, async () => {
       // Upsert Messages in Chat first
-      await db.messages.bulkPut(this.messages.map((message) => ({ ...message, chatId })));
+      await db.messages.bulkPut(this.messages.map((message) => message.toDB(chatId)));
 
       // Upsert Chat itself
-      await db.chats.put(
-        {
-          id: this.id,
-          date: this.date,
-          shareUrl: this.shareUrl,
-          summary: this.summary,
-          messageIds,
-        },
-        chatId
-      );
+      await db.chats.put(this.toDB());
     });
   }
 
@@ -189,6 +180,16 @@ export class ChatCraftChat {
     };
   }
 
+  toDB(): ChatCraftChatTable {
+    return {
+      id: this.id,
+      date: this.date,
+      shareUrl: this.shareUrl,
+      summary: this.summary,
+      messageIds: this.messages.map(({ id }) => id),
+    };
+  }
+
   static async delete(id: string) {
     const chat = await ChatCraftChat.find(id);
     if (chat) {
@@ -206,13 +207,19 @@ export class ChatCraftChat {
   }
 
   // Parse from serialized JSON
-  static parse({ id, date, shareUrl, summary, messages }: SerializedChatCraftChat): ChatCraftChat {
+  static fromJSON({
+    id,
+    date,
+    shareUrl,
+    summary,
+    messages,
+  }: SerializedChatCraftChat): ChatCraftChat {
     return new ChatCraftChat({
       id,
       date: new Date(date),
       shareUrl,
       summary,
-      messages: messages.map((message) => ChatCraftMessage.parse(message)),
+      messages: messages.map((message) => ChatCraftMessage.fromJSON(message)),
     });
   }
 

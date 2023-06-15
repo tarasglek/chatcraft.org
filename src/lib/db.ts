@@ -1,8 +1,6 @@
 import Dexie, { Table } from "dexie";
 import { type MessageType } from "langchain/schema";
 
-import { ChatCraftAiMessageVersion } from "./ChatCraftMessage";
-
 export type ChatCraftChatTable = {
   id: string;
   date: Date;
@@ -16,10 +14,10 @@ export type ChatCraftMessageTable = {
   date: Date;
   chatId: string;
   type: MessageType;
-  model?: GptModel;
+  model?: string;
   user?: User;
   text: string;
-  versions?: ChatCraftAiMessageVersion[];
+  versions?: { id: string; date: Date; model: string; text: string }[];
 };
 
 class ChatCraftDatabase extends Dexie {

@@ -29,6 +29,7 @@ import { useUser } from "../hooks/use-user";
 import NewButton from "../components/NewButton";
 import { formatDate } from "../lib/utils";
 import { useSettings } from "../hooks/use-settings";
+import { useModels } from "../hooks/use-models";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -37,6 +38,7 @@ type ChatBaseProps = {
 };
 
 function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
+  const { error: apiError } = useModels();
   // TODO: this token stuff is no longer right and useMessages() needs to be removed
   const { tokenInfo } = useMessages();
   // When chatting with OpenAI, a streaming message is returned during loading
@@ -54,6 +56,21 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
   const { user } = useUser();
+
+  // If we can't load models, it's a bad sign for API connectivity.
+  // Show an error so the user is aware.
+  useEffect(() => {
+    if (apiError) {
+      toast({
+        id: "api-error",
+        title: `Error Updating Message to Version`,
+        description: apiError.message,
+        status: "error",
+        position: "top",
+        isClosable: true,
+      });
+    }
+  }, [apiError, toast]);
 
   const handleToggleSidebarVisible = useCallback(() => {
     const newValue = !isSidebarVisible;

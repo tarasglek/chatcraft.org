@@ -29,6 +29,7 @@ import RevealablePasswordInput from "./RevealablePasswordInput";
 import { useSettings } from "../hooks/use-settings";
 import { download, isMac } from "../lib/utils";
 import db from "../lib/db";
+import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 // https://dexie.org/docs/StorageManager
@@ -48,11 +49,11 @@ type PreferencesModalProps = {
 
 function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalProps) {
   const { settings, setSettings } = useSettings();
+  const { models } = useModels();
   // Using this hook vs. useClipboard() in Chakra to work around a bug
   const [, copyToClipboard] = useCopyToClipboard();
   // Whether our db is being persisted
   const [isPersisted, setIsPersisted] = useState(false);
-  const [models, setModels] = useState<ChatCraftModel[]>([]);
   const toast = useToast();
 
   useEffect(() => {
@@ -60,15 +61,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       .then((value) => setIsPersisted(value))
       .catch(console.error);
   }, []);
-
-  useEffect(() => {
-    async function fetchModels(apiKey: string) {
-      setModels(await ChatCraftModel.fetchModels(apiKey));
-    }
-    if (isOpen && settings.apiKey) {
-      fetchModels(settings.apiKey);
-    }
-  }, [settings.apiKey, isOpen]);
 
   async function handlePersistClick() {
     if (navigator.storage?.persist) {
@@ -169,11 +161,13 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
             <FormControl>
               <FormLabel>GPT Model</FormLabel>
               <Select
-                value={settings.model}
-                onChange={(e) => setSettings({ ...settings, model: e.target.value as GptModel })}
+                value={settings.model.id}
+                onChange={(e) =>
+                  setSettings({ ...settings, model: new ChatCraftModel(e.target.value) })
+                }
               >
                 {models.map((model) => (
-                  <option key={model.prettyModel} value={model.id}>
+                  <option key={model.id} value={model.id}>
                     {model.prettyModel}
                   </option>
                 ))}

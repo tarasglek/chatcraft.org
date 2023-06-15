@@ -10,10 +10,9 @@ import {
   ChatCraftAiMessage,
   ChatCraftSystemMessage,
 } from "../lib/ChatCraftMessage";
-import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 // See https://openai.com/pricing
-const calculateTokenCost = (tokens: number, model: GptModel): number | undefined => {
+const calculateTokenCost = (tokens: number, model: string): number | undefined => {
   // Pricing is per 1,000K tokens
   tokens = tokens / 1000;
 
@@ -69,7 +68,7 @@ function useChatOpenAI() {
         openAIApiKey: settings.apiKey,
         temperature: 0,
         streaming: true,
-        modelName: new ChatCraftModel(settings.model).model,
+        modelName: settings.model.id,
       });
 
       // Allow the stream to be cancelled
@@ -135,13 +134,13 @@ function useChatOpenAI() {
 
   const getTokenInfo = useCallback(
     async (messages: ChatCraftMessage[]): Promise<TokenInfo> => {
-      const modelName = new ChatCraftModel(settings.model).model;
+      const modelName = settings.model.id;
       const api = new ChatOpenAI({
         openAIApiKey: settings.apiKey,
         modelName: modelName,
       });
       const { totalCount } = await api.getNumTokensFromMessages(messages);
-      return { count: totalCount, cost: calculateTokenCost(totalCount, modelName as GptModel) };
+      return { count: totalCount, cost: calculateTokenCost(totalCount, modelName) };
     },
     [settings]
   );
