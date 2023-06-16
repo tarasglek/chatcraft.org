@@ -81,7 +81,7 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
     // We need a "fudge factor" here, or it constantly loses auto scroll
     // as content streams in and the container is auto scroll in the
     // previous useEffect.
-    const scrollThreshold = 25;
+    const scrollThreshold = 50;
     const atBottom =
       messageList.scrollTop + messageList.clientHeight >=
       messageList.scrollHeight - scrollThreshold;
