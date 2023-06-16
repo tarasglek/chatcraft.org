@@ -227,7 +227,7 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
             mt={2}
           >
             <CardBody>
-              <Flex justify={canDelete ? "space-between" : "end"} align="center">
+              <Flex justify="space-between" align="center">
                 <Heading as="h2" fontSize="lg">
                   <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
                     <Flex align="center" gap={2}>
