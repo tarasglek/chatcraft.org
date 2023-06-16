@@ -67,3 +67,19 @@ export async function summarizeChat(openaiApiKey: string, chat: ChatCraftChat) {
     throw err;
   }
 }
+
+export async function deleteShare(chat: ChatCraftChat, user: User) {
+  const res = await fetch(`/api/share/${user.username}/${chat.id}`, {
+    method: "DELETE",
+    credentials: "same-origin",
+  });
+
+  if (!res.ok) {
+    const {
+      message,
+    }: {
+      message?: string;
+    } = await res.json();
+    throw new Error(`Unable to unshare chat: ${message || "unknown error"}`);
+  }
+}

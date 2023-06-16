@@ -6,7 +6,7 @@ import {
   AiGreetingText,
   type SerializedChatCraftMessage,
 } from "./ChatCraftMessage";
-import { createShareUrl, createOrUpdateShare } from "./share";
+import { createShareUrl, createOrUpdateShare, deleteShare } from "./share";
 import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
 import { ChatCraftModel } from "./ChatCraftModel";
@@ -131,6 +131,17 @@ export class ChatCraftChat {
     }
 
     return createOrUpdateShare(this, user);
+  }
+
+  async unshare(user: User) {
+    // If this chat isn't already shared, we're done
+    if (!this.shareUrl) {
+      return;
+    }
+
+    await deleteShare(this, user);
+    delete this.shareUrl;
+    return this.save();
   }
 
   // Combine saving to db and updating online share if necessary

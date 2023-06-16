@@ -12,6 +12,7 @@ import {
   Heading,
   Card,
   CardBody,
+  ButtonGroup,
 } from "@chakra-ui/react";
 import { Form, Link as ReactRouterLink, ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
@@ -228,7 +229,7 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
           >
             <CardBody>
               <Flex justify="space-between" align="center">
-                <Heading as="h2" fontSize="lg">
+                <Heading as="h2" fontSize="md">
                   <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
                     <Flex align="center" gap={2}>
                       <MdOutlineChatBubbleOutline />
@@ -236,13 +237,25 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
                     </Flex>
                   </Link>
                 </Heading>
-                {canDelete && (
-                  <Form action={`/c/${chat.id}/delete`} method="post">
-                    <Button type="submit" size="sm" variant="ghost" colorScheme="red">
-                      Delete
+                <ButtonGroup isAttached>
+                  {chat.shareUrl && user && (
+                    <Button
+                      size="sm"
+                      onClick={() => chat.unshare(user)}
+                      variant="ghost"
+                      colorScheme="red"
+                    >
+                      Unshare
                     </Button>
-                  </Form>
-                )}
+                  )}
+                  {canDelete && (
+                    <Form action={`/c/${chat.id}/delete`} method="post">
+                      <Button type="submit" size="sm" variant="ghost" colorScheme="red">
+                        Delete
+                      </Button>
+                    </Form>
+                  )}
+                </ButtonGroup>
               </Flex>
             </CardBody>
           </Card>
