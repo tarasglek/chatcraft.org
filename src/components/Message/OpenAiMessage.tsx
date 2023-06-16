@@ -144,7 +144,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
         setRetrying(true);
         const newVersionText = await ai.chat(context, {
           apiKey: settings.apiKey,
-          model: settings.model.id,
+          model: model.id,
           onToken(_token: string, currentText: string) {
             setMessage(new ChatCraftAiMessage({ id, date, model, text: currentText, versions }));
           },
