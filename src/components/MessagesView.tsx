@@ -7,6 +7,7 @@ import NewMessage from "./NewMessage";
 import {
   ChatCraftMessage,
   ChatCraftAiMessage,
+  ChatCraftAppMessage,
   ApiKeyInstructionsText,
   AiGreetingText,
 } from "../lib/ChatCraftMessage";
@@ -102,9 +103,10 @@ function MessagesView({
   const instructions = useMemo(() => {
     // If there's no API key in storage, show instructions so we get one
     if (!settings.apiKey) {
+      const message = new ChatCraftAppMessage({ text: ApiKeyInstructionsText });
       return (
         <Message
-          message={new ChatCraftAiMessage({ text: ApiKeyInstructionsText, model: settings.model })}
+          message={message}
           chatId={chatId}
           isLoading={isLoading}
           onPrompt={onPrompt}
@@ -113,7 +115,7 @@ function MessagesView({
         />
       );
     }
-  }, [settings.apiKey, settings.model, chatId, onPrompt, isLoading]);
+  }, [settings.apiKey, chatId, onPrompt, isLoading]);
 
   return (
     <Box minHeight="100%" scrollBehavior="smooth">

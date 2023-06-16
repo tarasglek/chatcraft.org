@@ -88,7 +88,7 @@ export class ChatCraftMessage extends BaseChatMessage {
     };
   }
 
-  save(chatId: string) {
+  async save(chatId: string) {
     return db.messages.put(this.toDB(chatId));
   }
 
@@ -101,6 +101,8 @@ export class ChatCraftMessage extends BaseChatMessage {
         return ChatCraftHumanMessage.fromJSON(message);
       case "system":
         return ChatCraftSystemMessage.fromJSON(message);
+      case "generic":
+        return ChatCraftAppMessage.fromJSON(message);
       default:
         throw new Error(`Error parsing unknown message type: ${message.type}`);
     }
@@ -115,6 +117,8 @@ export class ChatCraftMessage extends BaseChatMessage {
         return ChatCraftHumanMessage.fromDB(message);
       case "system":
         return ChatCraftSystemMessage.fromDB(message);
+      case "generic":
+        return ChatCraftAppMessage.fromDB(message);
       default:
         throw new Error(`Error parsing unknown message type: ${message.type}`);
     }
@@ -297,6 +301,29 @@ export class ChatCraftSystemMessage extends ChatCraftMessage {
 
   static fromDB(message: ChatCraftMessageTable) {
     return new ChatCraftSystemMessage({
+      id: message.id,
+      date: message.date,
+      text: message.text,
+    });
+  }
+}
+
+// Messages we display to the user in ChatCraft, but don't store in db or send to AI
+export class ChatCraftAppMessage extends ChatCraftMessage {
+  constructor({ id, date, text }: { id?: string; date?: Date; text: string }) {
+    super({ id, date, type: "generic", text });
+  }
+
+  static fromJSON(message: SerializedChatCraftMessage) {
+    return new ChatCraftAppMessage({
+      id: message.id,
+      date: new Date(message.date),
+      text: message.text,
+    });
+  }
+
+  static fromDB(message: ChatCraftMessageTable) {
+    return new ChatCraftAppMessage({
       id: message.id,
       date: message.date,
       text: message.text,

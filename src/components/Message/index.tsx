@@ -2,10 +2,12 @@ import { memo } from "react";
 import {
   ChatCraftHumanMessage,
   ChatCraftAiMessage,
+  ChatCraftAppMessage,
   ChatCraftMessage,
 } from "../../lib/ChatCraftMessage";
 import HumanMessage from "./HumanMessage";
 import OpenAiMessage from "./OpenAiMessage";
+import AppMessage from "./AppMessage";
 
 type MessageProps = {
   message: ChatCraftMessage;
@@ -57,6 +59,21 @@ function Message({
         onDeleteClick={onDeleteClick}
         disableFork={disableFork}
         disableEdit={disableEdit}
+      />
+    );
+  }
+
+  if (message instanceof ChatCraftAppMessage) {
+    return (
+      <AppMessage
+        message={message}
+        chatId={chatId}
+        isLoading={isLoading}
+        hidePreviews={hidePreviews}
+        onPrompt={onPrompt}
+        onDeleteClick={onDeleteClick}
+        disableFork={true}
+        disableEdit={true}
       />
     );
   }
