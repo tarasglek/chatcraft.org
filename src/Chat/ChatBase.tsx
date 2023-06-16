@@ -138,10 +138,10 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
         // Add this prompt message to the chat
         await chat.addMessage(new ChatCraftHumanMessage({ text: prompt, user }), user);
 
-        // In single-message-mode, trim messages to last few. Otherwise send all
-        const messagesToSend = singleMessageMode
-          ? [...chat.messages].slice(-2)
-          : [...chat.messages];
+        // In single-message-mode, trim messages to last few. Otherwise send all.
+        // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
+        const messages = chat.nonAppMessages;
+        const messagesToSend = singleMessageMode ? [...messages].slice(-2) : [...messages];
         const response = await callChatApi(messagesToSend);
 
         // Add this response message to the chat

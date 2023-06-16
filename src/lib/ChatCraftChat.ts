@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 
 import {
-  ChatCraftAiMessage,
+  ChatCraftAppMessage,
   ChatCraftMessage,
   AiGreetingText,
   type SerializedChatCraftMessage,
@@ -9,7 +9,6 @@ import {
 import { createShareUrl, createOrUpdateShare, deleteShare } from "./share";
 import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
-import { ChatCraftModel } from "./ChatCraftModel";
 
 export type SerializedChatCraftChat = {
   id: string;
@@ -46,19 +45,32 @@ export class ChatCraftChat {
   } = {}) {
     this.id = id ?? nanoid();
     this.messages = messages ?? [
-      new ChatCraftAiMessage({
+      new ChatCraftAppMessage({
         text: AiGreetingText,
-        model: new ChatCraftModel("gpt-3.5-turbo"),
       }),
     ];
     this.date = date ?? new Date();
     // All chats are private by default, unless we add a shareUrl
     this.shareUrl = shareUrl;
-    this.summary = summary ?? createSummary(this.messages);
+    // Don't include app messages in summary
+    this.summary = summary ?? createSummary(this.nonAppMessages);
+  }
+
+  /**
+   * We have two ways to access the messages:
+   *
+   *  1. `.messages`, which is the entire list of messages
+   *  2. `.nonAppMessages`, which is same list without app messages
+   *
+   * For display and db, `.messages` is good.  For serialization or
+   * sending to an LLM, use `.nonAppMessages`.
+   */
+  get nonAppMessages() {
+    return this.messages.filter((message) => !(message instanceof ChatCraftAppMessage));
   }
 
   summarize() {
-    return createSummary(this.messages);
+    return createSummary(this.nonAppMessages);
   }
 
   async addMessage(message: ChatCraftMessage, user?: User) {
@@ -77,9 +89,8 @@ export class ChatCraftChat {
     await db.messages.bulkDelete(this.messages.map(({ id }) => id));
     // Make a new set of messages
     this.messages = [
-      new ChatCraftAiMessage({
+      new ChatCraftAppMessage({
         text: AiGreetingText,
-        model: new ChatCraftModel("gpt-3.5-turbo"),
       }),
     ];
     // Update the db
@@ -88,7 +99,8 @@ export class ChatCraftChat {
 
   toMarkdown() {
     // Turn the messages into Markdown, with each message separated with an <hr />
-    return this.messages.map((message) => message.text).join("\n\n---\n\n");
+    // Strip out the app messages.
+    return this.nonAppMessages.map((message) => message.text).join("\n\n---\n\n");
   }
 
   // Find in db - return
@@ -173,7 +185,8 @@ export class ChatCraftChat {
 
   // Create a new chat based on the messages in this one
   async fork(messageId?: string) {
-    let messages = this.messages;
+    // Skip the app message
+    let messages = this.nonAppMessages;
     if (messageId) {
       const idx = messages.findIndex((message) => message.id === messageId);
       if (idx) {
@@ -200,7 +213,8 @@ export class ChatCraftChat {
       date: this.date.toISOString(),
       shareUrl: this.shareUrl,
       summary: this.summary,
-      messages: this.messages.map((message) => message.serialize()),
+      // In JSON, we strip out the app messages
+      messages: this.nonAppMessages.map((message) => message.serialize()),
     };
   }
 
@@ -210,6 +224,7 @@ export class ChatCraftChat {
       date: this.date,
       shareUrl: this.shareUrl,
       summary: this.summary,
+      // In the DB, we store the app messages, since that's what we show in the UI
       messageIds: this.messages.map(({ id }) => id),
     };
   }

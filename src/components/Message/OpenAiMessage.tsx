@@ -131,12 +131,13 @@ function OpenAiMessage(props: OpenAiMessageProps) {
           throw new Error(`Unable to find chat with chatId=${props.chatId}`);
         }
 
-        const idx = chat.messages.findIndex((m) => m.id === message.id);
+        // Work with the messages, stripping out the app messages
+        const messages = chat.nonAppMessages;
+        const idx = messages.findIndex((m) => m.id === message.id);
         if (!idx) {
           throw new Error(`Unable to find message within chat with id=${message.id}`);
         }
-        const context = chat.messages.slice(0, idx);
-
+        const context = messages.slice(0, idx);
         const date = new Date();
         const { id, versions } = message;
         setMessage(new ChatCraftAiMessage({ id, date, model, text: "", versions }));
@@ -163,7 +164,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
         setRetrying(false);
       }
     },
-    [props.chatId, settings.apiKey, settings.model, message, systemMessage]
+    [props.chatId, settings.apiKey, message, systemMessage]
   );
 
   return (

@@ -209,7 +209,7 @@ function MessageBase({
                   </>
                 )}
 
-                {!disableEdit && onDeleteClick && <MenuDivider />}
+                {(!disableEdit || onDeleteClick) && <MenuDivider />}
                 {!disableEdit && (
                   <MenuItem onClick={() => setEditing(!editing)}>
                     {editing ? "Cancel Editing" : "Edit"}
