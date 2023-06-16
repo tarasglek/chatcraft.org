@@ -123,10 +123,23 @@ export class ChatCraftChat {
   }
 
   // Make this chat public, and share online
-  async share(user: User) {
+  async share(user: User, summary?: string) {
+    let isDirty = false;
+
     // Update db to indicate this is public, if necessary
     if (!this.shareUrl) {
       this.shareUrl = createShareUrl(this, user);
+      isDirty = true;
+    }
+
+    // If we are given a custom summary, add it too
+    if (summary) {
+      this.summary = summary;
+      isDirty = true;
+    }
+
+    // Update record for this in db if necessary
+    if (isDirty) {
       await this.save();
     }
 

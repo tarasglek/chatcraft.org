@@ -46,8 +46,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
   const handleShareClick = async () => {
     setIsSharing(true);
     try {
-      chat.summary = summary;
-      const url = await chat.share(user);
+      const url = await chat.share(user, summary);
       setUrl(url);
     } catch (err: any) {
       console.error(err);
@@ -65,8 +64,6 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
       setIsSummarizing(true);
       const summary = await summarizeChat(settings.apiKey, chat);
       setSummary(summary);
-      chat.summary = summary;
-      await chat.save();
     } catch (err: any) {
       console.error(err);
       setError(err.message);

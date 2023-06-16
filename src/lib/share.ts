@@ -56,7 +56,7 @@ export async function summarizeChat(openaiApiKey: string, chat: ChatCraftChat) {
   });
 
   const summarizeInstruction = new ChatCraftHumanMessage({
-    text: `Summarize this entire chat in 75 words or fewer. Respond only with the summary text`,
+    text: `Summarize this entire chat in 25 words or fewer. Respond only with the summary text`,
   });
 
   try {
