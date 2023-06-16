@@ -122,7 +122,20 @@ function useChatOpenAI() {
               text: buffer.join(""),
             });
           }
-          throw err;
+
+          // Try to extract the actual OpenAI API error from what langchain gives us
+          // which is JSON embedded in the error text.
+          // eslint-disable-next-line no-useless-catch
+          try {
+            const matches = err.message.match(/{"error".+$/);
+            if (matches) {
+              const openAiError = JSON.parse(matches[0]);
+              throw new Error(`OpenAI API Error: ${openAiError.error.message}`);
+            }
+            throw err;
+          } catch (err2) {
+            throw err2;
+          }
         })
         .finally(() => {
           setStreamingMessage(undefined);
