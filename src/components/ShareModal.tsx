@@ -134,7 +134,8 @@ function UnauthenticatedForm({ onLoginClick }: { onLoginClick: () => void }) {
           <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
         </Button>
         <FormHelperText>
-          Users must authenticate with GitHub in order to create a public URL.
+          To avoid abuse and spam, we ask that users authenticate with an existing GitHub account
+          before creating public URLs.
         </FormHelperText>
       </FormControl>
     </VStack>
