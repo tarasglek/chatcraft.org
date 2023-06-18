@@ -28,7 +28,7 @@ export class ChatCraftChat {
   date: Date;
   shareUrl?: string;
   summary: string;
-  messages: ChatCraftMessage[];
+  private _messages: ChatCraftMessage[];
 
   constructor({
     id,
@@ -44,7 +44,7 @@ export class ChatCraftChat {
     messages?: ChatCraftMessage[];
   } = {}) {
     this.id = id ?? nanoid();
-    this.messages = messages ?? [
+    this._messages = messages ?? [
       new ChatCraftAppMessage({
         text: AiGreetingText,
       }),
@@ -52,43 +52,43 @@ export class ChatCraftChat {
     this.date = date ?? new Date();
     // All chats are private by default, unless we add a shareUrl
     this.shareUrl = shareUrl;
-    // Don't include app messages in summary
-    this.summary = summary ?? createSummary(this.nonAppMessages);
+    this.summary = summary ?? this.summarize();
   }
 
   /**
-   * We have two ways to access the messages:
-   *
-   *  1. `.messages`, which is the entire list of messages
-   *  2. `.nonAppMessages`, which is same list without app messages
-   *
-   * For display and db, `.messages` is good.  For serialization or
-   * sending to an LLM, use `.nonAppMessages`.
+   * We store all message types, but they can be requested with or
+   * without the ChatCraftAppMessages. For display and db, requesting
+   * with app messages is correct (`chat.messages({ includeAppMessages: true })`.
+   * For serialization or sending to an LLM, use
+   * `chat.messages({ includeAppMessages: false })`.  By default, `chat.messages()`
+   * is the same as `chat.messages({ includeAppMessages: true })`.
    */
-  get nonAppMessages() {
-    return this.messages.filter((message) => !(message instanceof ChatCraftAppMessage));
+  messages(options: { includeAppMessages: boolean } = { includeAppMessages: true }) {
+    return options.includeAppMessages
+      ? this._messages
+      : this._messages.filter((message) => !(message instanceof ChatCraftAppMessage));
   }
 
   summarize() {
-    return createSummary(this.nonAppMessages);
+    return createSummary(this.messages({ includeAppMessages: false }));
   }
 
   async addMessage(message: ChatCraftMessage, user?: User) {
-    this.messages.push(message);
+    this._messages.push(message);
     return this.update(user);
   }
 
   async removeMessage(id: string, user?: User) {
     await ChatCraftMessage.delete(id);
-    this.messages = this.messages.filter((message) => message.id !== id);
+    this._messages = this._messages.filter((message) => message.id !== id);
     return this.update(user);
   }
 
   async resetMessages(user?: User) {
     // Delete existing messages from db
-    await db.messages.bulkDelete(this.messages.map(({ id }) => id));
+    await db.messages.bulkDelete(this._messages.map(({ id }) => id));
     // Make a new set of messages
-    this.messages = [
+    this._messages = [
       new ChatCraftAppMessage({
         text: AiGreetingText,
       }),
@@ -100,7 +100,9 @@ export class ChatCraftChat {
   toMarkdown() {
     // Turn the messages into Markdown, with each message separated with an <hr />
     // Strip out the app messages.
-    return this.nonAppMessages.map((message) => message.text).join("\n\n---\n\n");
+    return this.messages({ includeAppMessages: false })
+      .map((message) => message.text)
+      .join("\n\n---\n\n");
   }
 
   // Find in db - return
@@ -127,7 +129,7 @@ export class ChatCraftChat {
 
     await db.transaction("rw", db.chats, db.messages, async () => {
       // Upsert Messages in Chat first
-      await db.messages.bulkPut(this.messages.map((message) => message.toDB(chatId)));
+      await db.messages.bulkPut(this._messages.map((message) => message.toDB(chatId)));
 
       // Upsert Chat itself
       await db.chats.put(this.toDB());
@@ -186,7 +188,7 @@ export class ChatCraftChat {
   // Create a new chat based on the messages in this one
   async fork(messageId?: string) {
     // Skip the app message
-    let messages = this.nonAppMessages;
+    let messages = this.messages({ includeAppMessages: false });
     if (messageId) {
       const idx = messages.findIndex((message) => message.id === messageId);
       if (idx) {
@@ -214,7 +216,7 @@ export class ChatCraftChat {
       shareUrl: this.shareUrl,
       summary: this.summary,
       // In JSON, we strip out the app messages
-      messages: this.nonAppMessages.map((message) => message.serialize()),
+      messages: this.messages({ includeAppMessages: false }).map((message) => message.serialize()),
     };
   }
 
@@ -225,7 +227,7 @@ export class ChatCraftChat {
       shareUrl: this.shareUrl,
       summary: this.summary,
       // In the DB, we store the app messages, since that's what we show in the UI
-      messageIds: this.messages.map(({ id }) => id),
+      messageIds: this._messages.map(({ id }) => id),
     };
   }
 
@@ -233,7 +235,7 @@ export class ChatCraftChat {
     const chat = await ChatCraftChat.find(id);
     if (chat) {
       await Promise.all(
-        chat.messages.map((message) => {
+        chat._messages.map((message) => {
           try {
             ChatCraftMessage.delete(message.id);
           } catch (_) {

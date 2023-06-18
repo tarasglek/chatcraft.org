@@ -140,7 +140,7 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
 
         // In single-message-mode, trim messages to last few. Otherwise send all.
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
-        const messages = chat.nonAppMessages;
+        const messages = chat.messages({ includeAppMessages: false });
         const messagesToSend = singleMessageMode ? [...messages].slice(-2) : [...messages];
         const response = await callChatApi(messagesToSend);
 
@@ -263,7 +263,7 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
           <ScrollRestoration />
 
           <MessagesView
-            messages={chat.messages}
+            messages={chat.messages()}
             chatId={chat.id}
             newMessage={streamingMessage}
             isLoading={loading}
@@ -293,7 +293,7 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
               singleMessageMode={singleMessageMode}
               onSingleMessageModeChange={setSingleMessageMode}
               isLoading={loading}
-              previousMessage={chat.messages.at(-1)?.text}
+              previousMessage={chat.messages().at(-1)?.text}
               tokenInfo={tokenInfo}
               inputPromptRef={inputPromptRef}
             />

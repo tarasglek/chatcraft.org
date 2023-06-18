@@ -60,7 +60,8 @@ export async function summarizeChat(openaiApiKey: string, chat: ChatCraftChat) {
   });
 
   try {
-    const res = await chatOpenAI.call([systemChatMessage, ...chat.messages, summarizeInstruction]);
+    const messages = chat.messages({ includeAppMessages: false });
+    const res = await chatOpenAI.call([systemChatMessage, ...messages, summarizeInstruction]);
     return res.text.trim();
   } catch (err) {
     console.error("Error summarizing chat", err);
