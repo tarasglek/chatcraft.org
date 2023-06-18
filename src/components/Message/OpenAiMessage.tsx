@@ -132,7 +132,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
         }
 
         // Work with the messages, stripping out the app messages
-        const messages = chat.nonAppMessages;
+        const messages = chat.messages({ includeAppMessages: false });
         const idx = messages.findIndex((m) => m.id === message.id);
         if (!idx) {
           throw new Error(`Unable to find message within chat with id=${message.id}`);
