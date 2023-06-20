@@ -3,7 +3,6 @@ import { nanoid } from "nanoid";
 import {
   ChatCraftAppMessage,
   ChatCraftMessage,
-  AiGreetingText,
   type SerializedChatCraftMessage,
 } from "./ChatCraftMessage";
 import { createShareUrl, createOrUpdateShare, deleteShare } from "./share";
@@ -44,11 +43,7 @@ export class ChatCraftChat {
     messages?: ChatCraftMessage[];
   } = {}) {
     this.id = id ?? nanoid();
-    this._messages = messages ?? [
-      new ChatCraftAppMessage({
-        text: AiGreetingText,
-      }),
-    ];
+    this._messages = messages ?? [ChatCraftAppMessage.greeting()];
     this.date = date ?? new Date();
     // All chats are private by default, unless we add a shareUrl
     this.shareUrl = shareUrl;
@@ -88,11 +83,7 @@ export class ChatCraftChat {
     // Delete existing messages from db
     await db.messages.bulkDelete(this._messages.map(({ id }) => id));
     // Make a new set of messages
-    this._messages = [
-      new ChatCraftAppMessage({
-        text: AiGreetingText,
-      }),
-    ];
+    this._messages = [ChatCraftAppMessage.greeting()];
     // Update the db
     return this.update(user);
   }

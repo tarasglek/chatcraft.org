@@ -329,15 +329,33 @@ export class ChatCraftAppMessage extends ChatCraftMessage {
       text: message.text,
     });
   }
+
+  /**
+   * Specialized App Messages that get displayed with their own UI.
+   * See src/components/Message/AppMessage/* for UI aspects of this.
+   */
+
+  // Greeting message in an empty chat
+  static greeting() {
+    return new ChatCraftAppMessage({ text: "app:greeting" });
+  }
+  static isGreeting(message: ChatCraftMessage) {
+    return message instanceof ChatCraftAppMessage && message.text === "app:greeting";
+  }
+
+  // API Key instructions
+  static instructions() {
+    return new ChatCraftAppMessage({ text: "app:instructions" });
+  }
+  static isInstructions(message: ChatCraftMessage) {
+    return message instanceof ChatCraftAppMessage && message.text === "app:instructions";
+  }
+
+  // General App help
+  static help() {
+    return new ChatCraftAppMessage({ text: "app:help" });
+  }
+  static isHelp(message: ChatCraftMessage) {
+    return message instanceof ChatCraftAppMessage && message.text === "app:help";
+  }
 }
-
-export const ApiKeyInstructionsText = `I am a helpful assistant, but before I can help, you need to enter an
- [OpenAI API Key](https://platform.openai.com/account/api-keys) below. Here's an example of what
- an API Key looks like:
-
- \`sk-tVqEo67MxnfAAPQ68iuVT#ClbkFJkUz4oUblcvyUUxrg4T0\`
- 
- Please enter your API Key in the form below to begin chatting!
-`;
-
-export const AiGreetingText = "I am a helpful assistant! How can I help?";

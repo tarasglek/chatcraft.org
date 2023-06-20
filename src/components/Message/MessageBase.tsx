@@ -5,6 +5,7 @@ import {
   ButtonGroup,
   Card,
   CardBody,
+  CardFooter,
   CardHeader,
   Flex,
   Heading,
@@ -44,6 +45,7 @@ export interface MessageBaseProps {
   heading?: string;
   headingMenu?: ReactNode;
   avatar: ReactNode;
+  footer?: ReactNode;
   isLoading: boolean;
   hidePreviews?: boolean;
   onPrompt?: (prompt: string) => void;
@@ -59,6 +61,7 @@ function MessageBase({
   heading,
   headingMenu,
   avatar,
+  footer,
   isLoading,
   hidePreviews,
   onDeleteClick,
@@ -260,6 +263,7 @@ function MessageBase({
             </Box>
           </Flex>
         </CardBody>
+        {footer && <CardFooter py={2}>{footer}</CardFooter>}
       </Card>
     </Box>
   );
