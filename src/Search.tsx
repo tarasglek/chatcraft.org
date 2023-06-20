@@ -17,7 +17,7 @@ import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import db, { ChatCraftMessageTable } from "./lib/db";
 import Message from "./components/Message";
-import { AiGreetingText, ChatCraftAppMessage, ChatCraftMessage } from "./lib/ChatCraftMessage";
+import { ChatCraftAppMessage, ChatCraftMessage } from "./lib/ChatCraftMessage";
 import NewButton from "./components/NewButton";
 import { useSettings } from "./hooks/use-settings";
 
@@ -34,15 +34,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return {
     searchText: q,
     // Return all messages that include the search text,
-    // excluding the "How can I help?" greeting and other
-    // app messages, and sort
+    // excluding the old "How can I help?" greeting and
+    // all other app messages, then sort by date.
     messages: await db.messages
       .where("text")
-      .notEqual(AiGreetingText)
+      .notEqual("I am a helpful assistant! How can I help?")
       .filter((message) => {
         if (message instanceof ChatCraftAppMessage) {
           return false;
         }
+
         return re.test(message.text);
       })
       .reverse()

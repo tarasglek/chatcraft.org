@@ -6,10 +6,6 @@ import {
   chakra,
   Checkbox,
   Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Link,
   IconButton,
   Kbd,
   Menu,
@@ -24,12 +20,11 @@ import {
   MenuDivider,
   useToast,
 } from "@chakra-ui/react";
-import { CgChevronUpO, CgChevronDownO, CgInfo } from "react-icons/cg";
+import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
 import { TbShare2, TbChevronUp } from "react-icons/tb";
 import { useCopyToClipboard } from "react-use";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
-import RevealablePasswordInput from "./RevealablePasswordInput";
 
 import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
@@ -131,17 +126,6 @@ function PromptForm({
 
     setPrompt("");
     onSendClick(value);
-  };
-
-  // Handle API key form submission
-  const handleApiKeySubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const data = new FormData(e.target as HTMLFormElement);
-    const apiKey = data.get("api-key");
-
-    if (typeof apiKey === "string") {
-      setSettings({ ...settings, apiKey: apiKey.trim() });
-    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -261,8 +245,7 @@ function PromptForm({
       )}
 
       <Box flex={1} w="100%">
-        {/* If we have an API Key in storage, show the chat form;
-          otherwise give the user a form to enter their API key. */}
+        {/* If we have an API Key in storage, show the chat form */}
         {settings.apiKey ? (
           <chakra.form onSubmit={handlePromptSubmit} h="100%" pb={2}>
             <Flex flexDir="column" h={isExpanded ? "100%" : undefined}>
@@ -342,52 +325,7 @@ function PromptForm({
               </Flex>
             </Flex>
           </chakra.form>
-        ) : (
-          <chakra.form onSubmit={handleApiKeySubmit} autoComplete="off" h="100%" pb={2}>
-            <FormControl>
-              <FormLabel>
-                <HStack>
-                  <CgInfo />
-                  <Text>
-                    Please enter your{" "}
-                    <Link
-                      href="https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety"
-                      textDecoration="underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      OpenAI API Key
-                    </Link>
-                  </Text>
-                </HStack>
-              </FormLabel>
-              <Flex>
-                <RevealablePasswordInput
-                  flex="1"
-                  type="password"
-                  name="api-key"
-                  bg="white"
-                  _dark={{ bg: "gray.700" }}
-                  required
-                />
-                <Button ml={3} type="submit">
-                  Save
-                </Button>
-              </Flex>
-              <FormHelperText>
-                Your API Key will be stored offline in your browser&apos;s{" "}
-                <Link
-                  href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
-                  textDecoration="underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  local storage
-                </Link>
-              </FormHelperText>
-            </FormControl>
-          </chakra.form>
-        )}
+        ) : null}
       </Box>
     </Flex>
   );

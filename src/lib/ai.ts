@@ -69,3 +69,7 @@ export async function queryOpenAiModels(apiKey: string) {
     )
     .map((model: any) => model.id) as string[];
 }
+
+export async function validateOpenAiApiKey(apiKey: string) {
+  return !!(await queryOpenAiModels(apiKey));
+}

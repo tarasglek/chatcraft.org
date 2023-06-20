@@ -66,7 +66,7 @@ function Message({
   if (message instanceof ChatCraftAppMessage) {
     return (
       <AppMessage
-        message={message}
+        message={message as ChatCraftAppMessage}
         chatId={chatId}
         isLoading={isLoading}
         hidePreviews={hidePreviews}
