@@ -335,14 +335,6 @@ export class ChatCraftAppMessage extends ChatCraftMessage {
    * See src/components/Message/AppMessage/* for UI aspects of this.
    */
 
-  // Greeting message in an empty chat
-  static greeting() {
-    return new ChatCraftAppMessage({ text: "app:greeting" });
-  }
-  static isGreeting(message: ChatCraftMessage) {
-    return message instanceof ChatCraftAppMessage && message.text === "app:greeting";
-  }
-
   // API Key instructions
   static instructions() {
     return new ChatCraftAppMessage({ text: "app:instructions" });

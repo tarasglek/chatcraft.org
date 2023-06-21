@@ -93,7 +93,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         <ModalHeader>User Settings</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <VStack gap={2}>
+          <VStack gap={4}>
             <FormControl>
               <FormLabel>
                 OpenAI API Key{" "}
@@ -231,6 +231,10 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               >
                 Just show me the code, don&apos;t explain anything
               </Checkbox>
+              <FormHelperText>
+                NOTE: this change will alter the default system prompt and be used for new chats you
+                create (i.e., it won&apos;t affect the current chat)
+              </FormHelperText>
             </FormControl>
           </VStack>
         </ModalBody>

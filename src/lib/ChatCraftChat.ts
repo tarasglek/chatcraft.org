@@ -3,11 +3,13 @@ import { nanoid } from "nanoid";
 import {
   ChatCraftAppMessage,
   ChatCraftMessage,
+  ChatCraftSystemMessage,
   type SerializedChatCraftMessage,
 } from "./ChatCraftMessage";
 import { createShareUrl, createOrUpdateShare, deleteShare } from "./share";
 import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
+import { createSystemMessage } from "./system-prompt";
 
 export type SerializedChatCraftChat = {
   id: string;
@@ -43,7 +45,7 @@ export class ChatCraftChat {
     messages?: ChatCraftMessage[];
   } = {}) {
     this.id = id ?? nanoid();
-    this._messages = messages ?? [ChatCraftAppMessage.greeting()];
+    this._messages = messages ?? [createSystemMessage()];
     this.date = date ?? new Date();
     // All chats are private by default, unless we add a shareUrl
     this.shareUrl = shareUrl;
@@ -52,20 +54,35 @@ export class ChatCraftChat {
 
   /**
    * We store all message types, but they can be requested with or
-   * without the ChatCraftAppMessages. For display and db, requesting
-   * with app messages is correct (`chat.messages({ includeAppMessages: true })`.
-   * For serialization or sending to an LLM, use
-   * `chat.messages({ includeAppMessages: false })`.  By default, `chat.messages()`
-   * is the same as `chat.messages({ includeAppMessages: true })`.
+   * without the ChatCraftAppMessages and ChatCraftSystemMessages. For
+   * display and db, requesting with app messages is correct
+   * (`chat.messages({ includeAppMessages: true })`. For serialization
+   * or sending to an LLM, use `chat.messages({ includeAppMessages: false })`.
    */
-  messages(options: { includeAppMessages: boolean } = { includeAppMessages: true }) {
-    return options.includeAppMessages
-      ? this._messages
-      : this._messages.filter((message) => !(message instanceof ChatCraftAppMessage));
+  messages(
+    options: { includeAppMessages?: boolean; includeSystemMessages?: boolean } = {
+      includeAppMessages: true,
+      includeSystemMessages: true,
+    }
+  ) {
+    const includeAppMessages = options.includeAppMessages === true;
+    const includeSystemMessages = options.includeSystemMessages === true;
+
+    return this._messages.filter((message) => {
+      if (!includeAppMessages && message instanceof ChatCraftAppMessage) {
+        return false;
+      }
+      if (!includeSystemMessages && message instanceof ChatCraftSystemMessage) {
+        return false;
+      }
+      return true;
+    });
   }
 
   summarize() {
-    return createSummary(this.messages({ includeAppMessages: false }));
+    return createSummary(
+      this.messages({ includeAppMessages: false, includeSystemMessages: false })
+    );
   }
 
   async addMessage(message: ChatCraftMessage, user?: User) {
@@ -83,7 +100,7 @@ export class ChatCraftChat {
     // Delete existing messages from db
     await db.messages.bulkDelete(this._messages.map(({ id }) => id));
     // Make a new set of messages
-    this._messages = [ChatCraftAppMessage.greeting()];
+    this._messages = [createSystemMessage()];
     // Update the db
     return this.update(user);
   }
@@ -91,7 +108,7 @@ export class ChatCraftChat {
   toMarkdown() {
     // Turn the messages into Markdown, with each message separated with an <hr />
     // Strip out the app messages.
-    return this.messages({ includeAppMessages: false })
+    return this.messages({ includeAppMessages: false, includeSystemMessages: true })
       .map((message) => message.text)
       .join("\n\n---\n\n");
   }
@@ -179,7 +196,7 @@ export class ChatCraftChat {
   // Create a new chat based on the messages in this one
   async fork(messageId?: string) {
     // Skip the app message
-    let messages = this.messages({ includeAppMessages: false });
+    let messages = this.messages({ includeAppMessages: false, includeSystemMessages: true });
     if (messageId) {
       const idx = messages.findIndex((message) => message.id === messageId);
       if (idx) {
@@ -207,7 +224,9 @@ export class ChatCraftChat {
       shareUrl: this.shareUrl,
       summary: this.summary,
       // In JSON, we strip out the app messages
-      messages: this.messages({ includeAppMessages: false }).map((message) => message.serialize()),
+      messages: this.messages({ includeAppMessages: false, includeSystemMessages: true }).map(
+        (message) => message.serialize()
+      ),
     };
   }
 

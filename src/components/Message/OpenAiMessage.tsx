@@ -17,7 +17,6 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import * as ai from "../../lib/ai";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftAiMessage, ChatCraftAiMessageVersion } from "../../lib/ChatCraftMessage";
-import useSystemMessage from "../../hooks/use-system-message";
 import { formatDate } from "../../lib/utils";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 
@@ -113,7 +112,6 @@ function OpenAiMessage(props: OpenAiMessageProps) {
   const [message, setMessage] = useState(props.message);
   const [retrying, setRetrying] = useState(false);
   const { settings } = useSettings();
-  const systemMessage = useSystemMessage();
 
   useEffect(() => {
     setMessage(props.message);
@@ -132,7 +130,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
         }
 
         // Work with the messages, stripping out the app messages
-        const messages = chat.messages({ includeAppMessages: false });
+        const messages = chat.messages({ includeAppMessages: false, includeSystemMessages: true });
         const idx = messages.findIndex((m) => m.id === message.id);
         if (!idx) {
           throw new Error(`Unable to find message within chat with id=${message.id}`);
@@ -149,7 +147,6 @@ function OpenAiMessage(props: OpenAiMessageProps) {
           onToken(_token: string, currentText: string) {
             setMessage(new ChatCraftAiMessage({ id, date, model, text: currentText, versions }));
           },
-          systemMessage,
         });
 
         // Update db with new message info, and also add this as a new version
@@ -164,7 +161,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
         setRetrying(false);
       }
     },
-    [props.chatId, settings.apiKey, message, systemMessage]
+    [props.chatId, settings.apiKey, message]
   );
 
   return (

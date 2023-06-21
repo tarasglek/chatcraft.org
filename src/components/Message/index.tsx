@@ -4,10 +4,12 @@ import {
   ChatCraftAiMessage,
   ChatCraftAppMessage,
   ChatCraftMessage,
+  ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import HumanMessage from "./HumanMessage";
 import OpenAiMessage from "./OpenAiMessage";
 import AppMessage from "./AppMessage";
+import SystemMessage from "./SystemMessage";
 
 type MessageProps = {
   message: ChatCraftMessage;
@@ -74,6 +76,19 @@ function Message({
         onDeleteClick={onDeleteClick}
         disableFork={true}
         disableEdit={true}
+      />
+    );
+  }
+
+  if (message instanceof ChatCraftSystemMessage) {
+    return (
+      <SystemMessage
+        message={message}
+        chatId={chatId}
+        isLoading={isLoading}
+        hidePreviews={hidePreviews}
+        onPrompt={onPrompt}
+        onDeleteClick={onDeleteClick}
       />
     );
   }

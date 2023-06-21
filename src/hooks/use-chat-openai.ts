@@ -4,12 +4,12 @@ import { CallbackManager } from "langchain/callbacks";
 import { useKey } from "react-use";
 
 import { useSettings } from "./use-settings";
-import useSystemMessage from "./use-system-message";
 import {
   ChatCraftMessage,
   ChatCraftAiMessage,
   ChatCraftSystemMessage,
 } from "../lib/ChatCraftMessage";
+import { createSystemMessage } from "../lib/system-prompt";
 
 // See https://openai.com/pricing
 const calculateTokenCost = (tokens: number, model: string): number | undefined => {
@@ -28,7 +28,6 @@ const calculateTokenCost = (tokens: number, model: string): number | undefined =
 };
 
 function useChatOpenAI() {
-  const systemMessage = useSystemMessage();
   const [streamingMessage, setStreamingMessage] = useState<ChatCraftAiMessage>();
   const { settings } = useSettings();
   const [cancel, setCancel] = useState<() => void>(() => {});
@@ -55,6 +54,7 @@ function useChatOpenAI() {
     setPaused(!paused);
   };
 
+  // TODO: figure out how to combine the code in src/lib/ai.ts
   const callChatApi = useCallback(
     (messages: ChatCraftMessage[]) => {
       const buffer: string[] = [];
@@ -79,12 +79,16 @@ function useChatOpenAI() {
         controller.abort();
       });
 
-      // Send the chat history + user's prompt, and prefix it all with our system message
-      const systemChatMessage = new ChatCraftSystemMessage({ text: systemMessage });
+      // Send the chat's messages and prefix with a system message unless
+      // the user has already included their own custom system message.
+      const messagesToSend =
+        messages[0] instanceof ChatCraftSystemMessage
+          ? messages
+          : [createSystemMessage(), ...messages];
 
       return chatOpenAI
         .call(
-          [systemChatMessage, ...messages],
+          messagesToSend,
           {
             options: { signal: controller.signal },
           },
@@ -142,7 +146,7 @@ function useChatOpenAI() {
           setPaused(false);
         });
     },
-    [systemMessage, settings, pausedRef, setStreamingMessage]
+    [settings, pausedRef, setStreamingMessage]
   );
 
   const getTokenInfo = useCallback(

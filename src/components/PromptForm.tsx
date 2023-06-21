@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useCallback } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
 import {
   Box,
   Button,
@@ -16,22 +16,16 @@ import {
   Textarea,
   HStack,
   Tag,
-  useDisclosure,
-  MenuDivider,
-  useToast,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
-import { TbShare2, TbChevronUp } from "react-icons/tb";
-import { useCopyToClipboard } from "react-use";
+import { TbChevronUp } from "react-icons/tb";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
 
 import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
-import { isMac, isWindows, formatNumber, formatCurrency, download } from "../lib/utils";
-import ShareModal from "./ShareModal";
+import { isMac, isWindows, formatNumber, formatCurrency } from "../lib/utils";
 import NewButton from "./NewButton";
-import { ChatCraftChat } from "../lib/ChatCraftChat";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -65,7 +59,6 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
 }
 
 type PromptFormProps = {
-  chat: ChatCraftChat;
   forkUrl: string;
   onSendClick: (prompt: string) => void;
   // Whether or not to automatically manage the height of the prompt.
@@ -82,7 +75,6 @@ type PromptFormProps = {
 };
 
 function PromptForm({
-  chat,
   forkUrl,
   onSendClick,
   isExpanded,
@@ -95,13 +87,10 @@ function PromptForm({
   tokenInfo,
 }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
-  const { isOpen, onOpen, onClose } = useDisclosure();
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const [, copyToClipboard] = useCopyToClipboard();
-  const toast = useToast();
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -159,30 +148,6 @@ function PromptForm({
     }
   };
 
-  const handleCopyMessages = useCallback(() => {
-    const text = chat.toMarkdown();
-    copyToClipboard(text);
-    toast({
-      colorScheme: "blue",
-      title: "Messages copied to clipboard",
-      status: "success",
-      position: "top",
-      isClosable: true,
-    });
-  }, [chat, copyToClipboard, toast]);
-
-  const handleDownloadMessages = useCallback(() => {
-    const text = chat.toMarkdown();
-    download(text, "chat.md", "text/markdown");
-    toast({
-      colorScheme: "blue",
-      title: "Messages downloaded as file",
-      status: "success",
-      position: "top",
-      isClosable: true,
-    });
-  }, [chat, toast]);
-
   return (
     <Flex direction="column" h="100%" px={1}>
       {settings.apiKey && (
@@ -216,30 +181,6 @@ function PromptForm({
                 {formatNumber(tokenInfo.count)} Tokens
               </Tag>
             )}
-
-            <Box>
-              <Menu>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="User Settings"
-                  title="User Settings"
-                  icon={<TbShare2 />}
-                  variant="ghost"
-                />
-                <MenuList>
-                  <MenuItem onClick={() => handleCopyMessages()}>Copy to Clipboard</MenuItem>
-                  <MenuItem onClick={() => handleDownloadMessages()}>Download as File</MenuItem>
-                  <MenuDivider />
-                  <MenuItem onClick={() => onOpen()}>Create Public URL...</MenuItem>
-                </MenuList>
-              </Menu>
-            </Box>
-            <ShareModal
-              chat={chat}
-              isOpen={isOpen}
-              onClose={onClose}
-              finalFocusRef={inputPromptRef}
-            />
           </HStack>
         </Flex>
       )}

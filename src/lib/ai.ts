@@ -2,8 +2,7 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 import { CallbackManager } from "langchain/callbacks";
 
 import { ChatCraftMessage, ChatCraftSystemMessage } from "./ChatCraftMessage";
-// TODO: not sure where to put this...
-import { defaultSystemMessage } from "../hooks/use-system-message";
+import { createSystemMessage } from "./system-prompt";
 
 export type ChatOptions = {
   apiKey: string;
@@ -11,9 +10,10 @@ export type ChatOptions = {
   temperature?: number;
   onToken: (token: string, currentText: string) => void;
   controller?: AbortController;
-  systemMessage?: string;
 };
 
+// TODO: figure out how to consolidate this with the code in hooks/use-chat-openai.ts
+// or replace that with this.
 export const chat = (messages: ChatCraftMessage[], options: ChatOptions) => {
   const buffer: string[] = [];
   const chatOpenAI = new ChatOpenAI({
@@ -26,14 +26,14 @@ export const chat = (messages: ChatCraftMessage[], options: ChatOptions) => {
   // Allow the stream to be cancelled
   const controller = options.controller ?? new AbortController();
 
-  // Send the chat history + user's prompt, and prefix it all with our system message
-  const systemChatMessage = new ChatCraftSystemMessage({
-    text: options.systemMessage ?? defaultSystemMessage,
-  });
+  // Send the chat's messages and prefix with a system message unless
+  // the user has already included their own custom system message.
+  const messagesToSend =
+    messages[0] instanceof ChatCraftSystemMessage ? messages : [createSystemMessage(), ...messages];
 
   return chatOpenAI
     .call(
-      [systemChatMessage, ...messages],
+      messagesToSend,
       {
         options: { signal: controller.signal },
       },

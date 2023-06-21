@@ -52,7 +52,7 @@ export async function summarizeChat(openaiApiKey: string, chat: ChatCraftChat) {
   });
 
   const systemChatMessage = new ChatCraftSystemMessage({
-    text: "You are expert at summarizing",
+    text: "You are an expert at writing short summaries.",
   });
 
   const summarizeInstruction = new ChatCraftHumanMessage({
@@ -60,7 +60,7 @@ export async function summarizeChat(openaiApiKey: string, chat: ChatCraftChat) {
   });
 
   try {
-    const messages = chat.messages({ includeAppMessages: false });
+    const messages = chat.messages({ includeAppMessages: false, includeSystemMessages: false });
     const res = await chatOpenAI.call([systemChatMessage, ...messages, summarizeInstruction]);
     return res.text.trim();
   } catch (err) {
