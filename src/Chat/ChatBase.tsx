@@ -1,22 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Box,
-  Button,
-  Flex,
-  Link,
-  Text,
-  useDisclosure,
-  useToast,
-  Grid,
-  GridItem,
-  Heading,
-  Card,
-  CardBody,
-  ButtonGroup,
-} from "@chakra-ui/react";
-import { Form, Link as ReactRouterLink, ScrollRestoration } from "react-router-dom";
+import { Box, Button, Flex, Text, useDisclosure, useToast, Grid, GridItem } from "@chakra-ui/react";
+import { ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
-import { MdOutlineChatBubbleOutline } from "react-icons/md";
 
 import PromptForm from "../components/PromptForm";
 import MessagesView from "../components/MessagesView";
@@ -28,17 +13,16 @@ import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import NewButton from "../components/NewButton";
-import { formatDate } from "../lib/utils";
 import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
+import ChatHeader from "./ChatHeader";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
   readonly: boolean;
-  canDelete: boolean;
 };
 
-function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
+function ChatBase({ chat, readonly }: ChatBaseProps) {
   const { error: apiError } = useModels();
   // TODO: this token stuff is no longer right and useMessages() needs to be removed
   const { tokenInfo } = useMessages();
@@ -140,8 +124,8 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
 
         // In single-message-mode, trim messages to last few. Otherwise send all.
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
-        const messages = chat.messages({ includeAppMessages: false });
-        const messagesToSend = singleMessageMode ? [...messages].slice(-2) : [...messages];
+        const messages = chat.messages({ includeAppMessages: false, includeSystemMessages: true });
+        const messagesToSend = singleMessageMode ? [...messages].slice(-2) : messages;
         const response = await callChatApi(messagesToSend);
 
         // Add this response message to the chat
@@ -215,50 +199,7 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
             )
           }
 
-          <Card
-            variant="filled"
-            bg="gray.100"
-            size="sm"
-            border="1px solid"
-            borderColor="gray.200"
-            _dark={{
-              bg: "gray.800",
-              borderColor: "gray.900",
-            }}
-            mt={2}
-          >
-            <CardBody>
-              <Flex justify="space-between" align="center">
-                <Heading as="h2" fontSize="md">
-                  <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
-                    <Flex align="center" gap={2}>
-                      <MdOutlineChatBubbleOutline />
-                      {formatDate(chat.date)}
-                    </Flex>
-                  </Link>
-                </Heading>
-                <ButtonGroup isAttached>
-                  {chat.shareUrl && user && (
-                    <Button
-                      size="sm"
-                      onClick={() => chat.unshare(user)}
-                      variant="ghost"
-                      colorScheme="red"
-                    >
-                      Unshare
-                    </Button>
-                  )}
-                  {canDelete && (
-                    <Form action={`/c/${chat.id}/delete`} method="post">
-                      <Button type="submit" size="sm" variant="ghost" colorScheme="red">
-                        Delete
-                      </Button>
-                    </Form>
-                  )}
-                </ButtonGroup>
-              </Flex>
-            </CardBody>
-          </Card>
+          <ChatHeader chat={chat} canDelete={!readonly} />
 
           <ScrollRestoration />
 
@@ -285,7 +226,6 @@ function ChatBase({ chat, readonly, canDelete }: ChatBaseProps) {
             </Flex>
           ) : (
             <PromptForm
-              chat={chat}
               forkUrl={`./fork`}
               onSendClick={onPrompt}
               isExpanded={isExpanded}

@@ -41,7 +41,6 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const fetchModels = async () => {
       isFetching.current = true;
       try {
-        console.log("updating models");
         const openAiModels = await queryOpenAiModels(apiKey).then((models) => {
           models.sort();
           return models.map((model) => new ChatCraftModel(model, "OpenAI"));

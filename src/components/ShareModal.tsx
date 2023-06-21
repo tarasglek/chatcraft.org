@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Button,
   FormControl,
@@ -146,14 +146,13 @@ type ShareModalProps = {
   chat: ChatCraftChat;
   isOpen: boolean;
   onClose: () => void;
-  finalFocusRef: RefObject<HTMLTextAreaElement>;
 };
 
-function ShareModal({ chat, isOpen, onClose, finalFocusRef }: ShareModalProps) {
+function ShareModal({ chat, isOpen, onClose }: ShareModalProps) {
   const { user, login } = useUser();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Sharing</ModalHeader>

@@ -42,6 +42,7 @@ import "./Message.css";
 export interface MessageBaseProps {
   message: ChatCraftMessage;
   chatId: string;
+  summaryText?: string;
   heading?: string;
   headingMenu?: ReactNode;
   avatar: ReactNode;
@@ -58,6 +59,7 @@ export interface MessageBaseProps {
 function MessageBase({
   message,
   chatId,
+  summaryText,
   heading,
   headingMenu,
   avatar,
@@ -257,7 +259,7 @@ function MessageBase({
                 </form>
               ) : (
                 <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
-                  {text}
+                  {summaryText || text}
                 </Markdown>
               )}
             </Box>

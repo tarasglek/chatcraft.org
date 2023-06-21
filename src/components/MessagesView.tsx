@@ -4,7 +4,12 @@ import mermaid from "mermaid";
 
 import Message from "./Message";
 import NewMessage from "./NewMessage";
-import { ChatCraftMessage, ChatCraftAiMessage, ChatCraftAppMessage } from "../lib/ChatCraftMessage";
+import {
+  ChatCraftMessage,
+  ChatCraftAiMessage,
+  ChatCraftAppMessage,
+  ChatCraftSystemMessage,
+} from "../lib/ChatCraftMessage";
 import { useSettings } from "../hooks/use-settings";
 
 type MessagesViewProps = {
@@ -67,9 +72,13 @@ function MessagesView({
     }
 
     // Otherwise, show all messages in order, unless the only message in the chat
-    // is the AI Greeting AND the user has not entered an API Key. In this case
+    // is the system prompt AND the user has not entered an API Key. In this case
     // we'll show an instruction message instead (see below).
-    if (messages.length === 1 && ChatCraftAppMessage.isGreeting(messages[0]) && !settings.apiKey) {
+    if (
+      messages.length === 1 &&
+      messages[0] instanceof ChatCraftSystemMessage &&
+      !settings.apiKey
+    ) {
       return;
     }
 

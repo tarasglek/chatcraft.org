@@ -8,25 +8,8 @@ import {
   type FC,
 } from "react";
 import { useLocalStorage } from "react-use";
-import { ChatCraftModel } from "../lib/ChatCraftModel";
 
-type Settings = {
-  apiKey?: string;
-  model: ChatCraftModel;
-  enterBehaviour: EnterBehaviour;
-  justShowMeTheCode: boolean;
-  countTokens: boolean;
-  sidebarVisible: boolean;
-};
-
-const defaultSettings: Settings = {
-  model: new ChatCraftModel("gpt-3.5-turbo", "OpenAI"),
-  enterBehaviour: "send",
-  // Disabled by default, since token parsing requires downloading larger deps
-  countTokens: false,
-  justShowMeTheCode: false,
-  sidebarVisible: false,
-};
+import { serializer, deserializer, key, defaults, type Settings } from "../lib/settings";
 
 type SettingsContextType = {
   settings: Settings;
@@ -34,7 +17,7 @@ type SettingsContextType = {
 };
 
 const SettingsContext = createContext<SettingsContextType>({
-  settings: defaultSettings,
+  settings: defaults,
   setSettings: () => {
     /* do nothing */
   },
@@ -43,28 +26,15 @@ const SettingsContext = createContext<SettingsContextType>({
 export const useSettings = () => useContext(SettingsContext);
 
 export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [settings, setSettings] = useLocalStorage<Settings>("settings", defaultSettings, {
+  const [settings, setSettings] = useLocalStorage<Settings>(key, defaults, {
     raw: false,
-    serializer(value: Settings) {
-      return JSON.stringify(value);
-    },
-    deserializer(value: string) {
-      const settings = JSON.parse(value);
-      if (!settings.model) {
-        settings.model = defaultSettings.model;
-      }
-
-      if (typeof settings.model === "string") {
-        settings.model = new ChatCraftModel(settings.model);
-      }
-
-      return settings;
-    },
+    serializer,
+    deserializer,
   });
-  const [state, setState] = useState<Settings>(settings || defaultSettings);
+  const [state, setState] = useState<Settings>(settings || defaults);
 
   useEffect(() => {
-    setState(settings || defaultSettings);
+    setState(settings || defaults);
   }, [settings]);
 
   const updateSettings = useCallback(
