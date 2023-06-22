@@ -51,7 +51,7 @@ export default createBrowserRouter([
       }
       return id;
     },
-    element: <LocalChat readonly={false} />,
+    element: <LocalChat />,
   },
   // Delete a chat from the local db
   {
@@ -142,7 +142,7 @@ export default createBrowserRouter([
         redirect(`/`);
       }
     },
-    element: <RemoteChat readonly={true} />,
+    element: <RemoteChat />,
   },
 
   // Fork a remote chat into the local db

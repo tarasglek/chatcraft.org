@@ -42,7 +42,7 @@ function Message({
         onPrompt={onPrompt}
         onDeleteClick={onDeleteClick}
         disableFork={disableFork}
-        disableEdit={disableEdit}
+        disableEdit={message.readonly && disableEdit}
       />
     );
   }
@@ -60,7 +60,7 @@ function Message({
         onPrompt={onPrompt}
         onDeleteClick={onDeleteClick}
         disableFork={disableFork}
-        disableEdit={disableEdit}
+        disableEdit={message.readonly && disableEdit}
       />
     );
   }
@@ -75,7 +75,7 @@ function Message({
         onPrompt={onPrompt}
         onDeleteClick={onDeleteClick}
         disableFork={true}
-        disableEdit={true}
+        disableEdit={message.readonly && disableEdit}
       />
     );
   }

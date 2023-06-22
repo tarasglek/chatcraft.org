@@ -172,7 +172,9 @@ function OpenAiMessage(props: OpenAiMessageProps) {
       avatar={getAvatar(message.model, "sm")}
       heading={`${message.model.prettyModel} ${retrying ? ` (retrying...)` : ""}`}
       headingMenu={
-        <MessageVersionsMenu message={message} chatId={props.chatId} isDisabled={retrying} />
+        !message.readonly && (
+          <MessageVersionsMenu message={message} chatId={props.chatId} isDisabled={retrying} />
+        )
       }
       onRetryClick={retrying ? undefined : handleRetryClick}
       onDeleteClick={retrying ? undefined : props.onDeleteClick}
