@@ -25,10 +25,9 @@ import ShareModal from "../components/ShareModal";
 
 type ChatHeaderProps = {
   chat: ChatCraftChat;
-  canDelete: boolean;
 };
 
-function ChatHeader({ chat, canDelete }: ChatHeaderProps) {
+function ChatHeader({ chat }: ChatHeaderProps) {
   const { user } = useUser();
   const [, copyToClipboard] = useCopyToClipboard();
   const toast = useToast();
@@ -125,7 +124,7 @@ function ChatHeader({ chat, canDelete }: ChatHeaderProps) {
                   <MenuItem onClick={onOpen}>Create Public URL...</MenuItem>
                 )}
 
-                {canDelete && (
+                {!chat.readonly && (
                   <>
                     <MenuDivider />
                     <MenuItem color="red.400" onClick={() => handleDeleteClick()}>

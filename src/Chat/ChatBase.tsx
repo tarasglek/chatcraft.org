@@ -19,10 +19,9 @@ import ChatHeader from "./ChatHeader";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
-  readonly: boolean;
 };
 
-function ChatBase({ chat, readonly }: ChatBaseProps) {
+function ChatBase({ chat }: ChatBaseProps) {
   const { error: apiError } = useModels();
   // TODO: this token stuff is no longer right and useMessages() needs to be removed
   const { tokenInfo } = useMessages();
@@ -199,7 +198,7 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
             )
           }
 
-          <ChatHeader chat={chat} canDelete={!readonly} />
+          <ChatHeader chat={chat} />
 
           <ScrollRestoration />
 
@@ -220,9 +219,9 @@ function ChatBase({ chat, readonly }: ChatBaseProps) {
 
       <GridItem>
         <Box maxW="900px" mx="auto" h="100%">
-          {readonly ? (
+          {chat.readonly ? (
             <Flex w="100%" h="45px" justify="end" align="center" p={2}>
-              <NewButton forkUrl={`./fork`} variant="solid" disableClear={readonly} />
+              <NewButton forkUrl={`./fork`} variant="solid" disableClear={chat.readonly} />
             </Flex>
           ) : (
             <PromptForm

@@ -40,23 +40,29 @@ export class ChatCraftMessage extends BaseChatMessage {
   id: string;
   date: Date;
   type: MessageType;
+  readonly: boolean;
 
   constructor({
     id,
     date,
     type,
     text,
+    readonly,
   }: {
     id?: string;
     date?: Date;
     type: MessageType;
     text: string;
+    readonly?: boolean;
   }) {
     super(text);
 
     this.id = id ?? nanoid();
     this.date = date ?? new Date();
     this.type = type;
+
+    // When we load a message outside the db (e.g., from shared chat via JSON) it is readonly
+    this.readonly = readonly === true;
   }
 
   // Comply with BaseChatMessage's need for _getType()
@@ -66,6 +72,13 @@ export class ChatCraftMessage extends BaseChatMessage {
 
   static async delete(id: string) {
     return db.messages.delete(id);
+  }
+
+  clone() {
+    return new ChatCraftMessage({
+      type: this.type,
+      text: this.text,
+    });
   }
 
   // XXX: we can't use toJSON() because langchain depends on it
@@ -89,6 +102,9 @@ export class ChatCraftMessage extends BaseChatMessage {
   }
 
   async save(chatId: string) {
+    if (this.readonly) {
+      return;
+    }
     return db.messages.put(this.toDB(chatId));
   }
 
@@ -135,24 +151,33 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     model,
     text,
     versions,
+    readonly,
   }: {
     id?: string;
     date?: Date;
     model: ChatCraftModel;
     text: string;
     versions?: ChatCraftAiMessageVersion[];
+    readonly?: boolean;
   }) {
-    super({ id, date, type: "ai", text });
+    super({ id, date, type: "ai", text, readonly });
 
     this.model = model;
     this.versions = versions ?? [new ChatCraftAiMessageVersion({ date, model, text })];
   }
 
   addVersion(version: ChatCraftAiMessageVersion) {
+    if (this.readonly) {
+      return;
+    }
     this.versions.push(version);
   }
 
   switchVersion(id: string) {
+    if (this.readonly) {
+      return;
+    }
+
     const version = this.versions.find((v) => v.id === id);
     if (!version) {
       throw new Error(`no such version: ${id}`);
@@ -178,6 +203,14 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     }
 
     return null;
+  }
+
+  clone() {
+    return new ChatCraftAiMessage({
+      model: this.model,
+      text: this.text,
+      versions: this.versions,
+    });
   }
 
   serialize(): SerializedChatCraftMessage {
@@ -223,6 +256,7 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
             model: new ChatCraftModel(version.model),
           })
       ),
+      readonly: true,
     });
   }
 
@@ -243,10 +277,29 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
 export class ChatCraftHumanMessage extends ChatCraftMessage {
   user?: User;
 
-  constructor({ id, date, user, text }: { id?: string; date?: Date; user?: User; text: string }) {
-    super({ id, date, type: "human", text });
+  constructor({
+    id,
+    date,
+    user,
+    text,
+    readonly,
+  }: {
+    id?: string;
+    date?: Date;
+    user?: User;
+    text: string;
+    readonly?: boolean;
+  }) {
+    super({ id, date, type: "human", text, readonly });
 
     this.user = user;
+  }
+
+  clone() {
+    return new ChatCraftHumanMessage({
+      user: this.user,
+      text: this.text,
+    });
   }
 
   serialize(): SerializedChatCraftMessage {
@@ -273,6 +326,7 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
       date: new Date(message.date),
       user: message.user,
       text: message.text,
+      readonly: true,
     });
   }
 
@@ -287,8 +341,24 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
 }
 
 export class ChatCraftSystemMessage extends ChatCraftMessage {
-  constructor({ id, date, text }: { id?: string; date?: Date; text: string }) {
-    super({ id, date, type: "system", text });
+  constructor({
+    id,
+    date,
+    text,
+    readonly,
+  }: {
+    id?: string;
+    date?: Date;
+    text: string;
+    readonly?: boolean;
+  }) {
+    super({ id, date, type: "system", text, readonly });
+  }
+
+  clone() {
+    return new ChatCraftSystemMessage({
+      text: this.text,
+    });
   }
 
   static fromJSON(message: SerializedChatCraftMessage) {
@@ -296,6 +366,7 @@ export class ChatCraftSystemMessage extends ChatCraftMessage {
       id: message.id,
       date: new Date(message.date),
       text: message.text,
+      readonly: true,
     });
   }
 
@@ -310,8 +381,24 @@ export class ChatCraftSystemMessage extends ChatCraftMessage {
 
 // Messages we display to the user in ChatCraft, but don't store in db or send to AI
 export class ChatCraftAppMessage extends ChatCraftMessage {
-  constructor({ id, date, text }: { id?: string; date?: Date; text: string }) {
-    super({ id, date, type: "generic", text });
+  constructor({
+    id,
+    date,
+    text,
+    readonly,
+  }: {
+    id?: string;
+    date?: Date;
+    text: string;
+    readonly?: boolean;
+  }) {
+    super({ id, date, type: "generic", text, readonly });
+  }
+
+  clone() {
+    return new ChatCraftAppMessage({
+      text: this.text,
+    });
   }
 
   static fromJSON(message: SerializedChatCraftMessage) {
@@ -319,6 +406,7 @@ export class ChatCraftAppMessage extends ChatCraftMessage {
       id: message.id,
       date: new Date(message.date),
       text: message.text,
+      readonly: true,
     });
   }
 

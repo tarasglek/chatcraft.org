@@ -4,12 +4,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import ChatBase from "./ChatBase";
 
-type LocalChatProps = {
-  readonly: boolean;
-};
-
 // Load a chat from the database locally
-export default function LocalChat({ readonly }: LocalChatProps) {
+export default function LocalChat() {
   const chatId = useLoaderData() as string;
   const chat = useLiveQuery<ChatCraftChat | undefined>(() => {
     if (chatId) {
@@ -18,5 +14,5 @@ export default function LocalChat({ readonly }: LocalChatProps) {
   }, [chatId]);
 
   // TODO: need some kind of error handling here if `chat` doesn't exist
-  return chat ? <ChatBase chat={chat} readonly={readonly} /> : null;
+  return chat ? <ChatBase chat={chat} /> : null;
 }

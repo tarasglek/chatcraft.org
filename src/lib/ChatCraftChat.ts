@@ -30,6 +30,7 @@ export class ChatCraftChat {
   shareUrl?: string;
   summary: string;
   private _messages: ChatCraftMessage[];
+  readonly: boolean;
 
   constructor({
     id,
@@ -37,12 +38,14 @@ export class ChatCraftChat {
     shareUrl,
     summary,
     messages,
+    readonly,
   }: {
     id?: string;
     date?: Date;
     shareUrl?: string;
     summary?: string;
     messages?: ChatCraftMessage[];
+    readonly?: boolean;
   } = {}) {
     this.id = id ?? nanoid();
     this._messages = messages ?? [createSystemMessage()];
@@ -50,6 +53,8 @@ export class ChatCraftChat {
     // All chats are private by default, unless we add a shareUrl
     this.shareUrl = shareUrl;
     this.summary = summary ?? this.summarize();
+    // When we load a chat remotely (from JSON vs. DB) readonly=true
+    this.readonly = readonly === true;
   }
 
   /**
@@ -86,17 +91,29 @@ export class ChatCraftChat {
   }
 
   async addMessage(message: ChatCraftMessage, user?: User) {
+    if (this.readonly) {
+      return;
+    }
+
     this._messages.push(message);
     return this.update(user);
   }
 
   async removeMessage(id: string, user?: User) {
+    if (this.readonly) {
+      return;
+    }
+
     await ChatCraftMessage.delete(id);
     this._messages = this._messages.filter((message) => message.id !== id);
     return this.update(user);
   }
 
   async resetMessages(user?: User) {
+    if (this.readonly) {
+      return;
+    }
+
     // Delete existing messages from db
     await db.messages.bulkDelete(this._messages.map(({ id }) => id));
     // Make a new set of messages
@@ -131,6 +148,10 @@ export class ChatCraftChat {
 
   // Save to db
   async save() {
+    if (this.readonly) {
+      return;
+    }
+
     const chatId = this.id;
     // Update the date to indicate we've update the chat
     this.date = new Date();
@@ -146,6 +167,10 @@ export class ChatCraftChat {
 
   // Make this chat public, and share online
   async share(user: User, summary?: string) {
+    if (this.readonly) {
+      return;
+    }
+
     let isDirty = false;
 
     // Update db to indicate this is public, if necessary
@@ -169,6 +194,10 @@ export class ChatCraftChat {
   }
 
   async unshare(user: User) {
+    if (this.readonly) {
+      return;
+    }
+
     // If this chat isn't already shared, we're done
     if (!this.shareUrl) {
       return;
@@ -181,6 +210,10 @@ export class ChatCraftChat {
 
   // Combine saving to db and updating online share if necessary
   async update(user?: User) {
+    if (this.readonly) {
+      return;
+    }
+
     // If this chat is already shared, do both.
     if (this.shareUrl) {
       await this.save();
@@ -205,7 +238,7 @@ export class ChatCraftChat {
     }
 
     const chat = new ChatCraftChat({
-      messages: [...messages],
+      messages: messages.map((message) => message.clone()),
       summary: this.summary,
     });
     await chat.save();
@@ -271,6 +304,8 @@ export class ChatCraftChat {
       shareUrl,
       summary,
       messages: messages.map((message) => ChatCraftMessage.fromJSON(message)),
+      // We can't modify a chat loaded outside the db
+      readonly: true,
     });
   }
 

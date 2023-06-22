@@ -47,6 +47,9 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
     setIsSharing(true);
     try {
       const url = await chat.share(user, summary);
+      if (!url) {
+        throw new Error("Unable to create Share URL");
+      }
       setUrl(url);
     } catch (err: any) {
       console.error(err);
