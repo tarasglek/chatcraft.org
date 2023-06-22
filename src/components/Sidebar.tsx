@@ -19,7 +19,7 @@ import db, { type ChatCraftChatTable } from "../lib/db";
 import { Form, Link } from "react-router-dom";
 import { useState } from "react";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { formatNumber } from "../lib/utils";
+import { formatDate, formatNumber } from "../lib/utils";
 
 type SidebarItemProps = {
   text: string;
@@ -125,7 +125,7 @@ function Sidebar({ selectedChat }: SidebarProps) {
             recentChats.map((chat) => (
               <SidebarItem
                 key={chat.id}
-                text={chat.summarize()}
+                text={`${formatDate(chat.date, true)} - ${chat.summarize() || "(no messages)"}`}
                 url={`/c/${chat.id}`}
                 canDelete={true}
                 isSelected={selectedChat?.id === chat.id}
@@ -149,10 +149,10 @@ function Sidebar({ selectedChat }: SidebarProps) {
 
         <>
           {sharedChats?.length ? (
-            sharedChats.map(({ id, summary, shareUrl }) => (
+            sharedChats.map(({ id, date, summary, shareUrl }) => (
               <SidebarItem
                 key={id}
-                text={summary}
+                text={`${formatDate(date, true)} - ${summary}`}
                 // We've already filtered for all objects with shareUrl, so this is fine
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 url={shareUrl!}
