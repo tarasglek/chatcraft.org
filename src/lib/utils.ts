@@ -6,14 +6,19 @@ export const formatNumber = (n: number) => (n ? n.toLocaleString() : "0");
 export const formatCurrency = (n: number) =>
   Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(n);
 
-export const formatDate = (d: Date) =>
-  d.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-  });
+export const formatDate = (d: Date, short = false) =>
+  short
+    ? new Intl.DateTimeFormat(undefined, {
+        dateStyle: "short",
+        timeStyle: "short",
+      }).format(d)
+    : new Intl.DateTimeFormat(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      }).format(d);
 
 export function download(data: string | Blob, filename: string, type = "text/plain") {
   let blob;
