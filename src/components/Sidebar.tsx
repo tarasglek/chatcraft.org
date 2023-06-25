@@ -36,18 +36,18 @@ type SidebarItemProps = {
 };
 
 function SidebarItem({ chat, url, isSelected, canDelete, canEdit }: SidebarItemProps) {
+  const text = chat.summary || "(empty chat)";
   const bg = useColorModeValue(
     isSelected ? "gray.200" : undefined,
-    isSelected ? "gray.700" : undefined
+    isSelected ? "gray.800" : undefined
   );
   const borderColor = useColorModeValue(
     isSelected ? "gray.300" : "gray.100",
-    isSelected ? "gray.800" : "gray.600"
+    isSelected ? "gray.900" : "gray.600"
   );
   const toast = useToast();
   const [isEditing, setIsEditing] = useState(false);
   useKey("Escape", () => setIsEditing(false), { event: "keydown" }, [setIsEditing]);
-  const text = chat.title || chat.summary || chat.summarize() || "(no messages)";
 
   // If the user clicks away, end editing
   useEffect(() => {
@@ -56,21 +56,20 @@ function SidebarItem({ chat, url, isSelected, canDelete, canEdit }: SidebarItemP
     }
   }, [isSelected, setIsEditing]);
 
-  const handleSaveTitle = (e: FormEvent<HTMLFormElement>) => {
-    console.log("submit", e);
+  const handleSaveSummary = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const data = new FormData(e.target as HTMLFormElement);
-    const title = data.get("title");
-    if (typeof title !== "string") {
+    const summary = data.get("summary");
+    if (typeof summary !== "string") {
       return;
     }
 
-    chat.title = title;
+    chat.summary = summary;
     chat
       .update()
       .catch((err) => {
-        console.warn("Unable to update title for chat", err);
+        console.warn("Unable to update summary for chat", err);
         toast({
           title: `Error Updating Chat`,
           description: "message" in err ? err.message : undefined,
@@ -107,8 +106,8 @@ function SidebarItem({ chat, url, isSelected, canDelete, canEdit }: SidebarItemP
                 variant="ghost"
                 size="sm"
                 icon={<AiOutlineEdit />}
-                aria-label="Edit title"
-                title="Edit title"
+                aria-label="Edit summary"
+                title="Edit summary"
                 onClick={() => setIsEditing(true)}
               />
             )}
@@ -131,13 +130,13 @@ function SidebarItem({ chat, url, isSelected, canDelete, canEdit }: SidebarItemP
 
       <Box flex={1} maxW="100%" minH="24px">
         {isEditing ? (
-          <form onSubmit={handleSaveTitle}>
+          <form onSubmit={handleSaveSummary}>
             <Flex align="center">
               <Input
                 flex={1}
-                defaultValue={chat.title}
+                defaultValue={chat.summary}
                 type="text"
-                name="title"
+                name="summary"
                 bg="white"
                 _dark={{ bg: "gray.700" }}
                 size="xs"

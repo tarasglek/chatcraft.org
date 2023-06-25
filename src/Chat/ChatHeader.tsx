@@ -7,7 +7,6 @@ import {
   CardBody,
   CardFooter,
   Flex,
-  Heading,
   IconButton,
   Input,
   Link,
@@ -42,6 +41,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   const fetcher = useFetcher();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isEditing, setIsEditing] = useState(false);
+  const text = chat.summary || "(empty chat)";
 
   useKey("Escape", () => setIsEditing(false), { event: "keydown" }, [setIsEditing]);
 
@@ -93,20 +93,20 @@ function ChatHeader({ chat }: ChatHeaderProps) {
     fetcher.submit({}, { method: "post", action: `/c/${chat.id}/delete` });
   };
 
-  const handleSaveTitle = (e: FormEvent<HTMLFormElement>) => {
+  const handleSaveSummary = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const data = new FormData(e.target as HTMLFormElement);
-    const title = data.get("title");
-    if (typeof title !== "string") {
+    const summary = data.get("summary");
+    if (typeof summary !== "string") {
       return;
     }
 
-    chat.title = title;
+    chat.summary = summary;
     chat
       .update()
       .catch((err) => {
-        console.warn("Unable to update title for chat", err);
+        console.warn("Unable to update summary for chat", err);
         toast({
           title: `Error Updating Chat`,
           description: "message" in err ? err.message : undefined,
@@ -122,10 +122,10 @@ function ChatHeader({ chat }: ChatHeaderProps) {
     <>
       <Card
         variant="filled"
-        bg="gray.100"
+        bg="gray.200"
         size="sm"
         border="1px solid"
-        borderColor="gray.200"
+        borderColor="gray.300"
         _dark={{
           bg: "gray.800",
           borderColor: "gray.900",
@@ -134,14 +134,53 @@ function ChatHeader({ chat }: ChatHeaderProps) {
       >
         <CardBody pb={0}>
           <Flex justify="space-between" align="center">
-            <Heading as="h2" fontSize="md">
-              <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
-                <Flex align="center" gap={2}>
-                  <MdOutlineChatBubbleOutline />
-                  {formatDate(chat.date)}
+            <Box w="100%">
+              {isEditing ? (
+                <form onSubmit={handleSaveSummary}>
+                  <Flex align="center" gap={2}>
+                    <Input
+                      flex={1}
+                      defaultValue={chat.summary}
+                      type="text"
+                      name="summary"
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                      size="sm"
+                      w="100%"
+                      autoFocus={true}
+                      placeholder="Chat Summary"
+                    />
+                    <ButtonGroup>
+                      <Button variant="outline" size="xs" onClick={() => setIsEditing(false)}>
+                        Cancel
+                      </Button>
+                      <Button size="xs" type="submit">
+                        Save
+                      </Button>
+                    </ButtonGroup>
+                  </Flex>
+                </form>
+              ) : (
+                <Flex align="center" gap={2} maxW="100%">
+                  <Box>
+                    <MdOutlineChatBubbleOutline />
+                  </Box>
+                  <Text fontSize="md" fontWeight="bold" noOfLines={1} title={text}>
+                    <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
+                      {text}
+                    </Link>
+                  </Text>
+                  <IconButton
+                    variant="ghost"
+                    size="sm"
+                    icon={<AiOutlineEdit />}
+                    aria-label="Edit summary"
+                    title="Edit summary"
+                    onClick={() => setIsEditing(true)}
+                  />
                 </Flex>
-              </Link>
-            </Heading>
+              )}
+            </Box>
 
             <Menu>
               <MenuButton
@@ -177,52 +216,11 @@ function ChatHeader({ chat }: ChatHeaderProps) {
           </Flex>
         </CardBody>
         <CardFooter pt={0}>
-          <Box w="100%">
-            {isEditing ? (
-              <form onSubmit={handleSaveTitle}>
-                <Flex align="center" gap={2}>
-                  <Input
-                    flex={1}
-                    defaultValue={chat.title}
-                    type="text"
-                    name="title"
-                    bg="white"
-                    _dark={{ bg: "gray.700" }}
-                    size="sm"
-                    w="100%"
-                    autoFocus={true}
-                    placeholder="Chat Title"
-                  />
-                  <ButtonGroup>
-                    <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
-                      Cancel
-                    </Button>
-                    <Button size="sm" type="submit">
-                      Save
-                    </Button>
-                  </ButtonGroup>
-                </Flex>
-              </form>
-            ) : chat.title ? (
-              <Flex align="center" gap={2} maxW="100%">
-                <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} ml={6}>
-                  {chat.title}
-                </Text>
-                <IconButton
-                  variant="ghost"
-                  size="sm"
-                  icon={<AiOutlineEdit />}
-                  aria-label="Edit title"
-                  title="Edit title"
-                  onClick={() => setIsEditing(true)}
-                />
-              </Flex>
-            ) : (
-              <Button size="sm" variant="ghost" onClick={() => setIsEditing(!isEditing)}>
-                Add a title...
-              </Button>
-            )}
-          </Box>
+          <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
+            <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} ml={6}>
+              {formatDate(chat.date)}
+            </Text>
+          </Link>
         </CardFooter>
       </Card>
 
