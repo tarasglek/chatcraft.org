@@ -16,6 +16,7 @@ import NewButton from "../components/NewButton";
 import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
 import ChatHeader from "./ChatHeader";
+import useTitle from "../hooks/use-title";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -40,6 +41,7 @@ function ChatBase({ chat }: ChatBaseProps) {
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
   const { user } = useUser();
+  useTitle(chat);
 
   // If we can't load models, it's a bad sign for API connectivity.
   // Show an error so the user is aware.

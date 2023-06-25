@@ -5,8 +5,7 @@ export type ChatCraftChatTable = {
   id: string;
   date: Date;
   shareUrl?: string;
-  summary: string;
-  title?: string;
+  summary?: string;
   messageIds: string[];
 };
 
@@ -41,9 +40,9 @@ class ChatCraftDatabase extends Dexie {
     this.version(3).stores({
       messages: "id, date, chatId, type, model, user, text, versions",
     });
-    // Version 4 Migration - adds optional title to chat
+    // Version 4 Migration - chat summary becomes optional
     this.version(4).stores({
-      chats: "id, date, shareUrl, summary, title, messageIds",
+      chats: "id, date, shareUrl, summary, messageIds",
     });
 
     this.chats = this.table("chats");
