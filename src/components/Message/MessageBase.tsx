@@ -23,7 +23,9 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import ResizeTextarea from "react-textarea-autosize";
-import { TbDots } from "react-icons/tb";
+import { TbDots, TbTrash } from "react-icons/tb";
+import { AiOutlineEdit } from "react-icons/ai";
+import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink, useNavigate } from "react-router-dom";
 
 import { formatDate, download } from "../../lib/utils";
@@ -78,6 +80,7 @@ function MessageBase({
   const { onCopy } = useClipboard(text);
   const toast = useToast();
   const navigate = useNavigate();
+  const [isHovering, setIsHovering] = useState(false);
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -160,7 +163,13 @@ function MessageBase({
   );
 
   return (
-    <Box id={id} my={6} flex={1}>
+    <Box
+      id={id}
+      my={6}
+      flex={1}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
       <Card>
         <CardHeader p={0} py={1} pr={1}>
           <Flex justify="space-between" align="center" ml={5} mr={2}>
@@ -186,47 +195,78 @@ function MessageBase({
               </Flex>
             </Flex>
 
-            <Menu>
-              <MenuButton
-                as={IconButton}
-                aria-label="Message Menu"
-                icon={<TbDots />}
-                variant="ghost"
-                isDisabled={isLoading}
-              />
-              <MenuList>
-                <MenuItem onClick={() => handleCopy()}>Copy</MenuItem>
-                <MenuItem onClick={() => handleDownload()}>Download</MenuItem>
-                {!disableFork && (
-                  <MenuItem onClick={() => navigate(`./fork/${id}`)}>
-                    Duplicate Chat from Message...
-                  </MenuItem>
-                )}
+            <Flex align="center">
+              {isHovering && (
+                <ButtonGroup isAttached display={{ base: "none", md: "block" }}>
+                  <IconButton
+                    variant="ghost"
+                    icon={<MdContentCopy />}
+                    aria-label="Copy message to clipboard"
+                    title="Copy message to clipboard"
+                    onClick={() => handleCopy()}
+                  />
+                  {!disableEdit && !editing && (
+                    <IconButton
+                      variant="ghost"
+                      icon={<AiOutlineEdit />}
+                      aria-label="Edit message"
+                      title="Edit message"
+                      onClick={() => setEditing(!editing)}
+                    />
+                  )}
+                  {onDeleteClick && (
+                    <IconButton
+                      variant="ghost"
+                      icon={<TbTrash />}
+                      aria-label="Delete message"
+                      title="Delete message"
+                      onClick={() => onDeleteClick()}
+                    />
+                  )}
+                </ButtonGroup>
+              )}
+              <Menu>
+                <MenuButton
+                  as={IconButton}
+                  aria-label="Message Menu"
+                  icon={<TbDots />}
+                  variant="ghost"
+                  isDisabled={isLoading}
+                />
+                <MenuList>
+                  <MenuItem onClick={() => handleCopy()}>Copy</MenuItem>
+                  <MenuItem onClick={() => handleDownload()}>Download</MenuItem>
+                  {!disableFork && (
+                    <MenuItem onClick={() => navigate(`./fork/${id}`)}>
+                      Duplicate Chat from Message...
+                    </MenuItem>
+                  )}
 
-                {onRetryClick && (
-                  <>
-                    <MenuDivider />
-                    {models.map((model) => (
-                      <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
-                        Retry with {model.prettyModel}
-                      </MenuItem>
-                    ))}
-                  </>
-                )}
+                  {onRetryClick && (
+                    <>
+                      <MenuDivider />
+                      {models.map((model) => (
+                        <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
+                          Retry with {model.prettyModel}
+                        </MenuItem>
+                      ))}
+                    </>
+                  )}
 
-                {(!disableEdit || onDeleteClick) && <MenuDivider />}
-                {!disableEdit && (
-                  <MenuItem onClick={() => setEditing(!editing)}>
-                    {editing ? "Cancel Editing" : "Edit"}
-                  </MenuItem>
-                )}
-                {onDeleteClick && (
-                  <MenuItem onClick={() => onDeleteClick()} color="red.400">
-                    Delete
-                  </MenuItem>
-                )}
-              </MenuList>
-            </Menu>
+                  {(!disableEdit || onDeleteClick) && <MenuDivider />}
+                  {!disableEdit && (
+                    <MenuItem onClick={() => setEditing(!editing)}>
+                      {editing ? "Cancel Editing" : "Edit"}
+                    </MenuItem>
+                  )}
+                  {onDeleteClick && (
+                    <MenuItem onClick={() => onDeleteClick()} color="red.400">
+                      Delete
+                    </MenuItem>
+                  )}
+                </MenuList>
+              </Menu>
+            </Flex>
           </Flex>
         </CardHeader>
         <CardBody p={0}>
