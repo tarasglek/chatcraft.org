@@ -15,6 +15,7 @@ export type SerializedChatCraftChat = {
   id: string;
   date: string;
   shareUrl?: string;
+  title?: string;
   summary: string;
   messages: SerializedChatCraftMessage[];
 };
@@ -28,6 +29,7 @@ export class ChatCraftChat {
   id: string;
   date: Date;
   shareUrl?: string;
+  title?: string;
   summary: string;
   private _messages: ChatCraftMessage[];
   readonly: boolean;
@@ -37,6 +39,7 @@ export class ChatCraftChat {
     date,
     shareUrl,
     summary,
+    title,
     messages,
     readonly,
   }: {
@@ -44,6 +47,7 @@ export class ChatCraftChat {
     date?: Date;
     shareUrl?: string;
     summary?: string;
+    title?: string;
     messages?: ChatCraftMessage[];
     readonly?: boolean;
   } = {}) {
@@ -52,6 +56,7 @@ export class ChatCraftChat {
     this.date = date ?? new Date();
     // All chats are private by default, unless we add a shareUrl
     this.shareUrl = shareUrl;
+    this.title = title;
     this.summary = summary ?? this.summarize();
     // When we load a chat remotely (from JSON vs. DB) readonly=true
     this.readonly = readonly === true;
@@ -256,6 +261,7 @@ export class ChatCraftChat {
       date: this.date.toISOString(),
       shareUrl: this.shareUrl,
       summary: this.summary,
+      title: this.title,
       // In JSON, we strip out the app messages
       messages: this.messages({ includeAppMessages: false, includeSystemMessages: true }).map(
         (message) => message.serialize()
@@ -269,6 +275,7 @@ export class ChatCraftChat {
       date: this.date,
       shareUrl: this.shareUrl,
       summary: this.summary,
+      title: this.title,
       // In the DB, we store the app messages, since that's what we show in the UI
       messageIds: this._messages.map(({ id }) => id),
     };
@@ -296,6 +303,7 @@ export class ChatCraftChat {
     date,
     shareUrl,
     summary,
+    title,
     messages,
   }: SerializedChatCraftChat): ChatCraftChat {
     return new ChatCraftChat({
@@ -303,6 +311,7 @@ export class ChatCraftChat {
       date: new Date(date),
       shareUrl,
       summary,
+      title,
       messages: messages.map((message) => ChatCraftMessage.fromJSON(message)),
       // We can't modify a chat loaded outside the db
       readonly: true,

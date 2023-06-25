@@ -1,3 +1,5 @@
+import { FormEvent, useEffect, useState } from "react";
+
 import {
   Box,
   Flex,
@@ -9,61 +11,166 @@ import {
   Center,
   useColorModeValue,
   IconButton,
+  ButtonGroup,
+  useToast,
+  Input,
 } from "@chakra-ui/react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { MdOutlineChatBubbleOutline } from "react-icons/md";
+import { TbCheck, TbTrash } from "react-icons/tb";
 import { CgClose } from "react-icons/cg";
+import { AiOutlineEdit } from "react-icons/ai";
+import { useKey } from "react-use";
+import { Link } from "react-router-dom";
 
-import db, { type ChatCraftChatTable } from "../lib/db";
-import { Form, Link } from "react-router-dom";
-import { useState } from "react";
+import db from "../lib/db";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { formatDate, formatNumber } from "../lib/utils";
 
 type SidebarItemProps = {
-  text: string;
+  chat: ChatCraftChat;
   url: string;
   isSelected: boolean;
   canDelete?: boolean;
+  canEdit?: boolean;
 };
 
-function SidebarItem({ text, url, isSelected, canDelete }: SidebarItemProps) {
+function SidebarItem({ chat, url, isSelected, canDelete, canEdit }: SidebarItemProps) {
   const bg = useColorModeValue(
     isSelected ? "gray.200" : undefined,
     isSelected ? "gray.700" : undefined
   );
-  const border = isSelected ? "1px solid" : "1px solid transparent";
   const borderColor = useColorModeValue(
-    isSelected ? "gray.300" : undefined,
-    isSelected ? "gray.800" : undefined
+    isSelected ? "gray.300" : "gray.100",
+    isSelected ? "gray.800" : "gray.600"
   );
+  const toast = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  useKey("Escape", () => setIsEditing(false), { event: "keydown" }, [setIsEditing]);
+  const text = chat.title || chat.summary || chat.summarize() || "(no messages)";
+
+  // If the user clicks away, end editing
+  useEffect(() => {
+    if (!isSelected) {
+      setIsEditing(false);
+    }
+  }, [isSelected, setIsEditing]);
+
+  const handleSaveTitle = (e: FormEvent<HTMLFormElement>) => {
+    console.log("submit", e);
+    e.preventDefault();
+
+    const data = new FormData(e.target as HTMLFormElement);
+    const title = data.get("title");
+    if (typeof title !== "string") {
+      return;
+    }
+
+    chat.title = title;
+    chat
+      .update()
+      .catch((err) => {
+        console.warn("Unable to update title for chat", err);
+        toast({
+          title: `Error Updating Chat`,
+          description: "message" in err ? err.message : undefined,
+          status: "error",
+          position: "top",
+          isClosable: true,
+        });
+      })
+      .finally(() => setIsEditing(false));
+  };
 
   return (
-    <Flex gap={2} p={1} bg={bg} border={border} borderColor={borderColor} borderRadius={4}>
-      <VStack mt={1} gap={1} minH={14}>
-        <Flex w={6} h={6} justify="center" align="center">
-          <MdOutlineChatBubbleOutline />
-        </Flex>
-        {isSelected && canDelete && (
-          <Form action={`${url}/delete`} method="post">
-            <IconButton
-              size="xs"
-              variant="ghost"
-              type="submit"
-              icon={<CgClose />}
-              aria-label="Delete chat"
-              title="Delete chat"
-              colorScheme="red"
-            />
-          </Form>
-        )}
-      </VStack>
-      <Box flex={1} maxW="100%">
-        <Link to={url}>
-          <Text noOfLines={4} fontSize="sm" title={text}>
-            {text}
-          </Text>
+    <Flex
+      p={1}
+      bg={bg}
+      border="1px solid"
+      borderColor={borderColor}
+      borderRadius={4}
+      direction="column"
+    >
+      <Flex justify="space-between" align="center" minH="32px" w="100%">
+        <Link to={url} style={{ width: "100%" }}>
+          <Flex align="center" gap={2}>
+            <MdOutlineChatBubbleOutline />
+            <Text flex={1} fontSize="sm" as="strong">
+              {formatDate(chat.date, true)}
+            </Text>
+          </Flex>
         </Link>
+        {isSelected && !isEditing ? (
+          <ButtonGroup isAttached>
+            {canEdit && (
+              <IconButton
+                variant="ghost"
+                size="sm"
+                icon={<AiOutlineEdit />}
+                aria-label="Edit title"
+                title="Edit title"
+                onClick={() => setIsEditing(true)}
+              />
+            )}
+            {canDelete && (
+              <IconButton
+                variant="ghost"
+                size="sm"
+                icon={<TbTrash />}
+                aria-label="Delete chat"
+                title="Delete chat"
+              />
+            )}
+          </ButtonGroup>
+        ) : (
+          <ButtonGroup>
+            <span>&nbsp;</span>
+          </ButtonGroup>
+        )}
+      </Flex>
+
+      <Box flex={1} maxW="100%" minH="24px">
+        {isEditing ? (
+          <form onSubmit={handleSaveTitle}>
+            <Flex align="center">
+              <Input
+                flex={1}
+                defaultValue={chat.title}
+                type="text"
+                name="title"
+                bg="white"
+                _dark={{ bg: "gray.700" }}
+                size="xs"
+                w="100%"
+                autoFocus={true}
+              />
+              <ButtonGroup isAttached>
+                <IconButton
+                  variant="ghost"
+                  size="xs"
+                  icon={<CgClose />}
+                  aria-label="Cancel"
+                  title="Cancel"
+                  onClick={() => setIsEditing(false)}
+                />
+                <IconButton
+                  type="submit"
+                  variant="ghost"
+                  size="xs"
+                  icon={<TbCheck />}
+                  aria-label="Save"
+                  title="Save"
+                />
+              </ButtonGroup>
+            </Flex>
+          </form>
+        ) : (
+          <Link to={url} style={{ width: "100%" }}>
+            <Text noOfLines={2} fontSize="sm" title={text} w="100%">
+              {text}
+            </Text>
+          </Link>
+        )}
       </Box>
     </Flex>
   );
@@ -91,12 +198,14 @@ function Sidebar({ selectedChat }: SidebarProps) {
     []
   );
 
-  const sharedChats = useLiveQuery<ChatCraftChatTable[], ChatCraftChatTable[]>(
-    async () =>
-      db.chats
-        .filter((chat) => !!chat.shareUrl)
-        .sortBy("date")
-        .then((results) => results.reverse()),
+  const sharedChats = useLiveQuery<ChatCraftChat[], ChatCraftChat[]>(
+    async () => {
+      const records = await db.chats.orderBy("date").reverse().toArray();
+      const chats = await Promise.all(
+        records.filter((chat) => !!chat.shareUrl).map(({ id }) => ChatCraftChat.find(id))
+      );
+      return chats.filter((chat): chat is ChatCraftChat => !!chat);
+    },
     [],
     []
   );
@@ -119,18 +228,19 @@ function Sidebar({ selectedChat }: SidebarProps) {
           </Tag>
         </Flex>
 
-        <Box>
+        <Flex direction="column" gap={2}>
           {recentChats?.length &&
             recentChats.map((chat) => (
               <SidebarItem
                 key={chat.id}
-                text={`${formatDate(chat.date, true)} - ${chat.summarize() || "(no messages)"}`}
+                chat={chat}
                 url={`/c/${chat.id}`}
                 canDelete={true}
+                canEdit={true}
                 isSelected={selectedChat?.id === chat.id}
               />
             ))}
-        </Box>
+        </Flex>
 
         {recentCount < chatsTotal && (
           <Center>
@@ -148,14 +258,14 @@ function Sidebar({ selectedChat }: SidebarProps) {
 
         <>
           {sharedChats?.length ? (
-            sharedChats.map(({ id, date, summary, shareUrl }) => (
+            sharedChats.map((chat) => (
               <SidebarItem
-                key={id}
-                text={`${formatDate(date, true)} - ${summary}`}
+                key={chat.id}
+                chat={chat}
                 // We've already filtered for all objects with shareUrl, so this is fine
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                url={shareUrl!}
-                isSelected={selectedChat?.id === id}
+                url={chat.shareUrl!}
+                isSelected={selectedChat?.id === chat.id}
               />
             ))
           ) : (
