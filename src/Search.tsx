@@ -17,7 +17,7 @@ import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import db, { ChatCraftMessageTable } from "./lib/db";
 import Message from "./components/Message";
-import { ChatCraftAppMessage, ChatCraftMessage } from "./lib/ChatCraftMessage";
+import { ChatCraftMessage } from "./lib/ChatCraftMessage";
 import NewButton from "./components/NewButton";
 import { useSettings } from "./hooks/use-settings";
 
@@ -35,12 +35,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     searchText: q,
     // Return all messages that include the search text,
     // excluding the old "How can I help?" greeting and
-    // all other app messages, then sort by date.
+    // all other app or system messages, then sort by date.
     messages: await db.messages
       .where("text")
       .notEqual("I am a helpful assistant! How can I help?")
       .filter((message) => {
-        if (message instanceof ChatCraftAppMessage) {
+        // TODO: at some point we may want to allow searching in custom system messages
+        // https://github.com/tarasglek/chatcraft.org/issues/129
+        if (message.type === "generic" || message.type === "system") {
           return false;
         }
 
