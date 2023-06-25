@@ -12,7 +12,6 @@ import {
 } from "@chakra-ui/react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { MdOutlineChatBubbleOutline } from "react-icons/md";
-import { TbShare2 } from "react-icons/tb";
 import { CgClose } from "react-icons/cg";
 
 import db, { type ChatCraftChatTable } from "../lib/db";
@@ -161,21 +160,11 @@ function Sidebar({ selectedChat }: SidebarProps) {
             ))
           ) : (
             <VStack align="left">
-              <Text>You don&apos;t have any shared chats.</Text>
+              <Text>You don&apos;t have any shared chats yet.</Text>
               <Text>
-                Share your first chat by clicking the <strong>Share</strong> button ({" "}
-                <Box
-                  display="inline-block"
-                  as="span"
-                  w="1.3em"
-                  verticalAlign="middle"
-                  color="blue.600"
-                  _dark={{ color: "blue.200" }}
-                >
-                  <TbShare2 />
-                </Box>
-                ) to create a <strong>public URL</strong>. Anyone with this URL will be able to read
-                or fork the chat.
+                Share your first chat by clicking the <strong>Create Public URL...</strong> menu
+                option in the chat header menu. Anyone with this URL will be able to read or
+                duplicate the chat.
               </Text>
             </VStack>
           )}
