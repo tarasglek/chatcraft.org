@@ -19,9 +19,10 @@ export type SerializedChatCraftChat = {
   messages: SerializedChatCraftMessage[];
 };
 
-function createSummary(messages: ChatCraftMessage[]) {
+function createSummary(messages: ChatCraftMessage[], maxLength = 200) {
   const content = messages.map(({ text }) => text).join("\n\n");
-  return summarize(content);
+  const summary = summarize(content);
+  return summary.length > maxLength ? summary.slice(0, maxLength) + "..." : summary;
 }
 
 export class ChatCraftChat {
