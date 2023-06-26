@@ -251,9 +251,17 @@ function Sidebar({ selectedChat }: SidebarProps) {
       </VStack>
 
       <Box flex={1}>
-        <Heading as="h3" size="sm">
-          Shared Chats
-        </Heading>
+        <Flex justify="space-between">
+          <Heading as="h3" size="sm">
+            Shared Chats
+          </Heading>
+
+          {!!sharedChats?.length && (
+            <Tag size="sm" variant="subtle" mr={1}>
+              {formatNumber(sharedChats.length || 0)} Shared Chats
+            </Tag>
+          )}
+        </Flex>
 
         <>
           {sharedChats?.length ? (
