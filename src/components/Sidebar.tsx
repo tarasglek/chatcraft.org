@@ -250,7 +250,7 @@ function Sidebar({ selectedChat }: SidebarProps) {
         )}
       </VStack>
 
-      <Box flex={1}>
+      <VStack align="left" flex={1}>
         <Flex justify="space-between">
           <Heading as="h3" size="sm">
             Shared Chats
@@ -263,7 +263,7 @@ function Sidebar({ selectedChat }: SidebarProps) {
           )}
         </Flex>
 
-        <>
+        <Box>
           {sharedChats?.length ? (
             sharedChats.map((chat) => (
               <SidebarItem
@@ -285,8 +285,8 @@ function Sidebar({ selectedChat }: SidebarProps) {
               </Text>
             </VStack>
           )}
-        </>
-      </Box>
+        </Box>
+      </VStack>
     </Flex>
   );
 }
