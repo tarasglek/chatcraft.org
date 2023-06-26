@@ -36,7 +36,7 @@ type SidebarItemProps = {
 };
 
 function SidebarItem({ chat, url, isSelected, canDelete, canEdit }: SidebarItemProps) {
-  const text = chat.summary || "(empty chat)";
+  const text = chat.summary || "(no messages)";
   const bg = useColorModeValue(
     isSelected ? "gray.200" : undefined,
     isSelected ? "gray.800" : undefined

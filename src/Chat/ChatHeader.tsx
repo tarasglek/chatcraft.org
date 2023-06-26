@@ -41,7 +41,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   const fetcher = useFetcher();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isEditing, setIsEditing] = useState(false);
-  const text = chat.summary || "(empty chat)";
+  const text = chat.summary || "New Chat";
 
   useKey("Escape", () => setIsEditing(false), { event: "keydown" }, [setIsEditing]);
 
