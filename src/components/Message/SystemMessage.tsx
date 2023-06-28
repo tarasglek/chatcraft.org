@@ -1,8 +1,8 @@
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { Avatar, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
-import { isDefaultSystemPrompt, createSystemPromptSummary } from "../../lib/system-prompt";
+import { createSystemPromptSummary } from "../../lib/system-prompt";
 
 type SystemMessageProps = Omit<MessageBaseProps, "avatar">;
 
@@ -19,23 +19,27 @@ function SystemMessage(props: SystemMessageProps) {
     />
   );
 
-  // If the user customizes the system prompt, we always show it.
-  // However, if it's just the normal prompt, we truncate it to save space
-  // but allow the user to click a "More..." button to reveal the whole thing.
   const { isOpen, onToggle } = useDisclosure();
-  const isCustomSystemPrompt = useMemo(() => !isDefaultSystemPrompt(message), [message]);
-  const summaryText = isCustomSystemPrompt ? undefined : createSystemPromptSummary();
+  const summaryText = createSystemPromptSummary(message);
 
-  const footer = !isCustomSystemPrompt && (
-    <Flex w="100%" justify="space-between" align="center">
-      <Button size="sm" variant="ghost" onClick={() => onToggle()}>
-        {isOpen ? "Less" : "More..."}
-      </Button>
-      <Text fontSize="2xs" as="em">
-        Edit to customize
-      </Text>
-    </Flex>
-  );
+  // If we're showing the whole prompt, don't bother with the "More..." button
+  const footer =
+    message.text.length > summaryText.length ? (
+      <Flex w="100%" justify="space-between" align="center">
+        <Button size="sm" variant="ghost" onClick={() => onToggle()}>
+          {isOpen ? "Less" : "More..."}
+        </Button>
+        <Text fontSize="2xs" as="em">
+          Edit to customize
+        </Text>
+      </Flex>
+    ) : (
+      <Flex w="100%" justify="flex-end" align="center">
+        <Text fontSize="2xs" as="em">
+          Edit to customize
+        </Text>
+      </Flex>
+    );
 
   return (
     <MessageBase

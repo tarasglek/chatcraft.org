@@ -279,7 +279,7 @@ function MessageBase({
                       as={ResizeTextarea}
                       name="text"
                       minH="unset"
-                      overflow="hidden"
+                      overflowY="scroll"
                       w="100%"
                       maxH="30vh"
                       resize="vertical"
