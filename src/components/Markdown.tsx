@@ -58,6 +58,7 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
       className="message-text"
       children={children}
       remarkPlugins={[remarkGfm]}
+      linkTarget={"_blank"}
       components={{
         code({ inline, className, children, ...props }) {
           if (inline) {
