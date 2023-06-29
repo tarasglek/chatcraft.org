@@ -23,11 +23,27 @@ function AppMessage(props: AppMessageProps) {
 
   // See if this is one of the special app message types that needs its own UI
   if (ChatCraftAppMessage.isInstructions(message)) {
-    return <Instructions {...props} avatar={avatar} heading={heading} />;
+    return (
+      <Instructions
+        {...props}
+        avatar={avatar}
+        heading={heading}
+        disableFork={true}
+        disableEdit={true}
+      />
+    );
   }
 
   // Otherwise, use a basic message type and show the text
-  return <MessageBase {...props} avatar={avatar} heading={heading} />;
+  return (
+    <MessageBase
+      {...props}
+      avatar={avatar}
+      heading={heading}
+      disableFork={true}
+      disableEdit={true}
+    />
+  );
 }
 
 export default memo(AppMessage);

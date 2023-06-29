@@ -29,6 +29,8 @@ import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { download, formatDate } from "../lib/utils";
 import { useUser } from "../hooks/use-user";
 import ShareModal from "../components/ShareModal";
+import { useSettings } from "../hooks/use-settings";
+import useTitle from "../hooks/use-title";
 
 type ChatHeaderProps = {
   chat: ChatCraftChat;
@@ -41,7 +43,8 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   const fetcher = useFetcher();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isEditing, setIsEditing] = useState(false);
-  const text = chat.summary || "New Chat";
+  const { settings } = useSettings();
+  const title = useTitle(chat);
 
   useKey("Escape", () => setIsEditing(false), { event: "keydown" }, [setIsEditing]);
 
@@ -165,19 +168,21 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                   <Box>
                     <MdOutlineChatBubbleOutline />
                   </Box>
-                  <Text fontSize="md" fontWeight="bold" noOfLines={1} title={text}>
+                  <Text fontSize="md" fontWeight="bold" noOfLines={1} title={title}>
                     <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
-                      {text}
+                      {title}
                     </Link>
                   </Text>
-                  <IconButton
-                    variant="ghost"
-                    size="sm"
-                    icon={<AiOutlineEdit />}
-                    aria-label="Edit summary"
-                    title="Edit summary"
-                    onClick={() => setIsEditing(true)}
-                  />
+                  {settings.apiKey && (
+                    <IconButton
+                      variant="ghost"
+                      size="sm"
+                      icon={<AiOutlineEdit />}
+                      aria-label="Edit summary"
+                      title="Edit summary"
+                      onClick={() => setIsEditing(true)}
+                    />
+                  )}
                 </Flex>
               )}
             </Box>
@@ -192,18 +197,22 @@ function ChatHeader({ chat }: ChatHeaderProps) {
               <MenuList>
                 <MenuItem onClick={() => handleCopyChatClick()}>Copy</MenuItem>
                 <MenuItem onClick={() => handleDownloadClick()}>Download</MenuItem>
-                <MenuDivider />
 
                 {chat.shareUrl && user ? (
                   <>
+                    <MenuDivider />
+
                     <MenuItem onClick={() => handleCopyPublicUrlClick()}>Copy Public URL</MenuItem>
                     <MenuItem onClick={() => chat.unshare(user)}>Unshare</MenuItem>
                   </>
-                ) : (
-                  <MenuItem onClick={onOpen}>Create Public URL...</MenuItem>
-                )}
+                ) : settings.apiKey ? (
+                  <>
+                    <MenuDivider />
+                    <MenuItem onClick={onOpen}>Create Public URL...</MenuItem>
+                  </>
+                ) : null}
 
-                {!chat.readonly && (
+                {!chat.readonly && settings.apiKey && (
                   <>
                     <MenuDivider />
                     <MenuItem color="red.400" onClick={() => handleDeleteClick()}>
