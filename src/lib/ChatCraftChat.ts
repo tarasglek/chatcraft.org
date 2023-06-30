@@ -6,15 +6,15 @@ import {
   ChatCraftSystemMessage,
   type SerializedChatCraftMessage,
 } from "./ChatCraftMessage";
-import { createShareUrl, createOrUpdateShare, deleteShare } from "./share";
 import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
 import { createSystemMessage } from "./system-prompt";
+import { createShare, createShareUrl } from "./share";
+import { SharedChatCraftChat } from "./SharedChatCraftChat";
 
 export type SerializedChatCraftChat = {
   id: string;
   date: string;
-  shareUrl?: string;
   summary?: string;
   messages: SerializedChatCraftMessage[];
 };
@@ -28,7 +28,6 @@ function createSummary(messages: ChatCraftMessage[], maxLength = 200) {
 export class ChatCraftChat {
   id: string;
   date: Date;
-  shareUrl?: string;
   private _summary?: string;
   private _messages: ChatCraftMessage[];
   readonly: boolean;
@@ -36,14 +35,12 @@ export class ChatCraftChat {
   constructor({
     id,
     date,
-    shareUrl,
     summary,
     messages,
     readonly,
   }: {
     id?: string;
     date?: Date;
-    shareUrl?: string;
     summary?: string;
     messages?: ChatCraftMessage[];
     readonly?: boolean;
@@ -51,8 +48,6 @@ export class ChatCraftChat {
     this.id = id ?? nanoid();
     this._messages = messages ?? [createSystemMessage()];
     this.date = date ?? new Date();
-    // All chats are private by default, unless we add a shareUrl
-    this.shareUrl = shareUrl;
     // If the user provides a summary, use it, otherwise we'll generate something
     this._summary = summary;
     // When we load a chat remotely (from JSON vs. DB) readonly=true
@@ -97,26 +92,26 @@ export class ChatCraftChat {
     this._summary = summary;
   }
 
-  async addMessage(message: ChatCraftMessage, user?: User) {
+  async addMessage(message: ChatCraftMessage) {
     if (this.readonly) {
       return;
     }
 
     this._messages.push(message);
-    return this.update(user);
+    return this.save();
   }
 
-  async removeMessage(id: string, user?: User) {
+  async removeMessage(id: string) {
     if (this.readonly) {
       return;
     }
 
     await ChatCraftMessage.delete(id);
     this._messages = this._messages.filter((message) => message.id !== id);
-    return this.update(user);
+    return this.save();
   }
 
-  async resetMessages(user?: User) {
+  async resetMessages() {
     if (this.readonly) {
       return;
     }
@@ -126,7 +121,7 @@ export class ChatCraftChat {
     // Make a new set of messages
     this._messages = [createSystemMessage()];
     // Update the db
-    return this.update(user);
+    return this.save();
   }
 
   toMarkdown() {
@@ -172,67 +167,6 @@ export class ChatCraftChat {
     });
   }
 
-  // Make this chat public, and share online
-  async share(user: User, summary?: string) {
-    if (this.readonly) {
-      return;
-    }
-
-    let isDirty = false;
-
-    // Update db to indicate this is public, if necessary
-    if (!this.shareUrl) {
-      this.shareUrl = createShareUrl(this, user);
-      isDirty = true;
-    }
-
-    // If we are given a custom summary, add it too
-    if (summary) {
-      this.summary = summary;
-      isDirty = true;
-    }
-
-    // Update record for this in db if necessary
-    if (isDirty) {
-      await this.save();
-    }
-
-    return createOrUpdateShare(this, user);
-  }
-
-  async unshare(user: User) {
-    if (this.readonly) {
-      return;
-    }
-
-    // If this chat isn't already shared, we're done
-    if (!this.shareUrl) {
-      return;
-    }
-
-    await deleteShare(this, user);
-    delete this.shareUrl;
-    return this.save();
-  }
-
-  // Combine saving to db and updating online share if necessary
-  async update(user?: User) {
-    if (this.readonly) {
-      return;
-    }
-
-    // If this chat is already shared, do both.
-    if (this.shareUrl) {
-      await this.save();
-      if (user) {
-        this.share(user);
-      }
-    } else {
-      // Otherwise only update db
-      return this.save();
-    }
-  }
-
   // Create a new chat based on the messages in this one
   async fork(messageId?: string) {
     // Skip the app message
@@ -252,6 +186,15 @@ export class ChatCraftChat {
     return chat;
   }
 
+  clone() {
+    // Generate a new `id` and `date` in the constructor
+    return new ChatCraftChat({
+      summary: this.summary,
+      messages: this._messages,
+      readonly: this.readonly,
+    });
+  }
+
   toJSON() {
     return this.serialize();
   }
@@ -261,7 +204,6 @@ export class ChatCraftChat {
     return {
       id: this.id,
       date: this.date.toISOString(),
-      shareUrl: this.shareUrl,
       summary: this.summary,
       // In JSON, we strip out the app messages
       messages: this.messages({ includeAppMessages: false, includeSystemMessages: true }).map(
@@ -274,11 +216,37 @@ export class ChatCraftChat {
     return {
       id: this.id,
       date: this.date,
-      shareUrl: this.shareUrl,
       summary: this.summary,
       // In the DB, we store the app messages, since that's what we show in the UI
       messageIds: this._messages.map(({ id }) => id),
     };
+  }
+
+  async share(user: User, summary?: string) {
+    // Because shared chats are immutable, we'll give this chat its own
+    // unique `id`, separate to the current one.
+    const cloned = this.clone();
+    // If we get a new summary, use that
+    if (summary) {
+      cloned.summary = summary;
+    }
+
+    // Generate a public share URL
+    const shareUrl = createShareUrl(cloned, user);
+    await createShare(cloned, user);
+
+    const shared = new SharedChatCraftChat({
+      id: cloned.id,
+      url: shareUrl,
+      date: cloned.date,
+      summary: cloned.summary,
+      chat: cloned,
+    });
+
+    // Cache this locally in our db as well
+    await db.shared.add(shared.toDB());
+
+    return shared;
   }
 
   static async delete(id: string) {
@@ -298,17 +266,10 @@ export class ChatCraftChat {
   }
 
   // Parse from serialized JSON
-  static fromJSON({
-    id,
-    date,
-    shareUrl,
-    summary,
-    messages,
-  }: SerializedChatCraftChat): ChatCraftChat {
+  static fromJSON({ id, date, summary, messages }: SerializedChatCraftChat): ChatCraftChat {
     return new ChatCraftChat({
       id,
       date: new Date(date),
-      shareUrl,
       summary,
       messages: messages.map((message) => ChatCraftMessage.fromJSON(message)),
       // We can't modify a chat loaded outside the db

@@ -119,7 +119,7 @@ function ChatBase({ chat }: ChatBaseProps) {
 
       try {
         // Add this prompt message to the chat
-        await chat.addMessage(new ChatCraftHumanMessage({ text: prompt, user }), user);
+        await chat.addMessage(new ChatCraftHumanMessage({ text: prompt, user }));
 
         // In single-message-mode, trim messages to last few. Otherwise send all.
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
@@ -128,7 +128,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         const response = await callChatApi(messagesToSend);
 
         // Add this response message to the chat
-        await chat.addMessage(response, user);
+        await chat.addMessage(response);
       } catch (err: any) {
         toast({
           title: `OpenAI Response Error`,
@@ -207,7 +207,7 @@ function ChatBase({ chat }: ChatBaseProps) {
             chatId={chat.id}
             newMessage={streamingMessage}
             isLoading={loading}
-            onRemoveMessage={(message) => chat.removeMessage(message.id, user)}
+            onRemoveMessage={(message) => chat.removeMessage(message.id)}
             singleMessageMode={singleMessageMode}
             isPaused={paused}
             onTogglePause={togglePause}

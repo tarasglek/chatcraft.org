@@ -118,7 +118,8 @@ export default createBrowserRouter([
       return redirect(`/c/${forked.id}`);
     },
   },
-  // Loading a shared chat, which may or may not be owned by this user
+
+  // Loading a shared chat remotely as JSON, which will be readonly
   {
     path: "/c/:user/:chatId",
     async loader({ params }) {
@@ -127,14 +128,6 @@ export default createBrowserRouter([
         return redirect("/");
       }
 
-      // Check if we actually own this chat
-      const chat = await ChatCraftChat.find(chatId);
-      if (chat) {
-        // Go to our local version instead
-        return redirect(`/c/${chatId}`);
-      }
-
-      // Otherwise, try to load it remotely
       try {
         return loadShare(user, chatId);
       } catch (err) {

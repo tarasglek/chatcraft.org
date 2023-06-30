@@ -1,10 +1,11 @@
-import { RefObject, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { useCopyToClipboard } from "react-use";
 import {
   Button,
   FormControl,
   FormLabel,
   FormHelperText,
+  Input,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -23,7 +24,7 @@ import {
   ButtonGroup,
   useToast,
 } from "@chakra-ui/react";
-import { exportDB } from "dexie-export-import";
+import { exportDB, importDB } from "dexie-export-import";
 
 import RevealablePasswordInput from "./RevealablePasswordInput";
 import { useSettings } from "../hooks/use-settings";
@@ -55,6 +56,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   // Whether our db is being persisted
   const [isPersisted, setIsPersisted] = useState(false);
   const toast = useToast();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     isStoragePersisted()
@@ -84,6 +86,51 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       });
     },
     [toast]
+  );
+
+  const handleFileChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const blob = new Blob([new Uint8Array(reader.result as ArrayBuffer)]);
+          importDB(blob)
+            .then(() => {
+              toast({
+                title: "Database Import",
+                description: "Database imported successfully. You may need to refresh.",
+                status: "info",
+                duration: 3000,
+                position: "top",
+                isClosable: true,
+              });
+            })
+            .catch((err) => {
+              console.warn("Error importing db", err);
+              toast({
+                title: "Database Import",
+                description: "Unable to import database",
+                status: "error",
+                duration: 3000,
+                position: "top",
+                isClosable: true,
+              });
+            });
+        };
+        reader.readAsArrayBuffer(file);
+      }
+    },
+    [toast]
+  );
+
+  const handleImportClick = useCallback(
+    function () {
+      if (inputRef.current) {
+        inputRef.current.click();
+      }
+    },
+    [inputRef]
   );
 
   return (
@@ -127,9 +174,23 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               <FormLabel>
                 Offline database is {isPersisted ? "persisted" : "not persisted"}
                 <ButtonGroup ml={2}>
-                  <Button size="xs" onClick={() => handlePersistClick()} isDisabled={isPersisted}>
+                  <Button
+                    size="xs"
+                    onClick={() => handlePersistClick()}
+                    isDisabled={isPersisted}
+                    variant="outline"
+                  >
                     Persist
                   </Button>
+                  <Button size="xs" onClick={() => handleImportClick()}>
+                    Import
+                  </Button>
+                  <Input
+                    type="file"
+                    ref={inputRef}
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                  />
                   <Button size="xs" onClick={() => handleExportClick()}>
                     Export
                   </Button>
