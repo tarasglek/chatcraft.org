@@ -36,7 +36,7 @@ type AuthenticatedForm = {
 
 function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
   const { settings } = useSettings();
-  const [url, setUrl] = useState<string>(chat.shareUrl || "");
+  const [url, setUrl] = useState("");
   const [error, setError] = useState<string | undefined>();
   const [summary, setSummary] = useState<string>(chat.summary);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -46,7 +46,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
   const handleShareClick = async () => {
     setIsSharing(true);
     try {
-      const url = await chat.share(user, summary);
+      const { url } = await chat.share(user, summary);
       if (!url) {
         throw new Error("Unable to create Share URL");
       }

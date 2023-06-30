@@ -1,10 +1,10 @@
 import Dexie, { Table } from "dexie";
 import { type MessageType } from "langchain/schema";
+import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 
 export type ChatCraftChatTable = {
   id: string;
   date: Date;
-  shareUrl?: string;
   summary?: string;
   messageIds: string[];
 };
@@ -20,9 +20,18 @@ export type ChatCraftMessageTable = {
   versions?: { id: string; date: Date; model: string; text: string }[];
 };
 
+export type SharedChatCraftChatTable = {
+  id: string;
+  url: string;
+  summary: string;
+  date: Date;
+  chat: SerializedChatCraftChat;
+};
+
 class ChatCraftDatabase extends Dexie {
   chats: Table<ChatCraftChatTable, string>;
   messages: Table<ChatCraftMessageTable, string>;
+  shared: Table<SharedChatCraftChatTable, string>;
 
   constructor() {
     super("ChatCraftDatabase");
@@ -44,9 +53,43 @@ class ChatCraftDatabase extends Dexie {
     this.version(4).stores({
       chats: "id, date, shareUrl, summary, messageIds",
     });
+    // Version 5 Migration - removes shareUrl from chats, adds `shared` table
+    this.version(5)
+      .stores({
+        chats: "id, date, summary, messageIds",
+        shared: "id, url, summary, date, chat",
+      })
+      // This migration needs a data upgrade step as well
+      .upgrade(async (tx) => {
+        // Transfer all chats with a `shareUrl` to the `shared` table
+        await tx.table("chats").each(async (record: ChatCraftChatTable) => {
+          const chat = await tx.table("chats").get(record.id);
+          if (!chat.shareUrl) {
+            return;
+          }
+
+          const messages = await tx.table("messages").bulkGet(record.messageIds);
+          await tx.table("shared").add({
+            id: chat.id,
+            url: chat.shareUrl,
+            summary: chat.summary,
+            date: chat.date,
+            chat: ChatCraftChat.fromDB(chat, messages).serialize(),
+          });
+        });
+
+        // Remove all the `shareUrl` properties
+        return tx
+          .table("chats")
+          .toCollection()
+          .modify((chat) => {
+            delete chat.shareUrl;
+          });
+      });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
+    this.shared = this.table("shared");
   }
 }
 

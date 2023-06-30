@@ -11,7 +11,7 @@ export function createShareUrl(chat: ChatCraftChat, user: User) {
   return shareUrl.href;
 }
 
-export async function createOrUpdateShare(chat: ChatCraftChat, user: User) {
+export async function createShare(chat: ChatCraftChat, user: User) {
   const res = await fetch(`/api/share/${user.username}/${chat.id}`, {
     method: "PUT",
     credentials: "same-origin",
@@ -29,8 +29,6 @@ export async function createOrUpdateShare(chat: ChatCraftChat, user: User) {
     } = await res.json();
     throw new Error(`Unable to share chat: ${message || "unknown error"}`);
   }
-
-  return createShareUrl(chat, user);
 }
 
 export async function loadShare(user: string, id: string) {
@@ -69,8 +67,8 @@ export async function summarizeChat(openaiApiKey: string, chat: ChatCraftChat) {
   }
 }
 
-export async function deleteShare(chat: ChatCraftChat, user: User) {
-  const res = await fetch(`/api/share/${user.username}/${chat.id}`, {
+export async function deleteShare(user: User, chatId: string) {
+  const res = await fetch(`/api/share/${user.username}/${chatId}`, {
     method: "DELETE",
     credentials: "same-origin",
   });

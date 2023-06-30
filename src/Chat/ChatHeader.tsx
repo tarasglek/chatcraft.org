@@ -27,7 +27,6 @@ import { useCopyToClipboard, useKey } from "react-use";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { download, formatDate } from "../lib/utils";
-import { useUser } from "../hooks/use-user";
 import ShareModal from "../components/ShareModal";
 import { useSettings } from "../hooks/use-settings";
 import useTitle from "../hooks/use-title";
@@ -37,7 +36,6 @@ type ChatHeaderProps = {
 };
 
 function ChatHeader({ chat }: ChatHeaderProps) {
-  const { user } = useUser();
   const [, copyToClipboard] = useCopyToClipboard();
   const toast = useToast();
   const fetcher = useFetcher();
@@ -55,22 +53,6 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   const handleCopyChatClick = () => {
     const text = chat.toMarkdown();
     copyToClipboard(text);
-    toast({
-      colorScheme: "blue",
-      title: "Chat copied to clipboard",
-      status: "success",
-      position: "top",
-      isClosable: true,
-    });
-  };
-
-  const handleCopyPublicUrlClick = () => {
-    if (!chat.shareUrl) {
-      console.warn("Unexpected copy of missing shareUrl", chat);
-      return;
-    }
-
-    copyToClipboard(chat.shareUrl);
     toast({
       colorScheme: "blue",
       title: "Chat copied to clipboard",
@@ -107,7 +89,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
 
     chat.summary = summary;
     chat
-      .update()
+      .save()
       .catch((err) => {
         console.warn("Unable to update summary for chat", err);
         toast({
@@ -198,22 +180,11 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                 <MenuItem onClick={() => handleCopyChatClick()}>Copy</MenuItem>
                 <MenuItem onClick={() => handleDownloadClick()}>Download</MenuItem>
 
-                {chat.shareUrl && user ? (
-                  <>
-                    <MenuDivider />
-
-                    <MenuItem onClick={() => handleCopyPublicUrlClick()}>Copy Public URL</MenuItem>
-                    <MenuItem onClick={() => chat.unshare(user)}>Unshare</MenuItem>
-                  </>
-                ) : settings.apiKey ? (
-                  <>
-                    <MenuDivider />
-                    <MenuItem onClick={onOpen}>Create Public URL...</MenuItem>
-                  </>
-                ) : null}
-
                 {!chat.readonly && settings.apiKey && (
                   <>
+                    <MenuDivider />
+                    <MenuItem onClick={onOpen}>Share Chat...</MenuItem>
+
                     <MenuDivider />
                     <MenuItem color="red.400" onClick={() => handleDeleteClick()}>
                       Delete
