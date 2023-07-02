@@ -7834,6 +7834,11 @@ through@^2.3.8:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==
 
+tiktoken@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/tiktoken/-/tiktoken-1.0.10.tgz#d5ade07bc19f4424c404646b606e64674b0df5ef"
+  integrity sha512-gF8ndTCNu7WcRFbl1UUWaFIB4CTXmHzS3tRYdyUYF7x3C6YR6Evoao4zhKDmWIwv2PzNbzoQMV8Pxt+17lEDbA==
+
 time-zone@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/time-zone/-/time-zone-1.0.0.tgz#99c5bf55958966af6d06d83bdf3800dc82faec5d"

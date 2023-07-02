@@ -24,8 +24,9 @@ import AutoResizingTextarea from "./AutoResizingTextarea";
 
 import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
-import { isMac, isWindows, formatNumber, formatCurrency } from "../lib/utils";
+import { isMac, isWindows, formatCurrency } from "../lib/utils";
 import NewButton from "./NewButton";
+import { useCost } from "../hooks/use-cost";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -71,7 +72,6 @@ type PromptFormProps = {
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
-  tokenInfo?: TokenInfo;
 };
 
 function PromptForm({
@@ -84,13 +84,13 @@ function PromptForm({
   inputPromptRef,
   isLoading,
   previousMessage,
-  tokenInfo,
 }: PromptFormProps) {
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
+  const { cost } = useCost();
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -167,21 +167,11 @@ function PromptForm({
             <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
           </HStack>
 
-          <HStack>
-            {
-              /* Only bother with cost if it's $0.01 or more */
-              tokenInfo?.cost && tokenInfo?.cost >= 0.01 && (
-                <Tag key="token-cost" size="sm">
-                  {formatCurrency(tokenInfo.cost)}
-                </Tag>
-              )
-            }
-            {tokenInfo?.count && (
-              <Tag key="token-count" size="sm">
-                {formatNumber(tokenInfo.count)} Tokens
-              </Tag>
-            )}
-          </HStack>
+          {settings.countTokens && (
+            <Tag key="token-cost" size="sm">
+              {formatCurrency(cost)}
+            </Tag>
+          )}
         </Flex>
       )}
 

@@ -7,7 +7,6 @@ import PromptForm from "../components/PromptForm";
 import MessagesView from "../components/MessagesView";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import useMessages from "../hooks/use-messages";
 import useChatOpenAI from "../hooks/use-chat-openai";
 import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
@@ -23,8 +22,6 @@ type ChatBaseProps = {
 
 function ChatBase({ chat }: ChatBaseProps) {
   const { error: apiError } = useModels();
-  // TODO: this token stuff is no longer right and useMessages() needs to be removed
-  const { tokenInfo } = useMessages();
   // When chatting with OpenAI, a streaming message is returned during loading
   const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
   // Whether to include the whole message chat history or just the last response
@@ -233,7 +230,6 @@ function ChatBase({ chat }: ChatBaseProps) {
               onSingleMessageModeChange={setSingleMessageMode}
               isLoading={loading}
               previousMessage={chat.messages().at(-1)?.text}
-              tokenInfo={tokenInfo}
               inputPromptRef={inputPromptRef}
             />
           )}

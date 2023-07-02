@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 import { BaseChatMessage, type MessageType } from "langchain/schema";
 import db, { type ChatCraftMessageTable } from "./db";
 import { ChatCraftModel } from "./ChatCraftModel";
+import { countTokens } from "./ai";
 
 export class ChatCraftAiMessageVersion {
   id: string;
@@ -63,6 +64,10 @@ export class ChatCraftMessage extends BaseChatMessage {
 
     // When we load a message outside the db (e.g., from shared chat via JSON) it is readonly
     this.readonly = readonly === true;
+  }
+
+  async tokens() {
+    return countTokens(this.text);
   }
 
   // Comply with BaseChatMessage's need for _getType()
@@ -393,6 +398,11 @@ export class ChatCraftAppMessage extends ChatCraftMessage {
     readonly?: boolean;
   }) {
     super({ id, date, type: "generic", text, readonly });
+  }
+
+  // These are never used for anything other than info in the UI
+  async tokens() {
+    return 0;
   }
 
   clone() {

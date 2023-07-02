@@ -3,6 +3,10 @@ import { CallbackManager } from "langchain/callbacks";
 
 import { ChatCraftMessage, ChatCraftSystemMessage } from "./ChatCraftMessage";
 import { createSystemMessage } from "./system-prompt";
+import { getSettings } from "./settings";
+
+import type { Tiktoken } from "tiktoken/lite";
+import { ChatCraftModel } from "./ChatCraftModel";
 
 export type ChatOptions = {
   apiKey: string;
@@ -73,3 +77,45 @@ export async function queryOpenAiModels(apiKey: string) {
 export async function validateOpenAiApiKey(apiKey: string) {
   return !!(await queryOpenAiModels(apiKey));
 }
+
+// Cache this instance on first use
+let encoding: Tiktoken;
+
+export const countTokens = async (text: string) => {
+  if (!encoding) {
+    // Warn if this happens when it shouldn't. The UI should only
+    // be calling `countTokens()` if we have the setting enabled
+    if (!getSettings().countTokens) {
+      console.trace("Unexpected call to countTokens() when settings.countTokens not set");
+    }
+
+    // We don't bundle these, but load them dynamically at runtime if needed due to size
+    const { Tiktoken } = await import("tiktoken/lite");
+    const cl100k_base = await import("tiktoken/encoders/cl100k_base.json");
+    encoding = new Tiktoken(cl100k_base.bpe_ranks, cl100k_base.special_tokens, cl100k_base.pat_str);
+  }
+
+  return encoding.encode(text).length;
+};
+
+export const countTokensInMessages = async (messages: ChatCraftMessage[]) => {
+  const counts = await Promise.all<number>(messages.map((message) => message.tokens()));
+  return counts.reduce((total, current) => total + current, 0);
+};
+
+// See https://openai.com/pricing
+export const calculateTokenCost = (tokens: number, model: ChatCraftModel) => {
+  // Pricing is per 1,000 tokens
+  tokens = tokens / 1000;
+
+  if (model.id.startsWith("gpt-4")) {
+    return tokens * 0.06;
+  }
+
+  if (model.id.startsWith("gpt-3.5")) {
+    return tokens * 0.002;
+  }
+
+  console.warn(`Unknown pricing for model ${model.toString()}`);
+  return 0;
+};
