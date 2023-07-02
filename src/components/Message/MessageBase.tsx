@@ -1,4 +1,4 @@
-import { memo, useCallback, type ReactNode, useState, FormEvent } from "react";
+import { memo, useCallback, type ReactNode, useState, FormEvent, useEffect } from "react";
 import {
   Box,
   Button,
@@ -16,6 +16,7 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
+  Tag,
   Text,
   Textarea,
   VStack,
@@ -28,7 +29,7 @@ import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink, useNavigate } from "react-router-dom";
 
-import { formatDate, download } from "../../lib/utils";
+import { formatDate, download, formatNumber } from "../../lib/utils";
 import Markdown from "../Markdown";
 import {
   ChatCraftAiMessage,
@@ -40,6 +41,7 @@ import { ChatCraftModel } from "../../lib/ChatCraftModel";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
+import { useSettings } from "../../hooks/use-settings";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -81,6 +83,14 @@ function MessageBase({
   const toast = useToast();
   const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
+  const { settings } = useSettings();
+  const [tokens, setTokens] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (settings.countTokens) {
+      message.tokens().then(setTokens).catch(console.warn);
+    }
+  }, [settings.countTokens, message]);
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -180,17 +190,23 @@ function MessageBase({
                   <Heading as="h2" size="xs" minW="fit-content">
                     {heading}
                   </Heading>
-                  <Text as="span" fontSize="sm" minW="fit-content">
-                    <Link
-                      as={ReactRouterLink}
-                      to={`/c/${chatId}#${id}`}
-                      color="gray.500"
-                      _dark={{ color: "gray.300" }}
-                    >
+                  <Text
+                    as="span"
+                    fontSize="sm"
+                    minW="fit-content"
+                    color="gray.500"
+                    _dark={{ color: "gray.300" }}
+                  >
+                    <Link as={ReactRouterLink} to={`/c/${chatId}#${id}`}>
                       {formatDate(date)}
                     </Link>
                   </Text>
                   {headingMenu}
+                  {!isLoading && settings.countTokens && tokens && (
+                    <Tag size="sm" variant="outline" colorScheme="gray">
+                      {formatNumber(tokens)} Tokens
+                    </Tag>
+                  )}
                 </Flex>
               </Flex>
             </Flex>

@@ -10,22 +10,8 @@ import {
   ChatCraftSystemMessage,
 } from "../lib/ChatCraftMessage";
 import { createSystemMessage } from "../lib/system-prompt";
-
-// See https://openai.com/pricing
-const calculateTokenCost = (tokens: number, model: string): number | undefined => {
-  // Pricing is per 1,000K tokens
-  tokens = tokens / 1000;
-
-  switch (model) {
-    case "gpt-4":
-      return tokens * 0.06;
-    case "gpt-3.5-turbo":
-      return tokens * 0.002;
-    default:
-      console.warn(`Unknown pricing for OpenAI model ${model}`);
-      return undefined;
-  }
-};
+import { useCost } from "./use-cost";
+import { calculateTokenCost, countTokensInMessages } from "../lib/ai";
 
 function useChatOpenAI() {
   const [streamingMessage, setStreamingMessage] = useState<ChatCraftAiMessage>();
@@ -33,6 +19,7 @@ function useChatOpenAI() {
   const [cancel, setCancel] = useState<() => void>(() => {});
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(paused);
+  const { incrementCost } = useCost();
 
   // Listen for escape being pressed on window, and cancel any in flight
   useKey("Escape", cancel, { event: "keydown" }, [cancel]);
@@ -108,14 +95,28 @@ function useChatOpenAI() {
             },
           })
         )
-        .then(
-          ({ text }) =>
-            new ChatCraftAiMessage({
-              id,
-              model,
-              text,
-            })
-        )
+        .then(({ text }): Promise<[ChatCraftAiMessage, number]> => {
+          const aiMessage = new ChatCraftAiMessage({
+            id,
+            model,
+            text,
+          });
+
+          // If we're tracking token cost, update it
+          if (settings.countTokens) {
+            return Promise.all([aiMessage, countTokensInMessages([...messagesToSend, aiMessage])]);
+          }
+
+          return Promise.resolve([aiMessage, 0]);
+        })
+        .then(([aiMessage, tokens]) => {
+          if (tokens) {
+            const cost = calculateTokenCost(tokens, settings.model);
+            incrementCost(cost);
+          }
+
+          return aiMessage;
+        })
         .catch((err) => {
           // Deal with cancelled messages by returning a partial message
           if (err.message.startsWith("Cancel:")) {
@@ -146,26 +147,12 @@ function useChatOpenAI() {
           setPaused(false);
         });
     },
-    [settings, pausedRef, setStreamingMessage]
-  );
-
-  const getTokenInfo = useCallback(
-    async (messages: ChatCraftMessage[]): Promise<TokenInfo> => {
-      const modelName = settings.model.id;
-      const api = new ChatOpenAI({
-        openAIApiKey: settings.apiKey,
-        modelName: modelName,
-      });
-      const { totalCount } = await api.getNumTokensFromMessages(messages);
-      return { count: totalCount, cost: calculateTokenCost(totalCount, modelName) };
-    },
-    [settings]
+    [settings, pausedRef, setStreamingMessage, incrementCost]
   );
 
   return {
     streamingMessage,
     callChatApi,
-    getTokenInfo,
     cancel,
     paused,
     pause,

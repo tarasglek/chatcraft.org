@@ -60,11 +60,16 @@ export default defineConfig({
         display: "standalone",
       },
       workbox: {
-        // Ignore all languages we don't explicitly include as part of `includedLanguages`
-        globIgnores: buildLanguageIgnoreGlobPatterns("**/assets/"),
+        globIgnores: [
+          // Ignore all languages we don't explicitly include as part of `includedLanguages`
+          ...buildLanguageIgnoreGlobPatterns("**/assets/"),
+          // Ignore large tiktoken assets (load them at runtime if needed)
+          "**/assets/tiktoken-*.js",
+          "**/assets/cl100k_base*.js",
+        ],
         globPatterns: [
           "*.{ico,png}",
-          "**/assets/*.{js,css,ico,png,svg}",
+          "**/assets/*.{js,json,css,ico,png,svg}",
           ...buildLanguageGlobPatterns("**/assets/"),
         ],
       },

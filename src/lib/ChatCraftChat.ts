@@ -11,6 +11,7 @@ import summarize from "./summarize";
 import { createSystemMessage } from "./system-prompt";
 import { createShare, createShareUrl } from "./share";
 import { SharedChatCraftChat } from "./SharedChatCraftChat";
+import { countTokensInMessages } from "./ai";
 
 export type SerializedChatCraftChat = {
   id: string;
@@ -79,6 +80,11 @@ export class ChatCraftChat {
       }
       return true;
     });
+  }
+
+  async tokens() {
+    const messages = this.messages({ includeAppMessages: false, includeSystemMessages: true });
+    return countTokensInMessages(messages);
   }
 
   get summary() {

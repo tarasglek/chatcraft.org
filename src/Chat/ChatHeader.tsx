@@ -15,6 +15,7 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
+  Tag,
   Text,
   useDisclosure,
   useToast,
@@ -26,7 +27,7 @@ import { AiOutlineEdit } from "react-icons/ai";
 import { useCopyToClipboard, useKey } from "react-use";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { download, formatDate } from "../lib/utils";
+import { download, formatDate, formatNumber } from "../lib/utils";
 import ShareModal from "../components/ShareModal";
 import { useSettings } from "../hooks/use-settings";
 import useTitle from "../hooks/use-title";
@@ -40,6 +41,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   const toast = useToast();
   const fetcher = useFetcher();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [tokens, setTokens] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const { settings } = useSettings();
   const title = useTitle(chat);
@@ -49,6 +51,12 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   useEffect(() => {
     setIsEditing(false);
   }, [chat.id]);
+
+  useEffect(() => {
+    if (settings.countTokens) {
+      chat.tokens().then(setTokens).catch(console.warn);
+    }
+  }, [settings.countTokens, chat]);
 
   const handleCopyChatClick = () => {
     const text = chat.toMarkdown();
@@ -196,11 +204,18 @@ function ChatHeader({ chat }: ChatHeaderProps) {
           </Flex>
         </CardBody>
         <CardFooter pt={0}>
-          <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
-            <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} ml={6}>
-              {formatDate(chat.date)}
-            </Text>
-          </Link>
+          <Flex w="100%" gap={4} color="gray.500" _dark={{ color: "gray.400" }}>
+            <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
+              <Text fontSize="sm" ml={6}>
+                {formatDate(chat.date)}
+              </Text>
+            </Link>
+            {settings.countTokens && tokens && (
+              <Tag size="sm" variant="outline" colorScheme="gray">
+                {formatNumber(tokens)} Tokens
+              </Tag>
+            )}
+          </Flex>
         </CardFooter>
       </Card>
 

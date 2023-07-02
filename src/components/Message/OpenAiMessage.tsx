@@ -169,6 +169,7 @@ function OpenAiMessage(props: OpenAiMessageProps) {
       {...props}
       message={message}
       hidePreviews={retrying}
+      isLoading={props.isLoading || retrying}
       avatar={getAvatar(message.model, "sm")}
       heading={`${message.model.prettyModel} ${retrying ? ` (retrying...)` : ""}`}
       headingMenu={
