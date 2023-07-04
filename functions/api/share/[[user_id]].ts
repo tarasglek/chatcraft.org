@@ -34,17 +34,38 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
     return errorResponse(400, "Expected share URL of the form /api/share/{user}/{id}");
   }
 
-  // Make sure we have a token, and that it matches the expected user
+  // Make sure the access token matches the expected user and limits.
   try {
     const payload = await verifyToken(accessToken, JWT_SECRET);
+    if (!payload) {
+      return errorResponse(403, "Invalid Access Token");
+    }
 
     // Make sure this is the same username as the user who owns this token
     const [user] = user_id;
-    if (user !== payload?.sub) {
+    if (user !== payload.sub) {
       return errorResponse(403, "Access Token does not match username");
     }
-    if (payload?.role !== "api") {
+
+    // Make sure this user has the `api` role
+    if (payload.role !== "api") {
       return errorResponse(403, "Access Token missing 'api' role");
+    }
+
+    // Make sure this user hasn't exceeded sharing limits by inspecting bucket
+    const now = new Date();
+    const oneDayMS = 24 * 60 * 60 * 1000;
+    const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix: `${user}/` });
+    // Only 500 total shares per user
+    if (objects.length > 500) {
+      return errorResponse(403, "Exceeded total share limit");
+    }
+    // Only 10 shares in 24 hours
+    const recentShares = objects.filter(
+      ({ uploaded }) => now.getTime() - uploaded.getTime() < oneDayMS
+    );
+    if (recentShares.length > 10) {
+      return errorResponse(429, "Too many shares in a 24-hour period");
     }
   } catch (err) {
     return errorResponse(400, err.message);
