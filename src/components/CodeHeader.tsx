@@ -56,7 +56,7 @@ function CodeHeader({ language, children, isLoading, onPrompt, code }: PreHeader
       return;
     }
 
-    const toCodeBlock = (text: string) => "```\n" + text + "\n```";
+    const toCodeBlock = (text: string, language = "") => "```" + language + "\n" + text + "\n```";
 
     let ret = undefined;
     try {
@@ -67,10 +67,10 @@ function CodeHeader({ language, children, isLoading, onPrompt, code }: PreHeader
         result = await result;
       }
       if (typeof result !== "string") {
-        result = JSON.stringify(result);
+        result = toCodeBlock(JSON.stringify(result), "json");
       }
-      // this probably needs smarter escaping
-      ret = toCodeBlock(result);
+      // let js decide how to render the result
+      ret = result;
     } catch (error: any) {
       ret = toCodeBlock(
         error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
