@@ -81,7 +81,6 @@ function MessageBase({
   const [editing, setEditing] = useState(false);
   const { onCopy } = useClipboard(text);
   const toast = useToast();
-  const navigate = useNavigate();
   const [isHovering, setIsHovering] = useState(false);
   const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
