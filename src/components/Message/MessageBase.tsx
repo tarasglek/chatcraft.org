@@ -237,8 +237,8 @@ function MessageBase({
                   <MenuItem onClick={() => handleCopy()}>Copy</MenuItem>
                   <MenuItem onClick={() => handleDownload()}>Download</MenuItem>
                   {!disableFork && (
-                    <MenuItem onClick={() => navigate(`./fork/${id}`)}>
-                      Duplicate Chat from Message...
+                    <MenuItem as={ReactRouterLink} to={`./fork/${id}`} target="_blank">
+                      Duplicate Chat until Message...
                     </MenuItem>
                   )}
 

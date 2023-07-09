@@ -174,7 +174,7 @@ export class ChatCraftChat {
     if (messageId) {
       const idx = messages.findIndex((message) => message.id === messageId);
       if (idx) {
-        messages = messages.slice(idx);
+        messages = messages.slice(0, idx + 1);
       }
     }
 
