@@ -46,6 +46,8 @@ import { useSettings } from "../../hooks/use-settings";
 export interface MessageBaseProps {
   message: ChatCraftMessage;
   chatId: string;
+  editing: boolean;
+  onEditingChange: (newValue: boolean) => void;
   summaryText?: string;
   heading?: string;
   headingMenu?: ReactNode;
@@ -63,6 +65,8 @@ export interface MessageBaseProps {
 function MessageBase({
   message,
   chatId,
+  editing,
+  onEditingChange,
   summaryText,
   heading,
   headingMenu,
@@ -78,7 +82,6 @@ function MessageBase({
 }: MessageBaseProps) {
   const { id, date, text } = message;
   const { models } = useModels();
-  const [editing, setEditing] = useState(false);
   const { onCopy } = useClipboard(text);
   const toast = useToast();
   const [isHovering, setIsHovering] = useState(false);
@@ -149,7 +152,7 @@ function MessageBase({
               isClosable: true,
             });
           })
-          .finally(() => setEditing(false));
+          .finally(() => onEditingChange(false));
       } else {
         message.text = text;
         message.date = editedAt;
@@ -165,10 +168,10 @@ function MessageBase({
               isClosable: true,
             });
           })
-          .finally(() => setEditing(false));
+          .finally(() => onEditingChange(false));
       }
     },
-    [message, toast, chatId]
+    [message, toast, chatId, onEditingChange]
   );
 
   return (
@@ -226,7 +229,7 @@ function MessageBase({
                       icon={<AiOutlineEdit />}
                       aria-label="Edit message"
                       title="Edit message"
-                      onClick={() => setEditing(!editing)}
+                      onClick={() => onEditingChange(!editing)}
                     />
                   )}
                   {onDeleteClick && (
@@ -270,7 +273,7 @@ function MessageBase({
 
                   {(!disableEdit || onDeleteClick) && <MenuDivider />}
                   {!disableEdit && (
-                    <MenuItem onClick={() => setEditing(!editing)}>
+                    <MenuItem onClick={() => onEditingChange(!editing)}>
                       {editing ? "Cancel Editing" : "Edit"}
                     </MenuItem>
                   )}
@@ -303,7 +306,7 @@ function MessageBase({
                       autoFocus={true}
                     />
                     <ButtonGroup>
-                      <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
+                      <Button size="sm" variant="outline" onClick={() => onEditingChange(false)}>
                         Cancel
                       </Button>
                       <Button size="sm" type="submit">

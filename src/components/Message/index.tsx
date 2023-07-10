@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback, useState } from "react";
 import {
   ChatCraftHumanMessage,
   ChatCraftAiMessage,
@@ -32,11 +32,22 @@ function Message({
   disableFork,
   disableEdit,
 }: MessageProps) {
+  const [editing, setEditing] = useState(false);
+
+  const handleEditingChange = useCallback(
+    (newValue: boolean) => {
+      setEditing(newValue);
+    },
+    [setEditing]
+  );
+
   if (message instanceof ChatCraftAiMessage) {
     return (
       <OpenAiMessage
         message={message}
         chatId={chatId}
+        editing={editing}
+        onEditingChange={handleEditingChange}
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
@@ -53,6 +64,8 @@ function Message({
       <HumanMessage
         message={message}
         chatId={chatId}
+        editing={editing}
+        onEditingChange={handleEditingChange}
         name={user?.name || "User"}
         avatarUrl={user?.avatarUrl}
         isLoading={isLoading}
@@ -70,6 +83,8 @@ function Message({
       <AppMessage
         message={message as ChatCraftAppMessage}
         chatId={chatId}
+        editing={editing}
+        onEditingChange={handleEditingChange}
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
@@ -85,6 +100,8 @@ function Message({
       <SystemMessage
         message={message}
         chatId={chatId}
+        editing={editing}
+        onEditingChange={handleEditingChange}
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
