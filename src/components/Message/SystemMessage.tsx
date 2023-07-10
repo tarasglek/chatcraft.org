@@ -7,7 +7,7 @@ import { createSystemPromptSummary } from "../../lib/system-prompt";
 type SystemMessageProps = Omit<MessageBaseProps, "avatar">;
 
 function SystemMessage(props: SystemMessageProps) {
-  const { message } = props;
+  const { message, editing, onEditingChange } = props;
   const avatar = (
     <Avatar
       size="sm"
@@ -29,15 +29,23 @@ function SystemMessage(props: SystemMessageProps) {
         <Button size="sm" variant="ghost" onClick={() => onToggle()}>
           {isOpen ? "Less" : "More..."}
         </Button>
-        <Text fontSize="2xs" as="em">
-          Edit to customize
-        </Text>
+        {!editing && (
+          <Button size="sm" variant="ghost" onClick={() => onEditingChange(true)}>
+            <Text fontSize="2xs" as="em">
+              Edit to customize
+            </Text>
+          </Button>
+        )}
       </Flex>
     ) : (
       <Flex w="100%" justify="flex-end" align="center">
-        <Text fontSize="2xs" as="em">
-          Edit to customize
-        </Text>
+        {!editing && (
+          <Button size="sm" variant="ghost" onClick={() => onEditingChange(true)}>
+            <Text fontSize="2xs" as="em">
+              Edit to customize
+            </Text>
+          </Button>
+        )}
       </Flex>
     );
 
