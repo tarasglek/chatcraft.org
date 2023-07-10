@@ -14,11 +14,12 @@ import { TbChevronDown } from "react-icons/tb";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import * as ai from "../../lib/ai";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftAiMessage, ChatCraftAiMessageVersion } from "../../lib/ChatCraftMessage";
 import { formatDate } from "../../lib/utils";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
+import useChatOpenAI from "../../hooks/use-chat-openai";
+import NewMessage from "./NewMessage";
 
 const getAvatar = (model: ChatCraftModel, size: "sm" | "xs") => {
   if (model.id.startsWith("gpt-4")) {
@@ -108,6 +109,7 @@ type OpenAiMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
 };
 
 function OpenAiMessage(props: OpenAiMessageProps) {
+  const { streamingMessage, callChatApi, cancel, paused, togglePause } = useChatOpenAI();
   // We may or many not need to adjust the message (e.g., when retrying)
   const [message, setMessage] = useState(props.message);
   const [retrying, setRetrying] = useState(false);
@@ -137,20 +139,12 @@ function OpenAiMessage(props: OpenAiMessageProps) {
         }
         const context = messages.slice(0, idx);
         const date = new Date();
-        const { id, versions } = message;
-        setMessage(new ChatCraftAiMessage({ id, date, model, text: "", versions }));
 
         setRetrying(true);
-        const newVersionText = await ai.chat(context, {
-          apiKey: settings.apiKey,
-          model: model.id,
-          onToken(_token: string, currentText: string) {
-            setMessage(new ChatCraftAiMessage({ id, date, model, text: currentText, versions }));
-          },
-        });
+        const aiMessage = await callChatApi(context, model);
 
-        // Update db with new message info, and also add this as a new version
-        const version = new ChatCraftAiMessageVersion({ date, model, text: newVersionText });
+        // Update db with new message info, and also add this text as a new version
+        const version = new ChatCraftAiMessageVersion({ date, model, text: aiMessage.text });
         message.addVersion(version);
         message.switchVersion(version.id);
         await message.save(chat.id);
@@ -161,12 +155,22 @@ function OpenAiMessage(props: OpenAiMessageProps) {
         setRetrying(false);
       }
     },
-    [props.chatId, settings.apiKey, message]
+    [props.chatId, settings.apiKey, message, callChatApi]
   );
 
-  return (
+  // While we're streaming in a new version, use a different display
+  return streamingMessage ? (
+    <NewMessage
+      message={streamingMessage}
+      chatId={props.chatId}
+      isPaused={paused}
+      onTogglePause={togglePause}
+      onCancel={cancel}
+    />
+  ) : (
     <MessageBase
       {...props}
+      key={message.id}
       message={message}
       hidePreviews={retrying}
       isLoading={props.isLoading || retrying}

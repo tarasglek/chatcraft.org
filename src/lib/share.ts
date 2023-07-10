@@ -1,9 +1,4 @@
-import { ChatOpenAI } from "langchain/chat_models/openai";
-
-import { chatWithOpenAI } from "../lib/ai";
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
-import { ChatCraftHumanMessage, ChatCraftSystemMessage } from "./ChatCraftMessage";
-import { ChatCraftModel } from "./ChatCraftModel";
 
 export function createShareUrl(chat: ChatCraftChat, user: User) {
   // Create a share URL we can give to other people
@@ -42,27 +37,6 @@ export async function loadShare(user: string, id: string) {
 
   const serialized: SerializedChatCraftChat = await res.json();
   return ChatCraftChat.fromJSON(serialized);
-}
-
-export async function summarizeChat(chat: ChatCraftChat) {
-  const systemChatMessage = new ChatCraftSystemMessage({
-    text: "You are an expert at writing short summaries.",
-  });
-
-  const summarizeInstruction = new ChatCraftHumanMessage({
-    text: `Summarize this chat in 25 words or fewer. Respond only with the summary text and focus on the main content, not mentioning the process or participants. For example: "Using a React context and hook to keep track of user state after login."`,
-  });
-
-  try {
-    const messages = chat.messages({ includeAppMessages: false, includeSystemMessages: false });
-    const text = await chatWithOpenAI([systemChatMessage, ...messages, summarizeInstruction], {
-      model: new ChatCraftModel("gpt-3.5-turbo", "OpenAI"),
-    }).promise;
-    return text.trim();
-  } catch (err) {
-    console.error("Error summarizing chat", err);
-    throw err;
-  }
 }
 
 export async function deleteShare(user: User, chatId: string) {
