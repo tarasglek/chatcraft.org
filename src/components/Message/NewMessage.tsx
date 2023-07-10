@@ -1,7 +1,7 @@
-import { Box, Button, ButtonGroup, Flex } from "@chakra-ui/react";
+import { Box, Button, ButtonGroup } from "@chakra-ui/react";
 
-import Message from "./Message";
-import { ChatCraftAiMessage } from "../lib/ChatCraftMessage";
+import { ChatCraftAiMessage } from "../../lib/ChatCraftMessage";
+import OpenAiMessage from "./OpenAiMessage";
 
 type NewMessageProps = {
   message: ChatCraftAiMessage;
@@ -12,19 +12,15 @@ type NewMessageProps = {
 };
 
 function NewMessage({ message, chatId, isPaused, onTogglePause, onCancel }: NewMessageProps) {
-  // If the user presses the mouse button over the streaming message while
-  // loading, pause to make it easier to copy/paste text as it streams in.
-  function handleMouseDown() {
-    if (!isPaused) {
-      onTogglePause();
-    }
-  }
-
   return (
-    <Flex flexDir="column" w="100%">
-      <Box flex={1} onMouseDown={handleMouseDown}>
-        <Message key={chatId} message={message} chatId={chatId} isLoading />
-      </Box>
+    <>
+      <OpenAiMessage
+        key={message.id}
+        message={message}
+        chatId={chatId}
+        isLoading
+        heading={message.model.prettyModel}
+      />
       <Box textAlign="center">
         <ButtonGroup>
           <Button variant="outline" size="xs" onClick={() => onCancel()}>
@@ -42,7 +38,7 @@ function NewMessage({ message, chatId, isPaused, onTogglePause, onCancel }: NewM
           )}
         </ButtonGroup>
       </Box>
-    </Flex>
+    </>
   );
 }
 

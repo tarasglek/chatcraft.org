@@ -27,7 +27,7 @@ import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
-import { Link as ReactRouterLink, useNavigate } from "react-router-dom";
+import { Link as ReactRouterLink } from "react-router-dom";
 
 import { formatDate, download, formatNumber } from "../../lib/utils";
 import Markdown from "../Markdown";
