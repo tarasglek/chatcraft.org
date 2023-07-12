@@ -172,13 +172,7 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
 
 export async function queryOpenAiModels(apiKey: string) {
   const settings = getSettings();
-  if (!usingOfficialOpenAI(settings)) {
-    return [
-      "google/palm-2-codechat-bison",
-      "google/palm-2-chat-bison",
-      "tiiuae/falcon-40b-instruct",
-    ];
-  }
+  const usingOpenAI = usingOfficialOpenAI(settings);
   const res = await fetch(`${getBasePath(settings)}/models`, {
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -194,10 +188,7 @@ export async function queryOpenAiModels(apiKey: string) {
 
   // Hide all pinned models (visual noise) except gpt-3.5-turbo-0613 as that wont be default till June 27 :(
   return data
-    .filter(
-      (model: any) =>
-        model.id.includes("gpt") && (model.id == "gpt-3.5-turbo-0613" || !/\d{4}$/.test(model.id))
-    )
+    .filter((model: any) => !usingOpenAI || model.id.includes("gpt"))
     .map((model: any) => model.id) as string[];
 }
 
