@@ -26,10 +26,8 @@ import { TbCopy } from "react-icons/tb";
 
 import { useUser } from "../hooks/use-user";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
+import { summarizeChat } from "../lib/share";
 import { useSettings } from "../hooks/use-settings";
-import { ChatCraftHumanMessage, ChatCraftSystemMessage } from "../lib/ChatCraftMessage";
-import useChatOpenAI from "../hooks/use-chat-openai";
-import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 type AuthenticatedForm = {
   chat: ChatCraftChat;
@@ -44,7 +42,6 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [, copyToClipboard] = useCopyToClipboard();
-  const { callChatApi } = useChatOpenAI();
 
   const handleShareClick = async () => {
     setIsSharing(true);
@@ -62,32 +59,6 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
     }
   };
 
-  const summarizeChat = useCallback(
-    async (chat: ChatCraftChat) => {
-      const systemChatMessage = new ChatCraftSystemMessage({
-        text: "You are an expert at writing short summaries.",
-      });
-      const summarizeInstruction = new ChatCraftHumanMessage({
-        text: `Summarize this chat in 25 words or fewer. Respond only with the summary text and focus on the main content, not mentioning the process or participants. For example: "Using a React context and hook to keep track of user state after login."`,
-      });
-      const messages = chat.messages({ includeAppMessages: false, includeSystemMessages: false });
-
-      try {
-        // TODO: this can fail if the chat is too long for gpt-3.5-turbo.
-        // callChatApi() should use a sliding context window
-        const { text } = await callChatApi(
-          [systemChatMessage, ...messages, summarizeInstruction],
-          new ChatCraftModel("gpt-3.5-turbo", "OpenAI")
-        );
-        return text.trim();
-      } catch (err) {
-        console.error("Error summarizing chat", err);
-        throw err;
-      }
-    },
-    [callChatApi]
-  );
-
   const handleSummarizeClick = useCallback(async () => {
     if (!settings.apiKey) {
       return;
@@ -102,7 +73,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
     } finally {
       setIsSummarizing(false);
     }
-  }, [settings.apiKey, chat, setIsSummarizing, summarizeChat]);
+  }, [settings.apiKey, chat, setIsSummarizing]);
 
   const handleCopyClick = useCallback(() => {
     copyToClipboard(url);
