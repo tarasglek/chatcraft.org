@@ -257,6 +257,17 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
             </FormControl>
 
             <FormControl>
+              <FormLabel>OpenAI URL</FormLabel>
+              <Input
+                value={settings.basePath || ""}
+                onChange={(e) => setSettings({ ...settings, basePath: e.target.value })}
+              />
+              <FormHelperText>
+                Advanced option for use with other OpenAI-compatible APIs
+              </FormHelperText>
+            </FormControl>
+
+            <FormControl>
               <FormLabel>
                 When writing a prompt, press <Kbd>Enter</Kbd> to...
               </FormLabel>

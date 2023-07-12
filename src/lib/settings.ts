@@ -7,9 +7,12 @@
  */
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 
+export const OPENAI_BASE_PATH = "https://api.openai.com/v1";
+
 export type Settings = {
   apiKey?: string;
   model: ChatCraftModel;
+  basePath?: string;
   enterBehaviour: EnterBehaviour;
   justShowMeTheCode: boolean;
   countTokens: boolean;

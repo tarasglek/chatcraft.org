@@ -43,7 +43,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       try {
         const openAiModels = await queryOpenAiModels(apiKey).then((models) => {
           models.sort();
-          return models.map((model) => new ChatCraftModel(model, "OpenAI"));
+          return models.map((model) => new ChatCraftModel(model));
         });
         setModels(openAiModels);
         setFetched(true);

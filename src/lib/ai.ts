@@ -3,12 +3,21 @@ import { CallbackManager } from "langchain/callbacks";
 
 import { ChatCraftMessage } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
-import { getSettings } from "./settings";
+import { Settings, getSettings, OPENAI_BASE_PATH } from "./settings";
 
 import type { Tiktoken } from "tiktoken/lite";
 
-const BASE_PATH = "https://api.openai.com/v1";
-// const BASE_PATH = "https://openrouter.ai/api/v1";
+function getBasePath(settings: Settings) {
+  if (settings.basePath) {
+    return settings.basePath;
+  }
+  return OPENAI_BASE_PATH;
+}
+
+function usingOfficialOpenAI(settings: Settings) {
+  return getBasePath(settings).startsWith(OPENAI_BASE_PATH);
+}
+
 export type ChatOptions = {
   model?: ChatCraftModel;
   temperature?: number;
@@ -21,7 +30,8 @@ export type ChatOptions = {
 
 export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
   // We can't do anything without an API key
-  const apiKey = getSettings().apiKey;
+  const settings = getSettings();
+  const apiKey = settings.apiKey;
   if (!apiKey) {
     throw new Error("Missing OpenAI API Key");
   }
@@ -65,17 +75,28 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
     }
   };
 
+  const currentUrlWithoutAnchor = window.location.origin + window.location.pathname;
+  let headers = undefined;
+  if (!usingOfficialOpenAI(settings)) {
+    headers = {
+      "HTTP-Referer": currentUrlWithoutAnchor,
+      "X-Title": "chatcraft.org",
+    };
+  }
   const chatOpenAI = new ChatOpenAI(
     {
       openAIApiKey: apiKey,
       temperature: temperature ?? 0,
       // Only stream if the caller wants to handle onData events
-      streaming: !!onData,
+      streaming: usingOfficialOpenAI(settings) && !!onData,
       // Use the provided model, or fallback to whichever one is default right now
       modelName: model ? model.id : getSettings().model.id,
     },
     {
-      basePath: BASE_PATH,
+      basePath: getBasePath(settings),
+      baseOptions: {
+        headers: headers,
+      },
     }
   );
 
@@ -150,7 +171,15 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
 };
 
 export async function queryOpenAiModels(apiKey: string) {
-  const res = await fetch(`${BASE_PATH}/models`, {
+  const settings = getSettings();
+  if (!usingOfficialOpenAI(settings)) {
+    return [
+      "google/palm-2-codechat-bison",
+      "google/palm-2-chat-bison",
+      "tiiuae/falcon-40b-instruct",
+    ];
+  }
+  const res = await fetch(`${getBasePath(settings)}/models`, {
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
