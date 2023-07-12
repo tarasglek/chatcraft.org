@@ -7,6 +7,8 @@ import { getSettings } from "./settings";
 
 import type { Tiktoken } from "tiktoken/lite";
 
+const BASE_PATH = "https://api.openai.com/v1";
+// const BASE_PATH = "https://openrouter.ai/api/v1";
 export type ChatOptions = {
   model?: ChatCraftModel;
   temperature?: number;
@@ -63,14 +65,19 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
     }
   };
 
-  const chatOpenAI = new ChatOpenAI({
-    openAIApiKey: apiKey,
-    temperature: temperature ?? 0,
-    // Only stream if the caller wants to handle onData events
-    streaming: !!onData,
-    // Use the provided model, or fallback to whichever one is default right now
-    modelName: model ? model.id : getSettings().model.id,
-  });
+  const chatOpenAI = new ChatOpenAI(
+    {
+      openAIApiKey: apiKey,
+      temperature: temperature ?? 0,
+      // Only stream if the caller wants to handle onData events
+      streaming: !!onData,
+      // Use the provided model, or fallback to whichever one is default right now
+      modelName: model ? model.id : getSettings().model.id,
+    },
+    {
+      basePath: BASE_PATH,
+    }
+  );
 
   // Grab the promise so we can return, but callers can also do everything via events
   const promise = chatOpenAI
@@ -143,7 +150,7 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
 };
 
 export async function queryOpenAiModels(apiKey: string) {
-  const res = await fetch("https://api.openai.com/v1/models", {
+  const res = await fetch(`${BASE_PATH}/models`, {
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
