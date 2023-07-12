@@ -46,7 +46,7 @@ const createChatAPI = ({
       temperature: temperature ?? 0,
       // Only stream if the caller wants to handle onData events
       // TODO: need streaming to work with OpenRouter too
-      streaming: usingOfficialOpenAI() && !!onData,
+      streaming: !!onData,
       // Use the provided model, or fallback to whichever one is default right now
       modelName: model ? model.id : getSettings().model.id,
     },
