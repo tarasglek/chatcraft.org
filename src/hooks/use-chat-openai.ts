@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useSettings } from "./use-settings";
 import { ChatCraftMessage, ChatCraftAiMessage } from "../lib/ChatCraftMessage";
 import { useCost } from "./use-cost";
-import { calculateTokenCost, chatWithOpenAI, countTokensInMessages } from "../lib/ai";
+import { calculateTokenCost, chatWithLLM, countTokensInMessages } from "../lib/ai";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 const noop = () => {};
@@ -32,7 +32,7 @@ function useChatOpenAI() {
       const aiMessage = new ChatCraftAiMessage({ model: model ?? settings.model, text: "" });
       setStreamingMessage(aiMessage);
 
-      const chat = chatWithOpenAI(messages, {
+      const chat = chatWithLLM(messages, {
         model,
         onPause() {
           setPaused(true);

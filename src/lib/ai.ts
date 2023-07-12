@@ -3,20 +3,12 @@ import { CallbackManager } from "langchain/callbacks";
 
 import { ChatCraftMessage } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
-import { Settings, getSettings, OPENAI_BASE_PATH } from "./settings";
+import { getSettings, OPENAI_API_URL } from "./settings";
 
 import type { Tiktoken } from "tiktoken/lite";
+import { getReferer } from "./utils";
 
-function getBasePath(settings: Settings) {
-  if (settings.basePath) {
-    return settings.basePath;
-  }
-  return OPENAI_BASE_PATH;
-}
-
-function usingOfficialOpenAI(settings: Settings) {
-  return getBasePath(settings).startsWith(OPENAI_BASE_PATH);
-}
+const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
 
 export type ChatOptions = {
   model?: ChatCraftModel;
@@ -28,14 +20,46 @@ export type ChatOptions = {
   onData?: ({ token, currentText }: { token: string; currentText: string }) => void;
 };
 
-export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
-  // We can't do anything without an API key
-  const settings = getSettings();
-  const apiKey = settings.apiKey;
+// Create the appropriate type of "OpenAI" compatible instance, based on `apiUrl`
+const createChatAPI = ({
+  temperature,
+  onData,
+  model,
+}: Pick<ChatOptions, "temperature" | "onData" | "model">) => {
+  const { apiKey, apiUrl } = getSettings();
   if (!apiKey) {
-    throw new Error("Missing OpenAI API Key");
+    throw new Error("Missing API Key");
   }
 
+  // If we're using OpenRouter, add extra headers
+  let headers = undefined;
+  if (!usingOfficialOpenAI()) {
+    headers = {
+      "HTTP-Referer": getReferer(),
+      "X-Title": "chatcraft.org",
+    };
+  }
+
+  return new ChatOpenAI(
+    {
+      openAIApiKey: apiKey,
+      temperature: temperature ?? 0,
+      // Only stream if the caller wants to handle onData events
+      // TODO: need streaming to work with OpenRouter too
+      streaming: usingOfficialOpenAI() && !!onData,
+      // Use the provided model, or fallback to whichever one is default right now
+      modelName: model ? model.id : getSettings().model.id,
+    },
+    {
+      basePath: apiUrl,
+      baseOptions: {
+        headers,
+      },
+    }
+  );
+};
+
+export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
   const buffer: string[] = [];
   const { onData, onFinish, onPause, onResume, onError, temperature, model } = options;
 
@@ -75,33 +99,9 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
     }
   };
 
-  const currentUrlWithoutAnchor = window.location.origin + window.location.pathname;
-  let headers = undefined;
-  if (!usingOfficialOpenAI(settings)) {
-    headers = {
-      "HTTP-Referer": currentUrlWithoutAnchor,
-      "X-Title": "chatcraft.org",
-    };
-  }
-  const chatOpenAI = new ChatOpenAI(
-    {
-      openAIApiKey: apiKey,
-      temperature: temperature ?? 0,
-      // Only stream if the caller wants to handle onData events
-      streaming: usingOfficialOpenAI(settings) && !!onData,
-      // Use the provided model, or fallback to whichever one is default right now
-      modelName: model ? model.id : getSettings().model.id,
-    },
-    {
-      basePath: getBasePath(settings),
-      baseOptions: {
-        headers: headers,
-      },
-    }
-  );
-
   // Grab the promise so we can return, but callers can also do everything via events
-  const promise = chatOpenAI
+  const chatAPI = createChatAPI({ temperature, onData, model });
+  const promise = chatAPI
     .call(
       messages,
       {
@@ -170,10 +170,10 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
   };
 };
 
-export async function queryOpenAiModels(apiKey: string) {
-  const settings = getSettings();
-  const usingOpenAI = usingOfficialOpenAI(settings);
-  const res = await fetch(`${getBasePath(settings)}/models`, {
+export async function queryModels(apiKey: string) {
+  const { apiUrl } = getSettings();
+  const usingOpenAI = usingOfficialOpenAI();
+  const res = await fetch(`${apiUrl}/models`, {
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
@@ -186,19 +186,19 @@ export async function queryOpenAiModels(apiKey: string) {
 
   const { data } = await res.json();
 
-  // Hide all pinned models (visual noise) except gpt-3.5-turbo-0613 as that wont be default till June 27 :(
   return data
     .filter((model: any) => !usingOpenAI || model.id.includes("gpt"))
     .map((model: any) => model.id) as string[];
 }
 
 export async function validateOpenAiApiKey(apiKey: string) {
-  return !!(await queryOpenAiModels(apiKey));
+  return !!(await queryModels(apiKey));
 }
 
 // Cache this instance on first use
 let encoding: Tiktoken;
 
+// TODO: If we're using OpenRouter, we have to alter our token counting logic for other models...
 export const countTokens = async (text: string) => {
   if (!encoding) {
     // Warn if this happens when it shouldn't. The UI should only

@@ -8,7 +8,7 @@ import {
   type FC,
 } from "react";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { queryOpenAiModels } from "../lib/ai";
+import { queryModels } from "../lib/ai";
 import { useSettings } from "./use-settings";
 
 const defaultModels = [new ChatCraftModel("gpt-3.5-turbo", "OpenAI")];
@@ -41,7 +41,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const fetchModels = async () => {
       isFetching.current = true;
       try {
-        const openAiModels = await queryOpenAiModels(apiKey).then((models) => {
+        const openAiModels = await queryModels(apiKey).then((models) => {
           models.sort();
           return models.map((model) => new ChatCraftModel(model));
         });
