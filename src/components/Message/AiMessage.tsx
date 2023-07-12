@@ -22,16 +22,27 @@ import useChatOpenAI from "../../hooks/use-chat-openai";
 import NewMessage from "./NewMessage";
 
 const getAvatar = (model: ChatCraftModel, size: "sm" | "xs") => {
-  if (model.id.startsWith("gpt-4")) {
-    return <Avatar size={size} bg="#A96CF9" src={`/openai-logo.png`} title={model.prettyModel} />;
+  const logoUrl = model.logoUrl;
+
+  // Differentiate OpenAI models by colour
+  if (model.id.includes("gpt-4")) {
+    return <Avatar size={size} bg="#A96CF9" src={logoUrl} title={model.prettyModel} />;
+  }
+  if (model.id.includes("gpt-3.5-turbo")) {
+    return <Avatar size={size} bg="#75AB9C" src={logoUrl} title={model.prettyModel} />;
   }
 
-  if (model.id.startsWith("gpt-3.5-turbo")) {
-    return <Avatar size={size} bg="#75AB9C" src={`/openai-logo.png`} title={model.prettyModel} />;
-  }
-
-  // Shouldn't happen, but make sure we always return something...
-  return <Avatar size={size} bg="#75AB9C" src={`/openai-logo.png`} title={model.prettyModel} />;
+  // For now, all the rest use the same colour, or just the logo's background
+  return (
+    <Avatar
+      size={size}
+      showBorder
+      borderColor="gray.100"
+      _dark={{ borderColor: "gray.600" }}
+      src={logoUrl}
+      title={model.prettyModel}
+    />
+  );
 };
 
 // If there are multiple versions in an AI message, add some UI to switch between them
@@ -104,11 +115,11 @@ function MessageVersionsMenu({
   );
 }
 
-type OpenAiMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
+type AiMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
   message: ChatCraftAiMessage;
 };
 
-function OpenAiMessage(props: OpenAiMessageProps) {
+function AiMessage(props: AiMessageProps) {
   const { streamingMessage, callChatApi, cancel, paused, togglePause } = useChatOpenAI();
   // We may or many not need to adjust the message (e.g., when retrying)
   const [message, setMessage] = useState(props.message);
@@ -189,4 +200,4 @@ function OpenAiMessage(props: OpenAiMessageProps) {
   );
 }
 
-export default memo(OpenAiMessage);
+export default memo(AiMessage);

@@ -1,7 +1,7 @@
 import { Box, Button, ButtonGroup } from "@chakra-ui/react";
 
 import { ChatCraftAiMessage } from "../../lib/ChatCraftMessage";
-import OpenAiMessage from "./OpenAiMessage";
+import AiMessage from "./AiMessage";
 
 type NewMessageProps = {
   message: ChatCraftAiMessage;
@@ -14,7 +14,7 @@ type NewMessageProps = {
 function NewMessage({ message, chatId, isPaused, onTogglePause, onCancel }: NewMessageProps) {
   return (
     <>
-      <OpenAiMessage
+      <AiMessage
         key={message.id}
         message={message}
         chatId={chatId}

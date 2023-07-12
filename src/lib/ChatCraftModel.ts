@@ -16,6 +16,33 @@ export class ChatCraftModel {
     }
   }
 
+  get logoUrl() {
+    const owner = this.owner.toLowerCase();
+    const model = this.modelId.toLowerCase();
+
+    if (owner === "openai" || model.startsWith("openai/")) {
+      return "/openai-logo.png";
+    }
+
+    if (owner === "anthropic" || model.startsWith("anthropic/")) {
+      return "/anthropic-logo.png";
+    }
+
+    // Google has Palm and Bard, but only currently have access to Palm
+    if (model.startsWith("google/palm")) {
+      return "/palm-logo.png";
+    }
+
+    // Use the Hugging Face logo, since it's hosted there
+    // https://huggingface.co/tiiuae/falcon-40b
+    if (model.startsWith("tiiuae/")) {
+      return "/hugging-face-logo.png";
+    }
+
+    // If we don't know, use the OpenAI logo as a fallback
+    return "/openai-logo.png";
+  }
+
   get id() {
     return this.modelId;
   }

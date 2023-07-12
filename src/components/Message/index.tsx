@@ -7,7 +7,7 @@ import {
   ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import HumanMessage from "./HumanMessage";
-import OpenAiMessage from "./OpenAiMessage";
+import AiMessage from "./AiMessage";
 import AppMessage from "./AppMessage";
 import SystemMessage from "./SystemMessage";
 
@@ -43,7 +43,7 @@ function Message({
 
   if (message instanceof ChatCraftAiMessage) {
     return (
-      <OpenAiMessage
+      <AiMessage
         message={message}
         chatId={chatId}
         editing={editing}
