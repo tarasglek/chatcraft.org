@@ -32,6 +32,7 @@ import { download, isMac } from "../lib/utils";
 import db from "../lib/db";
 import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
+import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -142,8 +143,22 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         <ModalBody>
           <VStack gap={4}>
             <FormControl>
+              <FormLabel>API URL</FormLabel>
+              <Select
+                value={settings.apiUrl}
+                onChange={(e) => setSettings({ ...settings, apiUrl: e.target.value })}
+              >
+                <option value={OPENAI_API_URL}>OpenAI ({OPENAI_API_URL})</option>
+                <option value={OPENROUTER_API_URL}>OpenRouter.ai ({OPENROUTER_API_URL})</option>
+              </Select>
+              <FormHelperText>
+                Advanced option for use with other OpenAI-compatible APIs
+              </FormHelperText>
+            </FormControl>
+
+            <FormControl>
               <FormLabel>
-                OpenAI API Key{" "}
+                {settings.apiUrl === OPENAI_API_URL ? "OpenAI" : "OpenRouter.ai"} API Key{" "}
                 <ButtonGroup ml={2}>
                   <Button
                     size="xs"
@@ -253,17 +268,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   pricing
                 </Link>
                 . NOTE: not all accounts have access to GPT - 4
-              </FormHelperText>
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>OpenAI URL</FormLabel>
-              <Input
-                value={settings.basePath || ""}
-                onChange={(e) => setSettings({ ...settings, basePath: e.target.value })}
-              />
-              <FormHelperText>
-                Advanced option for use with other OpenAI-compatible APIs
               </FormHelperText>
             </FormControl>
 

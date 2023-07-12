@@ -33,3 +33,8 @@ export function download(data: string | Blob, filename: string, type = "text/pla
   anchor.setAttribute("href", url);
   anchor.click();
 }
+
+export const getReferer = () => {
+  const { origin, pathname } = location;
+  return `${origin}${pathname}`;
+};

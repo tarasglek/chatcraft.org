@@ -25,15 +25,16 @@ export class ChatCraftModel {
   }
 
   get prettyModel(): string {
-    if (this.modelId.startsWith("gpt-3.5-turbo")) {
-      return this.modelId.replace("gpt-3.5-turbo", "ChatGPT");
+    let modelName = this.modelId;
+    if (modelName.includes("/")) {
+      modelName = modelName.split("/")[1];
     }
 
-    if (this.modelId.startsWith("gpt-4")) {
-      return this.modelId.replace("gpt-4", "GPT-4");
+    if (modelName.startsWith("gpt-3.5-turbo")) {
+      return modelName.replace("gpt-3.5-turbo", "chat-gpt");
     }
 
-    return `${this.owner} ${this.modelId}`;
+    return modelName;
   }
 
   toString() {
