@@ -12,6 +12,8 @@ export type ChatOptions = {
   temperature?: number;
   onFinish?: (text: string) => void;
   onError?: (err: Error) => void;
+  onPause?: () => void;
+  onResume?: () => void;
   onData?: ({ token, currentText }: { token: string; currentText: string }) => void;
 };
 
@@ -23,29 +25,42 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
   }
 
   const buffer: string[] = [];
-  const { onData, onFinish, onError, temperature, model } = options;
+  const { onData, onFinish, onPause, onResume, onError, temperature, model } = options;
 
   // Allow the stream to be cancelled
   const controller = new AbortController();
 
   // Wire-up ESC key to cancel
-  const cancel = (e: KeyboardEvent) => {
+  const cancel = () => {
+    controller.abort();
+  };
+  const handleCancel = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
-      controller.abort();
+      cancel();
     }
   };
-  addEventListener("keydown", cancel);
+  addEventListener("keydown", handleCancel);
 
   // Allow pause and resume
   let isPaused = false;
   const pause = () => {
     isPaused = true;
+    if (onPause) {
+      onPause();
+    }
   };
   const resume = () => {
     isPaused = false;
+    if (onResume) {
+      onResume();
+    }
   };
   const togglePause = () => {
-    isPaused = !isPaused;
+    if (isPaused) {
+      resume();
+    } else {
+      pause();
+    }
   };
 
   const chatOpenAI = new ChatOpenAI({
@@ -114,7 +129,7 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
       }
     })
     .finally(() => {
-      removeEventListener("keydown", cancel);
+      removeEventListener("keydown", handleCancel);
     });
 
   return {

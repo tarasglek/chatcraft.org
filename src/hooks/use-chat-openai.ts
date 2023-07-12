@@ -1,113 +1,79 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { CallbackManager } from "langchain/callbacks";
-import { useKey } from "react-use";
 
 import { useSettings } from "./use-settings";
-import {
-  ChatCraftMessage,
-  ChatCraftAiMessage,
-  ChatCraftSystemMessage,
-} from "../lib/ChatCraftMessage";
-import { createSystemMessage } from "../lib/system-prompt";
+import { ChatCraftMessage, ChatCraftAiMessage } from "../lib/ChatCraftMessage";
 import { useCost } from "./use-cost";
-import { calculateTokenCost, countTokensInMessages } from "../lib/ai";
+import { calculateTokenCost, chatWithOpenAI, countTokensInMessages } from "../lib/ai";
+import { ChatCraftModel } from "../lib/ChatCraftModel";
+
+const noop = () => {};
 
 function useChatOpenAI() {
-  const [streamingMessage, setStreamingMessage] = useState<ChatCraftAiMessage>();
   const { settings } = useSettings();
-  const [cancel, setCancel] = useState<() => void>(() => {});
-  const [paused, setPaused] = useState(false);
-  const pausedRef = useRef(paused);
   const { incrementCost } = useCost();
 
-  // Listen for escape being pressed on window, and cancel any in flight
-  useKey("Escape", cancel, { event: "keydown" }, [cancel]);
+  const [streamingMessage, setStreamingMessage] = useState<ChatCraftAiMessage>();
+
+  const pauseRef = useRef<() => void>();
+  const resumeRef = useRef<() => void>();
+  const toggleRef = useRef<() => void>();
+  const cancelRef = useRef<() => void>();
+
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(paused);
 
   // Make sure we always use the correct `paused` value in our streaming callback below
   useEffect(() => {
     pausedRef.current = paused;
   }, [paused]);
 
-  const pause = () => {
-    setPaused(true);
-  };
-
-  const resume = () => {
-    setPaused(false);
-  };
-
-  const togglePause = () => {
-    setPaused(!paused);
-  };
-
-  // TODO: figure out how to combine the code in src/lib/ai.ts
   const callChatApi = useCallback(
-    (messages: ChatCraftMessage[]) => {
-      const buffer: string[] = [];
-      const { model } = settings;
-      const message = new ChatCraftAiMessage({ model, text: "" });
-      // Cache the id so we can re-use it below
-      const id = message.id;
-      setStreamingMessage(message);
+    (messages: ChatCraftMessage[], model?: ChatCraftModel) => {
+      const aiMessage = new ChatCraftAiMessage({ model: model ?? settings.model, text: "" });
+      setStreamingMessage(aiMessage);
 
-      const chatOpenAI = new ChatOpenAI({
-        openAIApiKey: settings.apiKey,
-        temperature: 0,
-        streaming: true,
-        modelName: settings.model.id,
+      const chat = chatWithOpenAI(messages, {
+        model,
+        onPause() {
+          setPaused(true);
+        },
+        onResume() {
+          setPaused(false);
+        },
+        onData({ currentText }) {
+          if (!pausedRef.current) {
+            setStreamingMessage(
+              new ChatCraftAiMessage({
+                id: aiMessage.id,
+                date: aiMessage.date,
+                model: aiMessage.model,
+                text: currentText,
+              })
+            );
+          }
+        },
       });
 
-      // Allow the stream to be cancelled
-      const controller = new AbortController();
+      pauseRef.current = chat.pause;
+      resumeRef.current = chat.resume;
+      toggleRef.current = chat.togglePause;
+      cancelRef.current = chat.cancel;
 
-      // Set the cancel and pause functions
-      setCancel(() => () => {
-        controller.abort();
-      });
-
-      // Send the chat's messages and prefix with a system message unless
-      // the user has already included their own custom system message.
-      const messagesToSend =
-        messages[0] instanceof ChatCraftSystemMessage
-          ? messages
-          : [createSystemMessage(), ...messages];
-
-      return chatOpenAI
-        .call(
-          messagesToSend,
-          {
-            options: { signal: controller.signal },
-          },
-          CallbackManager.fromHandlers({
-            async handleLLMNewToken(token: string) {
-              buffer.push(token);
-
-              if (!pausedRef.current) {
-                setStreamingMessage(
-                  new ChatCraftAiMessage({
-                    id,
-                    model,
-                    text: buffer.join(""),
-                  })
-                );
-              }
-            },
-          })
-        )
-        .then(({ text }): Promise<[ChatCraftAiMessage, number]> => {
-          const aiMessage = new ChatCraftAiMessage({
-            id,
-            model,
+      return chat.promise
+        .then((text): Promise<[ChatCraftAiMessage, number]> => {
+          const response = new ChatCraftAiMessage({
+            id: aiMessage.id,
+            date: aiMessage.date,
+            model: aiMessage.model,
             text,
           });
 
           // If we're tracking token cost, update it
           if (settings.countTokens) {
-            return Promise.all([aiMessage, countTokensInMessages([...messagesToSend, aiMessage])]);
+            return Promise.all([response, countTokensInMessages([...messages, aiMessage])]);
           }
 
-          return Promise.resolve([aiMessage, 0]);
+          return Promise.resolve([response, 0]);
         })
         .then(([aiMessage, tokens]) => {
           if (tokens) {
@@ -116,31 +82,6 @@ function useChatOpenAI() {
           }
 
           return aiMessage;
-        })
-        .catch((err) => {
-          // Deal with cancelled messages by returning a partial message
-          if (err.message.startsWith("Cancel:")) {
-            buffer.push("...");
-            return new ChatCraftAiMessage({
-              id,
-              model,
-              text: buffer.join(""),
-            });
-          }
-
-          // Try to extract the actual OpenAI API error from what langchain gives us
-          // which is JSON embedded in the error text.
-          // eslint-disable-next-line no-useless-catch
-          try {
-            const matches = err.message.match(/{"error".+$/);
-            if (matches) {
-              const openAiError = JSON.parse(matches[0]);
-              throw new Error(`OpenAI API Error: ${openAiError.error.message}`);
-            }
-            throw err;
-          } catch (err2) {
-            throw err2;
-          }
         })
         .finally(() => {
           setStreamingMessage(undefined);
@@ -153,11 +94,14 @@ function useChatOpenAI() {
   return {
     streamingMessage,
     callChatApi,
-    cancel,
     paused,
-    pause,
-    resume,
-    togglePause,
+    // HACK: Because there's a chance these function refs might not exist yet, always
+    // pass an actual function so we don't have to deal with `undefined` in callers.
+    // In practice, this won't be in issue, but the TypeScript-tax must be paid.
+    pause: pauseRef.current ?? noop,
+    resume: resumeRef.current ?? noop,
+    togglePause: toggleRef.current ?? noop,
+    cancel: cancelRef.current ?? noop,
   };
 }
 
