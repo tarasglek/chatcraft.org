@@ -66,6 +66,7 @@ function Instructions(props: MessageBaseProps) {
       .finally(() => setIsValidating(false));
   };
 
+  const provider = settings.apiUrl === OPENAI_API_URL ? "OpenAI" : "OpenRouter.ai";
   // Provide a form to enter and process the api key when entered
   const apiKeyForm = (
     <Container pb={6}>
@@ -83,10 +84,7 @@ function Instructions(props: MessageBaseProps) {
           </FormControl>
 
           <FormControl isInvalid={isInvalid}>
-            <FormLabel>
-              {" "}
-              {settings.apiUrl === OPENAI_API_URL ? "OpenAI" : "OpenRouter.ai"} API Key{" "}
-            </FormLabel>
+            <FormLabel>{provider} API Key </FormLabel>
             <Flex gap={4} align="center">
               <RevealablePasswordInput
                 flex="1"
@@ -100,7 +98,7 @@ function Instructions(props: MessageBaseProps) {
                 Save
               </Button>
             </Flex>
-            <FormErrorMessage>Unable to verify API Key with OpenAI.</FormErrorMessage>
+            <FormErrorMessage>Unable to verify API Key with {provider}.</FormErrorMessage>
           </FormControl>
         </VStack>
       </form>
