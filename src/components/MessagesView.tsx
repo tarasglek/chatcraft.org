@@ -3,7 +3,7 @@ import { Box, useColorMode } from "@chakra-ui/react";
 import mermaid from "mermaid";
 
 import Message from "./Message";
-import NewMessage from "./Message/NewMessage";
+import NewMessage from "./NewMessage";
 import {
   ChatCraftMessage,
   ChatCraftAiMessage,
