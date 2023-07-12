@@ -18,6 +18,8 @@ function NewMessage({ message, chatId, isPaused, onTogglePause, onCancel }: NewM
         key={message.id}
         message={message}
         chatId={chatId}
+        editing={false}
+        onEditingChange={/* ignore editing changes while streaming new response */ () => {}}
         isLoading
         heading={message.model.prettyModel}
       />
