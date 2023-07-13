@@ -17,18 +17,21 @@ import { useSettings } from "../../../hooks/use-settings";
 import { validateOpenAiApiKey } from "../../../lib/ai";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../../../lib/settings";
 
-const ApiKeyInstructionsText = `Welcome to ChatCraft, a developer-focused AI assistant.
+const ApiKeyInstructionsText = `Welcome to ChatCraft, a developer-focused AI assistant. I can help you write code, visualize it with mermaid, html and even run it. You can further refine code by editig, deleting and retrying model responses.
+
+ChatCraft executes within your browser and communicates directly with LLM API providers. **API keys are stored offline** in your
+browser's [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) and are never sent to our servers. You have the option to share your ChatCraft conversations, in which case conversation content will be uploaded to our servers.
+
 ChatCraft is a **"Bring Your Own API Key"** web app. Before you can start chatting, you
-need to choose a provider's **API URL** (we currently support [OpenAI](https://openai.com/) and [OpenRouter.ai](https://openrouter.ai/docs))
-and enter an **API Key**.
+need to choose a provider and obtain a key with them:
+* [OpenAI](https://openai.com/) offers GPT models but throttles availability of newer models, better performance/uptime than 3rd-party proxies. Start experimenting with $5 in free credit that can be used during your first 3 months.
+* [OpenRouter.ai](https://openrouter.ai/docs). Offers OpenAI *GPT models, Anthropic Claude, Google Bard and open source free-to-use models. Has options to prepay, limit costs and offers free credit prior to requiring payment.
 
 Here's an example of what an OpenAI API Key looks like:
 
 \`sk-tVqEo67MxnfAAPQ68iuVT#ClbkFJkUz4oUblcvyUUxrg4T0\`
  
-Please choose your API provider and enter your API Key below. They will be stored offline in your
-browser's [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) for your
-own local use. NOTE: we don't need or want access to them on the server:
+Please choose your API provider and enter your API Key below.
 `;
 
 function Instructions(props: MessageBaseProps) {
