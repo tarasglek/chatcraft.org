@@ -103,7 +103,8 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   const chatAPI = createChatAPI({ temperature, onData, model });
   const promise = chatAPI
     .call(
-      messages,
+      // Convert the messages to langchain format before sending
+      messages.map((message) => message.toLangChainMessage()),
       {
         options: { signal: controller.signal },
       },
@@ -116,11 +117,11 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
         },
       })
     )
-    .then(({ text }) => {
+    .then(({ content }) => {
       if (onFinish) {
-        onFinish(text);
+        onFinish(content);
       }
-      return text;
+      return content;
     })
     .catch((err) => {
       // Deal with cancelled messages by returning a partial message

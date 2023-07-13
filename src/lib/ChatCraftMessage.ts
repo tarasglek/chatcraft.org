@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { BaseChatMessage, type MessageType } from "langchain/schema";
+import { AIMessage, HumanMessage, SystemMessage, type MessageType } from "langchain/schema";
 import db, { type ChatCraftMessageTable } from "./db";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { countTokens } from "./ai";
@@ -36,11 +36,11 @@ export type SerializedChatCraftMessage = {
   versions?: { id: string; date: string; model: string; text: string }[];
 };
 
-// A decorated langchain chat message, with extra metadata
-export class ChatCraftMessage extends BaseChatMessage {
+export class ChatCraftMessage {
   id: string;
   date: Date;
   type: MessageType;
+  text: string;
   readonly: boolean;
 
   constructor({
@@ -56,11 +56,10 @@ export class ChatCraftMessage extends BaseChatMessage {
     text: string;
     readonly?: boolean;
   }) {
-    super(text);
-
     this.id = id ?? nanoid();
     this.date = date ?? new Date();
     this.type = type;
+    this.text = text;
 
     // When we load a message outside the db (e.g., from shared chat via JSON) it is readonly
     this.readonly = readonly === true;
@@ -68,11 +67,6 @@ export class ChatCraftMessage extends BaseChatMessage {
 
   async tokens() {
     return countTokens(this.text);
-  }
-
-  // Comply with BaseChatMessage's need for _getType()
-  _getType(): MessageType {
-    return this.type;
   }
 
   static async delete(id: string) {
@@ -86,14 +80,33 @@ export class ChatCraftMessage extends BaseChatMessage {
     });
   }
 
-  // XXX: we can't use toJSON() because langchain depends on it
-  serialize(): SerializedChatCraftMessage {
+  toJSON(): SerializedChatCraftMessage {
     return {
       id: this.id,
       date: this.date.toISOString(),
       type: this.type,
       text: this.text,
     };
+  }
+
+  // Convert to a BaseMessage or derived type
+  toLangChainMessage() {
+    const text = this.text;
+
+    switch (this.type) {
+      case "ai":
+        return new AIMessage(text);
+      case "human":
+        return new HumanMessage(text);
+      case "system":
+        return new SystemMessage(text);
+      case "generic":
+      // falls through
+      case "function":
+      // falls through
+      default:
+        throw new Error(`${this.type} message conversion to langchain not implemented`);
+    }
   }
 
   toDB(chatId: string): ChatCraftMessageTable {
@@ -218,9 +231,9 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     });
   }
 
-  serialize(): SerializedChatCraftMessage {
+  toJSON(): SerializedChatCraftMessage {
     return {
-      ...super.serialize(),
+      ...super.toJSON(),
       model: this.model.toString(),
       versions: this.versions.map((version) => ({
         ...version,
@@ -307,9 +320,9 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
     });
   }
 
-  serialize(): SerializedChatCraftMessage {
+  toJSON(): SerializedChatCraftMessage {
     return {
-      ...super.serialize(),
+      ...super.toJSON(),
       user: this.user,
     };
   }

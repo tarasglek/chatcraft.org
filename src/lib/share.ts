@@ -15,7 +15,7 @@ export async function createShare(chat: ChatCraftChat, user: User) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(chat.serialize()),
+    body: JSON.stringify(chat.toJSON()),
   });
 
   if (!res.ok) {
