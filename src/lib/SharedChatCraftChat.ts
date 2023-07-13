@@ -35,7 +35,7 @@ export class SharedChatCraftChat {
       url: this.url,
       date: this.date,
       summary: this.summary,
-      chat: this.chat.serialize(),
+      chat: this.chat.toJSON(),
     };
   }
 

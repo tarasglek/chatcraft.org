@@ -62,14 +62,15 @@ export class ChatCraftChat {
    * (`chat.messages({ includeAppMessages: true })`. For serialization
    * or sending to an LLM, use `chat.messages({ includeAppMessages: false })`.
    */
-  messages(
-    options: { includeAppMessages?: boolean; includeSystemMessages?: boolean } = {
+  messages(options: { includeAppMessages?: boolean; includeSystemMessages?: boolean } = {}) {
+    const defaultOptions = {
       includeAppMessages: true,
       includeSystemMessages: true,
-    }
-  ) {
-    const includeAppMessages = options.includeAppMessages === true;
-    const includeSystemMessages = options.includeSystemMessages === true;
+    };
+    const selectedOptions = { ...defaultOptions, ...options };
+
+    const includeAppMessages = selectedOptions.includeAppMessages === true;
+    const includeSystemMessages = selectedOptions.includeSystemMessages === true;
 
     return this._messages.filter((message) => {
       if (!includeAppMessages && message instanceof ChatCraftAppMessage) {
@@ -83,7 +84,10 @@ export class ChatCraftChat {
   }
 
   async tokens() {
-    const messages = this.messages({ includeAppMessages: false, includeSystemMessages: true });
+    const messages = this.messages({
+      includeAppMessages: false,
+      includeSystemMessages: true,
+    });
     return countTokensInMessages(messages);
   }
 
@@ -201,19 +205,14 @@ export class ChatCraftChat {
     });
   }
 
-  toJSON() {
-    return this.serialize();
-  }
-
-  // Because ChatCraftMessage uses serialize() vs. toJSON(), do the same here
-  serialize(): SerializedChatCraftChat {
+  toJSON(): SerializedChatCraftChat {
     return {
       id: this.id,
       date: this.date.toISOString(),
       summary: this.summary,
       // In JSON, we strip out the app messages
       messages: this.messages({ includeAppMessages: false, includeSystemMessages: true }).map(
-        (message) => message.serialize()
+        (message) => message.toJSON()
       ),
     };
   }

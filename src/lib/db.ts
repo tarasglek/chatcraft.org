@@ -74,7 +74,7 @@ class ChatCraftDatabase extends Dexie {
             url: chat.shareUrl,
             summary: chat.summary,
             date: chat.date,
-            chat: ChatCraftChat.fromDB(chat, messages).serialize(),
+            chat: ChatCraftChat.fromDB(chat, messages).toJSON(),
           });
         });
 

@@ -75,7 +75,8 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
   // Grab the promise so we can return, but callers can also do everything via events
   const promise = chatOpenAI
     .call(
-      messages,
+      // Convert the messages to langchain format before sending
+      messages.map((message) => message.toLangChainMessage()),
       {
         options: { signal: controller.signal },
       },
@@ -88,11 +89,11 @@ export const chatWithOpenAI = (messages: ChatCraftMessage[], options: ChatOption
         },
       })
     )
-    .then(({ text }) => {
+    .then(({ content }) => {
       if (onFinish) {
-        onFinish(text);
+        onFinish(content);
       }
-      return text;
+      return content;
     })
     .catch((err) => {
       // Deal with cancelled messages by returning a partial message
