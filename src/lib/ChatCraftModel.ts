@@ -1,41 +1,40 @@
 export class ChatCraftModel {
-  private modelId: string;
-  private owner: string;
+  id: string;
+  vendor: string;
+  name: string;
 
   /**
-   * @param model The model. If the format is `vendor/model` (eg `OpenAI/gpt-3.5-turbo-16k`)
-   * then the vendor is extracted from the ID
-   * @param vendor Optional vendor name. Used if model name does not have explicit `vendor/*`
+   * @param model The model's name. Different providers give this in different
+   * formats. OpenAI uses `gpt-3.5-turbo` with no vendor info, while OpenRouter.ai
+   * uses `openai/gpt-3.5-turbo` (i.e., with vendor/* prefix).
    */
-  constructor(model: string, vendor?: string) {
-    this.modelId = model;
-    if (vendor) {
-      this.owner = vendor;
-    } else {
-      this.owner = "";
-    }
+  constructor(model: string) {
+    this.id = model;
+    const parts = model.split("/");
+    // Default to "openai" if we don't get a vendor name
+    this.vendor = parts.length > 1 ? parts[0] : "openai";
+    // If we get a vendor, use the second part, otherwise the whole thing is the model name
+    this.name = parts.length > 1 ? parts[1] : parts[0];
   }
 
   get logoUrl() {
-    const owner = this.owner.toLowerCase();
-    const model = this.modelId.toLowerCase();
+    const vendor = this.vendor;
 
-    if (owner === "openai" || model.startsWith("openai/")) {
+    if (vendor === "openai") {
       return "/openai-logo.png";
     }
 
-    if (owner === "anthropic" || model.startsWith("anthropic/")) {
+    if (vendor === "anthropic") {
       return "/anthropic-logo.png";
     }
 
-    // Google has Palm and Bard, but only currently have access to Palm
-    if (model.startsWith("google/palm")) {
+    if (vendor === "google") {
       return "/palm-logo.png";
     }
 
     // Use the Hugging Face logo, since it's hosted there
     // https://huggingface.co/tiiuae/falcon-40b
-    if (model.startsWith("tiiuae/")) {
+    if (vendor === "tiiuae") {
       return "/hugging-face-logo.png";
     }
 
@@ -43,32 +42,19 @@ export class ChatCraftModel {
     return "/openai-logo.png";
   }
 
-  get id() {
-    return this.modelId;
-  }
-
-  get vendor() {
-    return this.owner;
-  }
-
   get prettyModel(): string {
-    let modelName = this.modelId;
-    if (modelName.includes("/")) {
-      modelName = modelName.split("/")[1];
+    if (this.name.startsWith("gpt-3.5-turbo")) {
+      return this.name.replace("gpt-3.5-turbo", "chat-gpt");
     }
 
-    if (modelName.startsWith("gpt-3.5-turbo")) {
-      return modelName.replace("gpt-3.5-turbo", "chat-gpt");
-    }
-
-    return modelName;
+    return this.name;
   }
 
   toString() {
-    return this.modelId;
+    return this.id;
   }
 
   toJSON() {
-    return this.modelId;
+    return this.id;
   }
 }

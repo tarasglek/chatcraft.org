@@ -1,5 +1,5 @@
 import { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
-import { useCopyToClipboard } from "react-use";
+import { useCopyToClipboard, useDebounce } from "react-use";
 import {
   Button,
   FormControl,
@@ -23,6 +23,7 @@ import {
   Link,
   ButtonGroup,
   useToast,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import { exportDB, importDB } from "dexie-export-import";
 
@@ -33,6 +34,7 @@ import db from "../lib/db";
 import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
+import { validateOpenAiApiKey } from "../lib/ai";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -58,6 +60,26 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const [isPersisted, setIsPersisted] = useState(false);
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
+  const provider = settings.apiUrl === OPENAI_API_URL ? "OpenAI" : "OpenRouter.ai";
+  const [isApiKeyInvalid, setIsApiKeyInvalid] = useState(false);
+  // Check the API Key, but debounce requests if user is typing
+  useDebounce(
+    () => {
+      const { apiKey } = settings;
+      if (!apiKey) {
+        setIsApiKeyInvalid(true);
+      } else {
+        validateOpenAiApiKey(apiKey)
+          .then((result: boolean) => setIsApiKeyInvalid(!result))
+          .catch((err) => {
+            console.warn("Error validating API key", err);
+            setIsApiKeyInvalid(true);
+          });
+      }
+    },
+    500,
+    [settings.apiKey]
+  );
 
   useEffect(() => {
     isStoragePersisted()
@@ -156,9 +178,9 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               </FormHelperText>
             </FormControl>
 
-            <FormControl>
+            <FormControl isInvalid={isApiKeyInvalid}>
               <FormLabel>
-                {settings.apiUrl === OPENAI_API_URL ? "OpenAI" : "OpenRouter.ai"} API Key{" "}
+                {provider} API Key{" "}
                 <ButtonGroup ml={2}>
                   <Button
                     size="xs"
@@ -183,6 +205,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
               />
               <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
+              <FormErrorMessage>Unable to verify API Key with {provider}.</FormErrorMessage>
             </FormControl>
 
             <FormControl>

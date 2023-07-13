@@ -6,7 +6,6 @@
  * when you only need to read something.
  */
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-
 /**
  * We can use models from OpenAI or OpenRouter (https://openrouter.ai/docs).
  * If using the latter, we need to override the basePath to use the OpenRouter URL.
@@ -25,7 +24,7 @@ export type Settings = {
 };
 
 export const defaults: Settings = {
-  model: new ChatCraftModel("gpt-3.5-turbo", "OpenAI"),
+  model: new ChatCraftModel("gpt-3.5-turbo"),
   apiUrl: OPENAI_API_URL,
   enterBehaviour: "send",
   // Disabled by default, since token parsing requires downloading larger deps

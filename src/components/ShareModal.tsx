@@ -29,7 +29,6 @@ import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useSettings } from "../hooks/use-settings";
 import { ChatCraftHumanMessage, ChatCraftSystemMessage } from "../lib/ChatCraftMessage";
 import useChatOpenAI from "../hooks/use-chat-openai";
-import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 type AuthenticatedForm = {
   chat: ChatCraftChat;
@@ -75,10 +74,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
       try {
         // TODO: this can fail if the chat is too long for gpt-3.5-turbo.
         // callChatApi() should use a sliding context window
-        const { text } = await callChatApi(
-          [systemChatMessage, ...messages, summarizeInstruction],
-          new ChatCraftModel("gpt-3.5-turbo", "OpenAI")
-        );
+        const { text } = await callChatApi([systemChatMessage, ...messages, summarizeInstruction]);
         return text.trim();
       } catch (err) {
         console.error("Error summarizing chat", err);

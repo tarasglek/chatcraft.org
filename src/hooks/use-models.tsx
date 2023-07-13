@@ -8,10 +8,10 @@ import {
   type FC,
 } from "react";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { queryModels } from "../lib/ai";
+import { queryModels, defaultModelForProvider } from "../lib/ai";
 import { useSettings } from "./use-settings";
 
-const defaultModels = [new ChatCraftModel("gpt-3.5-turbo", "OpenAI")];
+const defaultModels = [defaultModelForProvider()];
 
 type ModelsContextType = {
   models: ChatCraftModel[];
@@ -25,12 +25,24 @@ const ModelsContext = createContext<ModelsContextType>({
 
 export const useModels = () => useContext(ModelsContext);
 
+// Make sure that the default model we are using works with this provider's models
+const pickDefaultModel = (currentModel: ChatCraftModel, models: ChatCraftModel[] | null) => {
+  if (!models) {
+    return currentModel;
+  }
+
+  if (models.find((model) => currentModel.id === model.id)) {
+    return currentModel;
+  }
+
+  return defaultModelForProvider();
+};
+
 export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [models, setModels] = useState<ChatCraftModel[] | null>(null);
   const [error, setError] = useState<Error | null>(null);
-  const [fetched, setFetched] = useState(false);
   const isFetching = useRef(false);
-  const { settings } = useSettings();
+  const { settings, setSettings } = useSettings();
 
   useEffect(() => {
     const apiKey = settings.apiKey;
@@ -41,26 +53,24 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const fetchModels = async () => {
       isFetching.current = true;
       try {
-        const openAiModels = await queryModels(apiKey).then((models) => {
+        const models = await queryModels(apiKey).then((models) => {
           models.sort();
-          return models.map((model) => new ChatCraftModel(model));
+          return models.map((modelName) => new ChatCraftModel(modelName));
         });
-        setModels(openAiModels);
-        setFetched(true);
+        setModels(models);
+        setSettings({ ...settings, model: pickDefaultModel(settings.model, models) });
       } catch (err) {
         console.warn("Unable to update OpenAI models, using defaults.", err);
         setModels(defaultModels);
         setError(err as Error);
-        setFetched(true);
       } finally {
         isFetching.current = false;
       }
     };
 
-    if (!models) {
-      fetchModels();
-    }
-  }, [settings.apiKey, models, setModels, fetched]);
+    fetchModels();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.apiUrl, settings.apiKey]);
 
   const value = {
     models: models || defaultModels,
