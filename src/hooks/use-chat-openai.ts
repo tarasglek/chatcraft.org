@@ -28,8 +28,8 @@ function useChatOpenAI() {
   }, [paused]);
 
   const callChatApi = useCallback(
-    (messages: ChatCraftMessage[], model?: ChatCraftModel) => {
-      const aiMessage = new ChatCraftAiMessage({ model: model ?? settings.model, text: "" });
+    (messages: ChatCraftMessage[], model: ChatCraftModel = settings.model) => {
+      const aiMessage = new ChatCraftAiMessage({ model, text: "" });
       setStreamingMessage(aiMessage);
 
       const chat = chatWithLLM(messages, {

@@ -10,6 +10,17 @@ import { getReferer } from "./utils";
 
 const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
 
+// Each provider does their model naming differently, pick the right one
+export const defaultModelForProvider = () => {
+  // OpenAI
+  if (usingOfficialOpenAI()) {
+    return new ChatCraftModel("gpt-3.5-turbo");
+  }
+
+  // OpenRouter.ai
+  return new ChatCraftModel("openai/gpt-3.5-turbo");
+};
+
 export type ChatOptions = {
   model?: ChatCraftModel;
   temperature?: number;

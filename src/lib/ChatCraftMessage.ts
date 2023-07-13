@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import { AIMessage, HumanMessage, SystemMessage, type MessageType } from "langchain/schema";
 import db, { type ChatCraftMessageTable } from "./db";
 import { ChatCraftModel } from "./ChatCraftModel";
-import { countTokens } from "./ai";
+import { countTokens, defaultModelForProvider } from "./ai";
 
 export class ChatCraftAiMessageVersion {
   id: string;
@@ -264,7 +264,7 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     return new ChatCraftAiMessage({
       id: message.id,
       date: new Date(message.date),
-      model: new ChatCraftModel(message.model || "gpt-3.5-turbo"),
+      model: message.model ? new ChatCraftModel(message.model) : defaultModelForProvider(),
       text: message.text,
       versions: message.versions?.map(
         (version) =>
@@ -282,7 +282,7 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     return new ChatCraftAiMessage({
       id: message.id,
       date: message.date,
-      model: new ChatCraftModel(message.model || "gpt-3.5-turbo"),
+      model: message.model ? new ChatCraftModel(message.model) : defaultModelForProvider(),
       text: message.text,
       versions: message.versions?.map(
         (version) =>
