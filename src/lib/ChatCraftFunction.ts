@@ -46,16 +46,6 @@ export default async function (data) {
 }
 `;
 
-/* sha256 hash of code */
-const sha256 = async (code: string) => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(code);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-  return hash;
-};
-
 /* Turn the raw JS code into a ES Module and import so we can work with the values */
 const parseModule = async (code: string) => {
   const blob = new Blob([code], { type: "text/javascript" });
@@ -79,7 +69,7 @@ const parseModule = async (code: string) => {
       throw new Error("missing default function export");
     }
 
-    return module;
+    return module as FunctionModule;
   } catch (err: any) {
     console.warn("Unable to parse module", err);
     throw new Error(`Unable to parse module: ${err.message}`);
@@ -95,9 +85,6 @@ export class ChatCraftFunction {
   description: string;
   parameters: object;
   code: string;
-  // Cache the module based on the code (hash)
-  private _module?: FunctionModule;
-  private _moduleCodeHash?: string;
 
   constructor({
     id,
@@ -122,17 +109,9 @@ export class ChatCraftFunction {
     this.code = code;
   }
 
-  // Convert code to an ES Module we can run. Cache and reuse if code doesn't change
-  async toESModule(): Promise<FunctionModule> {
-    const codeHash = await sha256(this.code);
-    if (!this._module || this._moduleCodeHash !== codeHash) {
-      const module = await parseModule(this.code);
-      this._module = module;
-      this._moduleCodeHash = codeHash;
-      return module;
-    }
-
-    return this._module;
+  // Convert code to an ES Module we can run
+  toESModule() {
+    return parseModule(this.code);
   }
 
   static async parse(code: string) {
