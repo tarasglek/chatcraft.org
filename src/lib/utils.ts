@@ -35,6 +35,10 @@ export function download(data: string | Blob, filename: string, type = "text/pla
 }
 
 export const getReferer = () => {
-  const { origin, pathname } = location;
-  return `${origin}${pathname}`;
+  const { origin } = location;
+  // Don't report development urls upstream
+  if (origin.includes("localhost") || origin.includes("overthinker-dev.pages.dev")) {
+    return "https://chatcraft.org/";
+  }
+  return `${origin}/`;
 };
