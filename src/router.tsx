@@ -5,6 +5,8 @@ import { loadShare } from "./lib/share";
 import { ChatCraftChat } from "./lib/ChatCraftChat";
 import Search, { loader as searchLoader } from "./Search";
 import db from "./lib/db";
+import { ChatCraftFunction, initialFunctionCode } from "./lib/ChatCraftFunction";
+import Function from "./Function";
 
 export default createBrowserRouter([
   // Load the user's most recent chat, or start a new one the first time
@@ -186,5 +188,51 @@ export default createBrowserRouter([
     path: "/s",
     loader: searchLoader,
     element: <Search />,
+  },
+
+  // Functions
+  {
+    path: "/f/new",
+    async loader() {
+      const func = await ChatCraftFunction.parse(initialFunctionCode);
+      await func.save();
+      return redirect(`/f/${func.id}`);
+    },
+  },
+  // People shouldn't end-up here, so create a new function if they do
+  {
+    path: "/f",
+    element: <Navigate to="/f/new" />,
+  },
+  // Load a function from the local db, making sure it exists first
+  {
+    path: "/f/:id",
+    async loader({ params }) {
+      // If we try to load a function, and it doesn't exist, create it first
+      // so that we have something to render.
+      const { id } = params;
+      if (id && !(await ChatCraftFunction.find(id))) {
+        const func = await ChatCraftFunction.parse(initialFunctionCode);
+        func.id = id;
+        await func.save();
+      }
+      return id;
+    },
+    element: <Function />,
+  },
+  // Delete a function from the local db
+  {
+    path: "/f/:id/delete",
+    async action({ params }) {
+      const { id } = params;
+      if (id) {
+        try {
+          await ChatCraftFunction.delete(id);
+        } catch (err) {
+          console.warn("Unable to delete function", { id, err });
+        }
+      }
+      return redirect("/");
+    },
   },
 ]);

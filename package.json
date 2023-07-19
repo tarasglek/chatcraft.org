@@ -16,8 +16,10 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.7.1",
+    "@codemirror/lang-javascript": "^6.1.9",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@uiw/react-codemirror": "^4.21.7",
     "cookie": "^0.5.0",
     "dexie": "^3.2.4",
     "dexie-export-import": "^4.0.7",

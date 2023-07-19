@@ -28,10 +28,20 @@ export type SharedChatCraftChatTable = {
   chat: SerializedChatCraftChat;
 };
 
+export type ChatCraftFunctionTable = {
+  id: string;
+  date: Date;
+  name: string;
+  description: string;
+  parameters: object;
+  code: string;
+};
+
 class ChatCraftDatabase extends Dexie {
   chats: Table<ChatCraftChatTable, string>;
   messages: Table<ChatCraftMessageTable, string>;
   shared: Table<SharedChatCraftChatTable, string>;
+  functions: Table<ChatCraftFunctionTable, string>;
 
   constructor() {
     super("ChatCraftDatabase");
@@ -86,10 +96,15 @@ class ChatCraftDatabase extends Dexie {
             delete chat.shareUrl;
           });
       });
+    // Version 6 Migration - adds functions table
+    this.version(6).stores({
+      functions: "id, date, name, description",
+    });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
     this.shared = this.table("shared");
+    this.functions = this.table("functions");
   }
 }
 

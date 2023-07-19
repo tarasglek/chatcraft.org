@@ -19,9 +19,17 @@ type PreHeaderProps = {
   isLoading: boolean;
   onPrompt?: (prompt: string) => void;
   code: string;
+  codeDownloadFilename?: string;
 };
 
-function CodeHeader({ language, children, isLoading, onPrompt, code }: PreHeaderProps) {
+function CodeHeader({
+  language,
+  children,
+  isLoading,
+  onPrompt,
+  code,
+  codeDownloadFilename,
+}: PreHeaderProps) {
   const { onCopy } = useClipboard(code);
   const toast = useToast();
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
@@ -40,7 +48,7 @@ function CodeHeader({ language, children, isLoading, onPrompt, code }: PreHeader
   }, [onCopy, toast]);
 
   const handleDownload = useCallback(() => {
-    download(code, "code.txt");
+    download(code, codeDownloadFilename ?? "code.txt");
     toast({
       title: "Downloaded",
       description: "Code was downloaded as a file",
@@ -49,7 +57,7 @@ function CodeHeader({ language, children, isLoading, onPrompt, code }: PreHeader
       position: "top",
       isClosable: true,
     });
-  }, [toast, code]);
+  }, [toast, code, codeDownloadFilename]);
 
   const handleRun = useCallback(async () => {
     if (!onPrompt) {
