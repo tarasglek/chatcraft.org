@@ -40,6 +40,10 @@ export default createBrowserRouter([
     path: "/c",
     element: <Navigate to="/new" />,
   },
+  {
+    path: "/c/new",
+    element: <Navigate to="/new" />,
+  },
   // Load a chat from the local db, making sure it exists first
   {
     path: "/c/:id",

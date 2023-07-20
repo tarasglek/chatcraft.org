@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import {
   Box,
   Flex,
@@ -132,7 +132,7 @@ export default function Function() {
       </GridItem>
 
       <GridItem rowSpan={3} overflowY="auto">
-        <Sidebar />
+        <Sidebar selectedFunction={func} />
       </GridItem>
 
       <GridItem overflowY="auto" pos="relative">

@@ -21,6 +21,7 @@ import { MdOutlineChatBubbleOutline } from "react-icons/md";
 import { TbCheck, TbTrash } from "react-icons/tb";
 import { CgClose } from "react-icons/cg";
 import { AiOutlineEdit } from "react-icons/ai";
+import { LuFunctionSquare } from "react-icons/lu";
 import { useKey } from "react-use";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -29,8 +30,12 @@ import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { formatDate, formatNumber } from "../lib/utils";
 import { SharedChatCraftChat } from "../lib/SharedChatCraftChat";
 import { useUser } from "../hooks/use-user";
+import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 
-type SidebarItemProps = {
+/**
+ * Chat Sidebar Items
+ */
+type ChatSidebarItemProps = {
   chat: ChatCraftChat;
   url: string;
   isSelected: boolean;
@@ -38,7 +43,7 @@ type SidebarItemProps = {
   onDelete: () => void;
 };
 
-function SidebarItem({ chat, url, isSelected, canEdit, onDelete }: SidebarItemProps) {
+function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSidebarItemProps) {
   const text = chat.summary || "(no messages)";
   const bg = useColorModeValue(
     isSelected ? "gray.200" : undefined,
@@ -186,11 +191,87 @@ function SidebarItem({ chat, url, isSelected, canEdit, onDelete }: SidebarItemPr
   );
 }
 
-type SidebarProps = {
-  selectedChat?: ChatCraftChat;
+/**
+ * Function Sidebar Items
+ */
+
+type FunctionSidebarItemProps = {
+  func: ChatCraftFunction;
+  url: string;
+  isSelected: boolean;
+  onDelete: () => void;
 };
 
-function Sidebar({ selectedChat }: SidebarProps) {
+function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSidebarItemProps) {
+  const bg = useColorModeValue(
+    isSelected ? "gray.200" : undefined,
+    isSelected ? "gray.800" : undefined
+  );
+  const borderColor = useColorModeValue(
+    isSelected ? "gray.300" : "gray.100",
+    isSelected ? "gray.900" : "gray.600"
+  );
+  const selectedRef = useRef<HTMLDivElement>(null);
+
+  // Scroll this item into view if selected
+  useEffect(() => {
+    if (selectedRef.current && isSelected) {
+      selectedRef.current.scrollIntoView();
+    }
+  }, [selectedRef, isSelected]);
+
+  return (
+    <Flex
+      p={1}
+      bg={bg}
+      border="1px solid"
+      borderColor={borderColor}
+      borderRadius={4}
+      direction="column"
+      ref={selectedRef}
+    >
+      <Flex justify="space-between" align="center" minH="32px" w="100%">
+        <Link to={url} style={{ width: "100%" }}>
+          <Flex align="center" gap={2}>
+            <LuFunctionSquare />
+            <Text flex={1} fontSize="sm" as="strong">
+              {func.name}()
+            </Text>
+          </Flex>
+        </Link>
+        {isSelected && (
+          <IconButton
+            variant="ghost"
+            size="sm"
+            icon={<TbTrash />}
+            aria-label="Delete function"
+            title="Delete function"
+            onClick={onDelete}
+          />
+        )}
+      </Flex>
+
+      <Box flex={1} maxW="100%" minH="24px">
+        <Link to={url} style={{ width: "100%" }}>
+          <Text noOfLines={2} fontSize="sm" title={func.description} w="100%">
+            {func.description}
+          </Text>
+        </Link>
+      </Box>
+    </Flex>
+  );
+}
+
+/**
+ * Sidebar
+ */
+
+type SidebarProps = {
+  selectedChat?: ChatCraftChat;
+  selectedFunction?: ChatCraftFunction;
+};
+
+function Sidebar({ selectedChat, selectedFunction }: SidebarProps) {
   const { user } = useUser();
   const navigate = useNavigate();
   const [recentCount, setRecentCount] = useState(5);
@@ -205,6 +286,19 @@ function Sidebar({ selectedChat }: SidebarProps) {
       }
       const chats = await Promise.all(records.map(({ id }) => ChatCraftChat.find(id)));
       return chats.filter((chat): chat is ChatCraftChat => !!chat);
+    },
+    [recentCount],
+    []
+  );
+
+  const functions = useLiveQuery<ChatCraftFunction[], ChatCraftFunction[]>(
+    async () => {
+      const records = await db.functions.orderBy("date").reverse().limit(recentCount).toArray();
+      if (!records) {
+        return [];
+      }
+      const functions = await Promise.all(records.map(({ id }) => ChatCraftFunction.find(id)));
+      return functions.filter((func): func is ChatCraftFunction => !!func);
     },
     [recentCount],
     []
@@ -230,17 +324,23 @@ function Sidebar({ selectedChat }: SidebarProps) {
   function handleDeleteChat(id: string) {
     ChatCraftChat.delete(id)
       .then(() => {
-        // If we're currently looking at this shared chat, switch to a new one
+        // If we're currently looking at this chat, switch to a new one
         if (selectedChat?.id === id) {
           navigate("/");
         }
       })
       .catch((err) => console.warn("Unable to delete chat", err));
+  }
 
-    // If we're currently looking at this chat, switch to a new one
-    if (selectedChat?.id === id) {
-      navigate("/");
-    }
+  function handleDeleteFunction(id: string) {
+    ChatCraftFunction.delete(id)
+      .then(() => {
+        // If we're currently looking at this function, switch to a new one
+        if (selectedFunction?.id === id) {
+          navigate("/");
+        }
+      })
+      .catch((err) => console.warn("Unable to delete function", err));
   }
 
   function handleDeleteSharedChat(id: string) {
@@ -265,15 +365,21 @@ function Sidebar({ selectedChat }: SidebarProps) {
             Recent Chats
           </Heading>
 
-          <Tag size="sm" variant="subtle" mr={1}>
-            {formatNumber(chatsTotal || 0)} Saved Chats
-          </Tag>
+          <Flex gap={1}>
+            <Button as={Link} to="/c/new" size="xs" variant="ghost">
+              New
+            </Button>
+
+            <Tag size="sm" variant="subtle" mr={1}>
+              {formatNumber(chatsTotal || 0)} Saved Chats
+            </Tag>
+          </Flex>
         </Flex>
 
         <Flex direction="column" gap={2}>
           {recentChats?.length &&
             recentChats.map((chat) => (
-              <SidebarItem
+              <ChatSidebarItem
                 key={chat.id}
                 chat={chat}
                 url={`/c/${chat.id}`}
@@ -295,7 +401,7 @@ function Sidebar({ selectedChat }: SidebarProps) {
 
       <Divider />
 
-      <VStack align="left" flex={1}>
+      <VStack align="left">
         <Flex justify="space-between">
           <Heading as="h3" size="sm">
             Shared Chats
@@ -311,7 +417,7 @@ function Sidebar({ selectedChat }: SidebarProps) {
         <Box>
           {sharedChats?.length ? (
             sharedChats.map((shared) => (
-              <SidebarItem
+              <ChatSidebarItem
                 key={shared.id}
                 chat={shared.chat}
                 url={shared.url}
@@ -326,6 +432,53 @@ function Sidebar({ selectedChat }: SidebarProps) {
                 Share your first chat by clicking the <strong>Share Chat...</strong> menu option in
                 the chat header menu. Anyone with this URL will be able to read or duplicate the
                 chat.
+              </Text>
+            </VStack>
+          )}
+        </Box>
+      </VStack>
+
+      <Divider />
+
+      <VStack align="left">
+        <Flex justify="space-between">
+          <Heading as="h3" size="sm">
+            Functions
+          </Heading>
+
+          {!!functions?.length && (
+            <Flex gap={1}>
+              <Button as={Link} to="/f/new" size="xs" variant="ghost">
+                New
+              </Button>
+
+              <Tag size="sm" variant="subtle" mr={1}>
+                {formatNumber(functions.length || 0)} Functions
+              </Tag>
+            </Flex>
+          )}
+        </Flex>
+
+        <Box>
+          {functions?.length ? (
+            functions.map((func) => (
+              <FunctionSidebarItem
+                key={func.id}
+                func={func}
+                url={`/f/${func.id}`}
+                isSelected={selectedFunction?.id === func.id}
+                onDelete={() => handleDeleteFunction(func.id)}
+              />
+            ))
+          ) : (
+            <VStack align="left">
+              <Text>You don&apos;t have any functions yet.</Text>
+              <Text>
+                Functions can be called by some models to perform tasks.{" "}
+                <Link to="/f/new" target="_blank" style={{ textDecoration: "underline" }}>
+                  Create a function
+                </Link>
+                .
               </Text>
             </VStack>
           )}

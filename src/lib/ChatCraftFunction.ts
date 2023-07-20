@@ -121,7 +121,6 @@ export class ChatCraftFunction {
 
   // Find in db
   static async find(id: string) {
-    // Get the chat itself
     const func = await db.functions.get(id);
     if (!func) {
       return;
