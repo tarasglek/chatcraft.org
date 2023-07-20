@@ -31,7 +31,47 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     serializer,
     deserializer,
   });
+
   const [state, setState] = useState<Settings>(settings || defaults);
+
+  //get code from the url
+  const code = new URLSearchParams(window.location.search).get("code");
+
+  // const handleSetApiKey = (apiKey: string) => {
+  //   setApiKeyValue(apiKey);
+  // };
+
+  const handleCodeExchange = (code: string) => {
+    const requestBody = {
+      code: code,
+    };
+
+    fetch("https://openrouter.ai/api/v1/auth/keys", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const apiKey = data.key;
+        if (apiKey !== undefined) {
+          setSettings({ ...state, apiKey: apiKey });
+          // Strip out code from the URL
+          const urlWithoutCode = window.location.href.split("?")[0];
+          window.history.replaceState({}, document.title, urlWithoutCode);
+        } else {
+          console.error("Error: API key is undefined.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error authenticating with OpenRouter", error);
+      });
+  };
+
+  useEffect(() => {
+    if (code) {
+      handleCodeExchange(code);
+    }
+  }, [code]);
 
   useEffect(() => {
     setState(settings || defaults);

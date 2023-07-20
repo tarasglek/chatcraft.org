@@ -254,5 +254,5 @@ export const openRouterPkceWindow = () => {
   const callbackUrl = window.location.href;
   const hostname = new URL(callbackUrl).origin;
   // Redirect the user to the OpenRouter authentication page in the same tab
-  window.location.href = `https://openrouter.ai/auth?callback_url=${hostname}`;
+  window.location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(hostname)}`;
 };
