@@ -10,9 +10,14 @@ export default createBrowserRouter([
   // Load the user's most recent chat, or start a new one the first time
   {
     path: "/",
-    async loader() {
+    async loader({ request }) {
+      const openRouterCode = new URL(request.url).searchParams.get("code");
       try {
         const recentChat = await db.chats.orderBy("date").last();
+        //if there is a recent chat and a code, redirect to the chat with the code
+        if (recentChat && openRouterCode) {
+          return redirect(`/c/${recentChat.id}?code=${openRouterCode}`);
+        }
         if (recentChat) {
           return redirect(`/c/${recentChat.id}`);
         }

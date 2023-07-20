@@ -14,8 +14,9 @@ import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
 import RevealablePasswordInput from "../../RevealablePasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
-import { validateOpenAiApiKey } from "../../../lib/ai";
+import { openRouterPkceWindow, validateOpenAiApiKey } from "../../../lib/ai";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../../../lib/settings";
+import useCodeExchange from "../../../hooks/use-codeExchange";
 
 const ApiKeyInstructionsText = `Welcome to ChatCraft, a developer-focused AI assistant. I can help you write code, visualize it with mermaid, html and even run it. You can further refine code by editig, deleting and retrying model responses.
 
@@ -38,6 +39,7 @@ function Instructions(props: MessageBaseProps) {
   const { settings, setSettings } = useSettings();
   const [isValidating, setIsValidating] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
+  const { apiKeyValue, handleSetApiKey } = useCodeExchange();
 
   // Override the text of the message
   const message = new ChatCraftAppMessage({ ...props.message, text: ApiKeyInstructionsText });
@@ -45,8 +47,7 @@ function Instructions(props: MessageBaseProps) {
   const handleApiKeySubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const data = new FormData(e.target as HTMLFormElement);
-    const apiKey = data.get("openai-api-key");
+    const apiKey = apiKeyValue;
     if (typeof apiKey !== "string") {
       return;
     }
@@ -94,6 +95,8 @@ function Instructions(props: MessageBaseProps) {
                 type="password"
                 name="openai-api-key"
                 bg="white"
+                onChange={(e) => handleSetApiKey(e.target.value)}
+                value={apiKeyValue}
                 _dark={{ bg: "gray.700" }}
                 required
               />
@@ -101,6 +104,11 @@ function Instructions(props: MessageBaseProps) {
                 Save
               </Button>
             </Flex>
+            {provider === "OpenRouter.ai" && (
+              <Button mt="3" size="sm" onClick={openRouterPkceWindow}>
+                Get key from OpenRouter{" "}
+              </Button>
+            )}
             <FormErrorMessage>Unable to verify API Key with {provider}.</FormErrorMessage>
           </FormControl>
         </VStack>
