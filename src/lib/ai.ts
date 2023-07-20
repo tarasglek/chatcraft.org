@@ -251,10 +251,8 @@ export const calculateTokenCost = (tokens: number, model: ChatCraftModel) => {
 };
 
 export const openRouterPkceWindow = () => {
-  let callbackUrl = "https://chatcraft.org";
-  if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
-    callbackUrl = "http://localhost:5173";
-  }
+  const callbackUrl = window.location.href;
+  const hostname = new URL(callbackUrl).origin;
   // Redirect the user to the OpenRouter authentication page in the same tab
-  window.location.href = `https://openrouter.ai/auth?callback_url=${callbackUrl}`;
+  window.location.href = `https://openrouter.ai/auth?callback_url=${hostname}`;
 };

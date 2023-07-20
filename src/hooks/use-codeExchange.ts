@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useSettings } from "./use-settings";
 
 const useCodeExchange = () => {
   const [apiKeyValue, setApiKeyValue] = useState("");
+  const { settings, setSettings } = useSettings();
 
   //get code from the url
   const code = new URLSearchParams(window.location.search).get("code");
@@ -23,7 +25,7 @@ const useCodeExchange = () => {
       .then((data) => {
         const apiKey = data.key;
         if (apiKey !== undefined) {
-          setApiKeyValue(apiKey);
+          setSettings({ ...settings, apiKey: apiKey });
         }
       })
       .catch((error) => {
