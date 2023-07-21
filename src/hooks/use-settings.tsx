@@ -34,14 +34,11 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const [state, setState] = useState<Settings>(settings || defaults);
 
-  //get code from the url
-  const code = new URLSearchParams(window.location.search).get("code");
+  // Get the OpenRouter.ai code, if present on the URL
+  const searchParams = new URLSearchParams(window.location.search);
+  const openRouterCode = searchParams.get("code");
 
-  // const handleSetApiKey = (apiKey: string) => {
-  //   setApiKeyValue(apiKey);
-  // };
-
-  const handleCodeExchange = (code: string) => {
+  const handleOpenRouterCodeExchange = (code: string) => {
     const requestBody = {
       code: code,
     };
@@ -55,11 +52,13 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const apiKey = data.key;
         if (apiKey !== undefined) {
           setSettings({ ...state, apiKey: apiKey });
-          // Strip out code from the URL
-          const urlWithoutCode = window.location.href.split("?")[0];
+          // Strip out openRouter's code from the URL
+          searchParams.delete("code");
+          const { origin, pathname, hash } = window.location;
+          const urlWithoutCode = `${origin}${pathname}${hash}${searchParams.toString()}`;
           window.history.replaceState({}, document.title, urlWithoutCode);
         } else {
-          console.error("Error: API key is undefined.");
+          console.error("OpenRouter OAuth PKCE response missing API key");
         }
       })
       .catch((error) => {
@@ -68,10 +67,10 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   useEffect(() => {
-    if (code) {
-      handleCodeExchange(code);
+    if (openRouterCode) {
+      handleOpenRouterCodeExchange(openRouterCode);
     }
-  }, [code]);
+  }, [openRouterCode]);
 
   useEffect(() => {
     setState(settings || defaults);

@@ -34,7 +34,7 @@ import db from "../lib/db";
 import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
-import { openRouterPkceWindow, validateOpenAiApiKey } from "../lib/ai";
+import { openRouterPkceRedirect, validateOpenAiApiKey } from "../lib/ai";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -205,8 +205,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
               />
               {provider === "OpenRouter.ai" && !settings.apiKey && (
-                <Button mt="3" size="sm" onClick={openRouterPkceWindow}>
-                  Get key from OpenRouter{" "}
+                <Button mt="3" size="sm" onClick={openRouterPkceRedirect}>
+                  Get API key from OpenRouter{" "}
                 </Button>
               )}
               <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
