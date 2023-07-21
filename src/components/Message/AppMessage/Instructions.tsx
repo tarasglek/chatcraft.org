@@ -14,7 +14,7 @@ import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
 import RevealablePasswordInput from "../../RevealablePasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
-import { openRouterPkceWindow, validateOpenAiApiKey } from "../../../lib/ai";
+import { openRouterPkceRedirect, validateOpenAiApiKey } from "../../../lib/ai";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../../../lib/settings";
 
 const ApiKeyInstructionsText = `Welcome to ChatCraft, a developer-focused AI assistant. I can help you write code, visualize it with mermaid, html and even run it. You can further refine code by editig, deleting and retrying model responses.
@@ -101,8 +101,8 @@ function Instructions(props: MessageBaseProps) {
               </Button>
             </Flex>
             {provider === "OpenRouter.ai" && (
-              <Button mt="3" size="sm" onClick={openRouterPkceWindow}>
-                Get key from OpenRouter{" "}
+              <Button mt="3" size="sm" onClick={openRouterPkceRedirect}>
+                Get API key from OpenRouter{" "}
               </Button>
             )}
             <FormErrorMessage>Unable to verify API Key with {provider}.</FormErrorMessage>
