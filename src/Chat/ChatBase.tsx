@@ -15,6 +15,8 @@ import NewButton from "../components/NewButton";
 import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
 import ChatHeader from "./ChatHeader";
+import db from "../lib/db";
+import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -122,7 +124,13 @@ function ChatBase({ chat }: ChatBaseProps) {
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
         const messages = chat.messages({ includeAppMessages: false, includeSystemMessages: true });
         const messagesToSend = singleMessageMode ? [...messages].slice(-2) : messages;
-        const response = await callChatApi(messagesToSend);
+
+        // HACK: pass our functions through
+        const records = await db.functions.toArray();
+        const funcs = await Promise.all(records.map((record) => ChatCraftFunction.fromDB(record)));
+        console.log({ funcs });
+
+        const response = await callChatApi(messagesToSend, undefined, funcs);
 
         // Add this response message to the chat
         await chat.addMessage(response);

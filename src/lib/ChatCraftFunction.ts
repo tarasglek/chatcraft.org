@@ -136,22 +136,15 @@ export class ChatCraftFunction {
 
     // Try to update the name/description, since they might have changed
     try {
-      const { name, description } = await this.toESModule();
+      const { name, description, parameters } = await this.toESModule();
 
-      if (name) {
-        this.name = name;
-      } else {
-        this.name = "function";
-      }
-
-      if (description) {
-        this.description = description;
-      } else {
-        this.description = "description...";
-      }
+      this.name = name;
+      this.description = description;
+      this.parameters = parameters;
     } catch (err) {
       this.name = "function";
       this.description = "unable to parse code";
+      this.parameters = { error: "unable to parse code" };
     }
 
     // Upsert Chat itself
@@ -191,5 +184,18 @@ export class ChatCraftFunction {
 
   static fromDB(func: ChatCraftFunctionTable) {
     return new ChatCraftFunction({ ...func });
+  }
+
+  static async invoke(id: string, args: string) {
+    const func = await this.find(id);
+    if (!func) {
+      throw new Error(`no such function: ${id}`);
+    }
+
+    const { default: fn } = await func.toESModule();
+    const data = JSON.parse(args);
+    const result = await fn(data);
+
+    return result;
   }
 }

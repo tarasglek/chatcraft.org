@@ -5,6 +5,7 @@ import { ChatCraftMessage, ChatCraftAiMessage } from "../lib/ChatCraftMessage";
 import { useCost } from "./use-cost";
 import { calculateTokenCost, chatWithLLM, countTokensInMessages } from "../lib/ai";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
+import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 
 const noop = () => {};
 
@@ -28,12 +29,17 @@ function useChatOpenAI() {
   }, [paused]);
 
   const callChatApi = useCallback(
-    (messages: ChatCraftMessage[], model: ChatCraftModel = settings.model) => {
+    (
+      messages: ChatCraftMessage[],
+      model: ChatCraftModel = settings.model,
+      functions?: ChatCraftFunction[]
+    ) => {
       const aiMessage = new ChatCraftAiMessage({ model, text: "" });
       setStreamingMessage(aiMessage);
 
       const chat = chatWithLLM(messages, {
         model,
+        functions,
         onPause() {
           setPaused(true);
         },

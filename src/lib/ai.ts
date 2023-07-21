@@ -3,10 +3,11 @@ import { CallbackManager } from "langchain/callbacks";
 
 import { ChatCraftMessage } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
+import { ChatCraftFunction } from "./ChatCraftFunction";
+import { getReferer } from "./utils";
 import { getSettings, OPENAI_API_URL } from "./settings";
 
 import type { Tiktoken } from "tiktoken/lite";
-import { getReferer } from "./utils";
 
 const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
 
@@ -23,6 +24,7 @@ export const defaultModelForProvider = () => {
 
 export type ChatOptions = {
   model?: ChatCraftModel;
+  functions?: ChatCraftFunction[];
   temperature?: number;
   onFinish?: (text: string) => void;
   onError?: (err: Error) => void;
@@ -34,9 +36,9 @@ export type ChatOptions = {
 // Create the appropriate type of "OpenAI" compatible instance, based on `apiUrl`
 const createChatAPI = ({
   temperature,
-  onData,
+  streaming,
   model,
-}: Pick<ChatOptions, "temperature" | "onData" | "model">) => {
+}: Pick<ChatOptions, "temperature" | "model"> & { streaming: boolean }) => {
   const { apiKey, apiUrl } = getSettings();
   if (!apiKey) {
     throw new Error("Missing API Key");
@@ -55,9 +57,7 @@ const createChatAPI = ({
     {
       openAIApiKey: apiKey,
       temperature: temperature ?? 0,
-      // Only stream if the caller wants to handle onData events
-      // TODO: need streaming to work with OpenRouter too
-      streaming: !!onData,
+      streaming,
       // Use the provided model, or fallback to whichever one is default right now
       modelName: model ? model.id : getSettings().model.id,
     },
@@ -72,7 +72,7 @@ const createChatAPI = ({
 
 export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
   const buffer: string[] = [];
-  const { onData, onFinish, onPause, onResume, onError, temperature, model } = options;
+  const { onData, onFinish, onPause, onResume, onError, temperature, model, functions } = options;
 
   // Allow the stream to be cancelled
   const controller = new AbortController();
@@ -110,14 +110,25 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
     }
   };
 
+  // Only stream if we aren't using functions and have an onData callback
+  const streaming = !functions && !!onData;
+
   // Grab the promise so we can return, but callers can also do everything via events
-  const chatAPI = createChatAPI({ temperature, onData, model });
+  const chatAPI = createChatAPI({ temperature, streaming, model });
   const promise = chatAPI
     .call(
       // Convert the messages to langchain format before sending
       messages.map((message) => message.toLangChainMessage()),
       {
         options: { signal: controller.signal },
+        functions: functions
+          ? // Use the function id vs. name so it is easier to lookup later in db
+            functions.map(({ id, description, parameters }) => ({
+              name: id,
+              description,
+              parameters,
+            }))
+          : undefined,
       },
       CallbackManager.fromHandlers({
         handleLLMNewToken(token: string) {
@@ -128,7 +139,18 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
         },
       })
     )
-    .then(({ content }) => {
+    .then(async ({ content, additional_kwargs }) => {
+      if (!additional_kwargs) {
+        return content;
+      }
+
+      const { function_call } = additional_kwargs;
+      if (function_call?.name && function_call?.arguments) {
+        const result = await ChatCraftFunction.invoke(function_call.name, function_call.arguments);
+        return result;
+      }
+    })
+    .then((content) => {
       if (onFinish) {
         onFinish(content);
       }
