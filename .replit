@@ -1,4 +1,4 @@
-run = "bun"
+run = "(which bun || npm install -g bun) && bun install && bun run dev-bun"
 hidden = [".build", ".config", "package-lock.json", "tsconfig.json"]
 
 [nix]
@@ -7,16 +7,11 @@ channel = "stable-22_11"
 [env]
 XDG_CONFIG_HOME = "$REPL_HOME/.config"
 PATH = "$REPL_HOME/node_modules/.bin:$REPL_HOME/.config/npm/node_global/bin"
-npm_config_prefix = "$REPL_HOME/.config/npm/node_global"
+# npm_config_prefix = "$REPL_HOME/.config/npm/node_global"
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix", ".config"]
 
-[languages]
-  [languages.typescript]
-  pattern = "**/{*.ts,*.js,*.tsx,*.jsx,*.json}"
-    [languages.typescript.languageServer]
-    start = "typescript-language-server --stdio"
 
 [deployment]
 run = ["sh", "-c", "npm run dev-bun"]

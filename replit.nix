@@ -5,5 +5,6 @@
 
         pkgs.miniserve
         pkgs.time
+        pkgs.pstree
     ];
 }
