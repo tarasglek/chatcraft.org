@@ -8,6 +8,7 @@
     "dev": "vite",
     "dev-functions": "wrangler pages dev -- npm run dev",
     "build": "tsc && vite build",
+    "build-bun": "bun bun src/main.tsx --target browser  --smol --outdir build/",
     "preview": "vite preview",
     "prepare": "husky install",
     "lint": "eslint . --ext .ts,.tsx,.js",

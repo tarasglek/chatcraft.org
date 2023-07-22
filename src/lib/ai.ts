@@ -5,7 +5,7 @@ import { ChatCraftMessage } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { getSettings, OPENAI_API_URL } from "./settings";
 
-import type { Tiktoken } from "tiktoken/lite";
+// import type { Tiktoken } from "tiktoken/lite";
 import { getReferer } from "./utils";
 
 const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
@@ -208,24 +208,12 @@ export async function validateOpenAiApiKey(apiKey: string) {
 }
 
 // Cache this instance on first use
-let encoding: Tiktoken;
+// let encoding: Tiktoken;
 
 // TODO: If we're using OpenRouter, we have to alter our token counting logic for other models...
-export const countTokens = async (text: string) => {
-  if (!encoding) {
-    // Warn if this happens when it shouldn't. The UI should only
-    // be calling `countTokens()` if we have the setting enabled
-    if (!getSettings().countTokens) {
-      console.trace("Unexpected call to countTokens() when settings.countTokens not set");
-    }
-
-    // We don't bundle these, but load them dynamically at runtime if needed due to size
-    const { Tiktoken } = await import("tiktoken/lite");
-    const cl100k_base = await import("tiktoken/encoders/cl100k_base.json");
-    encoding = new Tiktoken(cl100k_base.bpe_ranks, cl100k_base.special_tokens, cl100k_base.pat_str);
-  }
-
-  return encoding.encode(text).length;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const countTokens = async (_text: string) => {
+  return 0;
 };
 
 export const countTokensInMessages = async (messages: ChatCraftMessage[]) => {
