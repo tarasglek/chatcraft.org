@@ -1,4 +1,4 @@
-run = "(which bun || npm install -g bun) && bun install && bun run dev-bun"
+run = "(which bun || curl -fsSL https://bun.sh/install | bash) && ~/.bun/bin/bun install && ~/.bun/bin/bun run dev-bun"
 hidden = [".build", ".config", "package-lock.json", "tsconfig.json"]
 
 [nix]
@@ -6,7 +6,7 @@ channel = "stable-22_11"
 
 [env]
 XDG_CONFIG_HOME = "$REPL_HOME/.config"
-PATH = "$REPL_HOME/node_modules/.bin:$REPL_HOME/.config/npm/node_global/bin"
+PATH = "$REPL_HOME/node_modules/.bin:$REPL_HOME/.config/npm/node_global/bin:~/.bun/bin/bun"
 # npm_config_prefix = "$REPL_HOME/.config/npm/node_global"
 
 [gitHubImport]
