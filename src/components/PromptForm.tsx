@@ -198,7 +198,11 @@ function PromptForm({
                     onChange={(e) => setPrompt(e.target.value)}
                     bg="white"
                     _dark={{ bg: "gray.700" }}
-                    placeholder={!isLoading ? "Type your question" : undefined}
+                    placeholder={
+                      !isLoading
+                        ? "Type your question. Include @functions: name1, name2, ... to use functions"
+                        : undefined
+                    }
                     overflowY="auto"
                   />
                 ) : (
@@ -211,7 +215,11 @@ function PromptForm({
                     onChange={(e) => setPrompt(e.target.value)}
                     bg="white"
                     _dark={{ bg: "gray.700" }}
-                    placeholder={!isLoading ? "Type your question" : undefined}
+                    placeholder={
+                      !isLoading
+                        ? "Type your question. Include @functions: name1, name2, ... to use functions"
+                        : undefined
+                    }
                     overflowY="auto"
                   />
                 )}

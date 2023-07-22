@@ -9,6 +9,27 @@ export type FunctionModule = {
   default: Function;
 };
 
+/**
+ * Given a prompt string, return a list of ChatCraftFunction objects mentioned.
+ * We use `@functions: name1, name2, ...` to indicate the functions to use.
+ * The prompt can be any variation of @function, @functions, @fn, @fns
+ */
+export const functionsFromPrompt = async (prompt: string) => {
+  const match = prompt.match(/@(function|functions|fn|fns): ?([\w\s,]+)/);
+  if (!match) {
+    return undefined;
+  }
+
+  const fnNames = match[2].split(",").map((func) => func.trim());
+  const records = await db.functions
+    .where("name")
+    .anyOfIgnoreCase(...fnNames)
+    .toArray();
+  const functions = await Promise.all(records.map((record) => ChatCraftFunction.fromDB(record)));
+
+  return functions.length ? functions : undefined;
+};
+
 export const initialFunctionCode = `/**
 * Example Function Module. Each function needs you to define 4 things:
 */

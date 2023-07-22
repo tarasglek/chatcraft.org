@@ -31,8 +31,10 @@ function useChatOpenAI() {
   const callChatApi = useCallback(
     (
       messages: ChatCraftMessage[],
-      model: ChatCraftModel = settings.model,
-      functions?: ChatCraftFunction[]
+      {
+        model = settings.model,
+        functions,
+      }: { model?: ChatCraftModel; functions?: ChatCraftFunction[] } = {}
     ) => {
       const aiMessage = new ChatCraftAiMessage({ model, text: "" });
       setStreamingMessage(aiMessage);
