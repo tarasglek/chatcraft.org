@@ -1,4 +1,4 @@
-run = "bun --bun vite dev --host 0.0.0.0"
+run = "bun"
 hidden = [".build", ".config", "package-lock.json", "tsconfig.json"]
 
 [nix]
@@ -19,4 +19,4 @@ requiredFiles = [".replit", "replit.nix", ".config"]
     start = "typescript-language-server --stdio"
 
 [deployment]
-run = ["sh", "-c", "bun --bun vite dev --host 0.0.0.0"]
+run = ["sh", "-c", "npm run dev-bun"]
