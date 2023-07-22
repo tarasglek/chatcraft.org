@@ -4,7 +4,7 @@ import { CallbackManager } from "langchain/callbacks";
 import { ChatCraftMessage } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { ChatCraftFunction } from "./ChatCraftFunction";
-import { getReferer } from "./utils";
+import { formatAsCodeBlock, getReferer } from "./utils";
 import { getSettings, OPENAI_API_URL } from "./settings";
 
 import type { Tiktoken } from "tiktoken/lite";
@@ -113,6 +113,50 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   // Only stream if we aren't using functions and have an onData callback
   const streaming = !functions && !!onData;
 
+  // Regular text response from LLM
+  const handleTextResponse = async (text: string) => {
+    if (onFinish) {
+      onFinish(text);
+    }
+    return text;
+  };
+
+  // Function invocation request from LLM
+  const handleFunctionResponse = async (functionId: string, functionArgs: string) => {
+    const func = await ChatCraftFunction.find(functionId);
+    if (!func) {
+      throw new Error(`unable to find function in database for id=${functionId}`);
+    }
+
+    let data: any;
+    let result: any;
+    try {
+      data = JSON.parse(functionArgs);
+      result = await func.invoke(data);
+
+      let response = `**Function Call**: [${func.name}()](/f/${func.id})
+
+\`\`\`js
+/* ${func.description} */
+${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
+
+      if (typeof result === "string") {
+        response += `**Result**\n\n${formatAsCodeBlock(result)}\n`;
+      } else {
+        const json = JSON.stringify(result, null, 2);
+        response += `**Result**\n\n${formatAsCodeBlock(json, "json")}\n`;
+      }
+
+      return response;
+    } catch (err: any) {
+      let response = `**Function Call**\n\n\`\`\`js\n${func.name}(${JSON.stringify(
+        data
+      )})\n\`\`\`\n\n`;
+      response += `**Error**\n\n${formatAsCodeBlock(err)}\n`;
+      return response;
+    }
+  };
+
   // Grab the promise so we can return, but callers can also do everything via events
   const chatAPI = createChatAPI({ temperature, streaming, model });
   const promise = chatAPI
@@ -140,21 +184,18 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
       })
     )
     .then(async ({ content, additional_kwargs }) => {
-      if (!additional_kwargs) {
-        return content;
+      if (content) {
+        return handleTextResponse(content);
       }
 
-      const { function_call } = additional_kwargs;
-      if (function_call?.name && function_call?.arguments) {
-        const result = await ChatCraftFunction.invoke(function_call.name, function_call.arguments);
-        return result;
+      if (additional_kwargs?.function_call) {
+        const { name, arguments: args } = additional_kwargs.function_call;
+        if (name && args) {
+          return handleFunctionResponse(name, args);
+        }
       }
-    })
-    .then((content) => {
-      if (onFinish) {
-        onFinish(content);
-      }
-      return content;
+
+      throw new Error("unable to handle LLM response (not text or function)");
     })
     .catch((err) => {
       // Deal with cancelled messages by returning a partial message

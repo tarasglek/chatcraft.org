@@ -42,3 +42,6 @@ export const getReferer = () => {
   }
   return `${origin}/`;
 };
+
+export const formatAsCodeBlock = (code: string, language = "text") =>
+  `\`\`\`${language}\n${code}\n\`\`\``;

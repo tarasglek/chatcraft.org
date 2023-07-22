@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { TbCopy, TbDownload, TbRun } from "react-icons/tb";
 
-import { download } from "../lib/utils";
+import { download, formatAsCodeBlock } from "../lib/utils";
 
 type PreHeaderProps = {
   language: string;
@@ -64,8 +64,6 @@ function CodeHeader({
       return;
     }
 
-    const toCodeBlock = (text: string, language = "") => "```" + language + "\n" + text + "\n```";
-
     let ret = undefined;
     try {
       // We're doing eval() here, but rollup doesn't like it, so use `new Function()`
@@ -75,12 +73,12 @@ function CodeHeader({
         result = await result;
       }
       if (typeof result !== "string") {
-        result = toCodeBlock(JSON.stringify(result), "json");
+        result = formatAsCodeBlock(JSON.stringify(result), "json");
       }
       // let js decide how to render the result
       ret = result;
     } catch (error: any) {
-      ret = toCodeBlock(
+      ret = formatAsCodeBlock(
         error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
       );
     }

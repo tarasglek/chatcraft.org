@@ -13,7 +13,7 @@ export const initialFunctionCode = `/**
 * Example Function Module. Each function needs you to define 4 things:
 */
 
-/* 1. Name of your function */
+/* 1. Name of your function (must be unique) */
 export const name = "example";
 
 /* 2. Description of function, used to describe what it does to an LLM */
@@ -149,6 +149,12 @@ export class ChatCraftFunction {
 
     // Upsert Chat itself
     return db.functions.put(this.toDB());
+  }
+
+  // Pass JSON args to the function, return the result
+  async invoke(data: object) {
+    const { default: fn } = await this.toESModule();
+    return fn(data);
   }
 
   toJSON() {
