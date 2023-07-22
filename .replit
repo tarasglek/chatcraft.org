@@ -1,12 +1,5 @@
-run = "vite --host 0.0.0.0"
+run = "bun --bun vite dev --host 0.0.0.0"
 hidden = [".build", ".config", "package-lock.json", "tsconfig.json"]
-
-[packager]
-language = "nodejs"
-  [packager.features]
-  enabledForHosting = false
-  packageSearch = true
-  guessImports = true
 
 [nix]
 channel = "stable-22_11"
@@ -26,4 +19,4 @@ requiredFiles = [".replit", "replit.nix", ".config"]
     start = "typescript-language-server --stdio"
 
 [deployment]
-run = ["sh", "-c", "vite --host 0.0.0.0"]
+run = ["sh", "-c", "bun --bun vite dev --host 0.0.0.0"]

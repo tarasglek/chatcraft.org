@@ -6,6 +6,7 @@
   "scripts": {
     "audit-fix": "yarn-audit-fix",
     "dev": "vite",
+    "dev-bun": "bun --bun vite dev --host 0.0.0.0",
     "dev-functions": "wrangler pages dev -- npm run dev",
     "build": "tsc && vite build",
     "build-bun": "bun bun src/main.tsx --target browser  --smol --outdir build/",
