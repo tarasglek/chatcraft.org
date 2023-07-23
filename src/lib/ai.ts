@@ -122,10 +122,10 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   };
 
   // Function invocation request from LLM
-  const handleFunctionResponse = async (functionId: string, functionArgs: string) => {
-    const func = await ChatCraftFunction.find(functionId);
+  const handleFunctionResponse = async (functionName: string, functionArgs: string) => {
+    const func = functions?.find(({ name }) => name === functionName);
     if (!func) {
-      throw new Error(`unable to find function in database for id=${functionId}`);
+      throw new Error(`no function found matching ${functionName}`);
     }
 
     let data: any;
@@ -166,9 +166,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
       {
         options: { signal: controller.signal },
         functions: functions
-          ? // Use the function id vs. name so it is easier to lookup later in db
-            functions.map(({ id, description, parameters }) => ({
-              name: id,
+          ? functions.map(({ name, description, parameters }) => ({
+              name,
               description,
               parameters,
             }))

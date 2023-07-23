@@ -12,14 +12,21 @@ export type FunctionModule = {
 
 /**
  * Given a prompt string, return a list of ChatCraftFunction objects mentioned.
- * We use `@functions: name1, name2, ...` to indicate the functions to use.
- * The prompt can be any variation of @function, @functions, @fn, @fns
+ * We use `@fn: name1, name2, ...` to indicate the functions to use from the
+ * local db.  If you want to use remote functions, use @url:https://... instead.
  */
 export const functionNamesFromMsg = (msg: string) => {
-  const match = msg.match(/@(function|functions|fn|fns): ?([\w\s,]+)/);
+  const match = msg.match(/@(fn): ?([\w\s,]+)|@(url): ?(https:\/\/[^\s]+)/);
   if (!match) {
     return undefined;
   }
+
+  // If it's a URL, return it directly
+  if (match[3] === "url") {
+    return [match[4]];
+  }
+
+  // If it's a function name or names, split it on commas and trim whitespace
   const fnNames = match[2].split(",").map((func) => func.trim());
   return fnNames;
 };
@@ -29,13 +36,24 @@ export const functionNamesFromChat = (msgs: ChatCraftMessage[]) => {
   return fnNames.flat() as string[];
 };
 
-export const loadFunctions = async (fnNames: string[]) => {
+const loadFunctionsFromDb = async (fnNames: string[]) => {
   const records = await db.functions
     .where("name")
     .anyOfIgnoreCase(...fnNames)
     .toArray();
-  const functions = await Promise.all(records.map((record) => ChatCraftFunction.fromDB(record)));
+  return Promise.all(records.map((record) => ChatCraftFunction.fromDB(record)));
+};
 
+const loadFunctionsFromUrl = async (urls: string[]) =>
+  Promise.all(urls.map((url) => ChatCraftFunction.fromUrl(new URL(url))));
+
+export const loadFunctions = async (fnNames: string[]) => {
+  const [dbFuncs, urlFuncs] = await Promise.all([
+    loadFunctionsFromDb(fnNames.filter((fnName) => !fnName.startsWith("https://"))),
+    loadFunctionsFromUrl(fnNames.filter((fnName) => fnName.startsWith("https://"))),
+  ]);
+
+  const functions = [...dbFuncs.filter(Boolean), ...urlFuncs.filter(Boolean)];
   return functions.length ? functions : undefined;
 };
 
@@ -149,8 +167,12 @@ export class ChatCraftFunction {
     return new ChatCraftFunction({ name, description, parameters, code });
   }
 
-  // Find in db
+  // Find in db or load via URL
   static async find(id: string) {
+    if (id.startsWith("https://")) {
+      return ChatCraftFunction.fromUrl(new URL(id));
+    }
+
     const func = await db.functions.get(id);
     if (!func) {
       return;
@@ -220,6 +242,16 @@ export class ChatCraftFunction {
 
   static fromDB(func: ChatCraftFunctionTable) {
     return new ChatCraftFunction({ ...func });
+  }
+
+  static async fromUrl(url: URL) {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Unable to download function: ${res.statusText}`);
+    }
+    const code = await res.text();
+    const { name, description, parameters } = await parseModule(code);
+    return new ChatCraftFunction({ id: url.href, name, description, parameters, code });
   }
 
   static async invoke(id: string, args: string) {
