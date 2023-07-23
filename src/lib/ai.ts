@@ -141,7 +141,7 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
 ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
 
       if (typeof result === "string") {
-        response += `**Result**\n\n${formatAsCodeBlock(result)}\n`;
+        response += `**Result**\n\n${result}\n`;
       } else {
         const json = JSON.stringify(result, null, 2);
         response += `**Result**\n\n${formatAsCodeBlock(json, "json")}\n`;
