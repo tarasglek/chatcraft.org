@@ -26,7 +26,7 @@
     "dexie-react-hooks": "^1.1.6",
     "framer-motion": "^10.12.21",
     "jose": "^4.14.4",
-    "langchain": "^0.0.109",
+    "langchain": "^0.0.114",
     "mermaid": "^10.2.4",
     "nanoid": "^4.0.2",
     "react": "^18.2.0",
