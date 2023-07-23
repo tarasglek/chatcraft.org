@@ -157,6 +157,22 @@ export class ChatCraftFunction {
     this.code = code;
   }
 
+  get prettyName() {
+    const name = `${this.name}()`;
+
+    if (this.id.startsWith("https://")) {
+      const { hostname } = new URL(this.id);
+      return `${hostname} - ${name}`;
+    }
+
+    return name;
+  }
+
+  // If this is a remote function, use its URL. Otherwise, provide a way to load in app
+  get url() {
+    return this.id.startsWith("https://") ? this.id : `/f/${this.id}`;
+  }
+
   // Convert code to an ES Module we can run
   toESModule() {
     return parseModule(this.code);

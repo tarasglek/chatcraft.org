@@ -235,7 +235,7 @@ function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSideba
           <Flex align="center" gap={2}>
             <LuFunctionSquare />
             <Text flex={1} fontSize="sm" as="strong">
-              {func.name}()
+              {func.prettyName}
             </Text>
           </Flex>
         </Link>

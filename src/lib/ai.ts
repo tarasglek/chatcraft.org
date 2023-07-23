@@ -134,7 +134,7 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
       data = JSON.parse(functionArgs);
       result = await func.invoke(data);
 
-      let response = `**Function Call**: [${func.name}()](/f/${func.id})
+      let response = `**Function Call**: [${func.prettyName}](${func.url})
 
 \`\`\`js
 /* ${func.description} */
