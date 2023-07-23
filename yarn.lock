@@ -15,21 +15,19 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@anthropic-ai/sdk@^0.5.3":
-  version "0.5.4"
-  resolved "https://registry.yarnpkg.com/@anthropic-ai/sdk/-/sdk-0.5.4.tgz#790913e172833d409443efe902de3a59741d3e02"
-  integrity sha512-XgBPW1VNwIh3u6rIsY3+cio6Z5kw2nIFxodrM8Y4bQG+nTFaGVX56kTyZkBzDzNkrBl9xnux+iflWCVTebBhBw==
+"@anthropic-ai/sdk@^0.5.7":
+  version "0.5.8"
+  resolved "https://registry.yarnpkg.com/@anthropic-ai/sdk/-/sdk-0.5.8.tgz#cc363c9a22510cd7f5e470e68e94b843d688e3c1"
+  integrity sha512-iHenjcE2Q/az6VZiP1DueOSvKNRmxsly6Rx2yjJBoy7OBYVFGVjEdgs2mPQHtTX0ibKAR7tPq6F6MQbKDPWcKg==
   dependencies:
     "@types/node" "^18.11.18"
     "@types/node-fetch" "^2.6.4"
-    "@types/qs" "^6.9.7"
     abort-controller "^3.0.0"
     agentkeepalive "^4.2.1"
     digest-fetch "^1.3.0"
     form-data-encoder "1.7.2"
     formdata-node "^4.3.2"
     node-fetch "^2.6.7"
-    qs "^6.10.3"
 
 "@apideck/better-ajv-errors@^0.3.1":
   version "0.3.6"
@@ -2920,11 +2918,6 @@
   version "15.7.5"
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.5.tgz#5f19d2b85a98e9558036f6a3cacc8819420f05cf"
   integrity sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==
-
-"@types/qs@^6.9.7":
-  version "6.9.7"
-  resolved "https://registry.yarnpkg.com/@types/qs/-/qs-6.9.7.tgz#63bb7d067db107cc1e457c303bc25d511febf6cb"
-  integrity sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==
 
 "@types/react-dom@^18.2.7":
   version "18.2.7"
@@ -6020,12 +6013,12 @@ kleur@^4.0.3, kleur@^4.1.4, kleur@^4.1.5:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-4.1.5.tgz#95106101795f7050c6c650f350c683febddb1780"
   integrity sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==
 
-langchain@^0.0.109:
-  version "0.0.109"
-  resolved "https://registry.yarnpkg.com/langchain/-/langchain-0.0.109.tgz#35b8e5135206ba04bf0ef361be3d1f37857ebbba"
-  integrity sha512-+H8UP6jtgyHzwOfNqs0iIlc8LPq3ZWfuJ96cOvRbwdJoGKzS5FbxtEFHeh/aMzqLR0zcg6kHezYITX7UOnpFMg==
+langchain@^0.0.114:
+  version "0.0.114"
+  resolved "https://registry.yarnpkg.com/langchain/-/langchain-0.0.114.tgz#7e3622eae4cd13fcceb65c8b14fa4c955df5c69b"
+  integrity sha512-GBnawSUlfBIrLfgnBWTfOAVkHZlf1YDbj0TEx28zJc6JaV+2+vmDN+ejXH6Ho681DGPNloJocqz7UPOxswHcWg==
   dependencies:
-    "@anthropic-ai/sdk" "^0.5.3"
+    "@anthropic-ai/sdk" "^0.5.7"
     ansi-styles "^5.0.0"
     binary-extensions "^2.2.0"
     camelcase "6"
@@ -6035,7 +6028,7 @@ langchain@^0.0.109:
     js-tiktoken "^1.0.7"
     js-yaml "^4.1.0"
     jsonpointer "^5.0.1"
-    langsmith "^0.0.5"
+    langsmith "~0.0.11"
     ml-distance "^4.0.0"
     object-hash "^3.0.0"
     openai "^3.3.0"
@@ -6047,10 +6040,10 @@ langchain@^0.0.109:
     zod "^3.21.4"
     zod-to-json-schema "^3.20.4"
 
-langsmith@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/langsmith/-/langsmith-0.0.5.tgz#41b211ccdaa482d8507dc93a5fcb0fddc76839a5"
-  integrity sha512-9XIm5jTwDbbmGR325VuOYwcTugna4fMM7eprKXRSm7LeCKSr4yy1YnIazcBInuvytAfGoULjxnJJpsnvFWyUkw==
+langsmith@~0.0.11:
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/langsmith/-/langsmith-0.0.14.tgz#60351387464e095eb087a775a8964d5b5f90d688"
+  integrity sha512-56K2AkhxsbniK2beCn28zRdHtlRlnVBWnKPsjAhSRBFESNZ0X00J2BXM/Z55M5Rt+Fpud0VldK8V+F25htYTDw==
   dependencies:
     "@types/uuid" "^9.0.1"
     commander "^10.0.1"
@@ -7411,13 +7404,6 @@ punycode@^2.1.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.0.tgz#f67fa67c94da8f4d0cfff981aee4118064199b8f"
   integrity sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==
-
-qs@^6.10.3:
-  version "6.11.2"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.11.2.tgz#64bea51f12c1f5da1bc01496f48ffcff7c69d7d9"
-  integrity sha512-tDNIz22aBzCDxLtVH++VnTfzxlfeK5CbqohpSqpJgj1Wg/cQbStNAz3NuqCs5vV+pjBsK4x4pN9HlVh7rcYRiA==
-  dependencies:
-    side-channel "^1.0.4"
 
 queue-microtask@^1.2.2:
   version "1.2.3"
