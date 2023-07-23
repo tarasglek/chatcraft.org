@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import db, { ChatCraftFunctionTable } from "./db";
+import { ChatCraftMessage } from "./ChatCraftMessage";
 
 export type FunctionModule = {
   name: string;
@@ -14,13 +15,21 @@ export type FunctionModule = {
  * We use `@functions: name1, name2, ...` to indicate the functions to use.
  * The prompt can be any variation of @function, @functions, @fn, @fns
  */
-export const functionsFromPrompt = async (prompt: string) => {
-  const match = prompt.match(/@(function|functions|fn|fns): ?([\w\s,]+)/);
+export const functionNamesFromMsg = (msg: string) => {
+  const match = msg.match(/@(function|functions|fn|fns): ?([\w\s,]+)/);
   if (!match) {
     return undefined;
   }
-
   const fnNames = match[2].split(",").map((func) => func.trim());
+  return fnNames;
+};
+
+export const functionNamesFromChat = (msgs: ChatCraftMessage[]) => {
+  const fnNames = msgs.map((msg) => functionNamesFromMsg(msg.text)).filter((x) => !!x);
+  return fnNames.flat() as string[];
+};
+
+export const loadFunctions = async (fnNames: string[]) => {
   const records = await db.functions
     .where("name")
     .anyOfIgnoreCase(...fnNames)
