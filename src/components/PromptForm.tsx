@@ -200,7 +200,7 @@ function PromptForm({
                     _dark={{ bg: "gray.700" }}
                     placeholder={
                       !isLoading
-                        ? "Type your question. Include @fn: name1, name2, ... to use local functions, or @url: https://... for remote"
+                        ? "Type your question. Include @fn: name1, name2, ... to use local functions, or @fn-url: https://... for remote"
                         : undefined
                     }
                     overflowY="auto"
@@ -217,7 +217,7 @@ function PromptForm({
                     _dark={{ bg: "gray.700" }}
                     placeholder={
                       !isLoading
-                        ? "Type your question. Include @fn: name1, name2, ... to use local functions, or @url: https://... for remote"
+                        ? "Type your question. Include @fn: name1, name2, ... to use local functions, or @fn-url: https://... for remote"
                         : undefined
                     }
                     overflowY="auto"

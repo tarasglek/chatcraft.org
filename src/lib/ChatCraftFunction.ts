@@ -13,16 +13,16 @@ export type FunctionModule = {
 /**
  * Given a prompt string, return a list of ChatCraftFunction objects mentioned.
  * We use `@fn: name1, name2, ...` to indicate the functions to use from the
- * local db.  If you want to use remote functions, use @url:https://... instead.
+ * local db.  If you want to use remote functions, use @fn-url:https://... instead.
  */
 export const functionNamesFromMsg = (msg: string) => {
-  const match = msg.match(/@(fn): ?([\w\s,]+)|@(url): ?(https:\/\/[^\s]+)/);
+  const match = msg.match(/@(fn): ?([\w\s,]+)|@(fn-url): ?(https:\/\/[^\s]+)/);
   if (!match) {
     return undefined;
   }
 
   // If it's a URL, return it directly
-  if (match[3] === "url") {
+  if (match[3] === "fn-url") {
     return [match[4]];
   }
 
@@ -44,8 +44,25 @@ const loadFunctionsFromDb = async (fnNames: string[]) => {
   return Promise.all(records.map((record) => ChatCraftFunction.fromDB(record)));
 };
 
+/**
+ * Given a gist URL, return the raw URL to the gist's contents.
+ * If it's not a gist URL, return the original URL.
+ */
+function convertToRawGist(url: string) {
+  const gistRegex = /^https:\/\/gist\.github\.com\/([a-zA-Z0-9_-]+)\/([a-f0-9]+)$/;
+
+  const match = url.match(gistRegex);
+  if (match) {
+    const username = match[1];
+    const gistId = match[2];
+    return `https://gist.githubusercontent.com/${username}/${gistId}/raw`;
+  }
+
+  return url;
+}
+
 const loadFunctionsFromUrl = async (urls: string[]) =>
-  Promise.all(urls.map((url) => ChatCraftFunction.fromUrl(new URL(url))));
+  Promise.all(urls.map((url) => ChatCraftFunction.fromUrl(new URL(convertToRawGist(url)))));
 
 export const loadFunctions = async (fnNames: string[]) => {
   const [dbFuncs, urlFuncs] = await Promise.all([
