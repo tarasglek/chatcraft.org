@@ -1,7 +1,9 @@
 import { nanoid } from "nanoid";
 
 import {
+  ChatCraftAiMessage,
   ChatCraftAppMessage,
+  ChatCraftHumanMessage,
   ChatCraftMessage,
   ChatCraftSystemMessage,
   type SerializedChatCraftMessage,
@@ -12,6 +14,7 @@ import { createSystemMessage } from "./system-prompt";
 import { createShare, createShareUrl } from "./share";
 import { SharedChatCraftChat } from "./SharedChatCraftChat";
 import { countTokensInMessages } from "./ai";
+import { parseFunctionNames, loadFunctions } from "./ChatCraftFunction";
 
 export type SerializedChatCraftChat = {
   id: string;
@@ -62,15 +65,26 @@ export class ChatCraftChat {
    * (`chat.messages({ includeAppMessages: true })`. For serialization
    * or sending to an LLM, use `chat.messages({ includeAppMessages: false })`.
    */
-  messages(options: { includeAppMessages?: boolean; includeSystemMessages?: boolean } = {}) {
+  messages(
+    options: {
+      includeAppMessages?: boolean;
+      includeSystemMessages?: boolean;
+      includeHumanMessages?: boolean;
+      includeAiMessages?: boolean;
+    } = {}
+  ) {
     const defaultOptions = {
       includeAppMessages: true,
       includeSystemMessages: true,
+      includeHumanMessages: true,
+      includeAiMessages: true,
     };
     const selectedOptions = { ...defaultOptions, ...options };
 
     const includeAppMessages = selectedOptions.includeAppMessages === true;
     const includeSystemMessages = selectedOptions.includeSystemMessages === true;
+    const includeHumanMessages = selectedOptions.includeHumanMessages === true;
+    const includeAiMessages = selectedOptions.includeAiMessages === true;
 
     return this._messages.filter((message) => {
       if (!includeAppMessages && message instanceof ChatCraftAppMessage) {
@@ -79,8 +93,33 @@ export class ChatCraftChat {
       if (!includeSystemMessages && message instanceof ChatCraftSystemMessage) {
         return false;
       }
+      if (!includeHumanMessages && message instanceof ChatCraftHumanMessage) {
+        return false;
+      }
+      if (!includeAiMessages && message instanceof ChatCraftAiMessage) {
+        return false;
+      }
+
       return true;
     });
+  }
+
+  // Get a list of functions mentioned via @fn or fn-url from db or remote servers
+  async functions() {
+    // We scan the entire set of human and system messages in the chat for functions
+    const humanAndSystemMessages = this.messages({
+      includeAppMessages: false,
+      includeAiMessages: false,
+    });
+
+    // Extract all unique function names/urls from the messages
+    const fnNames: Set<string> = new Set();
+    for (const message of humanAndSystemMessages) {
+      parseFunctionNames(message.text).forEach((fnName) => fnNames.add(fnName));
+    }
+
+    // Load all functions by name/url into ChatCraftFunction objects
+    return loadFunctions([...fnNames]);
   }
 
   async tokens() {

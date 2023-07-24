@@ -8,14 +8,13 @@ import MessagesView from "../components/MessagesView";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import useChatOpenAI from "../hooks/use-chat-openai";
-import { ChatCraftHumanMessage, ChatCraftSystemMessage } from "../lib/ChatCraftMessage";
+import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import NewButton from "../components/NewButton";
 import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
 import ChatHeader from "./ChatHeader";
-import { functionNamesFromChat, loadFunctions } from "../lib/ChatCraftFunction";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -124,13 +123,9 @@ function ChatBase({ chat }: ChatBaseProps) {
         const messages = chat.messages({ includeAppMessages: false, includeSystemMessages: true });
         const messagesToSend = singleMessageMode ? [...messages].slice(-2) : messages;
 
-        // Scan entire msg history for functions so we can use more natural interaction form
-        // Seems more clear to do this directly
-        const humanAndSystemMessages = messagesToSend.filter(
-          (x) => x instanceof ChatCraftHumanMessage || x instanceof ChatCraftSystemMessage
-        );
-        // See if the user wants us to use any functions
-        const functions = await loadFunctions(functionNamesFromChat(humanAndSystemMessages));
+        // If there are any functions mentioned in the chat (via @fn or @fn-url),
+        // pass those through to the LLM to use if necessary
+        const functions = await chat.functions();
         const response = await callChatApi(messagesToSend, {
           functions,
         });

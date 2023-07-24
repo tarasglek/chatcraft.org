@@ -1,6 +1,5 @@
 import { nanoid } from "nanoid";
 import db, { ChatCraftFunctionTable } from "./db";
-import { ChatCraftMessage } from "./ChatCraftMessage";
 
 export type FunctionModule = {
   name: string;
@@ -12,18 +11,31 @@ export type FunctionModule = {
 
 /**
  * Given a prompt string, return a list of ChatCraftFunction objects mentioned.
- * We use `@fn: name1, name2, ...` to indicate the functions to use from the
- * local db.  If you want to use remote functions, use @fn-url:https://... instead.
+ * We use `@fn: name1, name2, ...` to indicate local functions in db to use and
+ * `@fn-url:https://...` for remote functions by URL.
  */
-export const functionNamesFromMsg = (msg: string) => {
-  const match = msg.match(/@(fn): ?([\w\s,]+)|@(fn-url): ?(https:\/\/[^\s]+)/);
+export const parseFunctionNames = (text: string) => {
+  const fixUrl = (url: string) => {
+    // Fix gist URLs to get /raw data vs. HTML
+    const gistRegex = /^https:\/\/gist\.github\.com\/([a-zA-Z0-9_-]+)\/([a-f0-9]+)$/;
+    const match = url.match(gistRegex);
+    if (match) {
+      const [, username, gistId] = match;
+      return `https://gist.githubusercontent.com/${username}/${gistId}/raw`;
+    }
+
+    // Use the url unchanged
+    return url;
+  };
+
+  const match = text.match(/@(fn): ?([\w\s,]+)|@(fn-url): ?(https:\/\/[^\s]+)/);
   if (!match) {
-    return undefined;
+    return [];
   }
 
   // If it's a URL, return it directly
   if (match[3] === "fn-url") {
-    return [match[4]];
+    return [fixUrl(match[4])];
   }
 
   // If it's a function name or names, split it on commas and trim whitespace
@@ -31,46 +43,38 @@ export const functionNamesFromMsg = (msg: string) => {
   return fnNames;
 };
 
-export const functionNamesFromChat = (msgs: ChatCraftMessage[]) => {
-  const fnNames = msgs.map((msg) => functionNamesFromMsg(msg.text)).filter((x) => !!x);
-  return fnNames.flat() as string[];
-};
-
-const loadFunctionsFromDb = async (fnNames: string[]) => {
-  const records = await db.functions
-    .where("name")
-    .anyOfIgnoreCase(...fnNames)
-    .toArray();
-  return Promise.all(records.map((record) => ChatCraftFunction.fromDB(record)));
-};
-
 /**
- * Given a gist URL, return the raw URL to the gist's contents.
- * If it's not a gist URL, return the original URL.
+ * Given a list of function names/URLs, load from db or remote server
+ * and parse into ChatCraftFunction objects. Any function that can't be loaded
+ * by name/URL will be skipped.
  */
-function convertToRawGist(url: string) {
-  const gistRegex = /^https:\/\/gist\.github\.com\/([a-zA-Z0-9_-]+)\/([a-f0-9]+)$/;
-
-  const match = url.match(gistRegex);
-  if (match) {
-    const username = match[1];
-    const gistId = match[2];
-    return `https://gist.githubusercontent.com/${username}/${gistId}/raw`;
-  }
-
-  return url;
-}
-
-const loadFunctionsFromUrl = async (urls: string[]) =>
-  Promise.all(urls.map((url) => ChatCraftFunction.fromUrl(new URL(convertToRawGist(url)))));
-
 export const loadFunctions = async (fnNames: string[]) => {
+  const fromDb = async (fnNames: string[]) => {
+    const records = await db.functions
+      .where("name")
+      .anyOfIgnoreCase(...fnNames)
+      .toArray();
+    return Promise.all(records.map((record) => ChatCraftFunction.fromDB(record)));
+  };
+
+  const fromUrl = async (urls: string[]) =>
+    Promise.all(
+      urls.map((url) =>
+        ChatCraftFunction.fromUrl(new URL(url)).catch((err) => {
+          console.warn(`Unable to load remote function ${url}`, err);
+          return undefined;
+        })
+      )
+    );
+
   const [dbFuncs, urlFuncs] = await Promise.all([
-    loadFunctionsFromDb(fnNames.filter((fnName) => !fnName.startsWith("https://"))),
-    loadFunctionsFromUrl(fnNames.filter((fnName) => fnName.startsWith("https://"))),
+    fromDb(fnNames.filter((fnName) => !fnName.startsWith("https://"))),
+    fromUrl(fnNames.filter((fnName) => fnName.startsWith("https://"))),
   ]);
 
-  const functions = [...dbFuncs.filter(Boolean), ...urlFuncs.filter(Boolean)];
+  // Get rid of any non-ChatCraftFunction objects from the list and return it
+  // or use `undefined` if there aren't any functions to use.
+  const functions = [...dbFuncs, ...urlFuncs].filter((func): func is ChatCraftFunction => !!func);
   return functions.length ? functions : undefined;
 };
 
