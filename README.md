@@ -4,6 +4,9 @@
 
 <img width="530" alt="image" src="https://github.com/tarasglek/chatcraft.org/assets/857083/39df8fa8-7f38-43b4-85e5-559031f72fcf">
 
+## Chat About ChatCraft on Discord
+https://discord.gg/PE2GWHnR
+
 ## Differentiation from ChatGPT.com
 
 - Open source
