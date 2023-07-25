@@ -52,6 +52,12 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
         typeof avatarUrl === "string"
       ) {
         setUser({ username, name, avatarUrl });
+      } else {
+        console.warn("ChatCraft ID Token missing expected values, ignoring", {
+          username,
+          name,
+          avatarUrl,
+        });
       }
     } catch (err) {
       console.error("Unable to decode id token", { err, idToken });

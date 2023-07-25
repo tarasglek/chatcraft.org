@@ -47,9 +47,9 @@ export async function requestUserInfo(token: string): Promise<User> {
 
   const { login, name, avatar_url } = (await res.json()) as {
     login: string;
-    name: string;
+    name: string | null;
     avatar_url: string;
   };
 
-  return { username: login, name, avatarUrl: avatar_url };
+  return { username: login, name: name ?? login, avatarUrl: avatar_url };
 }
