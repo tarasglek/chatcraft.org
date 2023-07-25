@@ -73,7 +73,16 @@ const createChatAPI = ({
 
 export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
   const buffer: string[] = [];
-  const { onData, onFinish, onPause, onResume, onError, temperature, model, functions } = options;
+  const {
+    onData,
+    onFinish,
+    onPause,
+    onResume,
+    onError,
+    temperature,
+    model = getSettings().model,
+    functions,
+  } = options;
 
   // Allow the stream to be cancelled
   const controller = new AbortController();
@@ -111,12 +120,12 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
     }
   };
 
-  // Only stream if we aren't using functions and have an onData callback
-  const streaming = !functions && !!onData;
+  // Only stream if we have an onData callback
+  const streaming = !!onData;
 
   // Regular text response from LLM
   const handleTextResponse = async (text: string = "") => {
-    const response = new ChatCraftAiMessage({ text, model: model || getSettings().model });
+    const response = new ChatCraftAiMessage({ text, model });
 
     if (onFinish) {
       onFinish(response);
@@ -189,13 +198,15 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
       messages.map((message) => message.toLangChainMessage()).flat(),
       {
         options: { signal: controller.signal },
-        functions: functions
-          ? functions.map(({ name, description, parameters }) => ({
-              name,
-              description,
-              parameters,
-            }))
-          : undefined,
+        /**
+         * If the user provides functions to use, convert them to a form that
+         * langchain can consume. However, since not all models support function calling,
+         * don't bother if the model can't use them.
+         */
+        functions:
+          model.supportsFunctionCalling && functions
+            ? functions.map((fn) => fn.toLangChainFunction())
+            : undefined,
       },
       CallbackManager.fromHandlers({
         handleLLMNewToken(token: string) {

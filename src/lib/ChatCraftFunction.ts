@@ -272,6 +272,14 @@ export class ChatCraftFunction {
     };
   }
 
+  toLangChainFunction() {
+    return {
+      name: this.name,
+      description: this.description,
+      parameters: this.parameters,
+    };
+  }
+
   static async delete(id: string) {
     const func = await ChatCraftFunction.find(id);
     if (!func) {
