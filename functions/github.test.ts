@@ -13,18 +13,25 @@ export const githubMocks = () => ({
       .reply(200, { access_token: mockAccessToken });
     return origin;
   },
-  "api.github.com": () => {
+  "api.github.com": ({
+    login,
+    name,
+    avatar_url,
+  }: {
+    login: string;
+    name: string | null;
+    avatar_url: string;
+  }) => {
     const fetchMock = getMiniflareFetchMock();
     fetchMock.disableNetConnect();
     const origin = fetchMock.get("https://api.github.com");
-    origin
-      .intercept({ method: "GET", path: "/user" })
-      .reply(200, { login: "login", name: "name", avatar_url: "avatar_url" });
+    origin.intercept({ method: "GET", path: "/user" }).reply(200, { login, name, avatar_url });
     return origin;
   },
   all(mockAccessToken = "gho_access_token...") {
     this["github.com"](mockAccessToken);
-    this["api.github.com"]();
+    // Use default GH user details
+    this["api.github.com"]({ login: "login", name: "name", avatar_url: "avatar_url" });
   },
 });
 
@@ -45,11 +52,23 @@ describe("github.ts", () => {
   test("requestUserInfo()", async () => {
     // Mock the call to GitHub API /user endpoint
     const mocks = githubMocks();
-    mocks["api.github.com"]();
+    mocks["api.github.com"]({ login: "login", name: "name", avatar_url: "avatar_url" });
 
     const user: User = await requestUserInfo(mockAccessToken);
     expect(user.username).toEqual("login");
     expect(user.name).toEqual("name");
+    expect(user.avatarUrl).toEqual("avatar_url");
+  });
+
+  test("requestUserInfo() when name not defined", async () => {
+    // Mock the call to GitHub API /user endpoint, but set name to null
+    const mocks = githubMocks();
+    mocks["api.github.com"]({ login: "login", name: null, avatar_url: "avatar_url" });
+
+    const user: User = await requestUserInfo(mockAccessToken);
+    expect(user.username).toEqual("login");
+    // Should re-use login name
+    expect(user.name).toEqual("login");
     expect(user.avatarUrl).toEqual("avatar_url");
   });
 });
