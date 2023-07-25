@@ -16,6 +16,7 @@ export type ChatCraftMessageTable = {
   type: MessageType;
   model?: string;
   user?: User;
+  func?: { id: string; name: string; params: object; result: string };
   text: string;
   versions?: { id: string; date: Date; model: string; text: string }[];
 };
@@ -96,7 +97,7 @@ class ChatCraftDatabase extends Dexie {
             delete chat.shareUrl;
           });
       });
-    // Version 6 Migration - adds functions table
+    // Version 6 Migration - adds functions table, .func to chats table
     this.version(6).stores({
       functions: "id, date, name, description",
     });

@@ -9,6 +9,17 @@ export type FunctionModule = {
   default: Function;
 };
 
+export const formatFunctionName = (id: string, name: string) => {
+  const formatted = `${name}()`;
+
+  if (id.startsWith("https://")) {
+    const { hostname } = new URL(id);
+    return `${hostname} - ${formatted}`;
+  }
+
+  return formatted;
+};
+
 /**
  * Given a prompt string, return a list of ChatCraftFunction objects mentioned.
  * We use `@fn: name1, name2, ...` to indicate local functions in db to use and
@@ -179,14 +190,7 @@ export class ChatCraftFunction {
   }
 
   get prettyName() {
-    const name = `${this.name}()`;
-
-    if (this.id.startsWith("https://")) {
-      const { hostname } = new URL(this.id);
-      return `${hostname} - ${name}`;
-    }
-
-    return name;
+    return formatFunctionName(this.id, this.name);
   }
 
   // If this is a remote function, use its URL. Otherwise, provide a way to load in app

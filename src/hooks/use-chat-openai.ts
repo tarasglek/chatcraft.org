@@ -1,7 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
 import { useSettings } from "./use-settings";
-import { ChatCraftMessage, ChatCraftAiMessage } from "../lib/ChatCraftMessage";
+import {
+  ChatCraftMessage,
+  ChatCraftAiMessage,
+  ChatCraftFunctionMessage,
+} from "../lib/ChatCraftMessage";
 import { useCost } from "./use-cost";
 import { calculateTokenCost, chatWithLLM, countTokensInMessages } from "../lib/ai";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
@@ -36,8 +40,10 @@ function useChatOpenAI() {
         functions,
       }: { model?: ChatCraftModel; functions?: ChatCraftFunction[] } = {}
     ) => {
-      const aiMessage = new ChatCraftAiMessage({ model, text: "" });
-      setStreamingMessage(aiMessage);
+      // When we're streaming, use this message to hold the content as it comes.
+      // Later we'll replace it with the full response.
+      const message = new ChatCraftAiMessage({ model, text: "" });
+      setStreamingMessage(message);
 
       const chat = chatWithLLM(messages, {
         model,
@@ -52,9 +58,9 @@ function useChatOpenAI() {
           if (!pausedRef.current) {
             setStreamingMessage(
               new ChatCraftAiMessage({
-                id: aiMessage.id,
-                date: aiMessage.date,
-                model: aiMessage.model,
+                id: message.id,
+                date: message.date,
+                model: message.model,
                 text: currentText,
               })
             );
@@ -68,28 +74,26 @@ function useChatOpenAI() {
       cancelRef.current = chat.cancel;
 
       return chat.promise
-        .then((text): Promise<[ChatCraftAiMessage, number]> => {
-          const response = new ChatCraftAiMessage({
-            id: aiMessage.id,
-            date: aiMessage.date,
-            model: aiMessage.model,
-            text,
-          });
+        .then((response): Promise<[ChatCraftAiMessage | ChatCraftFunctionMessage, number]> => {
+          // Re-use the id and date from the message we've been streaming for consistency in UI
+          response.id = message.id;
+          response.date = message.date;
 
           // If we're tracking token cost, update it
+          // TODO: this is wrong with functions now involved
           if (settings.countTokens) {
-            return Promise.all([response, countTokensInMessages([...messages, aiMessage])]);
+            return Promise.all([response, countTokensInMessages([...messages, response])]);
           }
 
           return Promise.resolve([response, 0]);
         })
-        .then(([aiMessage, tokens]) => {
+        .then(([response, tokens]) => {
           if (tokens) {
             const cost = calculateTokenCost(tokens, settings.model);
             incrementCost(cost);
           }
 
-          return aiMessage;
+          return response;
         })
         .finally(() => {
           setStreamingMessage(undefined);

@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { CallbackManager } from "langchain/callbacks";
 
-import { ChatCraftMessage } from "./ChatCraftMessage";
+import { ChatCraftAiMessage, ChatCraftFunctionMessage, ChatCraftMessage } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { ChatCraftFunction } from "./ChatCraftFunction";
 import { formatAsCodeBlock, getReferer } from "./utils";
@@ -25,8 +25,9 @@ export const defaultModelForProvider = () => {
 export type ChatOptions = {
   model?: ChatCraftModel;
   functions?: ChatCraftFunction[];
+  respondWithText?: boolean;
   temperature?: number;
-  onFinish?: (text: string) => void;
+  onFinish?: (message: ChatCraftAiMessage | ChatCraftFunctionMessage) => void;
   onError?: (err: Error) => void;
   onPause?: () => void;
   onResume?: () => void;
@@ -114,11 +115,13 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   const streaming = !functions && !!onData;
 
   // Regular text response from LLM
-  const handleTextResponse = async (text: string) => {
+  const handleTextResponse = async (text: string = "") => {
+    const response = new ChatCraftAiMessage({ text, model: model || getSettings().model });
+
     if (onFinish) {
-      onFinish(text);
+      onFinish(response);
     }
-    return text;
+    return response;
   };
 
   // Function invocation request from LLM
@@ -143,17 +146,34 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
       if (typeof result === "string") {
         response += `**Result**\n\n${result}\n`;
       } else {
-        const json = JSON.stringify(result, null, 2);
-        response += `**Result**\n\n${formatAsCodeBlock(json, "json")}\n`;
+        result = JSON.stringify(result, null, 2);
+        response += `**Result**\n\n${formatAsCodeBlock(result, "json")}\n`;
       }
 
-      return response;
+      return new ChatCraftFunctionMessage({
+        text: response,
+        func: {
+          id: func.id,
+          name: func.name,
+          params: data,
+          result,
+        },
+      });
     } catch (err: any) {
       let response = `**Function Call**\n\n\`\`\`js\n${func.name}(${JSON.stringify(
         data
       )})\n\`\`\`\n\n`;
       response += `**Error**\n\n${formatAsCodeBlock(err)}\n`;
-      return response;
+
+      return new ChatCraftFunctionMessage({
+        text: response,
+        func: {
+          id: func.id,
+          name: func.name,
+          params: data,
+          result: err.toString(),
+        },
+      });
     }
   };
 
@@ -161,8 +181,12 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
   const chatAPI = createChatAPI({ temperature, streaming, model });
   const promise = chatAPI
     .call(
-      // Convert the messages to langchain format before sending
-      messages.map((message) => message.toLangChainMessage()),
+      /**
+       * Convert the list of ChatCraftMessages to something langchain can use.
+       * In most cases, this is straight-forward, but for function messages,
+       * we need to separate the call and result into two parts
+       */
+      messages.map((message) => message.toLangChainMessage()).flat(),
       {
         options: { signal: controller.signal },
         functions: functions
@@ -183,15 +207,15 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
       })
     )
     .then(async ({ content, additional_kwargs }) => {
-      if (content) {
-        return handleTextResponse(content);
-      }
-
       if (additional_kwargs?.function_call) {
         const { name, arguments: args } = additional_kwargs.function_call;
         if (name && args) {
           return handleFunctionResponse(name, args);
         }
+      }
+
+      if (content) {
+        return handleTextResponse(content);
       }
 
       throw new Error("unable to handle LLM response (not text or function)");
@@ -201,18 +225,21 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
       if (err.message.startsWith("Cancel:")) {
         buffer.push("...");
         const text = buffer.join("");
+
+        const response = new ChatCraftAiMessage({ text, model: model || getSettings().model });
         if (onFinish) {
-          onFinish(text);
+          onFinish(response);
         }
-        return text;
+
+        return response;
       }
 
       const handleError = (error: Error) => {
         if (onError) {
           onError(error);
-        } else {
-          throw error;
         }
+
+        throw error;
       };
 
       // Try to extract the actual OpenAI API error from what langchain gives us
@@ -235,8 +262,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
     });
 
   return {
-    // Force the promise to always return a string (langchain's returns undefined in some cases)
-    promise: promise.then((result) => (typeof result === "string" ? result : "")),
+    // HACK: for some reason, TS thinks this could also be undefined, but I don't see how.
+    promise: promise as Promise<ChatCraftAiMessage | ChatCraftFunctionMessage>,
     cancel,
     pause,
     resume,

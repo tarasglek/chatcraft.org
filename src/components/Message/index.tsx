@@ -5,11 +5,13 @@ import {
   ChatCraftAppMessage,
   ChatCraftMessage,
   ChatCraftSystemMessage,
+  ChatCraftFunctionMessage,
 } from "../../lib/ChatCraftMessage";
 import HumanMessage from "./HumanMessage";
 import AiMessage from "./AiMessage";
 import AppMessage from "./AppMessage";
 import SystemMessage from "./SystemMessage";
+import FunctionMessage from "./FunctionMessage";
 
 type MessageProps = {
   message: ChatCraftMessage;
@@ -110,7 +112,21 @@ function Message({
     );
   }
 
-  // TODO: we don't currently show system messages, but could?
+  if (message instanceof ChatCraftFunctionMessage) {
+    return (
+      <FunctionMessage
+        message={message}
+        chatId={chatId}
+        editing={false}
+        onEditingChange={() => {}}
+        isLoading={isLoading}
+        hidePreviews={hidePreviews}
+        onPrompt={onPrompt}
+        onDeleteClick={onDeleteClick}
+      />
+    );
+  }
+
   console.warn(`Message type ${message.type} not yet supported`);
   return null;
 }
