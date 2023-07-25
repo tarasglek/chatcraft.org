@@ -38,38 +38,39 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const searchParams = new URLSearchParams(window.location.search);
   const openRouterCode = searchParams.get("code");
 
-  const handleOpenRouterCodeExchange = (code: string) => {
-    const requestBody = {
-      code: code,
+  useEffect(() => {
+    const handleOpenRouterCodeExchange = (code: string) => {
+      const requestBody = {
+        code: code,
+      };
+
+      fetch("https://openrouter.ai/api/v1/auth/keys", {
+        method: "POST",
+        body: JSON.stringify(requestBody),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const apiKey = data.key;
+          if (apiKey !== undefined) {
+            setSettings({ ...state, apiKey: apiKey });
+            // Strip out openRouter's code from the URL
+            searchParams.delete("code");
+            const { origin, pathname, hash } = window.location;
+            const urlWithoutCode = `${origin}${pathname}${hash}${searchParams.toString()}`;
+            window.history.replaceState({}, document.title, urlWithoutCode);
+          } else {
+            console.error("OpenRouter OAuth PKCE response missing API key");
+          }
+        })
+        .catch((error) => {
+          console.error("Error authenticating with OpenRouter", error);
+        });
     };
 
-    fetch("https://openrouter.ai/api/v1/auth/keys", {
-      method: "POST",
-      body: JSON.stringify(requestBody),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const apiKey = data.key;
-        if (apiKey !== undefined) {
-          setSettings({ ...state, apiKey: apiKey });
-          // Strip out openRouter's code from the URL
-          searchParams.delete("code");
-          const { origin, pathname, hash } = window.location;
-          const urlWithoutCode = `${origin}${pathname}${hash}${searchParams.toString()}`;
-          window.history.replaceState({}, document.title, urlWithoutCode);
-        } else {
-          console.error("OpenRouter OAuth PKCE response missing API key");
-        }
-      })
-      .catch((error) => {
-        console.error("Error authenticating with OpenRouter", error);
-      });
-  };
-
-  useEffect(() => {
     if (openRouterCode) {
       handleOpenRouterCodeExchange(openRouterCode);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openRouterCode]);
 
   useEffect(() => {
