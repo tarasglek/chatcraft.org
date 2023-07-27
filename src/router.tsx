@@ -7,6 +7,7 @@ import Search, { loader as searchLoader } from "./Search";
 import db from "./lib/db";
 import { ChatCraftFunction, initialFunctionCode } from "./lib/ChatCraftFunction";
 import Function from "./Function";
+import AppError from "./AppError";
 
 export default createBrowserRouter([
   // Load the user's most recent chat, or start a new one the first time
@@ -24,6 +25,7 @@ export default createBrowserRouter([
 
       return redirect("/new");
     },
+    errorElement: <AppError />,
   },
   // Create a new chat
   {
@@ -33,6 +35,16 @@ export default createBrowserRouter([
       await chat.save();
       return redirect(`/c/${chat.id}`);
     },
+    errorElement: <AppError />,
+  },
+  {
+    path: "/c/new",
+    async loader() {
+      const chat = new ChatCraftChat();
+      await chat.save();
+      return redirect(`/c/${chat.id}`);
+    },
+    errorElement: <AppError />,
   },
 
   // People shouldn't end-up here, so create a new chat if they do
@@ -58,6 +70,7 @@ export default createBrowserRouter([
       return id;
     },
     element: <LocalChat />,
+    errorElement: <AppError />,
   },
   // Delete a chat from the local db
   {
@@ -123,6 +136,7 @@ export default createBrowserRouter([
 
       return redirect(`/c/${forked.id}`);
     },
+    errorElement: <AppError />,
   },
 
   // Loading a shared chat remotely as JSON, which will be readonly
@@ -142,6 +156,7 @@ export default createBrowserRouter([
       }
     },
     element: <RemoteChat />,
+    errorElement: <AppError />,
   },
 
   // Fork a remote chat into the local db
@@ -185,6 +200,7 @@ export default createBrowserRouter([
 
       return redirect(`/c/${forked.id}`);
     },
+    errorElement: <AppError />,
   },
 
   // Search. Process `GET /s?q=...` and return results
@@ -192,6 +208,7 @@ export default createBrowserRouter([
     path: "/s",
     loader: searchLoader,
     element: <Search />,
+    errorElement: <AppError />,
   },
 
   // Functions
@@ -202,11 +219,13 @@ export default createBrowserRouter([
       await func.save();
       return redirect(`/f/${func.id}`);
     },
+    errorElement: <AppError />,
   },
   // People shouldn't end-up here, so create a new function if they do
   {
     path: "/f",
     element: <Navigate to="/f/new" />,
+    errorElement: <AppError />,
   },
   // Load a function from the local db, making sure it exists first
   {
@@ -223,6 +242,7 @@ export default createBrowserRouter([
       return id;
     },
     element: <Function />,
+    errorElement: <AppError />,
   },
   // Delete a function from the local db
   {

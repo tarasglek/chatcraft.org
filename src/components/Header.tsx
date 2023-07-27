@@ -28,7 +28,7 @@ import { useUser } from "../hooks/use-user";
 
 type HeaderProps = {
   chatId?: string;
-  inputPromptRef: RefObject<HTMLTextAreaElement>;
+  inputPromptRef?: RefObject<HTMLTextAreaElement>;
   searchText?: string;
   onToggleSidebar: () => void;
 };

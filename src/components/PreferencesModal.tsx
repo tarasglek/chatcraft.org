@@ -48,7 +48,7 @@ async function isStoragePersisted() {
 type PreferencesModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  finalFocusRef: RefObject<HTMLTextAreaElement>;
+  finalFocusRef?: RefObject<HTMLTextAreaElement>;
 };
 
 function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalProps) {
