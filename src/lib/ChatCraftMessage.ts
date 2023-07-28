@@ -39,7 +39,7 @@ export type SerializedChatCraftMessage = {
   type: MessageType;
   model?: string;
   user?: User;
-  func?: { id: string; name: string; params: object; result: string };
+  func?: FunctionCallParams | FunctionCallResult;
   text: string;
   versions?: { id: string; date: string; model: string; text: string }[];
 };
@@ -98,18 +98,19 @@ export class ChatCraftMessage {
   }
 
   // Convert to a BaseMessage (or list of BaseMessages in the case of a function)
-  toLangChainMessage(): BaseMessage | BaseMessage[] {
+  toLangChainMessage(): BaseMessage {
     const text = this.text;
 
     switch (this.type) {
       case "ai":
+        // NOTE: Function Call AI messages are handled in derived ChatCraftFunctionCallMessage
         return new AIMessage(text);
       case "human":
         return new HumanMessage(text);
       case "system":
         return new SystemMessage(text);
       case "function":
-      // special case handled in derived ChatCraftFunctionMessage class
+      // special case handled in derived ChatCraftFunctionResultMessage class
       // falls through
       case "generic":
       // falls through
@@ -139,13 +140,18 @@ export class ChatCraftMessage {
   static fromJSON(message: SerializedChatCraftMessage): ChatCraftMessage {
     switch (message.type) {
       case "ai":
+        // See if this is a function call
+        if ("func" in message) {
+          return ChatCraftFunctionCallMessage.fromJSON(message);
+        }
+        // Regular LLM response
         return ChatCraftAiMessage.fromJSON(message);
       case "human":
         return ChatCraftHumanMessage.fromJSON(message);
       case "system":
         return ChatCraftSystemMessage.fromJSON(message);
       case "function":
-        return ChatCraftFunctionMessage.fromJSON(message);
+        return ChatCraftFunctionResultMessage.fromJSON(message);
       case "generic":
         return ChatCraftAppMessage.fromJSON(message);
       default:
@@ -157,13 +163,18 @@ export class ChatCraftMessage {
   static fromDB(message: ChatCraftMessageTable): ChatCraftMessage {
     switch (message.type) {
       case "ai":
+        // See if this is a function call
+        if ("func" in message) {
+          return ChatCraftFunctionCallMessage.fromDB(message);
+        }
+        // Regular LLM response
         return ChatCraftAiMessage.fromDB(message);
       case "human":
         return ChatCraftHumanMessage.fromDB(message);
       case "system":
         return ChatCraftSystemMessage.fromDB(message);
       case "function":
-        return ChatCraftFunctionMessage.fromDB(message);
+        return ChatCraftFunctionResultMessage.fromDB(message);
       case "generic":
         return ChatCraftAppMessage.fromDB(message);
       default:
@@ -476,8 +487,121 @@ export class ChatCraftAppMessage extends ChatCraftMessage {
   }
 }
 
-export class ChatCraftFunctionMessage extends ChatCraftMessage {
-  func: { id: string; name: string; params: object; result: string };
+/**
+ * Function calling is broken into two message types: the function Call and Result.
+ * The function Call includes params being sent; the Result is what gets returned.
+ */
+export type FunctionCallParams = { id: string; name: string; params: object };
+
+export class ChatCraftFunctionCallMessage extends ChatCraftMessage {
+  model: ChatCraftModel;
+  func: FunctionCallParams;
+
+  constructor({
+    id,
+    date,
+    model,
+    func,
+    text,
+    readonly,
+  }: {
+    id?: string;
+    date?: Date;
+    model: ChatCraftModel;
+    func: { id: string; name: string; params: object };
+    text: string;
+    readonly?: boolean;
+  }) {
+    super({ id, date, type: "ai", text, readonly });
+
+    this.model = model;
+    this.func = func;
+  }
+
+  clone() {
+    return new ChatCraftFunctionCallMessage({
+      model: this.model,
+      func: this.func,
+      text: this.text,
+    });
+  }
+
+  toJSON(): SerializedChatCraftMessage {
+    return {
+      ...super.toJSON(),
+      model: this.model.toString(),
+      func: this.func,
+    };
+  }
+
+  toDB(chatId: string): ChatCraftMessageTable {
+    return {
+      id: this.id,
+      date: this.date,
+      chatId,
+      type: this.type,
+      text: this.text,
+      model: this.model.toString(),
+      func: this.func,
+    };
+  }
+
+  toLangChainMessage() {
+    const { name, params } = this.func;
+
+    return new AIMessage({
+      content: "",
+      additional_kwargs: {
+        function_call: { name, arguments: JSON.stringify(params) },
+      },
+    });
+  }
+
+  static fromJSON(message: SerializedChatCraftMessage) {
+    if (!message.func) {
+      throw new Error("missing function properties on serialized message");
+    }
+
+    if (!("params" in message.func)) {
+      throw new Error("missing function params on serialized message");
+    }
+
+    return new ChatCraftFunctionCallMessage({
+      id: message.id,
+      date: new Date(message.date),
+      func: message.func,
+      model: message.model ? new ChatCraftModel(message.model) : defaultModelForProvider(),
+      text: message.text,
+      readonly: true,
+    });
+  }
+
+  static fromDB(message: ChatCraftMessageTable) {
+    if (!message.func) {
+      throw new Error("missing function properties on message db record");
+    }
+
+    if (!("params" in message.func)) {
+      throw new Error("missing function params on message db record");
+    }
+
+    return new ChatCraftFunctionCallMessage({
+      id: message.id,
+      date: message.date,
+      func: message.func,
+      model: message.model ? new ChatCraftModel(message.model) : defaultModelForProvider(),
+      text: message.text,
+    });
+  }
+}
+
+/**
+ * Function call Result
+ */
+export type FunctionCallResult = { id: string; name: string; result: string };
+
+export class ChatCraftFunctionResultMessage extends ChatCraftMessage {
+  func: FunctionCallResult;
 
   constructor({
     id,
@@ -488,7 +612,7 @@ export class ChatCraftFunctionMessage extends ChatCraftMessage {
   }: {
     id?: string;
     date?: Date;
-    func: { id: string; name: string; params: object; result: string };
+    func: { id: string; name: string; result: string };
     text: string;
     readonly?: boolean;
   }) {
@@ -498,7 +622,7 @@ export class ChatCraftFunctionMessage extends ChatCraftMessage {
   }
 
   clone() {
-    return new ChatCraftFunctionMessage({
+    return new ChatCraftFunctionResultMessage({
       func: this.func,
       text: this.text,
     });
@@ -522,22 +646,10 @@ export class ChatCraftFunctionMessage extends ChatCraftMessage {
     };
   }
 
-  // Deal with langchain conversion differently for function messages,
-  // which needs both an AI message for the call and Function message
-  // for the result. In ChatCraft we combine both into a single message
-  // to display.
   toLangChainMessage() {
-    const { name, params, result } = this.func;
+    const { name, result } = this.func;
 
-    return [
-      new AIMessage({
-        content: "",
-        additional_kwargs: {
-          function_call: { name, arguments: JSON.stringify(params) },
-        },
-      }),
-      new FunctionMessage(result, name),
-    ];
+    return new FunctionMessage(result, name);
   }
 
   static fromJSON(message: SerializedChatCraftMessage) {
@@ -545,7 +657,11 @@ export class ChatCraftFunctionMessage extends ChatCraftMessage {
       throw new Error("missing function properties on serialized message");
     }
 
-    return new ChatCraftFunctionMessage({
+    if (!("result" in message.func)) {
+      throw new Error("missing function result on serialized message");
+    }
+
+    return new ChatCraftFunctionResultMessage({
       id: message.id,
       date: new Date(message.date),
       func: message.func,
@@ -559,7 +675,11 @@ export class ChatCraftFunctionMessage extends ChatCraftMessage {
       throw new Error("missing function properties on message db record");
     }
 
-    return new ChatCraftFunctionMessage({
+    if (!("result" in message.func)) {
+      throw new Error("missing function result on message db record");
+    }
+
+    return new ChatCraftFunctionResultMessage({
       id: message.id,
       date: message.date,
       func: message.func,

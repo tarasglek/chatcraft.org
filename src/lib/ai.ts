@@ -1,10 +1,14 @@
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { CallbackManager } from "langchain/callbacks";
 
-import { ChatCraftAiMessage, ChatCraftFunctionMessage, ChatCraftMessage } from "./ChatCraftMessage";
+import {
+  ChatCraftAiMessage,
+  ChatCraftFunctionCallMessage,
+  ChatCraftMessage,
+} from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { ChatCraftFunction } from "./ChatCraftFunction";
-import { formatAsCodeBlock, getReferer } from "./utils";
+import { getReferer } from "./utils";
 import { getSettings, OPENAI_API_URL } from "./settings";
 
 import type { Tiktoken } from "tiktoken/lite";
@@ -27,7 +31,7 @@ export type ChatOptions = {
   functions?: ChatCraftFunction[];
   respondWithText?: boolean;
   temperature?: number;
-  onFinish?: (message: ChatCraftAiMessage | ChatCraftFunctionMessage) => void;
+  onFinish?: (message: ChatCraftAiMessage | ChatCraftFunctionCallMessage) => void;
   onError?: (err: Error) => void;
   onPause?: () => void;
   onResume?: () => void;
@@ -134,56 +138,27 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   };
 
   // Function invocation request from LLM
-  const handleFunctionResponse = async (functionName: string, functionArgs: string) => {
+  const handleFunctionCallResponse = async (functionName: string, functionArgs: string) => {
     const func = functions?.find(({ name }) => name === functionName);
     if (!func) {
       throw new Error(`no function found matching ${functionName}`);
     }
 
-    let data: any;
-    let result: any;
-    try {
-      data = JSON.parse(functionArgs);
-      result = await func.invoke(data);
-
-      let response = `**Function Call**: [${func.prettyName}](${func.url})
-
+    const data = JSON.parse(functionArgs);
+    const text = `**Function Call**: [${func.prettyName}](${func.url})\n
 \`\`\`js
 /* ${func.description} */
-${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
+${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 
-      if (typeof result === "string") {
-        response += `**Result**\n\n${result}\n`;
-      } else {
-        result = JSON.stringify(result, null, 2);
-        response += `**Result**\n\n${formatAsCodeBlock(result, "json")}\n`;
-      }
-
-      return new ChatCraftFunctionMessage({
-        text: response,
-        func: {
-          id: func.id,
-          name: func.name,
-          params: data,
-          result,
-        },
-      });
-    } catch (err: any) {
-      let response = `**Function Call**\n\n\`\`\`js\n${func.name}(${JSON.stringify(
-        data
-      )})\n\`\`\`\n\n`;
-      response += `**Error**\n\n${formatAsCodeBlock(err)}\n`;
-
-      return new ChatCraftFunctionMessage({
-        text: response,
-        func: {
-          id: func.id,
-          name: func.name,
-          params: data,
-          result: err.toString(),
-        },
-      });
-    }
+    return new ChatCraftFunctionCallMessage({
+      text,
+      model,
+      func: {
+        id: func.id,
+        name: func.name,
+        params: data,
+      },
+    });
   };
 
   // Grab the promise so we can return, but callers can also do everything via events
@@ -195,7 +170,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
        * In most cases, this is straight-forward, but for function messages,
        * we need to separate the call and result into two parts
        */
-      messages.map((message) => message.toLangChainMessage()).flat(),
+      messages.map((message) => message.toLangChainMessage()),
       {
         options: { signal: controller.signal },
         /**
@@ -221,7 +196,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
       if (additional_kwargs?.function_call) {
         const { name, arguments: args } = additional_kwargs.function_call;
         if (name && args) {
-          return handleFunctionResponse(name, args);
+          return handleFunctionCallResponse(name, args);
         }
       }
 
@@ -274,7 +249,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n\n`;
 
   return {
     // HACK: for some reason, TS thinks this could also be undefined, but I don't see how.
-    promise: promise as Promise<ChatCraftAiMessage | ChatCraftFunctionMessage>,
+    promise: promise as Promise<ChatCraftAiMessage | ChatCraftFunctionCallMessage>,
     cancel,
     pause,
     resume,

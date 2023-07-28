@@ -8,13 +8,14 @@ import MessagesView from "../components/MessagesView";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import useChatOpenAI from "../hooks/use-chat-openai";
-import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
+import { ChatCraftFunctionCallMessage, ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import NewButton from "../components/NewButton";
 import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
 import ChatHeader from "./ChatHeader";
+import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -61,13 +62,14 @@ function ChatBase({ chat }: ChatBaseProps) {
 
   // Auto scroll chat to bottom, but only if user isn't trying to scroll manually
   // Also add a dependency on the streamingMessage, since its content (and therefore
-  // the height of messageList) will change while streaming.
+  // the height of messageList) will change while streaming, and the chat's date
+  // since we update that whenever the chat is re-saved to the db
   useEffect(() => {
-    if (messageListRef.current && shouldAutoScroll && streamingMessage) {
+    if (messageListRef.current && shouldAutoScroll) {
       const messageList = messageListRef.current;
       messageList.scrollTop = messageList.scrollHeight;
     }
-  }, [messageListRef, streamingMessage, shouldAutoScroll]);
+  }, [messageListRef, streamingMessage, shouldAutoScroll, chat.date]);
 
   // Disable auto scroll when we're loading and the user scrolls up to read previous content
   const handleScroll = useCallback(() => {
@@ -132,9 +134,28 @@ function ChatBase({ chat }: ChatBaseProps) {
 
         // Add this response message to the chat
         await chat.addMessage(response);
+
+        // If it's a function call message, invoke the function
+        if (response instanceof ChatCraftFunctionCallMessage) {
+          const func = await ChatCraftFunction.find(response.func.id);
+          if (!func) {
+            toast({
+              title: `Function Error`,
+              description: `No such function: ${response.func.name} (${response.func.id}`,
+              status: "error",
+              position: "top",
+              isClosable: true,
+            });
+            return;
+          }
+
+          const result = await func.invoke(response.func.params);
+          // Add this result message to the chat
+          await chat.addMessage(result);
+        }
       } catch (err: any) {
         toast({
-          title: `OpenAI Response Error`,
+          title: `Response Error`,
           description: "message" in err ? err.message : undefined,
           status: "error",
           position: "top",

@@ -146,7 +146,7 @@ export class ChatCraftChat {
       return;
     }
 
-    this._messages.push(message);
+    this._messages = [...this._messages, message];
     return this.save();
   }
 

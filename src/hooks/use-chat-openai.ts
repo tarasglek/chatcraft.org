@@ -4,7 +4,7 @@ import { useSettings } from "./use-settings";
 import {
   ChatCraftMessage,
   ChatCraftAiMessage,
-  ChatCraftFunctionMessage,
+  ChatCraftFunctionCallMessage,
 } from "../lib/ChatCraftMessage";
 import { useCost } from "./use-cost";
 import { calculateTokenCost, chatWithLLM, countTokensInMessages } from "../lib/ai";
@@ -74,7 +74,7 @@ function useChatOpenAI() {
       cancelRef.current = chat.cancel;
 
       return chat.promise
-        .then((response): Promise<[ChatCraftAiMessage | ChatCraftFunctionMessage, number]> => {
+        .then((response): Promise<[ChatCraftAiMessage | ChatCraftFunctionCallMessage, number]> => {
           // Re-use the id and date from the message we've been streaming for consistency in UI
           response.id = message.id;
           response.date = message.date;

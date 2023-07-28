@@ -5,13 +5,15 @@ import {
   ChatCraftAppMessage,
   ChatCraftMessage,
   ChatCraftSystemMessage,
-  ChatCraftFunctionMessage,
+  ChatCraftFunctionCallMessage,
+  ChatCraftFunctionResultMessage,
 } from "../../lib/ChatCraftMessage";
 import HumanMessage from "./HumanMessage";
 import AiMessage from "./AiMessage";
 import AppMessage from "./AppMessage";
 import SystemMessage from "./SystemMessage";
-import FunctionMessage from "./FunctionMessage";
+import FunctionCallMessage from "./FunctionCallMessage";
+import FunctionResultMessage from "./FunctionResultMessage";
 
 type MessageProps = {
   message: ChatCraftMessage;
@@ -112,9 +114,24 @@ function Message({
     );
   }
 
-  if (message instanceof ChatCraftFunctionMessage) {
+  if (message instanceof ChatCraftFunctionCallMessage) {
     return (
-      <FunctionMessage
+      <FunctionCallMessage
+        message={message}
+        chatId={chatId}
+        editing={false}
+        onEditingChange={() => {}}
+        isLoading={isLoading}
+        hidePreviews={hidePreviews}
+        onPrompt={onPrompt}
+        onDeleteClick={onDeleteClick}
+      />
+    );
+  }
+
+  if (message instanceof ChatCraftFunctionResultMessage) {
+    return (
+      <FunctionResultMessage
         message={message}
         chatId={chatId}
         editing={false}

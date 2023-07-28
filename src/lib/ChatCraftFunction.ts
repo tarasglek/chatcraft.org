@@ -1,5 +1,7 @@
 import { nanoid } from "nanoid";
 import db, { ChatCraftFunctionTable } from "./db";
+import { formatAsCodeBlock } from "./utils";
+import { ChatCraftFunctionResultMessage } from "./ChatCraftMessage";
 
 export type FunctionModule = {
   name: string;
@@ -244,10 +246,40 @@ export class ChatCraftFunction {
     return db.functions.put(this.toDB());
   }
 
-  // Pass JSON args to the function, return the result
+  // Pass args from LLM to the function and call it
   async invoke(data: object) {
-    const { default: fn } = await this.toESModule();
-    return fn(data);
+    const { id } = this;
+    const { name, default: fn } = await this.toESModule();
+
+    let result: any;
+    try {
+      result = await fn(data);
+
+      const text =
+        typeof result === "string"
+          ? result
+          : formatAsCodeBlock(JSON.stringify(result, null, 2), "json");
+
+      return new ChatCraftFunctionResultMessage({
+        text,
+        func: {
+          id,
+          name,
+          result,
+        },
+      });
+    } catch (err: any) {
+      const response = `**Error**:\n\n${formatAsCodeBlock(err)}\n`;
+
+      return new ChatCraftFunctionResultMessage({
+        text: response,
+        func: {
+          id,
+          name,
+          result: err.toString(),
+        },
+      });
+    }
   }
 
   toJSON() {
@@ -301,18 +333,5 @@ export class ChatCraftFunction {
     const code = await res.text();
     const { name, description, parameters } = await parseModule(code);
     return new ChatCraftFunction({ id: url.href, name, description, parameters, code });
-  }
-
-  static async invoke(id: string, args: string) {
-    const func = await this.find(id);
-    if (!func) {
-      throw new Error(`no such function: ${id}`);
-    }
-
-    const { default: fn } = await func.toESModule();
-    const data = JSON.parse(args);
-    const result = await fn(data);
-
-    return result;
   }
 }

@@ -5,13 +5,13 @@ import { LuFunctionSquare } from "react-icons/lu";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { formatFunctionName } from "../../lib/ChatCraftFunction";
-import { ChatCraftFunctionMessage } from "../../lib/ChatCraftMessage";
+import { ChatCraftFunctionResultMessage } from "../../lib/ChatCraftMessage";
 
 type FunctionMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
-  message: ChatCraftFunctionMessage;
+  message: ChatCraftFunctionResultMessage;
 };
 
-function FunctionMessage(props: FunctionMessageProps) {
+function FunctionResultMessage(props: FunctionMessageProps) {
   const { message, ...rest } = props;
   const functionName = formatFunctionName(message.func.id, message.func.name);
 
@@ -28,11 +28,11 @@ function FunctionMessage(props: FunctionMessageProps) {
       {...rest}
       message={message}
       avatar={avatar}
-      heading={functionName}
+      heading={`Result: ${functionName}`}
       disableFork={true}
       disableEdit={true}
     />
   );
 }
 
-export default memo(FunctionMessage);
+export default memo(FunctionResultMessage);
