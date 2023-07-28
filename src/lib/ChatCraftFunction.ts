@@ -95,7 +95,7 @@ export const initialFunctionCode = `/**
 * Example Function Module. Each function needs you to define 4 things:
 */
 
-/* 1. Name of your function (must be unique) */
+/* 1. Name of your function (should be unique) */
 export const name = "example";
 
 /* 2. Description of function, used to describe what it does to an LLM */
@@ -119,9 +119,16 @@ export const parameters = {
 };
 
 /**
- * 4. The function itself. Accepts an Object matching the schema
- * defined in params, returning a Promise<string> (i.e., should be
- * an async function).
+ * 4. The function itself, must be async. It should accept an Object
+ * matching the schema defined in parameters and should return a Promise
+ * to a string or any other JavaScript object.
+ *
+ * If you return a non-string, it will be displayed as JSON.
+ *
+ * If you return a string, you can format it as a Markdown code block
+ * so that it gets displayed correctly.  For example:
+ *
+ * return "\`\`\`html\n" + result + "\`\`\`";
  */
 export default async function (data) {
  return data.value;
