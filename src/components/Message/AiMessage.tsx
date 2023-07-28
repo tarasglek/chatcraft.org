@@ -1,6 +1,5 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import {
-  Avatar,
   Box,
   HStack,
   IconButton,
@@ -20,32 +19,8 @@ import { formatDate } from "../../lib/utils";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import useChatOpenAI from "../../hooks/use-chat-openai";
 import NewMessage from "./NewMessage";
+import ModelAvatar from "../ModelAvatar";
 
-const getAvatar = (model: ChatCraftModel, size: "sm" | "xs") => {
-  const logoUrl = model.logoUrl;
-
-  // Differentiate OpenAI models by colour
-  if (model.id.includes("gpt-4")) {
-    return <Avatar size={size} bg="#A96CF9" src={logoUrl} title={model.prettyModel} />;
-  }
-  if (model.id.includes("gpt-3.5-turbo")) {
-    return <Avatar size={size} bg="#75AB9C" src={logoUrl} title={model.prettyModel} />;
-  }
-
-  // For now, all the rest use the same colour, or just the logo's background
-  return (
-    <Avatar
-      size={size}
-      showBorder
-      borderColor="gray.100"
-      _dark={{ borderColor: "gray.600" }}
-      src={logoUrl}
-      title={model.prettyModel}
-    />
-  );
-};
-
-// If there are multiple versions in an AI message, add some UI to switch between them
 // If there are multiple versions in an AI message, add some UI to switch between them
 function MessageVersionsMenu({
   message,
@@ -98,7 +73,7 @@ function MessageVersionsMenu({
                 key={id}
                 value={id}
                 onClick={() => handleVersionChange(id)}
-                icon={getAvatar(model, "xs")}
+                icon={<ModelAvatar model={model} size="xs" />}
               >
                 <HStack>
                   <Box>
@@ -152,7 +127,7 @@ function AiMessage(props: AiMessageProps) {
         const date = new Date();
 
         setRetrying(true);
-        const aiMessage = await callChatApi(context, model);
+        const aiMessage = await callChatApi(context, { model });
 
         // Update db with new message info, and also add this text as a new version
         const version = new ChatCraftAiMessageVersion({ date, model, text: aiMessage.text });
@@ -185,7 +160,7 @@ function AiMessage(props: AiMessageProps) {
       message={message}
       hidePreviews={retrying}
       isLoading={props.isLoading || retrying}
-      avatar={getAvatar(message.model, "sm")}
+      avatar={<ModelAvatar model={message.model} size="sm" />}
       heading={`${message.model.prettyModel} ${retrying ? ` (retrying...)` : ""}`}
       headingMenu={
         !message.readonly && (

@@ -1,6 +1,8 @@
 import Dexie, { Table } from "dexie";
-import { type MessageType } from "langchain/schema";
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
+
+import type { MessageType } from "langchain/schema";
+import type { FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
 
 export type ChatCraftChatTable = {
   id: string;
@@ -16,6 +18,7 @@ export type ChatCraftMessageTable = {
   type: MessageType;
   model?: string;
   user?: User;
+  func?: FunctionCallParams | FunctionCallResult;
   text: string;
   versions?: { id: string; date: Date; model: string; text: string }[];
 };
@@ -28,10 +31,20 @@ export type SharedChatCraftChatTable = {
   chat: SerializedChatCraftChat;
 };
 
+export type ChatCraftFunctionTable = {
+  id: string;
+  date: Date;
+  name: string;
+  description: string;
+  parameters: object;
+  code: string;
+};
+
 class ChatCraftDatabase extends Dexie {
   chats: Table<ChatCraftChatTable, string>;
   messages: Table<ChatCraftMessageTable, string>;
   shared: Table<SharedChatCraftChatTable, string>;
+  functions: Table<ChatCraftFunctionTable, string>;
 
   constructor() {
     super("ChatCraftDatabase");
@@ -86,10 +99,15 @@ class ChatCraftDatabase extends Dexie {
             delete chat.shareUrl;
           });
       });
+    // Version 6 Migration - adds functions table, .func to chats table
+    this.version(6).stores({
+      functions: "id, date, name, description",
+    });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
     this.shared = this.table("shared");
+    this.functions = this.table("functions");
   }
 }
 

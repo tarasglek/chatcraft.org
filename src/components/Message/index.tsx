@@ -5,11 +5,15 @@ import {
   ChatCraftAppMessage,
   ChatCraftMessage,
   ChatCraftSystemMessage,
+  ChatCraftFunctionCallMessage,
+  ChatCraftFunctionResultMessage,
 } from "../../lib/ChatCraftMessage";
 import HumanMessage from "./HumanMessage";
 import AiMessage from "./AiMessage";
 import AppMessage from "./AppMessage";
 import SystemMessage from "./SystemMessage";
+import FunctionCallMessage from "./FunctionCallMessage";
+import FunctionResultMessage from "./FunctionResultMessage";
 
 type MessageProps = {
   message: ChatCraftMessage;
@@ -110,7 +114,36 @@ function Message({
     );
   }
 
-  // TODO: we don't currently show system messages, but could?
+  if (message instanceof ChatCraftFunctionCallMessage) {
+    return (
+      <FunctionCallMessage
+        message={message}
+        chatId={chatId}
+        editing={false}
+        onEditingChange={() => {}}
+        isLoading={isLoading}
+        hidePreviews={hidePreviews}
+        onPrompt={onPrompt}
+        onDeleteClick={onDeleteClick}
+      />
+    );
+  }
+
+  if (message instanceof ChatCraftFunctionResultMessage) {
+    return (
+      <FunctionResultMessage
+        message={message}
+        chatId={chatId}
+        editing={false}
+        onEditingChange={() => {}}
+        isLoading={isLoading}
+        hidePreviews={hidePreviews}
+        onPrompt={onPrompt}
+        onDeleteClick={onDeleteClick}
+      />
+    );
+  }
+
   console.warn(`Message type ${message.type} not yet supported`);
   return null;
 }

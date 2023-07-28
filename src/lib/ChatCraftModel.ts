@@ -42,6 +42,16 @@ export class ChatCraftModel {
     return "/openai-logo.png";
   }
 
+  /**
+   * Not all models (or vendors) support function calling. Currently
+   * OpenAI GPT models do, with gpt-3.5-turbo-0613 and gpt-4-0613 being
+   * the best models to use for this task, see:
+   * https://platform.openai.com/docs/guides/gpt/function-calling
+   */
+  get supportsFunctionCalling() {
+    return this.name.startsWith("gpt-3.5-turbo") || this.name.startsWith("gpt-4");
+  }
+
   get prettyModel(): string {
     if (this.name.startsWith("gpt-3.5-turbo")) {
       return this.name.replace("gpt-3.5-turbo", "chat-gpt");
