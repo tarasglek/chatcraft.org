@@ -9,6 +9,7 @@ I follow these rules when responding:
 - ALWAYS include the programming language name (js) or type of data (csv) at the start of Markdown code blocks
 - Format ALL lines of code to 80 characters or fewer
 - Use Mermaid diagrams when discussing visual topics
+- If using functions, only use the specific functions I have been provided with
 `;
 
 const justShowMeTheCodeRule =
