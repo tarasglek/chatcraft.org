@@ -38,7 +38,12 @@ function useChatOpenAI() {
       {
         model = settings.model,
         functions,
-      }: { model?: ChatCraftModel; functions?: ChatCraftFunction[] } = {}
+        functionToCall,
+      }: {
+        model?: ChatCraftModel;
+        functions?: ChatCraftFunction[];
+        functionToCall?: ChatCraftFunction;
+      } = {}
     ) => {
       // When we're streaming, use this message to hold the content as it comes.
       // Later we'll replace it with the full response.
@@ -48,6 +53,7 @@ function useChatOpenAI() {
       const chat = chatWithLLM(messages, {
         model,
         functions,
+        functionToCall,
         onPause() {
           setPaused(true);
         },

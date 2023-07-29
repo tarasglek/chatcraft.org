@@ -10,6 +10,7 @@ import {
 import db, { type ChatCraftMessageTable } from "./db";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { countTokens, defaultModelForProvider } from "./ai";
+import { loadFunctions, parseFunctionNames } from "./ChatCraftFunction";
 
 export class ChatCraftAiMessageVersion {
   id: string;
@@ -360,6 +361,16 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
       text: this.text,
       user: this.user,
     };
+  }
+
+  // Get a list of functions mentioned via @fn or fn-url from db or remote servers
+  async functions() {
+    // Extract all unique function names/urls from the message's text
+    const fnNames: Set<string> = new Set();
+    parseFunctionNames(this.text).forEach((fnName) => fnNames.add(fnName));
+
+    // Load all functions by name/url into ChatCraftFunction objects
+    return loadFunctions([...fnNames]);
   }
 
   static fromJSON(message: SerializedChatCraftMessage) {

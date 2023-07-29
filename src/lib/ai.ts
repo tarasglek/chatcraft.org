@@ -29,6 +29,7 @@ export const defaultModelForProvider = () => {
 export type ChatOptions = {
   model?: ChatCraftModel;
   functions?: ChatCraftFunction[];
+  functionToCall?: ChatCraftFunction;
   respondWithText?: boolean;
   temperature?: number;
   onFinish?: (message: ChatCraftAiMessage | ChatCraftFunctionCallMessage) => void;
@@ -86,6 +87,7 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
     temperature,
     model = getSettings().model,
     functions,
+    functionToCall,
   } = options;
 
   // Allow the stream to be cancelled
@@ -181,6 +183,16 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         functions:
           model.supportsFunctionCalling && functions
             ? functions.map((fn) => fn.toLangChainFunction())
+            : undefined,
+        /**
+         * If function(s) are provided, see if the caller wants a particular
+         * function to be called by name.  If not, let the LLM decide ("auto").
+         */
+        function_call:
+          model.supportsFunctionCalling && functions
+            ? functionToCall?.name
+              ? { name: functionToCall.name }
+              : "auto"
             : undefined,
       },
       CallbackManager.fromHandlers({
