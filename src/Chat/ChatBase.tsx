@@ -112,13 +112,15 @@ function ChatBase({ chat }: ChatBaseProps) {
 
   // Handle prompt form submission
   const onPrompt = useCallback(
-    async (prompt: string) => {
+    async (prompt?: string) => {
       setShouldAutoScroll(true);
       setLoading(true);
 
       try {
-        // Add this prompt message to the chat
-        await chat.addMessage(new ChatCraftHumanMessage({ text: prompt, user }));
+        if (prompt) {
+          // Add this prompt message to the chat
+          await chat.addMessage(new ChatCraftHumanMessage({ text: prompt, user }));
+        }
 
         // In single-message-mode, trim messages to last few. Otherwise send all.
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
@@ -152,6 +154,11 @@ function ChatBase({ chat }: ChatBaseProps) {
           const result = await func.invoke(response.func.params);
           // Add this result message to the chat
           await chat.addMessage(result);
+
+          // If the user has opted to always send function results back to LLM, do it now
+          if (settings.alwaysSendFunctionResult) {
+            onPrompt();
+          }
         }
       } catch (err: any) {
         toast({
@@ -167,6 +174,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         setShouldAutoScroll(true);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, chat, singleMessageMode, setLoading, setShouldAutoScroll, callChatApi, toast]
   );
 

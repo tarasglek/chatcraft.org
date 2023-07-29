@@ -647,9 +647,11 @@ export class ChatCraftFunctionResultMessage extends ChatCraftMessage {
   }
 
   toLangChainMessage() {
-    const { name, result } = this.func;
+    // LangChain needs a string, so send the text vs. raw func.result value
+    const { text } = this;
+    const { name } = this.func;
 
-    return new FunctionMessage(result, name);
+    return new FunctionMessage(text, name);
   }
 
   static fromJSON(message: SerializedChatCraftMessage) {

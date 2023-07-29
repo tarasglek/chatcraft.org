@@ -55,7 +55,7 @@ export interface MessageBaseProps {
   footer?: ReactNode;
   isLoading: boolean;
   hidePreviews?: boolean;
-  onPrompt?: (prompt: string) => void;
+  onPrompt?: (prompt?: string) => void;
   onDeleteClick?: () => void;
   onRetryClick?: (model: ChatCraftModel) => void;
   disableFork?: boolean;

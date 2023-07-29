@@ -21,6 +21,7 @@ export type Settings = {
   justShowMeTheCode: boolean;
   countTokens: boolean;
   sidebarVisible: boolean;
+  alwaysSendFunctionResult: boolean;
 };
 
 export const defaults: Settings = {
@@ -31,6 +32,8 @@ export const defaults: Settings = {
   countTokens: false,
   justShowMeTheCode: false,
   sidebarVisible: false,
+  // Disabled by default, so we don't waste tokens
+  alwaysSendFunctionResult: false,
 };
 
 export const key = "settings";
