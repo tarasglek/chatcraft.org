@@ -22,7 +22,7 @@ type MessagesViewProps = {
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
-  onPrompt: (prompt: string) => void;
+  onPrompt: (prompt?: string) => void;
 };
 
 function MessagesView({

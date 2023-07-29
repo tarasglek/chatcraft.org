@@ -20,7 +20,7 @@ type MessageProps = {
   chatId: string;
   isLoading: boolean;
   hidePreviews?: boolean;
-  onPrompt?: (prompt: string) => void;
+  onPrompt?: (prompt?: string) => void;
   onDeleteClick?: () => void;
   disableFork?: boolean;
   disableEdit?: boolean;
