@@ -21,6 +21,7 @@ import {
 import { LuFunctionSquare } from "react-icons/lu";
 import { useFetcher, useLoaderData } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
+import debounce from "lodash/debounce";
 
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
@@ -63,18 +64,15 @@ export default function Function() {
     return `${func.name}.js`;
   }, [func]);
 
-  const handleCodeChange = async (value: string) => {
+  // Update the function's code in the db, but not on every keystroke
+  const handleSave = debounce((value: string) => {
     if (!func) {
       return;
     }
 
-    try {
-      func.code = value;
-      await func.save();
-    } catch (err) {
-      console.warn(err);
-    }
-  };
+    func.code = value;
+    func.save().catch(console.warn);
+  }, 250);
 
   const handleToggleSidebarVisible = useCallback(() => {
     const newValue = !isSidebarVisible;
@@ -191,8 +189,8 @@ export default function Function() {
               <Card>
                 <CardBody>
                   <FunctionEditor
-                    value={func.code}
-                    onChange={handleCodeChange}
+                    initialValue={func.code}
+                    onChange={handleSave}
                     filename={filename}
                   />
                 </CardBody>

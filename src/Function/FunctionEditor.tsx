@@ -2,15 +2,25 @@ import { Box, useColorMode } from "@chakra-ui/react";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import CodeHeader from "../components/CodeHeader";
+import { useState } from "react";
 
 type FunctionEditorProps = {
-  value: string;
+  initialValue: string;
   onChange: (value: string) => void;
   filename?: string;
 };
 
-export default function FunctionEditor({ value, onChange, filename }: FunctionEditorProps) {
+export default function FunctionEditor({ initialValue, onChange, filename }: FunctionEditorProps) {
   const { colorMode } = useColorMode();
+  // Maintain our own version of the code, so typing doesn't depend on db syncing
+  const [value, setValue] = useState(initialValue);
+
+  const handleChange = (value: string) => {
+    // Update view immediately
+    setValue(value);
+    // Parent component can sync to db later (debounced)
+    onChange(value);
+  };
 
   return (
     <Box
@@ -39,7 +49,7 @@ export default function FunctionEditor({ value, onChange, filename }: FunctionEd
             height: "100%",
             marginTop: "-8px",
           }}
-          onChange={onChange}
+          onChange={handleChange}
         />
       </CodeHeader>
     </Box>
