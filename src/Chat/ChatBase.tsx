@@ -117,9 +117,11 @@ function ChatBase({ chat }: ChatBaseProps) {
       setLoading(true);
 
       try {
+        let promptMessage: ChatCraftHumanMessage | undefined;
         if (prompt) {
           // Add this prompt message to the chat
-          await chat.addMessage(new ChatCraftHumanMessage({ text: prompt, user }));
+          promptMessage = new ChatCraftHumanMessage({ text: prompt, user });
+          await chat.addMessage(promptMessage);
         }
 
         // In single-message-mode, trim messages to last few. Otherwise send all.
@@ -128,10 +130,21 @@ function ChatBase({ chat }: ChatBaseProps) {
         const messagesToSend = singleMessageMode ? [...messages].slice(-2) : messages;
 
         // If there are any functions mentioned in the chat (via @fn or @fn-url),
-        // pass those through to the LLM to use if necessary
+        // pass those through to the LLM to use if necessary.
         const functions = await chat.functions();
+
+        // If the user has specified a single function in this prompt, ask LLM to call it.
+        let functionToCall: ChatCraftFunction | undefined;
+        if (promptMessage && functions) {
+          const messageFunctions = await promptMessage.functions();
+          if (messageFunctions?.length === 1) {
+            functionToCall = messageFunctions[0];
+          }
+        }
+
         const response = await callChatApi(messagesToSend, {
           functions,
+          functionToCall,
         });
 
         // Add this response message to the chat
