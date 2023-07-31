@@ -21,7 +21,7 @@ import {
 import { LuFunctionSquare } from "react-icons/lu";
 import { useFetcher, useLoaderData } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
-import debounce from "lodash/debounce";
+import { debounce } from "lodash";
 
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
