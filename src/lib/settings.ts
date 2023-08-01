@@ -22,6 +22,7 @@ export type Settings = {
   countTokens: boolean;
   sidebarVisible: boolean;
   alwaysSendFunctionResult: boolean;
+  customSystemPrompt?: string;
 };
 
 export const defaults: Settings = {

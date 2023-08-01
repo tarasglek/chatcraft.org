@@ -21,6 +21,7 @@ export type ChatCraftMessageTable = {
   func?: FunctionCallParams | FunctionCallResult;
   text: string;
   versions?: { id: string; date: Date; model: string; text: string }[];
+  starred?: boolean;
 };
 
 export type SharedChatCraftChatTable = {
@@ -102,6 +103,10 @@ class ChatCraftDatabase extends Dexie {
     // Version 6 Migration - adds functions table, .func to chats table
     this.version(6).stores({
       functions: "id, date, name, description",
+    });
+    // Version 7 Migration - adds .starred to messages table
+    this.version(7).stores({
+      messages: "id, date, chatId, type, model, user, text, versions, starred",
     });
 
     this.chats = this.table("chats");
