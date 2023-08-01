@@ -364,13 +364,13 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
   }
 
   // Get a list of functions mentioned via @fn or fn-url from db or remote servers
-  async functions() {
+  async functions(onError?: (err: Error) => void) {
     // Extract all unique function names/urls from the message's text
     const fnNames: Set<string> = new Set();
     parseFunctionNames(this.text).forEach((fnName) => fnNames.add(fnName));
 
     // Load all functions by name/url into ChatCraftFunction objects
-    return loadFunctions([...fnNames]);
+    return loadFunctions([...fnNames], onError);
   }
 
   static fromJSON(message: SerializedChatCraftMessage) {

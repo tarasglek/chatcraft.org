@@ -105,7 +105,7 @@ export class ChatCraftChat {
   }
 
   // Get a list of functions mentioned via @fn or fn-url from db or remote servers
-  async functions() {
+  async functions(onError?: (err: Error) => void) {
     // We scan the entire set of human and system messages in the chat for functions
     const humanAndSystemMessages = this.messages({
       includeAppMessages: false,
@@ -119,7 +119,7 @@ export class ChatCraftChat {
     }
 
     // Load all functions by name/url into ChatCraftFunction objects
-    return loadFunctions([...fnNames]);
+    return loadFunctions([...fnNames], onError);
   }
 
   async tokens() {

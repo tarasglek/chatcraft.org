@@ -61,7 +61,7 @@ export const parseFunctionNames = (text: string) => {
  * and parse into ChatCraftFunction objects. Any function that can't be loaded
  * by name/URL will be skipped.
  */
-export const loadFunctions = async (fnNames: string[]) => {
+export const loadFunctions = async (fnNames: string[], onError?: (err: Error) => void) => {
   const fromDb = async (fnNames: string[]) => {
     const records = await db.functions
       .where("name")
@@ -75,6 +75,9 @@ export const loadFunctions = async (fnNames: string[]) => {
       urls.map((url) =>
         ChatCraftFunction.fromUrl(new URL(url)).catch((err) => {
           console.warn(`Unable to load remote function ${url}`, err);
+          if (onError) {
+            onError(new Error(`Unable to load remote function at ${url} (${err.message})`));
+          }
           return undefined;
         })
       )
