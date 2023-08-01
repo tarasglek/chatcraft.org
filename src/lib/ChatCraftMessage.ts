@@ -43,6 +43,7 @@ export type SerializedChatCraftMessage = {
   func?: FunctionCallParams | FunctionCallResult;
   text: string;
   versions?: { id: string; date: string; model: string; text: string }[];
+  starred?: boolean;
 };
 
 export class ChatCraftMessage {
@@ -394,18 +395,24 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
 }
 
 export class ChatCraftSystemMessage extends ChatCraftMessage {
+  starred?: boolean;
+
   constructor({
     id,
     date,
     text,
     readonly,
+    starred,
   }: {
     id?: string;
     date?: Date;
     text: string;
     readonly?: boolean;
+    starred?: boolean;
   }) {
     super({ id, date, type: "system", text, readonly });
+
+    this.starred = starred;
   }
 
   clone() {
@@ -420,7 +427,19 @@ export class ChatCraftSystemMessage extends ChatCraftMessage {
       date: new Date(message.date),
       text: message.text,
       readonly: true,
+      starred: message.starred,
     });
+  }
+
+  toDB(chatId: string): ChatCraftMessageTable {
+    return {
+      id: this.id,
+      date: this.date,
+      chatId,
+      type: this.type,
+      text: this.text,
+      starred: this.starred,
+    };
   }
 
   static fromDB(message: ChatCraftMessageTable) {
@@ -428,6 +447,7 @@ export class ChatCraftSystemMessage extends ChatCraftMessage {
       id: message.id,
       date: message.date,
       text: message.text,
+      starred: message.starred,
     });
   }
 }
