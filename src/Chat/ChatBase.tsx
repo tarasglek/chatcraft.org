@@ -129,14 +129,25 @@ function ChatBase({ chat }: ChatBaseProps) {
         const messages = chat.messages({ includeAppMessages: false, includeSystemMessages: true });
         const messagesToSend = singleMessageMode ? [...messages].slice(-2) : messages;
 
+        // If there's any problem loading referenced functions, show an error
+        const onError = (err: Error) => {
+          toast({
+            title: `Error Loading Function`,
+            description: err.message,
+            status: "error",
+            position: "top",
+            isClosable: true,
+          });
+        };
+
         // If there are any functions mentioned in the chat (via @fn or @fn-url),
         // pass those through to the LLM to use if necessary.
-        const functions = await chat.functions();
+        const functions = await chat.functions(onError);
 
         // If the user has specified a single function in this prompt, ask LLM to call it.
         let functionToCall: ChatCraftFunction | undefined;
         if (promptMessage && functions) {
-          const messageFunctions = await promptMessage.functions();
+          const messageFunctions = await promptMessage.functions(onError);
           if (messageFunctions?.length === 1) {
             functionToCall = messageFunctions[0];
           }
