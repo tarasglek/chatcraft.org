@@ -10,13 +10,14 @@ import { useCost } from "./use-cost";
 import { calculateTokenCost, chatWithLLM, countTokensInMessages } from "../lib/ai";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
+import { useAutoScroll } from "./use-autoscroll";
 
 const noop = () => {};
 
 function useChatOpenAI() {
   const { settings } = useSettings();
   const { incrementCost } = useCost();
-
+  const { incrementScrollProgress, resetScrollProgress, setShouldAutoScroll } = useAutoScroll();
   const [streamingMessage, setStreamingMessage] = useState<ChatCraftAiMessage>();
 
   const pauseRef = useRef<() => void>();
@@ -49,6 +50,8 @@ function useChatOpenAI() {
       // Later we'll replace it with the full response.
       const message = new ChatCraftAiMessage({ model, text: "" });
       setStreamingMessage(message);
+      setShouldAutoScroll(true);
+      resetScrollProgress();
 
       const chat = chatWithLLM(messages, {
         model,
@@ -70,6 +73,7 @@ function useChatOpenAI() {
                 text: currentText,
               })
             );
+            incrementScrollProgress();
           }
         },
       });
@@ -104,9 +108,19 @@ function useChatOpenAI() {
         .finally(() => {
           setStreamingMessage(undefined);
           setPaused(false);
+          resetScrollProgress();
+          setShouldAutoScroll(false);
         });
     },
-    [settings, pausedRef, setStreamingMessage, incrementCost]
+    [
+      settings,
+      pausedRef,
+      setShouldAutoScroll,
+      resetScrollProgress,
+      incrementScrollProgress,
+      setStreamingMessage,
+      incrementCost,
+    ]
   );
 
   return {

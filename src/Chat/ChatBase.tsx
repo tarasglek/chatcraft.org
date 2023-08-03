@@ -16,6 +16,7 @@ import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
 import ChatHeader from "./ChatHeader";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
+import { useAutoScroll } from "../hooks/use-autoscroll";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -33,7 +34,8 @@ function ChatBase({ chat }: ChatBaseProps) {
     defaultIsOpen: settings.sidebarVisible,
   });
   const [loading, setLoading] = useState(false);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const { scrollProgress, shouldAutoScroll, setShouldAutoScroll, scrollBottomRef } =
+    useAutoScroll();
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
@@ -60,18 +62,33 @@ function ChatBase({ chat }: ChatBaseProps) {
     setSettings({ ...settings, sidebarVisible: newValue });
   }, [isSidebarVisible, settings, setSettings, toggleSidebarVisible]);
 
-  // Auto scroll chat to bottom, but only if user isn't trying to scroll manually
-  // Also add a dependency on the streamingMessage, since its content (and therefore
-  // the height of messageList) will change while streaming, and the chat's date
-  // since we update that whenever the chat is re-saved to the db
+  // Auto scroll chat to bottom (or to bottom of element specified by scrollBottomRef),
+  // but only if user isn't trying to scroll manually. Also add a dependency on the
+  // scrollProgress, since it will increase as a response streams in. Also, use the
+  // chat's date, since we update that whenever the chat is re-saved to the db
   useEffect(() => {
-    if (messageListRef.current && shouldAutoScroll) {
-      const messageList = messageListRef.current;
+    const messageList = messageListRef.current;
+    if (!messageList) {
+      return;
+    }
+
+    if (!shouldAutoScroll) {
+      return;
+    }
+
+    const scrollBottom = scrollBottomRef.current;
+    if (scrollBottom) {
+      // Calculate the new "bottom" based on the scrollBottom element's position
+      const newBottom = scrollBottom.offsetTop + scrollBottom.offsetHeight;
+      messageList.scrollTop = newBottom - messageList.offsetHeight;
+    } else {
+      // Scroll to the bottom of the message list instead
       messageList.scrollTop = messageList.scrollHeight;
     }
-  }, [messageListRef, streamingMessage, shouldAutoScroll, chat.date]);
+  }, [messageListRef, scrollProgress, scrollBottomRef, shouldAutoScroll, chat.date]);
 
-  // Disable auto scroll when we're loading and the user scrolls up to read previous content
+  // Disable auto scroll when we're in the middle of streaming and the user scrolls
+  // up to read previous content.
   const handleScroll = useCallback(() => {
     const messageList = messageListRef.current;
     if (!messageList) {
@@ -79,25 +96,36 @@ function ChatBase({ chat }: ChatBaseProps) {
     }
 
     // We need a "fudge factor" here, or it constantly loses auto scroll
-    // as content streams in and the container is auto scroll in the
+    // as content streams in and the container is auto-scrolled in the
     // previous useEffect.
-    const scrollThreshold = 50;
-    const atBottom =
-      messageList.scrollTop + messageList.clientHeight >=
-      messageList.scrollHeight - scrollThreshold;
+    const scrollThreshold = 100;
+    const scrollBottom = scrollBottomRef.current;
+    let atBottom: boolean;
+    if (scrollBottom) {
+      // If scrollBottom exists, consider the user to be at the bottom if the bottom of
+      // the scrollBottom element is within the viewport
+      const scrollBottomBottom = scrollBottom.offsetTop + scrollBottom.offsetHeight;
+      atBottom =
+        messageList.scrollTop + messageList.clientHeight >= scrollBottomBottom - scrollThreshold;
+    } else {
+      // If scrollBottom doesn't exist, use the bottom of the message list
+      atBottom =
+        messageList.scrollTop + messageList.clientHeight >=
+        messageList.scrollHeight - scrollThreshold;
+    }
 
     // Disable auto scrolling if the user scrolls up
     // while messages are being streamed
-    if (loading && shouldAutoScroll && !atBottom) {
+    if (scrollProgress && shouldAutoScroll && !atBottom) {
       setShouldAutoScroll(false);
     }
 
     // Re-enable it if the user scrolls back to
     // the bottom while messages are streaming
-    if (loading && !shouldAutoScroll && atBottom) {
+    if (scrollProgress && !shouldAutoScroll && atBottom) {
       setShouldAutoScroll(true);
     }
-  }, [loading, shouldAutoScroll, setShouldAutoScroll, messageListRef]);
+  }, [scrollBottomRef, scrollProgress, shouldAutoScroll, setShouldAutoScroll, messageListRef]);
 
   // If the user manually scrolls, stop auto scrolling
   useEffect(() => {
@@ -113,7 +141,6 @@ function ChatBase({ chat }: ChatBaseProps) {
   // Handle prompt form submission
   const onPrompt = useCallback(
     async (prompt?: string) => {
-      setShouldAutoScroll(true);
       setLoading(true);
 
       try {
@@ -195,7 +222,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         console.error(err);
       } finally {
         setLoading(false);
-        setShouldAutoScroll(true);
+        setShouldAutoScroll(false);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -237,7 +264,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
           {
             /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
-            !shouldAutoScroll && (
+            scrollProgress && !shouldAutoScroll && (
               <Flex
                 w="100%"
                 maxW="900px"
