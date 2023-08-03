@@ -3,6 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import ChatBase from "./ChatBase";
+import { AutoScrollProvider } from "../hooks/use-autoscroll";
 
 // Load a chat from the database locally
 export default function LocalChat() {
@@ -13,6 +14,9 @@ export default function LocalChat() {
     }
   }, [chatId]);
 
-  // TODO: need some kind of error handling here if `chat` doesn't exist
-  return chat ? <ChatBase chat={chat} /> : null;
+  return chat ? (
+    <AutoScrollProvider>
+      <ChatBase chat={chat} />
+    </AutoScrollProvider>
+  ) : null;
 }

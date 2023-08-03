@@ -2,6 +2,7 @@ import { Box, Button, ButtonGroup } from "@chakra-ui/react";
 
 import { ChatCraftAiMessage } from "../../lib/ChatCraftMessage";
 import AiMessage from "./AiMessage";
+import { useAutoScroll } from "../../hooks/use-autoscroll";
 
 type NewMessageProps = {
   message: ChatCraftAiMessage;
@@ -12,6 +13,8 @@ type NewMessageProps = {
 };
 
 function NewMessage({ message, chatId, isPaused, onTogglePause, onCancel }: NewMessageProps) {
+  const { scrollBottomRef } = useAutoScroll();
+
   return (
     <>
       <AiMessage
@@ -23,7 +26,7 @@ function NewMessage({ message, chatId, isPaused, onTogglePause, onCancel }: NewM
         isLoading
         heading={message.model.prettyModel}
       />
-      <Box textAlign="center">
+      <Box textAlign="center" ref={scrollBottomRef}>
         <ButtonGroup>
           <Button variant="outline" size="xs" onClick={() => onCancel()}>
             Cancel
