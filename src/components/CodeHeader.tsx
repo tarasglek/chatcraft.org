@@ -67,12 +67,12 @@ function CodeHeader({
     let ret = undefined;
     try {
       // We're doing eval() here, but rollup doesn't like it, so use `new Function()`
-      const fn = new Function(code);
+      const fn = new Function(`return eval(${JSON.stringify(code)});`);
       let result = fn();
       if (result instanceof Promise) {
         result = await result;
       }
-      if (typeof result !== "string") {
+      if (result !== undefined && typeof result !== "string") {
         result = formatAsCodeBlock(JSON.stringify(result), "json");
       }
       // let js decide how to render the result
@@ -82,7 +82,9 @@ function CodeHeader({
         error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
       );
     }
-    onPrompt(ret);
+    if (ret !== undefined) {
+      onPrompt(ret);
+    }
   }, [onPrompt, code]);
 
   return (
