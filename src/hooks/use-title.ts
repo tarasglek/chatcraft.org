@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { useSettings } from "./use-settings";
 
 export default function useTitle(chat: ChatCraftChat) {
   const [title, setTitle] = useState("");
-  const { settings } = useSettings();
 
   useEffect(() => {
-    if (!settings.apiKey) {
-      setTitle("Please Enter API Key");
-    } else {
-      setTitle(chat.summary || "New Chat");
-    }
-  }, [chat.summary, settings.apiKey]);
+    setTitle(chat.summary || "New Chat");
+  }, [chat.summary]);
 
   // Update the window's title as well
   useEffect(() => {
