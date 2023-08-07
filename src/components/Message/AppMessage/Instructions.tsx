@@ -17,21 +17,56 @@ import { useSettings } from "../../../hooks/use-settings";
 import { openRouterPkceRedirect, validateOpenAiApiKey } from "../../../lib/ai";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../../../lib/settings";
 
-const ApiKeyInstructionsText = `Welcome to ChatCraft, a developer-focused AI assistant. I can help you write code, visualize it with mermaid, html and even run it. You can further refine code by editig, deleting and retrying model responses.
+const ApiKeyInstructionsText = `## Getting Started with ChatCraft
 
-ChatCraft executes within your browser and communicates directly with LLM API providers. **API keys are stored offline** in your
-browser's [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) and are never sent to our servers. You have the option to share your ChatCraft conversations, in which case conversation content will be uploaded to our servers.
+Welcome to ChatCraft, your open-source web companion for coding with Large Language Models (LLMs). Designed with developers in mind, ChatCraft transforms the way you interact with GPT models, making it effortless to read, write, debug, and enhance your code.
 
-ChatCraft is a **"Bring Your Own API Key"** web app. Before you can start chatting, you
-need to choose a provider and obtain a key with them:
-* [OpenAI](https://openai.com/) offers GPT models but throttles availability of newer models, better performance/uptime than 3rd-party proxies. Start experimenting with $5 in free credit that can be used during your first 3 months.
-* [OpenRouter.ai](https://openrouter.ai/docs). Offers OpenAI *GPT models, Anthropic Claude, Google Bard and open source free-to-use models. Has options to prepay, limit costs and offers free credit prior to requiring payment.
+Whether you're exploring new designs or learning about the latest technologies, ChatCraft is your go-to platform. With a user interface inspired by GitHub, and editable Markdown everywhere, you'll feel right at home from the get-go.
 
-Here's an example of what an OpenAI API Key looks like:
+We think ChatCraft is the best platform for learning, experimenting, and getting creative with code. Here's a few of the reasons why we think you'll agree:
 
-\`sk-tVqEo67MxnfAAPQ68iuVT#ClbkFJkUz4oUblcvyUUxrg4T0\`
- 
-Please choose your API provider and enter your API Key below.
+🛠️ **You're in Control**: Customize all aspects of a chat. Use your own System Prompts, edit, delete, and retry AI messages with models from competing vendors in the same chat.
+
+🌍 **Multiple AI Providers**: ChatCraft supports both OpenAI and OpenRouter, giving you access to a variety of vendors and models. You aren't limited to ChatGPT any more!
+
+💰 **Cost-effective**: With ChatCraft, you only pay for the calls to AI models you use, with no extra charges for the app or monthly subscription.
+
+🌐 **Browser-based**: No installation or server required! ChatCraft works seamlessly in your browser. Also, because it's the web, ChatCraft can render lots of content automatically, from syntax-highlighted source code to [Mermaid](https://mermaid.js.org/) diagrams to HTML!
+
+🔒 **Privacy-focused**: All chats are stored locally in a searchable database, ensuring your data stays private and secure.
+
+💾 **Export & Backup**: Easily download, copy, and export your chat data for safekeeping or further analysis. You aren't locked into anything.
+
+👩‍💻 **Familiar UI**: Designed with software developers in mind, ChatCraft's interface is inspired by GitHub, making it easy to navigate and use. Edit and format your chats using GitHub flavored Markdown.
+
+🔄 **Collaborative & Shareable**: Share your chats via public URLs, duplicate chats to explore new directions, and collaborate with others.
+
+🔧 **AI + Functions**: Write and execute custom functions, extending the power of LLM models. Functions can be written in ChatCraft itself or hosted remotely.
+
+🎉 **Open Source & Free**: ChatCraft is an open-source project, making it free for everyone to use and contribute to.
+
+## ChatCraft vs. ChatGPT, Copilot
+
+| Feature                               | ChatCraft | ChatGPT | Copilot |
+| ------------------------------------- |:---------:|:-------:|:-------:|
+| Optimized for conversations about code | ✅        | ❌      | ❌      |
+| Previews for Mermaid Diagrams, HTML   | ✅        | ❌      | ❌      |
+| Edit Generated Replies                | ✅        | ❌      | ✅      |
+| Easy to retry with different AI models| ✅        | ❌      | ❌      |
+| Just Show Me The Code                 | ✅        | ❌      | ✅      |
+| Edit/Run Generated Code               | ✅        | ❌      | ✅      |
+| Open Source                           | ✅        | ❌      | ❌      |
+
+## Quick Start
+
+You can begin using ChatCraft today by following these steps:
+1. Choose an **AI provider** below: we support both [OpenAI](https://openai.com/) and [OpenRouter](https://openrouter.ai/). OpenAI supports various versions of ChatGPT (\`gpt-3.5-turbo\`) and GPT-4 models, while OpenRouter adds support for even more models from vendors like Anthropic, Google, and Meta. It's easy to switch providers later, or go back-and-forth.
+3. Enter an **API Key**. ChatCraft is a _"bring your own API Key"_ web app. No matter which provider you choose, ChatCraft needs an API Key to start making API calls on your behalf. API Keys are never shared, and get stored in your browser's local storage.
+4. Start chatting with AI! Type your question in the textbox at the bottom of the screen and click the **Ask** button to prompt a particular model (switch to a different model whenever you like).
+5. Copy, edit, delete, or retry any AI response with a different model until you get the results you need.
+6. Every chat is saved to a local, offline database in your browser, which you can search (top of UI) or navigate by opening the sidebar with the hamburger menu in the top-left.
+
+Please choose your API provider and enter your API Key below to get started!
 `;
 
 function Instructions(props: MessageBaseProps) {
