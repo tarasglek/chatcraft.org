@@ -4,16 +4,17 @@ Thank you for considering contributing to ChatCraft.org! This document outlines 
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
-- [Running the Site](#running-the-site)
-- [Submitting Changes](#submitting-changes)
-- [Code Style](#code-style)
-- [Testing](#testing)
-- [Documentation](#documentation)
-- [Issue and Pull Request Guidelines](#issue-and-pull-request-guidelines)
-- [Community](#community)
-- [License](#license)
+- [Contributing to ChatCraft.org](#contributing-to-chatcraftorg)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+  - [Development Setup](#development-setup)
+  - [Running the Site](#running-the-site)
+  - [Submitting Changes](#submitting-changes)
+  - [Code Style](#code-style)
+  - [Documentation](#documentation)
+  - [Issue and Pull Request Guidelines](#issue-and-pull-request-guidelines)
+  - [Community](#community)
+  - [License](#license)
 
 ## Getting Started
 
@@ -30,7 +31,7 @@ To get started with contributing to ChatCraft.org, please make sure you have the
 4. Install the project dependencies by running the following command:
 
 ```bash
-   pnpm install
+pnpm install
 ```
 
 ## Running the Site
@@ -76,8 +77,3 @@ We welcome contributions from everyone in the community. If you have any questio
 ## License
 
 By contributing to ChatCraft.org, you agree that your contributions will be licensed under the [MIT License](https://opensource.org/licenses/MIT).
-
-```
-
-Feel free to customize this template to fit the specific needs and guidelines of your project.
-```
