@@ -59,6 +59,7 @@ We follow a specific code style to maintain consistency throughout the project. 
 - Follow the naming conventions used in the existing codebase.
 - Write clear and concise comments when necessary.
 - Keep lines of code within 80 characters.
+- use `prettier` via VSCode or run the `prettier` script to auto-format. We also format on commit with Husky.
 
 ## Documentation
 
