@@ -183,7 +183,7 @@ function MessageBase({
       onMouseLeave={() => setIsHovering(false)}
     >
       <Card>
-        <CardHeader p={0} py={1} pr={1}>
+        <CardHeader p={0} pt={3} pb={2} pr={1}>
           <Flex justify="space-between" align="center" ml={5} mr={2}>
             <Flex gap={3}>
               <Box>{avatar}</Box>
