@@ -264,7 +264,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
           {
             /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
-            scrollProgress && !shouldAutoScroll && (
+            !!scrollProgress && !shouldAutoScroll && (
               <Flex
                 w="100%"
                 maxW="900px"
