@@ -160,6 +160,57 @@ export class ChatCraftChat {
     return this.save();
   }
 
+  // Remove all messages in the chat *before* the message with the given id,
+  // keeping only the system message.
+  async removeMessagesBefore(id: string) {
+    if (this.readonly) {
+      return;
+    }
+
+    const anchorIndex = this._messages.findIndex((m) => m.id === id);
+    if (anchorIndex === -1) {
+      console.warn(`No such message at id ${id} in current chat, unable to delete messages`);
+      return;
+    }
+
+    let messagesToDelete = this._messages.slice(0, anchorIndex);
+    // See if we need to keep the first message (i.e., if it's a system message)
+    if (messagesToDelete[0] instanceof ChatCraftSystemMessage) {
+      messagesToDelete = messagesToDelete.slice(1);
+    }
+
+    // Remove these messages from db
+    const idsToDelete = messagesToDelete.map((m) => m.id);
+    await db.messages.bulkDelete(idsToDelete);
+
+    // Remove these messages from chat and save
+    this._messages = this._messages.filter((m) => !idsToDelete.includes(m.id));
+    return this.save();
+  }
+
+  // Remove all messages in the chat *after* the message with the given id
+  async removeMessagesAfter(id: string) {
+    if (this.readonly) {
+      return;
+    }
+
+    const anchorIndex = this._messages.findIndex((m) => m.id === id);
+    if (anchorIndex === -1) {
+      console.warn(`No such message at id ${id} in current chat, unable to delete messages`);
+      return;
+    }
+
+    const messagesToDelete = this._messages.slice(anchorIndex + 1);
+
+    // Remove these messages from db
+    const idsToDelete = messagesToDelete.map((m) => m.id);
+    await db.messages.bulkDelete(idsToDelete);
+
+    // Remove these messages from chat and save
+    this._messages = this._messages.filter((m) => !idsToDelete.includes(m.id));
+    return this.save();
+  }
+
   async resetMessages() {
     if (this.readonly) {
       return;

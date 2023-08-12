@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo } from "react";
-import { Box, useColorMode } from "@chakra-ui/react";
+import { Box, useColorMode, useToast } from "@chakra-ui/react";
 import mermaid from "mermaid";
 
 import Message from "./Message";
@@ -11,10 +11,10 @@ import {
   ChatCraftSystemMessage,
 } from "../lib/ChatCraftMessage";
 import { useSettings } from "../hooks/use-settings";
+import { ChatCraftChat } from "../lib/ChatCraftChat";
 
 type MessagesViewProps = {
-  messages: ChatCraftMessage[];
-  chatId: string;
+  chat: ChatCraftChat;
   newMessage?: ChatCraftAiMessage;
   isLoading: boolean;
   onRemoveMessage: (message: ChatCraftMessage) => void;
@@ -26,8 +26,7 @@ type MessagesViewProps = {
 };
 
 function MessagesView({
-  messages,
-  chatId,
+  chat,
   newMessage,
   isLoading,
   onRemoveMessage,
@@ -39,6 +38,9 @@ function MessagesView({
 }: MessagesViewProps) {
   const { colorMode } = useColorMode();
   const { settings } = useSettings();
+  const toast = useToast();
+  const messages = chat.messages();
+  const chatId = chat.id;
 
   // Make sure that any Mermaid diagrams use the same light/dark theme as rest of app.
   // Use a layout effect vs. regular effect so it happens after DOM is ready.
@@ -52,6 +54,27 @@ function MessagesView({
 
   // Memoize the onRemoveMessage callback to reduce re-renders
   const memoizedOnRemoveMessage = useCallback(onRemoveMessage, [onRemoveMessage]);
+
+  const deleteMessages = useCallback(
+    async (messageId: string, direction: "after" | "before") => {
+      try {
+        if (direction === "before") {
+          await chat.removeMessagesBefore(messageId);
+        } else {
+          await chat.removeMessagesAfter(messageId);
+        }
+      } catch (err: any) {
+        toast({
+          title: `Error Deleting Messages`,
+          description: err.message,
+          status: "error",
+          position: "top",
+          isClosable: true,
+        });
+      }
+    },
+    [chat, toast]
+  );
 
   // Memoize the previous messages so we don't have to update when newMessage changes
   const prevMessages = useMemo(() => {
@@ -83,16 +106,28 @@ function MessagesView({
     }
 
     // OK to show them all
-    return messages.map((message) => (
-      <Message
-        key={message.id}
-        message={message}
-        chatId={chatId}
-        isLoading={isLoading}
-        onDeleteClick={() => memoizedOnRemoveMessage(message)}
-        onPrompt={onPrompt}
-      />
-    ));
+    return messages.map((message, idx, arr) => {
+      // Figure out if we can remove messages before/after this
+      const hasMessagesBefore = idx >= 2;
+      const hasMessagesAfter = idx < arr.length - 1;
+
+      return (
+        <Message
+          key={message.id}
+          message={message}
+          chatId={chatId}
+          isLoading={isLoading}
+          onDeleteBeforeClick={
+            hasMessagesBefore ? () => deleteMessages(message.id, "before") : undefined
+          }
+          onDeleteClick={() => memoizedOnRemoveMessage(message)}
+          onDeleteAfterClick={
+            hasMessagesAfter ? () => deleteMessages(message.id, "after") : undefined
+          }
+          onPrompt={onPrompt}
+        />
+      );
+    });
   }, [
     messages,
     settings.apiKey,
@@ -101,6 +136,7 @@ function MessagesView({
     onPrompt,
     isLoading,
     memoizedOnRemoveMessage,
+    deleteMessages,
   ]);
 
   const instructions = useMemo(() => {
