@@ -287,8 +287,7 @@ function ChatBase({ chat }: ChatBaseProps) {
           <ScrollRestoration />
 
           <MessagesView
-            messages={chat.messages()}
-            chatId={chat.id}
+            chat={chat}
             newMessage={streamingMessage}
             isLoading={loading}
             onRemoveMessage={(message) => chat.removeMessage(message.id)}

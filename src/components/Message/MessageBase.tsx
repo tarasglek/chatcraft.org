@@ -56,7 +56,9 @@ export interface MessageBaseProps {
   isLoading: boolean;
   hidePreviews?: boolean;
   onPrompt?: (prompt?: string) => void;
+  onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;
+  onDeleteAfterClick?: () => void;
   onRetryClick?: (model: ChatCraftModel) => void;
   disableFork?: boolean;
   disableEdit?: boolean;
@@ -74,7 +76,9 @@ function MessageBase({
   footer,
   isLoading,
   hidePreviews,
+  onDeleteBeforeClick,
   onDeleteClick,
+  onDeleteAfterClick,
   onPrompt,
   onRetryClick,
   disableFork,
@@ -277,9 +281,19 @@ function MessageBase({
                       {editing ? "Cancel Editing" : "Edit"}
                     </MenuItem>
                   )}
+                  {onDeleteBeforeClick && (
+                    <MenuItem onClick={() => onDeleteBeforeClick()} color="red.400">
+                      Delete Messages Before
+                    </MenuItem>
+                  )}
                   {onDeleteClick && (
                     <MenuItem onClick={() => onDeleteClick()} color="red.400">
-                      Delete
+                      Delete Message
+                    </MenuItem>
+                  )}
+                  {onDeleteAfterClick && (
+                    <MenuItem onClick={() => onDeleteAfterClick()} color="red.400">
+                      Delete Messages After
                     </MenuItem>
                   )}
                 </MenuList>

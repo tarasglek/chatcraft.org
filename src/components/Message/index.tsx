@@ -21,7 +21,9 @@ type MessageProps = {
   isLoading: boolean;
   hidePreviews?: boolean;
   onPrompt?: (prompt?: string) => void;
+  onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;
+  onDeleteAfterClick?: () => void;
   disableFork?: boolean;
   disableEdit?: boolean;
 };
@@ -31,7 +33,9 @@ function Message({
   chatId,
   isLoading,
   hidePreviews,
+  onDeleteBeforeClick,
   onDeleteClick,
+  onDeleteAfterClick,
   onPrompt,
   disableFork,
   disableEdit,
@@ -55,7 +59,9 @@ function Message({
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
+        onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
+        onDeleteAfterClick={onDeleteAfterClick}
         disableFork={disableFork}
         disableEdit={message.readonly && disableEdit}
       />
@@ -75,7 +81,9 @@ function Message({
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
+        onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
+        onDeleteAfterClick={onDeleteAfterClick}
         disableFork={disableFork}
         disableEdit={message.readonly && disableEdit}
       />
@@ -92,7 +100,9 @@ function Message({
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
+        onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
+        onDeleteAfterClick={onDeleteAfterClick}
         disableFork={true}
         disableEdit={message.readonly && disableEdit}
       />
@@ -109,7 +119,9 @@ function Message({
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
+        /* We can't delete anything before the system message, since it's first */
         onDeleteClick={onDeleteClick}
+        onDeleteAfterClick={onDeleteAfterClick}
       />
     );
   }
@@ -124,7 +136,9 @@ function Message({
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
+        onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
+        onDeleteAfterClick={onDeleteAfterClick}
       />
     );
   }
@@ -139,7 +153,9 @@ function Message({
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
+        onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
+        onDeleteAfterClick={onDeleteAfterClick}
       />
     );
   }
