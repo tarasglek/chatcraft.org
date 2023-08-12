@@ -18,6 +18,7 @@ import ChatHeader from "./ChatHeader";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import { useAutoScroll } from "../hooks/use-autoscroll";
 import { useAlert } from "../hooks/use-alert";
+import { ChatCraftCommandRegistry } from "../lib/commands";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -60,17 +61,10 @@ function ChatBase({ chat }: ChatBaseProps) {
     setSettings({ ...settings, sidebarVisible: newValue });
   }, [isSidebarVisible, settings, setSettings, toggleSidebarVisible]);
 
-  // Auto scroll chat to bottom (or to bottom of element specified by scrollBottomRef),
-  // but only if user isn't trying to scroll manually. Also add a dependency on the
-  // scrollProgress, since it will increase as a response streams in. Also, use the
-  // chat's date, since we update that whenever the chat is re-saved to the db
-  useEffect(() => {
+  // Scroll chat to bottom (or to bottom of element specified by scrollBottomRef),
+  const forceScroll = useCallback(() => {
     const messageList = messageListRef.current;
     if (!messageList) {
-      return;
-    }
-
-    if (!shouldAutoScroll) {
       return;
     }
 
@@ -83,7 +77,19 @@ function ChatBase({ chat }: ChatBaseProps) {
       // Scroll to the bottom of the message list instead
       messageList.scrollTop = messageList.scrollHeight;
     }
-  }, [messageListRef, scrollProgress, scrollBottomRef, shouldAutoScroll, chat.date]);
+  }, [messageListRef, scrollBottomRef]);
+
+  // Auto-scroll chat to bottom, but only if user isn't trying to scroll manually.
+  // Also add a dependency on the scrollProgress, since it will increase as a
+  // response streams in. Also, use the chat's date, since we update that whenever
+  // the chat is re-saved to the db
+  useEffect(() => {
+    if (!shouldAutoScroll) {
+      return;
+    }
+
+    forceScroll();
+  }, [forceScroll, scrollProgress, shouldAutoScroll, chat.date]);
 
   // Disable auto scroll when we're in the middle of streaming and the user scrolls
   // up to read previous content.
@@ -141,6 +147,41 @@ function ChatBase({ chat }: ChatBaseProps) {
     async (prompt?: string) => {
       setLoading(true);
 
+      // Special-case for "help", to invoke /help command
+      if (prompt?.toLowerCase() === "help") {
+        prompt = "/help";
+      }
+
+      // If this is a slash command, execute that instead of prompting LLM
+      if (prompt && ChatCraftCommandRegistry.isCommand(prompt)) {
+        const commandFunction = ChatCraftCommandRegistry.getCommand(prompt);
+        if (commandFunction) {
+          setShouldAutoScroll(true);
+          try {
+            await commandFunction(chat, user);
+            forceScroll();
+          } catch (err: any) {
+            error({
+              title: `Error Running Command`,
+              message: `There was an error running the command: ${err.message}.`,
+            });
+          }
+        } else {
+          error({
+            title: `Unknown Command`,
+            message: `Command not recognized. Use /help to get help on valid commands.`,
+          });
+
+          console.log("TODO: show help");
+          // The input was a command, but not a recognized one.
+          // Handle this case as appropriate for your application.
+        }
+
+        setLoading(false);
+        return;
+      }
+
+      // Not a slash command, so pass this prompt to LLM
       try {
         let promptMessage: ChatCraftHumanMessage | undefined;
         if (prompt) {
@@ -200,8 +241,10 @@ function ChatBase({ chat }: ChatBaseProps) {
 
           // If the user has opted to always send function results back to LLM, do it now
           if (settings.alwaysSendFunctionResult) {
-            onPrompt();
+            await onPrompt();
           }
+
+          forceScroll();
         }
       } catch (err: any) {
         error({
