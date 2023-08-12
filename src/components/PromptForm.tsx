@@ -200,7 +200,7 @@ function PromptForm({
                     _dark={{ bg: "gray.700" }}
                     placeholder={
                       !isLoading
-                        ? "Type your question. Include @fn:name or @fn-url:https://... to call functions"
+                        ? "Type your question or use /help for more information"
                         : undefined
                     }
                     overflowY="auto"
@@ -217,7 +217,7 @@ function PromptForm({
                     _dark={{ bg: "gray.700" }}
                     placeholder={
                       !isLoading
-                        ? "Type your question. Include @fn:name or @fn-url:https://... to call functions"
+                        ? "Type your question or use /help for more information"
                         : undefined
                     }
                     overflowY="auto"

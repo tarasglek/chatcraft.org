@@ -4,6 +4,7 @@ import { Avatar } from "@chakra-ui/react";
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
 import Instructions from "./Instructions";
+import Help from "./Help";
 
 type AppMessageProps = Omit<MessageBaseProps, "avatar">;
 
@@ -31,6 +32,12 @@ function AppMessage(props: AppMessageProps) {
         disableFork={true}
         disableEdit={true}
       />
+    );
+  }
+
+  if (ChatCraftAppMessage.isHelp(message)) {
+    return (
+      <Help {...props} avatar={avatar} heading={heading} disableFork={true} disableEdit={true} />
     );
   }
 
