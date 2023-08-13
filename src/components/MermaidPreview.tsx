@@ -1,8 +1,9 @@
 import { memo, useCallback, useEffect, useRef } from "react";
-import { Card, CardBody, IconButton, useClipboard, useToast } from "@chakra-ui/react";
+import { Card, CardBody, IconButton, useClipboard } from "@chakra-ui/react";
 import mermaid from "mermaid";
 import { TbCopy } from "react-icons/tb";
 import { nanoid } from "nanoid";
+import { useAlert } from "../hooks/use-alert";
 
 type MermaidPreviewProps = {
   children: React.ReactNode & React.ReactNode[];
@@ -10,21 +11,17 @@ type MermaidPreviewProps = {
 
 const MermaidPreview = ({ children }: MermaidPreviewProps) => {
   const { onCopy, value, setValue } = useClipboard("");
-  const toast = useToast();
+  const { info } = useAlert();
   const diagramRef = useRef<HTMLDivElement | null>(null);
   const code = String(children);
 
   const handleCopy = useCallback(() => {
     onCopy();
-    toast({
+    info({
       title: "Copied to Clipboard",
-      description: "Mermaid SVG diagram was copied to your clipboard.",
-      status: "info",
-      duration: 3000,
-      position: "top",
-      isClosable: true,
+      message: "Mermaid SVG diagram was copied to your clipboard.",
     });
-  }, [onCopy, toast]);
+  }, [onCopy, info]);
 
   // Render the diagram as an SVG into our card's body
   useEffect(() => {

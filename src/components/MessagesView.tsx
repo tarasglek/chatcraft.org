@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo } from "react";
-import { Box, useColorMode, useToast } from "@chakra-ui/react";
+import { Box, useColorMode } from "@chakra-ui/react";
 import mermaid from "mermaid";
 
 import Message from "./Message";
@@ -12,6 +12,7 @@ import {
 } from "../lib/ChatCraftMessage";
 import { useSettings } from "../hooks/use-settings";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
+import { useAlert } from "../hooks/use-alert";
 
 type MessagesViewProps = {
   chat: ChatCraftChat;
@@ -38,7 +39,7 @@ function MessagesView({
 }: MessagesViewProps) {
   const { colorMode } = useColorMode();
   const { settings } = useSettings();
-  const toast = useToast();
+  const { error } = useAlert();
   const messages = chat.messages();
   const chatId = chat.id;
 
@@ -64,16 +65,13 @@ function MessagesView({
           await chat.removeMessagesAfter(messageId);
         }
       } catch (err: any) {
-        toast({
+        error({
           title: `Error Deleting Messages`,
-          description: err.message,
-          status: "error",
-          position: "top",
-          isClosable: true,
+          message: err.message,
         });
       }
     },
-    [chat, toast]
+    [chat, error]
   );
 
   // Memoize the previous messages so we don't have to update when newMessage changes

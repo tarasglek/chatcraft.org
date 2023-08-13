@@ -21,7 +21,6 @@ import {
   Textarea,
   VStack,
   useClipboard,
-  useToast,
 } from "@chakra-ui/react";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
@@ -42,6 +41,7 @@ import { ChatCraftModel } from "../../lib/ChatCraftModel";
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 import { useSettings } from "../../hooks/use-settings";
+import { useAlert } from "../../hooks/use-alert";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -87,7 +87,7 @@ function MessageBase({
   const { id, date, text } = message;
   const { models } = useModels();
   const { onCopy } = useClipboard(text);
-  const toast = useToast();
+  const { info, error } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
   const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
@@ -100,27 +100,19 @@ function MessageBase({
 
   const handleCopy = useCallback(() => {
     onCopy();
-    toast({
+    info({
       title: "Copied to Clipboard",
-      description: "Message text was copied to your clipboard.",
-      status: "info",
-      duration: 3000,
-      position: "top",
-      isClosable: true,
+      message: "Message text was copied to your clipboard.",
     });
-  }, [onCopy, toast]);
+  }, [onCopy, info]);
 
   const handleDownload = useCallback(() => {
     download(text, "message.md");
-    toast({
+    info({
       title: "Downloaded",
-      description: "Message was downloaded as a file",
-      status: "info",
-      duration: 3000,
-      position: "top",
-      isClosable: true,
+      message: "Message was downloaded as a file",
     });
-  }, [toast, text]);
+  }, [info, text]);
 
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
@@ -148,12 +140,9 @@ function MessageBase({
           .save(chatId)
           .catch((err) => {
             console.warn("Unable to update message", err);
-            toast({
+            error({
               title: `Error Updating Message`,
-              description: "message" in err ? err.message : undefined,
-              status: "error",
-              position: "top",
-              isClosable: true,
+              message: err.message,
             });
           })
           .finally(() => onEditingChange(false));
@@ -164,18 +153,15 @@ function MessageBase({
           .save(chatId)
           .catch((err) => {
             console.warn("Unable to update message", err);
-            toast({
+            error({
               title: `Error Updating Message`,
-              description: "message" in err ? err.message : undefined,
-              status: "error",
-              position: "top",
-              isClosable: true,
+              message: err.message,
             });
           })
           .finally(() => onEditingChange(false));
       }
     },
-    [message, toast, chatId, onEditingChange]
+    [message, error, chatId, onEditingChange]
   );
 
   return (

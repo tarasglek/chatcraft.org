@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Button, Flex, Text, useDisclosure, useToast, Grid, GridItem } from "@chakra-ui/react";
+import { Box, Button, Flex, Text, useDisclosure, Grid, GridItem } from "@chakra-ui/react";
 import { ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
 
@@ -17,6 +17,7 @@ import { useModels } from "../hooks/use-models";
 import ChatHeader from "./ChatHeader";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import { useAutoScroll } from "../hooks/use-autoscroll";
+import { useAlert } from "../hooks/use-alert";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -38,23 +39,20 @@ function ChatBase({ chat }: ChatBaseProps) {
     useAutoScroll();
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
-  const toast = useToast();
+  const { error } = useAlert();
   const { user } = useUser();
 
   // If we can't load models, it's a bad sign for API connectivity.
   // Show an error so the user is aware.
   useEffect(() => {
     if (apiError) {
-      toast({
+      error({
         id: "api-error",
         title: `Error Updating Message to Version`,
-        description: apiError.message,
-        status: "error",
-        position: "top",
-        isClosable: true,
+        message: apiError.message,
       });
     }
-  }, [apiError, toast]);
+  }, [apiError, error]);
 
   const handleToggleSidebarVisible = useCallback(() => {
     const newValue = !isSidebarVisible;
@@ -158,12 +156,9 @@ function ChatBase({ chat }: ChatBaseProps) {
 
         // If there's any problem loading referenced functions, show an error
         const onError = (err: Error) => {
-          toast({
+          error({
             title: `Error Loading Function`,
-            description: err.message,
-            status: "error",
-            position: "top",
-            isClosable: true,
+            message: err.message,
           });
         };
 
@@ -192,12 +187,9 @@ function ChatBase({ chat }: ChatBaseProps) {
         if (response instanceof ChatCraftFunctionCallMessage) {
           const func = await ChatCraftFunction.find(response.func.id);
           if (!func) {
-            toast({
+            error({
               title: `Function Error`,
-              description: `No such function: ${response.func.name} (${response.func.id}`,
-              status: "error",
-              position: "top",
-              isClosable: true,
+              message: `No such function: ${response.func.name} (${response.func.id}`,
             });
             return;
           }
@@ -212,12 +204,9 @@ function ChatBase({ chat }: ChatBaseProps) {
           }
         }
       } catch (err: any) {
-        toast({
+        error({
           title: `Response Error`,
-          description: "message" in err ? err.message : undefined,
-          status: "error",
-          position: "top",
-          isClosable: true,
+          message: err.message,
         });
         console.error(err);
       } finally {
@@ -226,7 +215,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, chat, singleMessageMode, setLoading, setShouldAutoScroll, callChatApi, toast]
+    [user, chat, singleMessageMode, setLoading, setShouldAutoScroll, callChatApi, error]
   );
 
   // Restart auto-scrolling and resume a paused response when Follow Chat is clicked
