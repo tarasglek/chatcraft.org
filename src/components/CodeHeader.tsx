@@ -3,7 +3,6 @@ import {
   Flex,
   ButtonGroup,
   IconButton,
-  useToast,
   useClipboard,
   useColorModeValue,
   Text,
@@ -12,6 +11,7 @@ import {
 import { TbCopy, TbDownload, TbRun } from "react-icons/tb";
 
 import { download, formatAsCodeBlock } from "../lib/utils";
+import { useAlert } from "../hooks/use-alert";
 
 type PreHeaderProps = {
   language: string;
@@ -31,33 +31,25 @@ function CodeHeader({
   codeDownloadFilename,
 }: PreHeaderProps) {
   const { onCopy } = useClipboard(code);
-  const toast = useToast();
+  const { info } = useAlert();
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
   const shouldShowRunButton = (language === "js" || language === "javascript") && onPrompt;
 
   const handleCopy = useCallback(() => {
     onCopy();
-    toast({
+    info({
       title: "Copied to Clipboard",
-      description: "Code was copied to your clipboard.",
-      status: "info",
-      duration: 3000,
-      position: "top",
-      isClosable: true,
+      message: "Code was copied to your clipboard.",
     });
-  }, [onCopy, toast]);
+  }, [onCopy, info]);
 
   const handleDownload = useCallback(() => {
     download(code, codeDownloadFilename ?? "code.txt");
-    toast({
+    info({
       title: "Downloaded",
-      description: "Code was downloaded as a file",
-      status: "info",
-      duration: 3000,
-      position: "top",
-      isClosable: true,
+      message: "Code was downloaded as a file",
     });
-  }, [toast, code, codeDownloadFilename]);
+  }, [info, code, codeDownloadFilename]);
 
   const handleRun = useCallback(async () => {
     if (!onPrompt) {

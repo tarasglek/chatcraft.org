@@ -1,14 +1,5 @@
 import { memo, useCallback, useEffect, useState } from "react";
-import {
-  Box,
-  HStack,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  useToast,
-} from "@chakra-ui/react";
+import { Box, HStack, IconButton, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 import { TbChevronDown } from "react-icons/tb";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
@@ -20,6 +11,7 @@ import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import useChatOpenAI from "../../hooks/use-chat-openai";
 import NewMessage from "./NewMessage";
 import ModelAvatar from "../ModelAvatar";
+import { useAlert } from "../../hooks/use-alert";
 
 // If there are multiple versions in an AI message, add some UI to switch between them
 function MessageVersionsMenu({
@@ -31,7 +23,7 @@ function MessageVersionsMenu({
   chatId: string;
   isDisabled: boolean;
 }) {
-  const toast = useToast();
+  const { error } = useAlert();
   const { versions } = message;
   if (versions?.length <= 1) {
     return null;
@@ -41,12 +33,9 @@ function MessageVersionsMenu({
     message.switchVersion(versionId);
     message.save(chatId).catch((err) => {
       console.warn("Unable to switch versions", err);
-      toast({
+      error({
         title: `Error Updating Message to Version`,
-        description: "message" in err ? err.message : undefined,
-        status: "error",
-        position: "top",
-        isClosable: true,
+        message: err.message,
       });
     });
   };

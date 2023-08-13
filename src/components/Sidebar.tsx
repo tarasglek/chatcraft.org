@@ -12,7 +12,6 @@ import {
   useColorModeValue,
   IconButton,
   ButtonGroup,
-  useToast,
   Input,
   Divider,
 } from "@chakra-ui/react";
@@ -31,6 +30,7 @@ import { formatDate, formatNumber } from "../lib/utils";
 import { SharedChatCraftChat } from "../lib/SharedChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
+import { useAlert } from "../hooks/use-alert";
 
 /**
  * Chat Sidebar Items
@@ -53,7 +53,7 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
     isSelected ? "gray.300" : "gray.100",
     isSelected ? "gray.900" : "gray.600"
   );
-  const toast = useToast();
+  const { error } = useAlert();
   const [isEditing, setIsEditing] = useState(false);
   useKey("Escape", () => setIsEditing(false), { event: "keydown" }, [setIsEditing]);
   const selectedRef = useRef<HTMLDivElement>(null);
@@ -86,12 +86,9 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
       .save()
       .catch((err) => {
         console.warn("Unable to update summary for chat", err);
-        toast({
+        error({
           title: `Error Updating Chat`,
-          description: "message" in err ? err.message : undefined,
-          status: "error",
-          position: "top",
-          isClosable: true,
+          message: err.message,
         });
       })
       .finally(() => setIsEditing(false));

@@ -22,7 +22,6 @@ import {
   Checkbox,
   Link,
   ButtonGroup,
-  useToast,
   FormErrorMessage,
 } from "@chakra-ui/react";
 import { exportDB, importDB } from "dexie-export-import";
@@ -35,6 +34,7 @@ import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
 import { openRouterPkceRedirect, validateOpenAiApiKey } from "../lib/ai";
+import { useAlert } from "../hooks/use-alert";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -58,7 +58,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const [, copyToClipboard] = useCopyToClipboard();
   // Whether our db is being persisted
   const [isPersisted, setIsPersisted] = useState(false);
-  const toast = useToast();
+  const { info, error } = useAlert();
   const inputRef = useRef<HTMLInputElement>(null);
   const provider = settings.apiUrl === OPENAI_API_URL ? "OpenAI" : "OpenRouter.ai";
   const [isApiKeyInvalid, setIsApiKeyInvalid] = useState(false);
@@ -99,16 +99,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     async function () {
       const blob = await exportDB(db);
       download(blob, "chatcraft-db.json", "application/json");
-      toast({
+      info({
         title: "Downloaded",
-        description: "Message was downloaded as a file",
-        status: "info",
-        duration: 3000,
-        position: "top",
-        isClosable: true,
+        message: "Message was downloaded as a file",
       });
     },
-    [toast]
+    [info]
   );
 
   const handleFileChange = useCallback(
@@ -120,31 +116,23 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
           const blob = new Blob([new Uint8Array(reader.result as ArrayBuffer)]);
           importDB(blob)
             .then(() => {
-              toast({
+              info({
                 title: "Database Import",
-                description: "Database imported successfully. You may need to refresh.",
-                status: "info",
-                duration: 3000,
-                position: "top",
-                isClosable: true,
+                message: "Database imported successfully. You may need to refresh.",
               });
             })
             .catch((err) => {
               console.warn("Error importing db", err);
-              toast({
+              error({
                 title: "Database Import",
-                description: "Unable to import database",
-                status: "error",
-                duration: 3000,
-                position: "top",
-                isClosable: true,
+                message: "Unable to import database. See Console for more details.",
               });
             });
         };
         reader.readAsArrayBuffer(file);
       }
     },
-    [toast]
+    [error, info]
   );
 
   const handleImportClick = useCallback(

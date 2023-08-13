@@ -16,7 +16,6 @@ import {
   MenuItem,
   MenuDivider,
   CardFooter,
-  useToast,
 } from "@chakra-ui/react";
 import { LuFunctionSquare } from "react-icons/lu";
 import { useFetcher, useLoaderData } from "react-router-dom";
@@ -31,10 +30,11 @@ import FunctionEditor from "./FunctionEditor";
 import { TbDots } from "react-icons/tb";
 import { download, formatDate } from "../lib/utils";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useAlert } from "../hooks/use-alert";
 
 export default function Function() {
   const [, copyToClipboard] = useCopyToClipboard();
-  const toast = useToast();
+  const { info } = useAlert();
   const fetcher = useFetcher();
 
   const funcId = useLoaderData() as string;
@@ -87,24 +87,16 @@ export default function Function() {
   const handleCopyFunctionClick = () => {
     const text = func.code;
     copyToClipboard(text);
-    toast({
-      colorScheme: "blue",
+    info({
       title: "Function copied to clipboard",
-      status: "success",
-      position: "top",
-      isClosable: true,
     });
   };
 
   const handleDownloadFunctionClick = () => {
     const text = func.code;
     download(text, filename, "text/javascript");
-    toast({
-      colorScheme: "blue",
+    info({
       title: "Function downloaded",
-      status: "success",
-      position: "top",
-      isClosable: true,
     });
   };
 

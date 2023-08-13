@@ -18,7 +18,6 @@ import {
   Tag,
   Text,
   useDisclosure,
-  useToast,
 } from "@chakra-ui/react";
 import { Link as ReactRouterLink, useFetcher } from "react-router-dom";
 import { MdOutlineChatBubbleOutline } from "react-icons/md";
@@ -31,6 +30,7 @@ import { download, formatDate, formatNumber } from "../lib/utils";
 import ShareModal from "../components/ShareModal";
 import { useSettings } from "../hooks/use-settings";
 import useTitle from "../hooks/use-title";
+import { useAlert } from "../hooks/use-alert";
 
 type ChatHeaderProps = {
   chat: ChatCraftChat;
@@ -38,7 +38,7 @@ type ChatHeaderProps = {
 
 function ChatHeader({ chat }: ChatHeaderProps) {
   const [, copyToClipboard] = useCopyToClipboard();
-  const toast = useToast();
+  const { info, error } = useAlert();
   const fetcher = useFetcher();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [tokens, setTokens] = useState<number | null>(null);
@@ -61,24 +61,16 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   const handleCopyChatClick = () => {
     const text = chat.toMarkdown();
     copyToClipboard(text);
-    toast({
-      colorScheme: "blue",
+    info({
       title: "Chat copied to clipboard",
-      status: "success",
-      position: "top",
-      isClosable: true,
     });
   };
 
   const handleDownloadClick = () => {
     const text = chat.toMarkdown();
     download(text, "chat.md", "text/markdown");
-    toast({
-      colorScheme: "blue",
+    info({
       title: "Chat downloaded as Markdown",
-      status: "success",
-      position: "top",
-      isClosable: true,
     });
   };
 
@@ -100,12 +92,9 @@ function ChatHeader({ chat }: ChatHeaderProps) {
       .save()
       .catch((err) => {
         console.warn("Unable to update summary for chat", err);
-        toast({
+        error({
           title: `Error Updating Chat`,
-          description: "message" in err ? err.message : undefined,
-          status: "error",
-          position: "top",
-          isClosable: true,
+          message: err.message,
         });
       })
       .finally(() => setIsEditing(false));
