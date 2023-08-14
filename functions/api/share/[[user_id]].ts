@@ -56,15 +56,15 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
     const now = new Date();
     const oneDayMS = 24 * 60 * 60 * 1000;
     const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix: `${user}/` });
-    // Only 500 total shares per user
-    if (objects.length > 500) {
+    // Only 1000 total shares per user
+    if (objects.length > 1000) {
       return errorResponse(403, "Exceeded total share limit");
     }
-    // Only 10 shares in 24 hours
+    // Only 100 shares in 24 hours
     const recentShares = objects.filter(
       ({ uploaded }) => now.getTime() - uploaded.getTime() < oneDayMS
     );
-    if (recentShares.length > 10) {
+    if (recentShares.length > 100) {
       return errorResponse(429, "Too many shares in a 24-hour period");
     }
   } catch (err) {
