@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev-functions": "wrangler pages dev -- npm run dev",
+    "dev-functions": "wrangler pages dev --port 9339 -- npm run dev",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "prepare": "husky install",
@@ -41,7 +41,7 @@
     "tiktoken": "^1.0.10"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20230724.0",
+    "@cloudflare/workers-types": "^4.20230807.0",
     "@types/cookie": "^0.5.1",
     "@types/lodash": "^4.14.196",
     "@types/react": "^18.2.18",
@@ -66,7 +66,7 @@
     "vite-plugin-wasm": "^3.2.2",
     "vitest": "^0.33.0",
     "vitest-environment-miniflare": "^2.14.0",
-    "wrangler": "^3.4.0"
+    "wrangler": "^3.5.0"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
