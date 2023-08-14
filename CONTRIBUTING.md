@@ -8,7 +8,8 @@ Thank you for considering contributing to ChatCraft.org! This document outlines 
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
   - [Development Setup](#development-setup)
-  - [Running the Site](#running-the-site)
+  - [Running the App](#running-the-app)
+  - [Running the App with Backend](#running-the-app-with-backend)
   - [Submitting Changes](#submitting-changes)
   - [Code Style](#code-style)
   - [Documentation](#documentation)
@@ -34,7 +35,7 @@ To get started with contributing to ChatCraft.org, please make sure you have the
 pnpm install
 ```
 
-## Running the Site
+## Running the App
 
 To run the ChatCraft.org site locally, use the following command:
 
@@ -43,6 +44,18 @@ pnpm dev
 ```
 
 This command will start the development server and open the site in your default browser. Any changes you make to the source code will automatically trigger a rebuild and refresh the browser.
+
+## Running the App with Backend
+
+The app uses [CloudFlare Pages Functions](https://developers.cloudflare.com/pages/platform/functions/), [R2 Buckets](https://developers.cloudflare.com/r2/), GitHub OAuth, etc. to provide various APIs.
+
+Running some of this in development is possible using the following command:
+
+```bash
+pnpm dev-functions
+```
+
+This will start the app as well as a local version of CloudFlare (via [wrangler](https://developers.cloudflare.com/workers/wrangler/)), which will proxy everything at <http://localhost:9339/>
 
 ## Submitting Changes
 

@@ -1,7 +1,7 @@
-import { errorResponse } from "../../utils";
-import { serializeToken, getTokens, verifyToken } from "../../token";
+import { errorResponse, createResourcesForEnv } from "../../utils";
 
 interface Env {
+  ENVIRONMENT: string;
   CHATCRAFT_ORG_BUCKET: R2Bucket;
   CLIENT_ID: string;
   CLIENT_SECRET: string;
@@ -11,10 +11,11 @@ interface Env {
 // POST https://chatcraft.org/api/share/:user/:id
 // Must include JWT in cookie, and user must match token owner
 export const onRequestPut: PagesFunction<Env> = async ({ request, env, params }) => {
-  const { CHATCRAFT_ORG_BUCKET, JWT_SECRET } = env;
+  const { CHATCRAFT_ORG_BUCKET, JWT_SECRET, ENVIRONMENT } = env;
+  const { tokenProvider } = createResourcesForEnv(ENVIRONMENT, request.url);
 
   // There should be tokens in the cookies
-  const { accessToken, idToken } = getTokens(request);
+  const { accessToken, idToken } = tokenProvider.getTokens(request);
   if (!accessToken) {
     return errorResponse(403, "Missing Access Token");
   }
@@ -36,7 +37,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
 
   // Make sure the access token matches the expected user and limits.
   try {
-    const payload = await verifyToken(accessToken, JWT_SECRET);
+    const payload = await tokenProvider.verifyToken(accessToken, JWT_SECRET);
     if (!payload) {
       return errorResponse(403, "Invalid Access Token");
     }
@@ -85,8 +86,8 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
         // Update cookies to further delay expiry
         headers: new Headers([
           ["Content-Type", "application/json; charset=utf-8"],
-          ["Set-Cookie", serializeToken("access_token", accessToken)],
-          ["Set-Cookie", serializeToken("id_token", idToken)],
+          ["Set-Cookie", tokenProvider.serializeToken("access_token", accessToken)],
+          ["Set-Cookie", tokenProvider.serializeToken("id_token", idToken)],
         ]),
       }
     );
@@ -131,10 +132,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
 // DELETE https://chatcraft.org/api/share/:user/:id
 // Must include JWT in cookie, and user must match token owner
 export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params }) => {
-  const { CHATCRAFT_ORG_BUCKET, JWT_SECRET } = env;
+  const { CHATCRAFT_ORG_BUCKET, JWT_SECRET, ENVIRONMENT } = env;
+  const { tokenProvider } = createResourcesForEnv(ENVIRONMENT, request.url);
 
   // There should be tokens in the cookies
-  const { accessToken, idToken } = getTokens(request);
+  const { accessToken, idToken } = tokenProvider.getTokens(request);
   if (!accessToken) {
     return errorResponse(403, "Missing Access Token");
   }
@@ -150,7 +152,7 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
 
   // Make sure we have a token, and that it matches the expected user
   try {
-    const payload = await verifyToken(accessToken, JWT_SECRET);
+    const payload = await tokenProvider.verifyToken(accessToken, JWT_SECRET);
 
     // Make sure this is the same username as the user who owns this token
     const [user] = user_id;
@@ -177,8 +179,8 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env, params
         // Update cookies to further delay expiry
         headers: new Headers([
           ["Content-Type", "application/json; charset=utf-8"],
-          ["Set-Cookie", serializeToken("access_token", accessToken)],
-          ["Set-Cookie", serializeToken("id_token", idToken)],
+          ["Set-Cookie", tokenProvider.serializeToken("access_token", accessToken)],
+          ["Set-Cookie", tokenProvider.serializeToken("id_token", idToken)],
         ]),
       }
     );
