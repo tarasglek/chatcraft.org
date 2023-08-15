@@ -59,7 +59,6 @@ export function requestDevUserInfo() {
   return {
     username: "chatcraft_dev",
     name: "ChatCraftDev",
-    // This is just a blank avatar, the user id is chosen at random
-    avatarUrl: "https://avatars.githubusercontent.com/u/400001?v=4",
+    avatarUrl: "https://github.com/github.png?size=402",
   };
 }

@@ -47,9 +47,9 @@ This command will start the development server and open the site in your default
 
 ## Running the App with Backend
 
-The app uses [CloudFlare Pages Functions](https://developers.cloudflare.com/pages/platform/functions/), [R2 Buckets](https://developers.cloudflare.com/r2/), GitHub OAuth, etc. to provide various APIs.
+ChatCraft uses [CloudFlare Pages Functions](https://developers.cloudflare.com/pages/platform/functions/), [R2 Buckets](https://developers.cloudflare.com/r2/), GitHub OAuth, etc. to provide various APIs.
 
-Running some of this in development is possible using the following command:
+Running a local version of these backend services is possible using the following command:
 
 ```bash
 pnpm dev-functions

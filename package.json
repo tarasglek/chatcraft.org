@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev-functions": "wrangler pages dev --port 9339 -- npm run dev",
+    "dev-functions": "wrangler pages dev --port 9339 --r2 CHATCRAFT_ORG_BUCKET -- npm run dev",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "prepare": "husky install",
