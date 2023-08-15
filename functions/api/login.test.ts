@@ -177,7 +177,7 @@ describe("Development /api/login", () => {
           expect(payload.sub).toEqual("chatcraft_dev");
           expect(payload.username).toEqual("chatcraft_dev");
           expect(payload.name).toEqual("ChatCraftDev");
-          expect(payload.avatarUrl).toEqual("https://avatars.githubusercontent.com/u/400001?v=4");
+          expect(payload.avatarUrl).toEqual("https://github.com/github.png?size=402");
         }
       }
     });
