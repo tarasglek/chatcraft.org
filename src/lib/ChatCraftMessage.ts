@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import CreateChatCompletionRequestMessage from "openai";
 import {
   AIMessage,
   HumanMessage,
@@ -117,6 +118,25 @@ export class ChatCraftMessage {
       // falls through
       default:
         throw new Error(`${this.type} message conversion to langchain not implemented`);
+    }
+  }
+
+  toOpenAiMessageJson(): CreateChatCompletionRequestMessage {
+    const text = this.text;
+    switch (this.type) {
+      case "ai":
+        return { role: "assistant", content: text };
+      case "human":
+        return { role: "user", content: text };
+      case "system":
+        return { role: "system", content: text };
+      case "function":
+      // special case handled in derived ChatCraftFunctionResultMessage class
+      // falls through
+      case "generic":
+      // falls through
+      default:
+        throw new Error(`${this.type} message conversion to openai not implemented`);
     }
   }
 
@@ -663,6 +683,12 @@ export class ChatCraftFunctionResultMessage extends ChatCraftMessage {
     const { name } = this.func;
 
     return new FunctionMessage(text, name);
+  }
+
+  toOpenAiMessageJson(): CreateChatCompletionRequestMessage {
+    const { text } = this;
+    const { name } = this.func;
+    return { role: "function", content: text, name: name };
   }
 
   static fromJSON(message: SerializedChatCraftMessage) {

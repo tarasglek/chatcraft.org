@@ -1,6 +1,4 @@
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { CallbackManager } from "langchain/callbacks";
-
+import { OpenAI } from "openai";
 import {
   ChatCraftAiMessage,
   ChatCraftFunctionCallMessage,
@@ -37,43 +35,6 @@ export type ChatOptions = {
   onPause?: () => void;
   onResume?: () => void;
   onData?: ({ token, currentText }: { token: string; currentText: string }) => void;
-};
-
-// Create the appropriate type of "OpenAI" compatible instance, based on `apiUrl`
-const createChatAPI = ({
-  temperature,
-  streaming,
-  model,
-}: Pick<ChatOptions, "temperature" | "model"> & { streaming: boolean }) => {
-  const { apiKey, apiUrl } = getSettings();
-  if (!apiKey) {
-    throw new Error("Missing API Key");
-  }
-
-  // If we're using OpenRouter, add extra headers
-  let headers = undefined;
-  if (!usingOfficialOpenAI()) {
-    headers = {
-      "HTTP-Referer": getReferer(),
-      "X-Title": "chatcraft.org",
-    };
-  }
-
-  return new ChatOpenAI(
-    {
-      openAIApiKey: apiKey,
-      temperature: temperature ?? 0,
-      streaming,
-      // Use the provided model, or fallback to whichever one is default right now
-      modelName: model ? model.id : getSettings().model.id,
-    },
-    {
-      basePath: apiUrl,
-      baseOptions: {
-        headers,
-      },
-    }
-  );
 };
 
 export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
@@ -127,7 +88,7 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   };
 
   // Only stream if we have an onData callback
-  const streaming = !!onData;
+  const streaming: boolean = !!onData;
 
   // Regular text response from LLM
   const handleTextResponse = async (text: string = "") => {
@@ -163,60 +124,104 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     });
   };
 
-  // Grab the promise so we can return, but callers can also do everything via events
-  const chatAPI = createChatAPI({ temperature, streaming, model });
-  const promise = chatAPI
-    .call(
-      /**
-       * Convert the list of ChatCraftMessages to something langchain can use.
-       * In most cases, this is straight-forward, but for function messages,
-       * we need to separate the call and result into two parts
-       */
-      messages.map((message) => message.toLangChainMessage()),
-      {
-        options: { signal: controller.signal },
-        /**
-         * If the user provides functions to use, convert them to a form that
-         * langchain can consume. However, since not all models support function calling,
-         * don't bother if the model can't use them.
-         */
-        functions:
-          model.supportsFunctionCalling && functions
-            ? functions.map((fn) => fn.toLangChainFunction())
-            : undefined,
-        /**
-         * If function(s) are provided, see if the caller wants a particular
-         * function to be called by name.  If not, let the LLM decide ("auto").
-         */
-        function_call:
-          model.supportsFunctionCalling && functions
-            ? functionToCall?.name
-              ? { name: functionToCall.name }
-              : "auto"
-            : undefined,
-      },
-      CallbackManager.fromHandlers({
-        handleLLMNewToken(token: string) {
-          buffer.push(token);
-          if (onData && !isPaused) {
-            onData({ token, currentText: buffer.join("") });
+  const { apiKey, apiUrl } = getSettings();
+  if (!apiKey) {
+    throw new Error("Missing API Key");
+  }
+
+  // If we're using OpenRouter, add extra headers
+  let headers = undefined;
+  if (!usingOfficialOpenAI()) {
+    headers = {
+      "HTTP-Referer": getReferer(),
+      "X-Title": "chatcraft.org",
+    };
+  }
+
+  const openai = new OpenAI({
+    apiKey: apiKey,
+    baseURL: apiUrl,
+    defaultHeaders: headers,
+    dangerouslyAllowBrowser: true,
+  });
+
+  const mesages_new: CreateChatCompletionRequestMessage = messages.map((message) =>
+    message.toOpenAiMessageJson()
+  );
+  const stream_promise = openai.chat.completions
+    .create({
+      model: model ? model.id : getSettings().model.id,
+      temperature: temperature ?? 0,
+      messages: mesages_new,
+      stream: streaming,
+      functions:
+        model.supportsFunctionCalling && functions
+          ? functions.map((fn) => fn.toOpenAIFunction())
+          : undefined,
+      function_call:
+        model.supportsFunctionCalling && functions
+          ? functionToCall?.name
+            ? { name: functionToCall.name }
+            : "auto"
+          : undefined,
+    })
+    .then(async (response) => {
+      let function_name: string = "";
+      let function_args: string = "";
+      if (streaming == true) {
+        for await (const stream_chunk of response[Symbol.asyncIterator]()) {
+          if (stream_chunk.choices[0]?.delta?.content) {
+            // stream_chunk.controller.signal.addEventListener('abort', handleCancel);
+            const token = stream_chunk.choices[0]?.delta?.content;
+            buffer.push(token);
+            if (onData && !isPaused) {
+              onData({ token, currentText: buffer.join("") });
+            }
           }
-        },
-      })
-    )
-    .then(async ({ content, additional_kwargs }) => {
-      if (additional_kwargs?.function_call) {
-        const { name, arguments: args } = additional_kwargs.function_call;
-        if (name && args) {
-          return handleFunctionCallResponse(name, args);
+
+          if (stream_chunk.choices[0]?.delta?.function_call) {
+            if (stream_chunk.choices[0]?.delta?.function_call.name) {
+              function_name = stream_chunk.choices[0]?.delta?.function_call.name;
+            } else if (stream_chunk.choices[0]?.delta?.function_call.arguments) {
+              const token = stream_chunk.choices[0]?.delta?.function_call.arguments;
+              function_args += token;
+              if (onData && !isPaused) {
+                onData({ token, currentText: function_args });
+              }
+            } else {
+              throw new Error("unable to handle OpenAI response (not function name or args)");
+            }
+          }
+
+          if (controller.signal.aborted) {
+            break;
+          }
+        }
+      } else {
+        if (response.choices[0]?.message?.content) {
+          buffer.push(response.choices[0]?.message?.content);
+        }
+
+        if (response.choices[0]?.message?.function_call) {
+          if (response.choices[0]?.message?.function_call.name) {
+            function_name = response.choices[0]?.message?.function_call.name;
+          } else if (response.choices[0]?.message?.function_call.arguments) {
+            function_args = response.choices[0]?.message?.function_call.arguments;
+          } else {
+            throw new Error("unable to handle OpenAI response (not function name or args)");
+          }
         }
       }
 
-      if (content) {
-        return handleTextResponse(content);
+      if (buffer.length > 0) {
+        return handleTextResponse(buffer.join(""));
       }
 
-      throw new Error("unable to handle LLM response (not text or function)");
+      if (function_name && function_args) {
+        return handleFunctionCallResponse(function_name, function_args);
+      }
+
+      throw new Error("unable to handle OpenAI response (not text or function)");
     })
     .catch((err) => {
       // Deal with cancelled messages by returning a partial message
@@ -261,7 +266,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 
   return {
     // HACK: for some reason, TS thinks this could also be undefined, but I don't see how.
-    promise: promise as Promise<ChatCraftAiMessage | ChatCraftFunctionCallMessage>,
+    promise: stream_promise as Promise<ChatCraftAiMessage | ChatCraftFunctionCallMessage>,
     cancel,
     pause,
     resume,

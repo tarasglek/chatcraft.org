@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 import db, { ChatCraftFunctionTable } from "./db";
 import { formatAsCodeBlock } from "./utils";
 import { ChatCraftFunctionResultMessage } from "./ChatCraftMessage";
+import CompletionCreateParams from "openai";
 
 export type FunctionModule = {
   name: string;
@@ -314,7 +315,7 @@ export class ChatCraftFunction {
     };
   }
 
-  toLangChainFunction() {
+  toOpenAIFunction(): CompletionCreateParams.Function {
     return {
       name: this.name,
       description: this.description,
