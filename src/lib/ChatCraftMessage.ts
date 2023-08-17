@@ -93,17 +93,13 @@ export class ChatCraftMessage {
 
   toOpenAiMessageJson(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
     const text = this.text;
-    let openai_role: "function" | "user" | "system" | "assistant";
     switch (this.type) {
       case "ai":
-        openai_role = "assistant";
-        return { role: openai_role, content: text };
+        return { role: "assistant", content: text };
       case "human":
-        openai_role = "user";
-        return { role: openai_role, content: text };
+        return { role: "user", content: text };
       case "system":
-        openai_role = "system";
-        return { role: openai_role, content: text };
+        return { role: "system", content: text };
       case "function":
       // special case handled in derived ChatCraftFunctionResultMessage class
       // falls through
@@ -643,7 +639,6 @@ export class ChatCraftFunctionResultMessage extends ChatCraftMessage {
   toOpenAiMessageJson(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
     const { text } = this;
     const { name } = this.func;
-    const openai_role: "function" | "user" | "system" | "assistant" = "function";
     return { role: "function", content: text, name: name };
   }
 
