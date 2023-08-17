@@ -48,7 +48,7 @@ function ChatBase({ chat }: ChatBaseProps) {
     if (apiError) {
       error({
         id: "api-error",
-        title: `Error Updating Message to Version`,
+        title: `Error Connecting to AI Provider`,
         message: apiError.message,
       });
     }
