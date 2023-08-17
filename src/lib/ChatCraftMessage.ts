@@ -643,7 +643,7 @@ export class ChatCraftFunctionResultMessage extends ChatCraftMessage {
   toOpenAiMessageJson(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
     const { text } = this;
     const { name } = this.func;
-    let openai_role: "function" | "user" | "system" | "assistant" = "function";
+    const openai_role: "function" | "user" | "system" | "assistant" = "function";
     return { role: "function", content: text, name: name };
   }
 
