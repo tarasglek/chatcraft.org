@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import db, { ChatCraftFunctionTable } from "./db";
 import { formatAsCodeBlock } from "./utils";
 import { ChatCraftFunctionResultMessage } from "./ChatCraftMessage";
-import CompletionCreateParams from "openai";
+import OpenAI from "openai";
 
 export type FunctionModule = {
   name: string;
@@ -315,11 +315,12 @@ export class ChatCraftFunction {
     };
   }
 
-  toOpenAIFunction(): CompletionCreateParams.Function {
+  toOpenAIFunction(): OpenAI.Chat.Completions.CompletionCreateParams.Function {
+    const openai_parameters: Record<string, unknown> = this.parameters as Record<string, unknown>;
     return {
       name: this.name,
       description: this.description,
-      parameters: this.parameters,
+      parameters: openai_parameters,
     };
   }
 

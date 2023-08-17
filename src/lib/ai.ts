@@ -1,4 +1,4 @@
-import { OpenAI } from "openai";
+import OpenAI from "openai";
 import {
   ChatCraftAiMessage,
   ChatCraftFunctionCallMessage,
@@ -145,33 +145,31 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     dangerouslyAllowBrowser: true,
   });
 
-  const mesages_new: CreateChatCompletionRequestMessage = messages.map((message) =>
-    message.toOpenAiMessageJson()
-  );
+  const params: OpenAI.Chat.CompletionCreateParamsStreaming = {
+    model: model ? model.id : getSettings().model.id,
+    temperature: temperature ?? 0,
+    messages: messages.map((message) => message.toOpenAiMessageJson()),
+    stream: true,
+    functions:
+      model.supportsFunctionCalling && functions
+        ? functions.map((fn) => fn.toOpenAIFunction())
+        : undefined,
+    function_call:
+      model.supportsFunctionCalling && functions
+        ? functionToCall?.name
+          ? { name: functionToCall.name }
+          : "auto"
+        : undefined,
+  };
+
   const stream_promise = openai.chat.completions
-    .create({
-      model: model ? model.id : getSettings().model.id,
-      temperature: temperature ?? 0,
-      messages: mesages_new,
-      stream: streaming,
-      functions:
-        model.supportsFunctionCalling && functions
-          ? functions.map((fn) => fn.toOpenAIFunction())
-          : undefined,
-      function_call:
-        model.supportsFunctionCalling && functions
-          ? functionToCall?.name
-            ? { name: functionToCall.name }
-            : "auto"
-          : undefined,
-    })
+    .create(params)
     .then(async (response) => {
       let function_name: string = "";
       let function_args: string = "";
       if (streaming == true) {
-        for await (const stream_chunk of response[Symbol.asyncIterator]()) {
+        for await (const stream_chunk of response) {
           if (stream_chunk.choices[0]?.delta?.content) {
-            // stream_chunk.controller.signal.addEventListener('abort', handleCancel);
             const token = stream_chunk.choices[0]?.delta?.content;
             buffer.push(token);
             if (onData && !isPaused) {
@@ -197,21 +195,22 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
             break;
           }
         }
-      } else {
-        if (response.choices[0]?.message?.content) {
-          buffer.push(response.choices[0]?.message?.content);
-        }
-
-        if (response.choices[0]?.message?.function_call) {
-          if (response.choices[0]?.message?.function_call.name) {
-            function_name = response.choices[0]?.message?.function_call.name;
-          } else if (response.choices[0]?.message?.function_call.arguments) {
-            function_args = response.choices[0]?.message?.function_call.arguments;
-          } else {
-            throw new Error("unable to handle OpenAI response (not function name or args)");
-          }
-        }
       }
+      // else {
+      //   if (response.choices[0]?.message?.content) {
+      //     buffer.push(response.choices[0]?.message?.content);
+      //   }
+
+      //   if (response.choices[0]?.message?.function_call) {
+      //     if (response.choices[0]?.message?.function_call.name) {
+      //       function_name = response.choices[0]?.message?.function_call.name;
+      //     } else if (response.choices[0]?.message?.function_call.arguments) {
+      //       function_args = response.choices[0]?.message?.function_call.arguments;
+      //     } else {
+      //       throw new Error("unable to handle OpenAI response (not function name or args)");
+      //     }
+      //   }
+      // }
 
       if (buffer.length > 0) {
         return handleTextResponse(buffer.join(""));

@@ -1,17 +1,9 @@
 import { nanoid } from "nanoid";
-import CreateChatCompletionRequestMessage from "openai";
-import {
-  AIMessage,
-  HumanMessage,
-  SystemMessage,
-  type MessageType,
-  FunctionMessage,
-  BaseMessage,
-} from "langchain/schema";
-import db, { type ChatCraftMessageTable } from "./db";
+import db, { type ChatCraftMessageTable, type MessageType } from "./db";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { countTokens, defaultModelForProvider } from "./ai";
 import { loadFunctions, parseFunctionNames } from "./ChatCraftFunction";
+import OpenAI from "openai";
 
 export class ChatCraftAiMessageVersion {
   id: string;
@@ -99,37 +91,19 @@ export class ChatCraftMessage {
     };
   }
 
-  // Convert to a BaseMessage (or list of BaseMessages in the case of a function)
-  toLangChainMessage(): BaseMessage {
+  toOpenAiMessageJson(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
     const text = this.text;
-
+    let openai_role: "function" | "user" | "system" | "assistant";
     switch (this.type) {
       case "ai":
-        // NOTE: Function Call AI messages are handled in derived ChatCraftFunctionCallMessage
-        return new AIMessage(text);
+        openai_role = "assistant";
+        return { role: openai_role, content: text };
       case "human":
-        return new HumanMessage(text);
+        openai_role = "user";
+        return { role: openai_role, content: text };
       case "system":
-        return new SystemMessage(text);
-      case "function":
-      // special case handled in derived ChatCraftFunctionResultMessage class
-      // falls through
-      case "generic":
-      // falls through
-      default:
-        throw new Error(`${this.type} message conversion to langchain not implemented`);
-    }
-  }
-
-  toOpenAiMessageJson(): CreateChatCompletionRequestMessage {
-    const text = this.text;
-    switch (this.type) {
-      case "ai":
-        return { role: "assistant", content: text };
-      case "human":
-        return { role: "user", content: text };
-      case "system":
-        return { role: "system", content: text };
+        openai_role = "system";
+        return { role: openai_role, content: text };
       case "function":
       // special case handled in derived ChatCraftFunctionResultMessage class
       // falls through
@@ -577,17 +551,6 @@ export class ChatCraftFunctionCallMessage extends ChatCraftMessage {
     };
   }
 
-  toLangChainMessage() {
-    const { name, params } = this.func;
-
-    return new AIMessage({
-      content: "",
-      additional_kwargs: {
-        function_call: { name, arguments: JSON.stringify(params) },
-      },
-    });
-  }
-
   static fromJSON(message: SerializedChatCraftMessage) {
     if (!message.func) {
       throw new Error("missing function properties on serialized message");
@@ -677,17 +640,10 @@ export class ChatCraftFunctionResultMessage extends ChatCraftMessage {
     };
   }
 
-  toLangChainMessage() {
-    // LangChain needs a string, so send the text vs. raw func.result value
+  toOpenAiMessageJson(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
     const { text } = this;
     const { name } = this.func;
-
-    return new FunctionMessage(text, name);
-  }
-
-  toOpenAiMessageJson(): CreateChatCompletionRequestMessage {
-    const { text } = this;
-    const { name } = this.func;
+    let openai_role: "function" | "user" | "system" | "assistant" = "function";
     return { role: "function", content: text, name: name };
   }
 
