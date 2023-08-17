@@ -25,7 +25,7 @@
     "dexie-react-hooks": "^1.1.6",
     "framer-motion": "^10.15.0",
     "jose": "^4.14.4",
-    "openai": "^4.0.0-beta.11",
+    "openai": "^4.0.0",
     "lodash": "^4.17.21",
     "mermaid": "^10.3.0",
     "nanoid": "^4.0.2",

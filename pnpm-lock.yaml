@@ -48,8 +48,8 @@ dependencies:
     specifier: ^4.0.2
     version: 4.0.2
   openai:
-    specifier: ^4.0.0-beta.11
-    version: 4.0.0-beta.11
+    specifier: ^4.0.0
+    version: 4.0.0
   react:
     specifier: ^18.2.0
     version: 18.2.0
@@ -10107,10 +10107,10 @@ packages:
       is-wsl: 2.2.0
     dev: true
 
-  /openai@4.0.0-beta.11:
+  /openai@4.0.0:
     resolution:
       {
-        integrity: sha512-uIvizM2fwO/3ZsiN5fXZt9V6lG5i/3Zh8XXyAGPMCJmwP2ixPh67nc72GpZsozTaRVLSd/ZLgZKfjgEKTHnUjQ==,
+        integrity: sha512-UHv70gIw20pxu9tiUueE9iS+4U4eTGiTgQr+zlJ5aX4oj6LUUp+7mBn0xAqilawftwUB/biohPth2vcZFmoNYw==,
       }
     hasBin: true
     dependencies:
