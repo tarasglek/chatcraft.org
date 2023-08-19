@@ -3,6 +3,7 @@ import * as esbuild from "esbuild-wasm";
 const supportedJS = ["js", "javascript"];
 const supportedTS = ["ts", "typescript"];
 const supportedLanguages = [...supportedJS, ...supportedTS];
+
 function isJavaScript(language: string) {
   return supportedJS.includes(language);
 }
@@ -38,7 +39,7 @@ async function runJavascript(code: string) {
           "Chatcraft: Evaling code in a module context, must `export default <your val>` at end to return a value"
         );
       }
-      const module = await import("data:text/javascript;base64," + btoa(code));
+      const module = await import("data:text/javascript;base64," + btoa(code) /* @vite-ignore */);
       return module.default;
     } else {
       throw error;
@@ -50,7 +51,8 @@ async function compileWithEsbuild(tsCode: string) {
   try {
     await esbuild.initialize({
       // no idea how to load the bundled wasm file from esbuild-wasm in vite
-      wasmURL: "https://cdn.jsdelivr.net/npm/esbuild-wasm@0.19.2/esbuild.wasm",
+      wasmURL:
+        "../../node_modules/.pnpm/esbuild-wasm@0.19.2/node_modules/esbuild-wasm/esbuild.wasm",
     });
   } catch (error: any) {
     if (!error.message.includes('Cannot call "initialize" more than once')) {
