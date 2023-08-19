@@ -32,6 +32,9 @@ dependencies:
   dexie-react-hooks:
     specifier: ^1.1.6
     version: 1.1.6(@types/react@18.2.18)(dexie@3.2.4)(react@18.2.0)
+  esbuild-wasm:
+    specifier: ^0.19.2
+    version: 0.19.2
   framer-motion:
     specifier: ^10.15.0
     version: 10.15.0(react-dom@18.2.0)(react@18.2.0)
@@ -7065,6 +7068,15 @@ packages:
       is-date-object: 1.0.5
       is-symbol: 1.0.4
     dev: true
+
+  /esbuild-wasm@0.19.2:
+    resolution:
+      {
+        integrity: sha512-ak2XIIJKby+Uo3Iqh8wtw4pn2uZcnfLgtcmBHIgkShpun5ZIJsFigWXp7uLt7gXk3QAOCMmv0TSsIxD5qdn+Vw==,
+      }
+    engines: { node: ">=12" }
+    hasBin: true
+    dev: false
 
   /esbuild@0.16.3:
     resolution:
