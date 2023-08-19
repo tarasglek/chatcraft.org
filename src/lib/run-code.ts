@@ -35,7 +35,7 @@ async function runJavascript(code: string) {
       // check if code has export.*default regexp
       if (!/export\s+default\s+/.test(code)) {
         console.warn(
-          "Chatcraft: Evaling code in a module context, must `export default =` at end to return a value"
+          "Chatcraft: Evaling code in a module context, must `export default <your val>` at end to return a value"
         );
       }
       const module = await import("data:text/javascript;base64," + btoa(code));
@@ -46,15 +46,16 @@ async function runJavascript(code: string) {
   }
 }
 
-let esbuildLoaded = false;
-
 async function compileWithEsbuild(tsCode: string) {
-  if (!esbuildLoaded) {
+  try {
     await esbuild.initialize({
       // no idea how to load the bundled wasm file from esbuild-wasm in vite
       wasmURL: "https://cdn.jsdelivr.net/npm/esbuild-wasm@0.19.2/esbuild.wasm",
     });
-    esbuildLoaded = true;
+  } catch (error: any) {
+    if (!error.message.includes('Cannot call "initialize" more than once')) {
+      throw error;
+    }
   }
   // Compile TypeScript code
   const js = await esbuild.transform(tsCode, {
