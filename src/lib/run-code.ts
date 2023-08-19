@@ -39,7 +39,8 @@ async function runJavascript(code: string) {
           "Chatcraft: Evaling code in a module context, must `export default <your val>` at end to return a value"
         );
       }
-      const module = await import("data:text/javascript;base64," + btoa(code) /* @vite-ignore */);
+      const blob = new Blob([code], { type: "text/javascript" });
+      const module = await import(URL.createObjectURL(blob) /* @vite-ignore */);
       return module.default;
     } else {
       throw error;
