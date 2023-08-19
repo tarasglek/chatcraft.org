@@ -12,6 +12,7 @@ import { TbCopy, TbDownload, TbRun } from "react-icons/tb";
 
 import { download, formatAsCodeBlock } from "../lib/utils";
 import { useAlert } from "../hooks/use-alert";
+import { isRunnable, runCode } from "../lib/run-code";
 
 type PreHeaderProps = {
   language: string;
@@ -33,7 +34,7 @@ function CodeHeader({
   const { onCopy } = useClipboard(code);
   const { info } = useAlert();
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
-  const shouldShowRunButton = (language === "js" || language === "javascript") && onPrompt;
+  const shouldShowRunButton = isRunnable(language) && onPrompt;
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -58,12 +59,7 @@ function CodeHeader({
 
     let ret = undefined;
     try {
-      // We're doing eval() here, but rollup doesn't like it, so use `new Function()`
-      const fn = new Function(`return eval(${JSON.stringify(code)});`);
-      let result = fn();
-      if (result instanceof Promise) {
-        result = await result;
-      }
+      let result = await runCode(code, language);
       if (result !== undefined && typeof result !== "string") {
         result = formatAsCodeBlock(JSON.stringify(result), "json");
       }
@@ -77,7 +73,7 @@ function CodeHeader({
     if (ret !== undefined) {
       onPrompt(ret);
     }
-  }, [onPrompt, code]);
+  }, [onPrompt, code, language]);
 
   return (
     <>
