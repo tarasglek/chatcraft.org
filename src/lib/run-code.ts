@@ -1,4 +1,14 @@
 import * as esbuild from "esbuild-wasm";
+import esbuildWasmUrl from "esbuild-wasm/esbuild.wasm?url";
+
+// By default, we haven't loaded the esbuild wasm module, and
+// the esbuild module doesn't have a concept of checking if it's
+// already loaded.
+declare global {
+  // eslint-disable-next-line no-var
+  var __esbuildWasmLoaded: boolean;
+}
+globalThis.__esbuildWasmLoaded = false;
 
 const supportedJS = ["js", "javascript"];
 const supportedTS = ["ts", "typescript"];
@@ -36,7 +46,7 @@ async function runJavascript(code: string) {
       // check if code has export.*default regexp
       if (!/export\s+default\s+/.test(code)) {
         console.warn(
-          "Chatcraft: Evaling code in a module context, must `export default <your val>` at end to return a value"
+          "ChatCraft: Eval'ing code in a module context, must `export default <your val>` at end to return a value"
         );
       }
       const blob = new Blob([code], { type: "text/javascript" });
@@ -48,19 +58,25 @@ async function runJavascript(code: string) {
   }
 }
 
-async function compileWithEsbuild(tsCode: string) {
+async function loadEsBuild() {
+  // If we've already initialized the module, don't do it again
+  if (globalThis.__esbuildWasmLoaded) {
+    return;
+  }
+
   try {
-    await esbuild.initialize({
-      // no idea how to load the bundled wasm file from esbuild-wasm in vite
-      wasmURL:
-        "../../node_modules/.pnpm/esbuild-wasm@0.19.2/node_modules/esbuild-wasm/esbuild.wasm",
-    });
+    await esbuild.initialize({ wasmURL: esbuildWasmUrl });
+    globalThis.__esbuildWasmLoaded = true;
   } catch (error: any) {
     if (!error.message.includes('Cannot call "initialize" more than once')) {
       throw error;
     }
   }
+}
+
+async function compileWithEsbuild(tsCode: string) {
   // Compile TypeScript code
+  await loadEsBuild();
   const js = await esbuild.transform(tsCode, {
     loader: "ts",
   });
