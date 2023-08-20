@@ -124,6 +124,14 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     });
   };
 
+  const handleError = async (error: Error) => {
+    if (onError) {
+      onError(error);
+    }
+
+    throw new Error(`OpenAI API Returned Error: ${error.message}`);
+  };
+
   const { apiKey, apiUrl } = getSettings();
   if (!apiKey) {
     throw new Error("Missing API Key");
@@ -145,15 +153,32 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     dangerouslyAllowBrowser: true,
   });
 
-  const params: OpenAI.Chat.CompletionCreateParamsStreaming = {
+  const chat_completion_params: OpenAI.Chat.CompletionCreateParams = {
     model: model ? model.id : getSettings().model.id,
     temperature: temperature ?? 0,
+
+    /**
+     * Convert the list of ChatCraftMessages to OpenAI messages.
+     * In most cases, this is straight-forward, but for function messages,
+     * we need to separate the call and result into two parts
+     */
     messages: messages.map((message) => message.toOpenAiMessageJson()),
-    stream: true,
+    stream: streaming,
+
+    /**
+     * If the user provides functions to use, convert them to a form that
+     * OpenAI can consume. However, since not all models support function calling,
+     * don't bother if the model can't use them.
+     */
     functions:
       model.supportsFunctionCalling && functions
         ? functions.map((fn) => fn.toOpenAIFunction())
         : undefined,
+
+    /**
+     * If function(s) are provided, see if the caller wants a particular
+     * function to be called by name.  If not, let the LLM decide ("auto").
+     */
     function_call:
       model.supportsFunctionCalling && functions
         ? functionToCall?.name
@@ -162,13 +187,14 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         : undefined,
   };
 
-  const stream_promise = openai.chat.completions
-    .create(params)
-    .then(async (response) => {
-      let function_name: string = "";
-      let function_args: string = "";
-      if (streaming == true) {
-        for await (const stream_chunk of response) {
+  let response_promise;
+  if (streaming == true) {
+    response_promise = openai.chat.completions
+      .create(chat_completion_params as OpenAI.Chat.CompletionCreateParamsStreaming)
+      .then(async (stream_response) => {
+        let function_name: string = "";
+        let function_args: string = "";
+        for await (const stream_chunk of stream_response) {
           if (stream_chunk.choices[0]?.delta?.content) {
             const token = stream_chunk.choices[0]?.delta?.content;
             buffer.push(token);
@@ -195,77 +221,64 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
             break;
           }
         }
-      }
-      // else {
-      //   if (response.choices[0]?.message?.content) {
-      //     buffer.push(response.choices[0]?.message?.content);
-      //   }
 
-      //   if (response.choices[0]?.message?.function_call) {
-      //     if (response.choices[0]?.message?.function_call.name) {
-      //       function_name = response.choices[0]?.message?.function_call.name;
-      //     } else if (response.choices[0]?.message?.function_call.arguments) {
-      //       function_args = response.choices[0]?.message?.function_call.arguments;
-      //     } else {
-      //       throw new Error("unable to handle OpenAI response (not function name or args)");
-      //     }
-      //   }
-      // }
-
-      if (buffer.length > 0) {
-        return handleTextResponse(buffer.join(""));
-      }
-
-      if (function_name && function_args) {
-        return handleFunctionCallResponse(function_name, function_args);
-      }
-
-      throw new Error("unable to handle OpenAI response (not text or function)");
-    })
-    .catch((err) => {
-      // Deal with cancelled messages by returning a partial message
-      if (err.message.startsWith("Cancel:")) {
-        buffer.push("...");
-        const text = buffer.join("");
-
-        const response = new ChatCraftAiMessage({ text, model: model || getSettings().model });
-        if (onFinish) {
-          onFinish(response);
+        if (buffer.length > 0) {
+          return handleTextResponse(buffer.join(""));
         }
 
-        return response;
-      }
-
-      const handleError = (error: Error) => {
-        if (onError) {
-          onError(error);
+        if (function_name && function_args) {
+          return handleFunctionCallResponse(function_name, function_args);
         }
 
-        throw error;
-      };
-
-      // Try to extract the actual OpenAI API error from what langchain gives us
-      // which is JSON embedded in the error text.
-      // eslint-disable-next-line no-useless-catch
-      try {
-        const matches = err.message.match(/{"error".+$/);
-        if (matches) {
-          const openAiError = JSON.parse(matches[0]);
-          handleError(new Error(`OpenAI API Error: ${openAiError.error.message}`));
-        } else {
-          handleError(err);
+        throw new Error("unable to handle OpenAI response (not text or function)");
+      })
+      .catch((err) => {
+        return handleError(err);
+      })
+      .finally(() => {
+        removeEventListener("keydown", handleCancel);
+      });
+  } else {
+    response_promise = openai.chat.completions
+      .create(chat_completion_params as OpenAI.Chat.CompletionCreateParamsNonStreaming)
+      .then(async (response: OpenAI.Chat.ChatCompletion) => {
+        let function_name: string = "";
+        let function_args: string = "";
+        if (response.choices[0]?.message?.content) {
+          buffer.push(response.choices[0]?.message?.content);
         }
-      } catch (err2) {
-        handleError(err2 as Error);
-      }
-    })
-    .finally(() => {
-      removeEventListener("keydown", handleCancel);
-    });
+
+        if (response.choices[0]?.message?.function_call) {
+          if (response.choices[0]?.message?.function_call.name) {
+            function_name = response.choices[0]?.message?.function_call.name;
+          } else if (response.choices[0]?.message?.function_call.arguments) {
+            function_args = response.choices[0]?.message?.function_call.arguments;
+          } else {
+            throw new Error("unable to handle OpenAI response (not function name or args)");
+          }
+        }
+
+        if (buffer.length > 0) {
+          return handleTextResponse(buffer.join(""));
+        }
+
+        if (function_name && function_args) {
+          return handleFunctionCallResponse(function_name, function_args);
+        }
+
+        throw new Error("unable to handle OpenAI response (not text or function)");
+      })
+      .catch((err) => {
+        return handleError(err);
+      })
+      .finally(() => {
+        removeEventListener("keydown", handleCancel);
+      });
+  }
 
   return {
     // HACK: for some reason, TS thinks this could also be undefined, but I don't see how.
-    promise: stream_promise as Promise<ChatCraftAiMessage | ChatCraftFunctionCallMessage>,
+    promise: response_promise as Promise<ChatCraftAiMessage | ChatCraftFunctionCallMessage>,
     cancel,
     pause,
     resume,
