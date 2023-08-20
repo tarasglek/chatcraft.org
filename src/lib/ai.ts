@@ -187,10 +187,17 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         : undefined,
   };
 
+  const chat_completion_req_options = {
+    signal: controller.signal,
+  };
+
   let response_promise;
   if (streaming == true) {
     response_promise = openai.chat.completions
-      .create(chat_completion_params as OpenAI.Chat.CompletionCreateParamsStreaming)
+      .create(
+        chat_completion_params as OpenAI.Chat.CompletionCreateParamsStreaming,
+        chat_completion_req_options
+      )
       .then(async (stream_response) => {
         let function_name: string = "";
         let function_args: string = "";
@@ -216,10 +223,6 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
               throw new Error("unable to handle OpenAI response (not function name or args)");
             }
           }
-
-          if (controller.signal.aborted) {
-            break;
-          }
         }
 
         if (buffer.length > 0) {
@@ -240,7 +243,10 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
       });
   } else {
     response_promise = openai.chat.completions
-      .create(chat_completion_params as OpenAI.Chat.CompletionCreateParamsNonStreaming)
+      .create(
+        chat_completion_params as OpenAI.Chat.CompletionCreateParamsNonStreaming,
+        chat_completion_req_options
+      )
       .then(async (response: OpenAI.Chat.ChatCompletion) => {
         let function_name: string = "";
         let function_args: string = "";
