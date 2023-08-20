@@ -83,6 +83,9 @@ dependencies:
   tiktoken:
     specifier: ^1.0.10
     version: 1.0.10
+  typescript2openai:
+    specifier: github:tarasglek/typescript2openai
+    version: github.com/tarasglek/typescript2openai/2781b198bffb3207c4712fdc08aca49dabbe54d0
 
 devDependencies:
   "@cloudflare/workers-types":
@@ -5084,6 +5087,17 @@ packages:
       acorn: 8.10.0
     dev: true
 
+  /acorn-typescript@1.4.1(acorn@8.10.0):
+    resolution:
+      {
+        integrity: sha512-NUkViIdanX5BZLJmmyZdlcG+3hcWCziO/bhYSuZ/8uoupkz8fB97S6XkkQrtuumaX/2OHtMyLl+Lw3f+Obm21g==,
+      }
+    peerDependencies:
+      acorn: ">=8.9.0"
+    dependencies:
+      acorn: 8.10.0
+    dev: false
+
   /acorn-walk@8.2.0:
     resolution:
       {
@@ -5099,7 +5113,6 @@ packages:
       }
     engines: { node: ">=0.4.0" }
     hasBin: true
-    dev: true
 
   /agentkeepalive@4.3.0:
     resolution:
@@ -13144,4 +13157,16 @@ packages:
       {
         integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==,
       }
+    dev: false
+
+  github.com/tarasglek/typescript2openai/2781b198bffb3207c4712fdc08aca49dabbe54d0:
+    resolution:
+      {
+        tarball: https://codeload.github.com/tarasglek/typescript2openai/tar.gz/2781b198bffb3207c4712fdc08aca49dabbe54d0,
+      }
+    name: typescript2openai
+    version: 1.0.0
+    dependencies:
+      acorn: 8.10.0
+      acorn-typescript: 1.4.1(acorn@8.10.0)
     dev: false

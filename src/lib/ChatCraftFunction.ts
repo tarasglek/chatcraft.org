@@ -3,7 +3,8 @@ import db, { ChatCraftFunctionTable } from "./db";
 import { formatAsCodeBlock } from "./utils";
 import { ChatCraftFunctionResultMessage } from "./ChatCraftMessage";
 import OpenAI from "openai";
-
+import { parseTypeScript } from "typescript2openai";
+import { toJavaScript } from "./run-code";
 export type FunctionModule = {
   name: string;
   description: string;
@@ -139,30 +140,42 @@ export default async function (data) {
 }
 `;
 
-/* Turn the raw JS code into a ES Module and import so we can work with the values */
-const parseModule = async (code: string) => {
-  const blob = new Blob([code], { type: "text/javascript" });
+/**
+ *  Use esbuild to parse the code and return a module we can import.
+ */
+const parseModule = async (ts_code: string) => {
+  // strip typescript
+  const js = await toJavaScript(ts_code);
+
+  // pull out function declarations
+  const functionDeclarations = parseTypeScript(ts_code);
+
+  const blob = new Blob([js], { type: "text/javascript" });
   const url = URL.createObjectURL(blob);
 
   try {
     const module = await import(/* @vite-ignore */ url);
+    const exportedFunctionCount = Object.keys(module).length;
+    if (exportedFunctionCount === 0) {
+      throw new Error("No functions exported in module");
+    }
+    // we only use the first function for now
+    const firstFunction = functionDeclarations[0];
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    const fn = module[firstFunction.name] as Function;
 
-    // Validate that the module has what we expect
-    const { name, description, parameters, default: fn } = module;
-    if (typeof name !== "string") {
-      throw new Error("missing `name` export");
+    // convert openai func( {param1:, param2...}) to func(param1, param2...)
+    // eslint-disable-next-line no-inner-declarations
+    function wrapper(obj: object) {
+      const props = Object.values(obj);
+      return fn(...props);
     }
-    if (typeof description !== "string") {
-      throw new Error("missing `description` export");
-    }
-    if (!parameters) {
-      throw new Error("missing `parameters` export");
-    }
-    if (typeof fn !== "function") {
-      throw new Error("missing default function export");
-    }
-
-    return module as FunctionModule;
+    return {
+      name: firstFunction.name,
+      description: firstFunction.description || "",
+      parameters: firstFunction.parameters,
+      default: wrapper,
+    };
   } catch (err: any) {
     console.warn("Unable to parse module", err);
     throw new Error(`Unable to parse module: ${err.message}`);

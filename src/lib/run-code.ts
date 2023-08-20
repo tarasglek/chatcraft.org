@@ -30,7 +30,7 @@ export function isRunnable(language: string) {
  * Run JavaScript code in eval() context, to support returning values from simple expressions `1+1`
  * and also support `import * as esbuild from 'https://cdn.skypack.dev/esbuild-wasm@0.19.2'` via ES6 modules fallback
  */
-async function runJavascript(code: string) {
+async function runJavaScript(code: string) {
   try {
     const fn = new Function(`return eval(${JSON.stringify(code)});`);
     return fn();
@@ -74,7 +74,7 @@ async function loadEsBuild() {
   }
 }
 
-async function compileWithEsbuild(tsCode: string) {
+export async function toJavaScript(tsCode: string) {
   // Compile TypeScript code
   await loadEsBuild();
   const js = await esbuild.transform(tsCode, {
@@ -85,11 +85,11 @@ async function compileWithEsbuild(tsCode: string) {
 
 export async function runCode(code: string, language: string) {
   if (isTypeScript(language)) {
-    code = await compileWithEsbuild(code);
+    code = await toJavaScript(code);
     language = "js";
   }
   if (isJavaScript(language)) {
-    return runJavascript(code);
+    return runJavaScript(code);
   }
   throw new Error(`Unsupported language: ${language}`);
 }
