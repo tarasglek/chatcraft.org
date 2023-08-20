@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useToast } from "@chakra-ui/react";
 
 type AlertArguments = {
@@ -10,29 +11,35 @@ type AlertArguments = {
 export function useAlert() {
   const toast = useToast();
 
-  const info = ({ id, title, message }: AlertArguments) =>
-    toast({
-      id,
-      title,
-      description: message,
-      colorScheme: "blue",
-      status: "success",
-      position: "top",
-      isClosable: true,
-      duration: 3000,
-    });
+  const info = useCallback(
+    ({ id, title, message }: AlertArguments) =>
+      toast({
+        id,
+        title,
+        description: message,
+        colorScheme: "blue",
+        status: "success",
+        position: "top",
+        isClosable: true,
+        duration: 3000,
+      }),
+    [toast]
+  );
 
-  const error = ({ id, title, message }: AlertArguments) =>
-    toast({
-      id,
-      title,
-      description: message,
-      status: "error",
-      position: "top",
-      isClosable: true,
-      // Don't auto-close errors
-      duration: null,
-    });
+  const error = useCallback(
+    ({ id, title, message }: AlertArguments) =>
+      toast({
+        id,
+        title,
+        description: message,
+        status: "error",
+        position: "top",
+        isClosable: true,
+        // Don't auto-close errors
+        duration: null,
+      }),
+    [toast]
+  );
 
   return {
     info,
