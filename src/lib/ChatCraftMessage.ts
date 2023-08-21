@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import db, { type ChatCraftMessageTable, type MessageType } from "./db";
+import db, { type ChatCraftMessageTable } from "./db";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { countTokens, defaultModelForProvider } from "./ai";
 import { loadFunctions, parseFunctionNames } from "./ChatCraftFunction";
@@ -25,6 +25,8 @@ export class ChatCraftAiMessageVersion {
     };
   }
 }
+
+export type MessageType = "human" | "ai" | "generic" | "system" | "function";
 
 // When we serialize to JSON, flatten Dates to strings, model etc.
 export type SerializedChatCraftMessage = {
@@ -91,7 +93,7 @@ export class ChatCraftMessage {
     };
   }
 
-  toOpenAiMessageJson(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
+  toOpenAiMessage(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
     const text = this.text;
     switch (this.type) {
       case "ai":
@@ -636,7 +638,7 @@ export class ChatCraftFunctionResultMessage extends ChatCraftMessage {
     };
   }
 
-  toOpenAiMessageJson(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
+  toOpenAiMessage(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
     const { text } = this;
     const { name } = this.func;
     return { role: "function", content: text, name: name };

@@ -1,9 +1,7 @@
 import Dexie, { Table } from "dexie";
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 
-import type { FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
-
-export type MessageType = "human" | "ai" | "generic" | "system" | "function";
+import type { MessageType, FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
 
 export type ChatCraftChatTable = {
   id: string;

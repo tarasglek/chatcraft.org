@@ -153,7 +153,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     dangerouslyAllowBrowser: true,
   });
 
-  const chat_completion_params: OpenAI.Chat.CompletionCreateParams = {
+  const chatCompletionParams: OpenAI.Chat.CompletionCreateParams = {
     model: model ? model.id : getSettings().model.id,
     temperature: temperature ?? 0,
 
@@ -162,7 +162,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
      * In most cases, this is straight-forward, but for function messages,
      * we need to separate the call and result into two parts
      */
-    messages: messages.map((message) => message.toOpenAiMessageJson()),
+    messages: messages.map((message) => message.toOpenAiMessage()),
     stream: streaming,
 
     /**
@@ -187,20 +187,21 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         : undefined,
   };
 
-  const chat_completion_req_options = {
+  const chatCompletionReqOptions = {
+    headers: headers,
     signal: controller.signal,
   };
 
-  let response_promise;
-  if (streaming == true) {
-    response_promise = openai.chat.completions
+  let responsePromise;
+  if (streaming) {
+    responsePromise = openai.chat.completions
       .create(
-        chat_completion_params as OpenAI.Chat.CompletionCreateParamsStreaming,
-        chat_completion_req_options
+        chatCompletionParams as OpenAI.Chat.CompletionCreateParamsStreaming,
+        chatCompletionReqOptions
       )
       .then(async (stream_response) => {
-        let function_name: string = "";
-        let function_args: string = "";
+        let functionName: string = "";
+        let functionArgs: string = "";
         for await (const stream_chunk of stream_response) {
           if (stream_chunk.choices[0]?.delta?.content) {
             const token = stream_chunk.choices[0]?.delta?.content;
@@ -212,12 +213,12 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 
           if (stream_chunk.choices[0]?.delta?.function_call) {
             if (stream_chunk.choices[0]?.delta?.function_call.name) {
-              function_name = stream_chunk.choices[0]?.delta?.function_call.name;
+              functionName = stream_chunk.choices[0]?.delta?.function_call.name;
             } else if (stream_chunk.choices[0]?.delta?.function_call.arguments) {
               const token = stream_chunk.choices[0]?.delta?.function_call.arguments;
-              function_args += token;
+              functionArgs = functionArgs + token;
               if (onData && !isPaused) {
-                onData({ token, currentText: function_args });
+                onData({ token, currentText: functionArgs });
               }
             } else {
               throw new Error("unable to handle OpenAI response (not function name or args)");
@@ -229,8 +230,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
           return handleTextResponse(buffer.join(""));
         }
 
-        if (function_name && function_args) {
-          return handleFunctionCallResponse(function_name, function_args);
+        if (functionName && functionArgs) {
+          return handleFunctionCallResponse(functionName, functionArgs);
         }
 
         throw new Error("unable to handle OpenAI response (not text or function)");
@@ -242,10 +243,10 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         removeEventListener("keydown", handleCancel);
       });
   } else {
-    response_promise = openai.chat.completions
+    responsePromise = openai.chat.completions
       .create(
-        chat_completion_params as OpenAI.Chat.CompletionCreateParamsNonStreaming,
-        chat_completion_req_options
+        chatCompletionParams as OpenAI.Chat.CompletionCreateParamsNonStreaming,
+        chatCompletionReqOptions
       )
       .then(async (response: OpenAI.Chat.ChatCompletion) => {
         let function_name: string = "";
@@ -283,8 +284,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   }
 
   return {
-    // HACK: for some reason, TS thinks this could also be undefined, but I don't see how.
-    promise: response_promise as Promise<ChatCraftAiMessage | ChatCraftFunctionCallMessage>,
+    promise: responsePromise,
     cancel,
     pause,
     resume,
