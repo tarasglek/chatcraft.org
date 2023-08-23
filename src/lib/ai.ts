@@ -37,8 +37,51 @@ export type ChatOptions = {
   onData?: ({ token, currentText }: { token: string; currentText: string }) => void;
 };
 
+function parseOpenAIChunkResponse(chunk: OpenAI.Chat.ChatCompletionChunk) {
+  let functionName: string = "";
+  let functionArgs: string = "";
+  let token: string = "";
+  if (chunk.choices[0]?.delta?.content) {
+    token = chunk.choices[0]?.delta?.content;
+  }
+
+  if (chunk.choices[0]?.delta?.function_call) {
+    if (chunk.choices[0]?.delta?.function_call.name) {
+      functionName = chunk.choices[0]?.delta?.function_call.name;
+    } else if (chunk.choices[0]?.delta?.function_call.arguments) {
+      const token = chunk.choices[0]?.delta?.function_call.arguments;
+      functionArgs = functionArgs + token;
+    } else {
+      throw new Error("unable to handle OpenAI response (not function name or args)");
+    }
+  }
+
+  return { token, functionName, functionArgs };
+}
+
+function parseOpenAIResponse(response: OpenAI.Chat.ChatCompletion) {
+  let functionName: string = "";
+  let functionArgs: string = "";
+  let content: string = "";
+
+  if (response.choices[0]?.message?.content) {
+    content = response.choices[0]?.message?.content;
+  }
+
+  if (response.choices[0]?.message?.function_call) {
+    if (response.choices[0]?.message?.function_call.name) {
+      functionName = response.choices[0]?.message?.function_call.name;
+    } else if (response.choices[0]?.message?.function_call.arguments) {
+      functionArgs = response.choices[0]?.message?.function_call.arguments;
+    } else {
+      throw new Error("unable to handle OpenAI response (not function name or args)");
+    }
+  }
+
+  return { content, functionName, functionArgs };
+}
+
 export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
-  const buffer: string[] = [];
   const {
     onData,
     onFinish,
@@ -124,6 +167,42 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     });
   };
 
+  const handleOpenAIResponse = async (
+    content: string,
+    functionName: string,
+    functionArgs: string
+  ) => {
+    if (content.length > 0) {
+      return handleTextResponse(content);
+    }
+
+    if (functionName && functionArgs) {
+      return handleFunctionCallResponse(functionName, functionArgs);
+    }
+
+    throw new Error("unable to handle OpenAI response (not text or function)");
+  };
+
+  const buffer: string[] = [];
+  let functionName: string = "";
+  let functionArgs: string = "";
+  const streamOpenAIResponse = async (token: string, func: string, args: string) => {
+    if (func || args) {
+      functionName += func;
+      functionArgs += args;
+      if (onData && !isPaused) {
+        onData({ token: func, currentText: functionArgs });
+      }
+    } else if (token) {
+      buffer.push(token);
+      if (onData && !isPaused) {
+        onData({ token, currentText: buffer.join("") });
+      }
+    }
+
+    return { token, functionName, functionArgs };
+  };
+
   const handleError = async (error: Error) => {
     if (onError) {
       onError(error);
@@ -199,42 +278,18 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         chatCompletionParams as OpenAI.Chat.CompletionCreateParamsStreaming,
         chatCompletionReqOptions
       )
-      .then(async (stream_response) => {
-        let functionName: string = "";
-        let functionArgs: string = "";
-        for await (const stream_chunk of stream_response) {
-          if (stream_chunk.choices[0]?.delta?.content) {
-            const token = stream_chunk.choices[0]?.delta?.content;
-            buffer.push(token);
-            if (onData && !isPaused) {
-              onData({ token, currentText: buffer.join("") });
-            }
-          }
-
-          if (stream_chunk.choices[0]?.delta?.function_call) {
-            if (stream_chunk.choices[0]?.delta?.function_call.name) {
-              functionName = stream_chunk.choices[0]?.delta?.function_call.name;
-            } else if (stream_chunk.choices[0]?.delta?.function_call.arguments) {
-              const token = stream_chunk.choices[0]?.delta?.function_call.arguments;
-              functionArgs = functionArgs + token;
-              if (onData && !isPaused) {
-                onData({ token, currentText: functionArgs });
-              }
-            } else {
-              throw new Error("unable to handle OpenAI response (not function name or args)");
-            }
-          }
+      .then(async (streamResponse) => {
+        for await (const streamChunk of streamResponse) {
+          const parsedData = parseOpenAIChunkResponse(streamChunk);
+          const streamedData = await streamOpenAIResponse(
+            parsedData.token,
+            parsedData.functionName,
+            parsedData.functionArgs
+          );
         }
 
-        if (buffer.length > 0) {
-          return handleTextResponse(buffer.join(""));
-        }
-
-        if (functionName && functionArgs) {
-          return handleFunctionCallResponse(functionName, functionArgs);
-        }
-
-        throw new Error("unable to handle OpenAI response (not text or function)");
+        const content = buffer.join("");
+        return handleOpenAIResponse(content, functionName, functionArgs);
       })
       .catch((err) => {
         return handleError(err);
@@ -249,31 +304,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         chatCompletionReqOptions
       )
       .then(async (response: OpenAI.Chat.ChatCompletion) => {
-        let function_name: string = "";
-        let function_args: string = "";
-        if (response.choices[0]?.message?.content) {
-          buffer.push(response.choices[0]?.message?.content);
-        }
-
-        if (response.choices[0]?.message?.function_call) {
-          if (response.choices[0]?.message?.function_call.name) {
-            function_name = response.choices[0]?.message?.function_call.name;
-          } else if (response.choices[0]?.message?.function_call.arguments) {
-            function_args = response.choices[0]?.message?.function_call.arguments;
-          } else {
-            throw new Error("unable to handle OpenAI response (not function name or args)");
-          }
-        }
-
-        if (buffer.length > 0) {
-          return handleTextResponse(buffer.join(""));
-        }
-
-        if (function_name && function_args) {
-          return handleFunctionCallResponse(function_name, function_args);
-        }
-
-        throw new Error("unable to handle OpenAI response (not text or function)");
+        const { content, functionName, functionArgs } = parseOpenAIResponse(response);
+        return handleOpenAIResponse(content, functionName, functionArgs);
       })
       .catch((err) => {
         return handleError(err);
