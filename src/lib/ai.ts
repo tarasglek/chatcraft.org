@@ -281,7 +281,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
       .then(async (streamResponse) => {
         for await (const streamChunk of streamResponse) {
           const parsedData = parseOpenAIChunkResponse(streamChunk);
-          const streamedData = await streamOpenAIResponse(
+          await streamOpenAIResponse(
             parsedData.token,
             parsedData.functionName,
             parsedData.functionArgs
