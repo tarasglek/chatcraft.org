@@ -316,11 +316,11 @@ export class ChatCraftFunction {
   }
 
   toOpenAIFunction(): OpenAI.Chat.Completions.CompletionCreateParams.Function {
-    const openai_parameters: Record<string, unknown> = this.parameters as Record<string, unknown>;
+    const openaiParameters: Record<string, unknown> = this.parameters as Record<string, unknown>;
     return {
       name: this.name,
       description: this.description,
-      parameters: openai_parameters,
+      parameters: openaiParameters,
     };
   }
 
