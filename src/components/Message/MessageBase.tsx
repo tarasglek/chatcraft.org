@@ -194,7 +194,7 @@ function MessageBase({
                     </Link>
                   </Text>
                   {headingMenu}
-                  {!isLoading && settings.countTokens && tokens && (
+                  {!isLoading && settings.countTokens && !!tokens && (
                     <Tag size="sm" variant="outline" colorScheme="gray">
                       {formatNumber(tokens)} Tokens
                     </Tag>
