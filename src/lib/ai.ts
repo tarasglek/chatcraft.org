@@ -41,15 +41,18 @@ function parseOpenAIChunkResponse(chunk: OpenAI.Chat.ChatCompletionChunk) {
   let functionName: string = "";
   let functionArgs: string = "";
   let token: string = "";
-  if (chunk.choices[0]?.delta?.content) {
-    token = chunk.choices[0]?.delta?.content;
+
+  const chunkDelta = chunk.choices[0]?.delta;
+  if (chunkDelta?.content) {
+    token = chunkDelta?.content;
   }
 
-  if (chunk.choices[0]?.delta?.function_call) {
-    if (chunk.choices[0]?.delta?.function_call.name) {
-      functionName = chunk.choices[0]?.delta?.function_call.name;
-    } else if (chunk.choices[0]?.delta?.function_call.arguments) {
-      const token = chunk.choices[0]?.delta?.function_call.arguments;
+  const chunkDeltaFunctionCall = chunkDelta?.function_call;
+  if (chunkDeltaFunctionCall) {
+    if (chunkDeltaFunctionCall.name) {
+      functionName = chunkDeltaFunctionCall.name;
+    } else if (chunkDeltaFunctionCall.arguments) {
+      const token = chunkDeltaFunctionCall.arguments;
       functionArgs = functionArgs + token;
     } else {
       throw new Error("unable to handle OpenAI response (not function name or args)");
@@ -64,15 +67,17 @@ function parseOpenAIResponse(response: OpenAI.Chat.ChatCompletion) {
   let functionArgs: string = "";
   let content: string = "";
 
-  if (response.choices[0]?.message?.content) {
-    content = response.choices[0]?.message?.content;
+  const responseMsg = response.choices[0]?.message;
+  if (responseMsg?.content) {
+    content = responseMsg?.content;
   }
 
-  if (response.choices[0]?.message?.function_call) {
-    if (response.choices[0]?.message?.function_call.name) {
-      functionName = response.choices[0]?.message?.function_call.name;
-    } else if (response.choices[0]?.message?.function_call.arguments) {
-      functionArgs = response.choices[0]?.message?.function_call.arguments;
+  const responseFunctionCall = response.choices[0]?.message.function_call;
+  if (responseFunctionCall) {
+    if (responseFunctionCall.name) {
+      functionName = responseFunctionCall.name;
+    } else if (responseFunctionCall.arguments) {
+      functionArgs = responseFunctionCall.arguments;
     } else {
       throw new Error("unable to handle OpenAI response (not function name or args)");
     }
