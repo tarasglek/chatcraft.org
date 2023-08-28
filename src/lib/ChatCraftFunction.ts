@@ -97,46 +97,17 @@ export const loadFunctions = async (fnNames: string[], onError?: (err: Error) =>
 };
 
 export const initialFunctionCode = `/**
-* Example Function Module. Each function needs you to define 4 things:
+* Example Function Module. Each function needs you to define the following:
+* 1. jsdoc comment with function description and @param descriptions
+* 2. exported named function in typescript
 */
 
-/* 1. Name of your function (should be unique) */
-export const name = "example";
-
-/* 2. Description of function, used to describe what it does to an LLM */
-export const description = "This function echoes back the input passed to it.";
-
 /**
-* 3. A JSON Schema defining the function's parameters. See:
-*
-* - https://platform.openai.com/docs/guides/gpt/function-calling
-* - https://json-schema.org/learn/getting-started-step-by-step
-*/
-export const parameters = {
- type: "object",
- properties: {
-   value: {
-     type: "string",
-     description: "The value to echo back",
-   },
-   required: ["value"],
- },
-};
-
-/**
- * 4. The function itself, must be async. It should accept an Object
- * matching the schema defined in parameters and should return a Promise
- * to a string or any other JavaScript object.
- *
- * If you return a non-string, it will be displayed as JSON.
- *
- * If you return a string, you can format it as a Markdown code block
- * so that it gets displayed correctly.  For example:
- *
- * return "\`\`\`html\n" + result + "\`\`\`";
+ * This function echoes back the input passed to it.
+ * @param txt The text to echo back
  */
-export default async function (data) {
- return data.value;
+export async function echo(txt: string) {
+ return txt;
 }
 `;
 
@@ -261,9 +232,11 @@ export class ChatCraftFunction {
       this.description = description;
       this.parameters = parameters;
     } catch (err) {
+      console.error(err);
+      const errorMsg = `Unable to parse code: ${(err as Error).message}`;
       this.name = "function";
-      this.description = "unable to parse code";
-      this.parameters = { error: "unable to parse code" };
+      this.description = errorMsg;
+      this.parameters = { error: errorMsg };
     }
 
     // Upsert Chat itself
