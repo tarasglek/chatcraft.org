@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev-functions": "wrangler pages dev -- npm run dev",
+    "dev-functions": "wrangler pages dev --port 9339 --r2 CHATCRAFT_ORG_BUCKET -- npm run dev",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "prepare": "husky install",
@@ -23,6 +23,7 @@
     "dexie": "^3.2.4",
     "dexie-export-import": "^4.0.7",
     "dexie-react-hooks": "^1.1.6",
+    "esbuild-wasm": "^0.19.2",
     "framer-motion": "^10.15.0",
     "jose": "^4.14.4",
     "openai": "^4.0.0",
@@ -41,7 +42,7 @@
     "tiktoken": "^1.0.10"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20230724.0",
+    "@cloudflare/workers-types": "^4.20230814.0",
     "@types/cookie": "^0.5.1",
     "@types/lodash": "^4.14.196",
     "@types/react": "^18.2.18",
@@ -66,7 +67,7 @@
     "vite-plugin-wasm": "^3.2.2",
     "vitest": "^0.33.0",
     "vitest-environment-miniflare": "^2.14.0",
-    "wrangler": "^3.4.0"
+    "wrangler": "^3.5.1"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"

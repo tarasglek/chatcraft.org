@@ -1,7 +1,7 @@
 import { ChatCraftSystemMessage } from "./ChatCraftMessage";
 import { getSettings } from "./settings";
 
-const defaultSystemPrompt = `I am ChatCraft, a web-based, expert programming AI assistant. I help programmers learn, experiment, and be more creative with code.
+const defaultSystemPromptText = `I am ChatCraft, a web-based, expert programming AI assistant. I help programmers learn, experiment, and be more creative with code.
 
 I follow these rules when responding:
 
@@ -12,34 +12,34 @@ I follow these rules when responding:
 - If using functions, only use the specific functions I have been provided with
 `;
 
-const justShowMeTheCodeRule =
+const justShowMeTheCodeText =
   "- When responding with code, ONLY return the code and NOTHING else (i.e., don't explain ANYTHING)";
 
-const buildSystemPrompt = () => {
-  const { justShowMeTheCode } = getSettings();
+export const defaultSystemPrompt = () => {
+  const { justShowMeTheCode, customSystemPrompt } = getSettings();
 
-  let systemPrompt = defaultSystemPrompt;
+  let systemPrompt = customSystemPrompt ?? defaultSystemPromptText;
   if (justShowMeTheCode) {
-    systemPrompt += justShowMeTheCodeRule;
+    systemPrompt += justShowMeTheCodeText;
   }
   return systemPrompt;
 };
 
-// Compare the given system prompt to the default system prompts we use
-const isDefaultSystemPrompt = (message: ChatCraftSystemMessage) =>
-  message.text === buildSystemPrompt();
-
 export function createSystemMessage() {
-  return new ChatCraftSystemMessage({ text: buildSystemPrompt() });
+  return new ChatCraftSystemMessage({ text: defaultSystemPrompt() });
 }
 
 // A shorter version of the system prompt to show if we don't want to reveal the whole thing
 export function createSystemPromptSummary(message: ChatCraftSystemMessage) {
-  if (isDefaultSystemPrompt(message)) {
-    return "I am ChatCraft, a web-based, expert programming AI assistant. I help programmers learn, experiment, and be more creative with code...";
+  // Grab first line of text, truncate to 250 characters
+  let { text } = message;
+  text = text.split("\n")[0];
+  text = text.length > 250 ? `${text.slice(0, 250).trim()}...` : text;
+
+  // See if we need to add ...
+  if (text.length < message.text.length) {
+    text += "...";
   }
 
-  // Grab first few lines of text, and add ellipses if necessary to indicate more
-  const { text } = message;
-  return text.length > 250 ? `${message.text.slice(0, 250).trim()}...` : message.text;
+  return text;
 }

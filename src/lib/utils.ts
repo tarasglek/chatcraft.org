@@ -45,3 +45,6 @@ export const getReferer = () => {
 
 export const formatAsCodeBlock = (code: string, language = "text") =>
   `\`\`\`${language}\n${code}\n\`\`\``;
+
+export const isProd = () => location.origin === "https://chatcraft.org";
+export const isDev = () => !isProd();

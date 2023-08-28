@@ -24,6 +24,7 @@ import { TbSearch } from "react-icons/tb";
 import { Form } from "react-router-dom";
 
 import PreferencesModal from "./PreferencesModal";
+import DefaultSystemPromptModal from "./DefaultSystemPromptModal";
 import { useUser } from "../hooks/use-user";
 
 type HeaderProps = {
@@ -35,7 +36,16 @@ type HeaderProps = {
 
 function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isPrefModalOpen,
+    onOpen: onPrefModalOpen,
+    onClose: onPrefModalClose,
+  } = useDisclosure();
+  const {
+    isOpen: isSysPromptModalOpen,
+    onOpen: onSysPromptModalOpen,
+    onClose: onSysPromptModalClose,
+  } = useDisclosure();
   const { user, login, logout } = useUser();
 
   const handleLoginLogout = useCallback(() => {
@@ -115,7 +125,8 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
               variant="ghost"
             />
             <MenuList>
-              <MenuItem onClick={onOpen}>Settings...</MenuItem>
+              <MenuItem onClick={onPrefModalOpen}>Settings...</MenuItem>
+              <MenuItem onClick={onSysPromptModalOpen}>Default System Prompt...</MenuItem>
               <MenuItem onClick={handleLoginLogout}>
                 {user ? (
                   "Logout"
@@ -141,7 +152,16 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
         </Box>
       </ButtonGroup>
 
-      <PreferencesModal isOpen={isOpen} onClose={onClose} finalFocusRef={inputPromptRef} />
+      <PreferencesModal
+        isOpen={isPrefModalOpen}
+        onClose={onPrefModalClose}
+        finalFocusRef={inputPromptRef}
+      />
+      <DefaultSystemPromptModal
+        isOpen={isSysPromptModalOpen}
+        onClose={onSysPromptModalClose}
+        finalFocusRef={inputPromptRef}
+      />
     </Flex>
   );
 }

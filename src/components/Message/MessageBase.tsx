@@ -35,13 +35,13 @@ import {
   ChatCraftAiMessageVersion,
   ChatCraftMessage,
 } from "../../lib/ChatCraftMessage";
-import { useModels } from "../../hooks/use-models";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
+import { useModels } from "../../hooks/use-models";
+import { useSettings } from "../../hooks/use-settings";
+import { useAlert } from "../../hooks/use-alert";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
-import { useSettings } from "../../hooks/use-settings";
-import { useAlert } from "../../hooks/use-alert";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -194,7 +194,7 @@ function MessageBase({
                     </Link>
                   </Text>
                   {headingMenu}
-                  {!isLoading && settings.countTokens && tokens && (
+                  {!isLoading && settings.countTokens && !!tokens && (
                     <Tag size="sm" variant="outline" colorScheme="gray">
                       {formatNumber(tokens)} Tokens
                     </Tag>

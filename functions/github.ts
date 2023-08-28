@@ -53,3 +53,12 @@ export async function requestUserInfo(token: string): Promise<User> {
 
   return { username: login, name: name ?? login, avatarUrl: avatar_url };
 }
+
+// In development environments, we automatically log the user in without involving GitHub
+export function requestDevUserInfo() {
+  return {
+    username: "chatcraft_dev",
+    name: "ChatCraftDev",
+    avatarUrl: "https://github.com/github.png?size=402",
+  };
+}
