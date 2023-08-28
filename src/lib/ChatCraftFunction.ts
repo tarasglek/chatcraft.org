@@ -3,7 +3,8 @@ import db, { ChatCraftFunctionTable } from "./db";
 import { formatAsCodeBlock } from "./utils";
 import { ChatCraftFunctionResultMessage } from "./ChatCraftMessage";
 import OpenAI from "openai";
-
+import { parseTypeScript } from "typescript2openai";
+import { toJavaScript } from "./run-code";
 export type FunctionModule = {
   name: string;
   description: string;
@@ -96,73 +97,56 @@ export const loadFunctions = async (fnNames: string[], onError?: (err: Error) =>
 };
 
 export const initialFunctionCode = `/**
-* Example Function Module. Each function needs you to define 4 things:
+* Example Function Module. Each function needs you to define the following:
+* 1. jsdoc comment with function description and @param descriptions
+* 2. exported named function in typescript
 */
 
-/* 1. Name of your function (should be unique) */
-export const name = "example";
-
-/* 2. Description of function, used to describe what it does to an LLM */
-export const description = "This function echoes back the input passed to it.";
-
 /**
-* 3. A JSON Schema defining the function's parameters. See:
-*
-* - https://platform.openai.com/docs/guides/gpt/function-calling
-* - https://json-schema.org/learn/getting-started-step-by-step
-*/
-export const parameters = {
- type: "object",
- properties: {
-   value: {
-     type: "string",
-     description: "The value to echo back",
-   },
-   required: ["value"],
- },
-};
-
-/**
- * 4. The function itself, must be async. It should accept an Object
- * matching the schema defined in parameters and should return a Promise
- * to a string or any other JavaScript object.
- *
- * If you return a non-string, it will be displayed as JSON.
- *
- * If you return a string, you can format it as a Markdown code block
- * so that it gets displayed correctly.  For example:
- *
- * return "\`\`\`html\n" + result + "\`\`\`";
+ * This function echoes back the input passed to it.
+ * @param txt The text to echo back
  */
-export default async function (data) {
- return data.value;
+export async function echo(txt: string) {
+    return txt;
 }
 `;
 
-/* Turn the raw JS code into a ES Module and import so we can work with the values */
-const parseModule = async (code: string) => {
-  const blob = new Blob([code], { type: "text/javascript" });
+/**
+ *  Use esbuild to parse the code and return a module we can import.
+ */
+const parseModule = async (tsCode: string) => {
+  // strip typescript
+  const js = await toJavaScript(tsCode);
+
+  // pull out function declarations
+  const functionDeclarations = parseTypeScript(tsCode);
+
+  const blob = new Blob([js], { type: "text/javascript" });
   const url = URL.createObjectURL(blob);
 
   try {
     const module = await import(/* @vite-ignore */ url);
+    const exportedFunctionCount = Object.keys(module).length;
+    if (exportedFunctionCount === 0) {
+      throw new Error("No functions exported in module");
+    }
+    // we only use the first function for now
+    const firstFunction = functionDeclarations[0];
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    const fn = module[firstFunction.name] as Function;
 
-    // Validate that the module has what we expect
-    const { name, description, parameters, default: fn } = module;
-    if (typeof name !== "string") {
-      throw new Error("missing `name` export");
+    // convert openai func( {param1:, param2...}) to func(param1, param2...)
+    // eslint-disable-next-line no-inner-declarations
+    function wrapper(obj: object) {
+      const props = Object.values(obj);
+      return fn(...props);
     }
-    if (typeof description !== "string") {
-      throw new Error("missing `description` export");
-    }
-    if (!parameters) {
-      throw new Error("missing `parameters` export");
-    }
-    if (typeof fn !== "function") {
-      throw new Error("missing default function export");
-    }
-
-    return module as FunctionModule;
+    return {
+      name: firstFunction.name,
+      description: firstFunction.description || "",
+      parameters: firstFunction.parameters,
+      default: wrapper,
+    };
   } catch (err: any) {
     console.warn("Unable to parse module", err);
     throw new Error(`Unable to parse module: ${err.message}`);
@@ -248,9 +232,11 @@ export class ChatCraftFunction {
       this.description = description;
       this.parameters = parameters;
     } catch (err) {
+      console.error(err);
+      const errorMsg = `Unable to parse code: ${(err as Error).message}`;
       this.name = "function";
-      this.description = "unable to parse code";
-      this.parameters = { error: "unable to parse code" };
+      this.description = errorMsg;
+      this.parameters = { error: errorMsg };
     }
 
     // Upsert Chat itself

@@ -39,7 +39,8 @@
     "react-textarea-autosize": "^8.5.2",
     "react-use": "^17.4.0",
     "remark-gfm": "^3.0.1",
-    "tiktoken": "^1.0.10"
+    "tiktoken": "^1.0.10",
+    "typescript2openai": "github:tarasglek/typescript2openai#2781b198bffb3207c4712fdc08aca49dabbe54d0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230814.0",

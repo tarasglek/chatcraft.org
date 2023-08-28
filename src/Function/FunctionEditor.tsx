@@ -35,14 +35,14 @@ export default function FunctionEditor({ initialValue, onChange, filename }: Fun
       pb={1}
     >
       <CodeHeader
-        language="javascript"
+        language="typescript"
         code={value}
         codeDownloadFilename={filename}
         isLoading={false}
       >
         <CodeMirror
           value={value}
-          extensions={[javascript()]}
+          extensions={[javascript({ typescript: true })]}
           theme={colorMode}
           height="100%"
           style={{
