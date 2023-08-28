@@ -13,6 +13,27 @@ import type { Tiktoken } from "tiktoken/lite";
 
 const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
 
+const createClient = (apiKey: string, apiUrl?: string) => {
+  // If we're using OpenRouter, add extra headers
+  let headers = undefined;
+  if (!usingOfficialOpenAI()) {
+    headers = {
+      "HTTP-Referer": getReferer(),
+      "X-Title": "chatcraft.org",
+    };
+  }
+
+  return {
+    openai: new OpenAI({
+      apiKey: apiKey,
+      baseURL: apiUrl,
+      defaultHeaders: headers,
+      dangerouslyAllowBrowser: true,
+    }),
+    headers,
+  };
+};
+
 // Each provider does their model naming differently, pick the right one
 export const defaultModelForProvider = () => {
   // OpenAI
@@ -220,22 +241,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   if (!apiKey) {
     throw new Error("Missing API Key");
   }
-
-  // If we're using OpenRouter, add extra headers
-  let headers = undefined;
-  if (!usingOfficialOpenAI()) {
-    headers = {
-      "HTTP-Referer": getReferer(),
-      "X-Title": "chatcraft.org",
-    };
-  }
-
-  const openai = new OpenAI({
-    apiKey: apiKey,
-    baseURL: apiUrl,
-    defaultHeaders: headers,
-    dangerouslyAllowBrowser: true,
-  });
+  const { openai, headers } = createClient(apiKey, apiUrl);
 
   const chatCompletionParams: OpenAI.Chat.CompletionCreateParams = {
     model: model ? model.id : getSettings().model.id,
@@ -332,22 +338,20 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 export async function queryModels(apiKey: string) {
   const { apiUrl } = getSettings();
   const usingOpenAI = usingOfficialOpenAI();
-  const res = await fetch(`${apiUrl}/models`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
+  const { openai } = createClient(apiKey, apiUrl);
 
-  if (!res.ok) {
-    const { error } = await res.json();
-    throw new Error(error?.message ?? `error querying API`);
+  try {
+    const models = [];
+    for await (const page of openai.models.list()) {
+      models.push(page);
+    }
+
+    return models
+      .filter((model: any) => !usingOpenAI || model.id.includes("gpt"))
+      .map((model: any) => model.id) as string[];
+  } catch (err: any) {
+    throw new Error(err.message ?? `error querying models API`);
   }
-
-  const { data } = await res.json();
-
-  return data
-    .filter((model: any) => !usingOpenAI || model.id.includes("gpt"))
-    .map((model: any) => model.id) as string[];
 }
 
 export async function validateOpenAiApiKey(apiKey: string) {
