@@ -107,19 +107,19 @@ export const initialFunctionCode = `/**
  * @param txt The text to echo back
  */
 export async function echo(txt: string) {
- return txt;
+    return txt;
 }
 `;
 
 /**
  *  Use esbuild to parse the code and return a module we can import.
  */
-const parseModule = async (ts_code: string) => {
+const parseModule = async (tsCode: string) => {
   // strip typescript
-  const js = await toJavaScript(ts_code);
+  const js = await toJavaScript(tsCode);
 
   // pull out function declarations
-  const functionDeclarations = parseTypeScript(ts_code);
+  const functionDeclarations = parseTypeScript(tsCode);
 
   const blob = new Blob([js], { type: "text/javascript" });
   const url = URL.createObjectURL(blob);
