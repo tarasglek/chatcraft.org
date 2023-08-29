@@ -284,7 +284,6 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   let responsePromise;
-  // eslint-disable-next-line no-constant-condition
   if (streaming) {
     responsePromise = openai.chat.completions
       .create(
