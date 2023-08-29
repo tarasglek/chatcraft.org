@@ -157,7 +157,7 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   };
 
   // Only stream if we have an onData callback
-  const streaming: boolean = false;
+  const streaming: boolean = !!onData;
 
   // Regular text response from LLM
   const handleTextResponse = async (text: string = "") => {
@@ -283,7 +283,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   let responsePromise;
-  if (streaming) {
+  // eslint-disable-next-line no-constant-condition
+  if (false) {
     responsePromise = openai.chat.completions
       .create(
         chatCompletionParams as OpenAI.Chat.CompletionCreateParamsStreaming,
