@@ -60,7 +60,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const [isPersisted, setIsPersisted] = useState(false);
   const { info, error } = useAlert();
   const inputRef = useRef<HTMLInputElement>(null);
-  const provider = settings.apiUrl === OPENAI_API_URL ? "OpenAI" : "OpenRouter.ai";
   const [isApiKeyInvalid, setIsApiKeyInvalid] = useState(false);
   // Check the API Key, but debounce requests if user is typing
   useDebounce(
@@ -150,7 +149,11 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     setSettings({ ...settings, apiUrl: url });
   };
 
-  const isCustomOptionSelected = () => ![OPENAI_API_URL, OPENROUTER_API_URL].includes(apiUrl);
+  const providers: { [key: string]: string } = {};
+  providers[OPENAI_API_URL] = "OpenAI";
+  providers[OPENROUTER_API_URL] = "OpenRouter.ai";
+
+  const isCustomOptionSelected = () => !Object.keys(providers).includes(apiUrl);
 
   const modelSelect = (
     <Select
@@ -164,7 +167,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     >
       <option value={OPENAI_API_URL}>OpenAI ({OPENAI_API_URL})</option>
       <option value={OPENROUTER_API_URL}>OpenRouter.ai ({OPENROUTER_API_URL})</option>
-      <option value="custom">Custom</option>
+      <option value="custom">Custom OpenAI-compatible API</option>
     </Select>
   );
 
@@ -177,6 +180,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       }}
     />
   );
+  const provider = providers[apiUrl] || "Custom Provider";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
