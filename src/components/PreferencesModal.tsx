@@ -144,6 +144,40 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     [inputRef]
   );
 
+  const [apiUrl, setSelectedOption] = useState(settings.apiUrl);
+
+  const setApiUrl = (url: string) => {
+    setSettings({ ...settings, apiUrl: url });
+  };
+
+  const isCustomOptionSelected = () => ![OPENAI_API_URL, OPENROUTER_API_URL].includes(apiUrl);
+
+  const modelSelect = (
+    <Select
+      value={isCustomOptionSelected() ? "custom" : apiUrl}
+      onChange={(e) => {
+        setSelectedOption(e.target.value);
+        if (e.target.value !== "custom") {
+          setApiUrl(e.target.value);
+        }
+      }}
+    >
+      <option value={OPENAI_API_URL}>OpenAI ({OPENAI_API_URL})</option>
+      <option value={OPENROUTER_API_URL}>OpenRouter.ai ({OPENROUTER_API_URL})</option>
+      <option value="custom">Custom</option>
+    </Select>
+  );
+
+  const customModel = isCustomOptionSelected() && (
+    <Input
+      value={settings.apiUrl}
+      onChange={(e) => {
+        setSettings({ ...settings, apiUrl: e.target.value });
+        setApiUrl(e.target.value);
+      }}
+    />
+  );
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
       <ModalOverlay />
@@ -154,18 +188,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
           <VStack gap={4}>
             <FormControl>
               <FormLabel>API URL</FormLabel>
-              <Select
-                value={settings.apiUrl}
-                onChange={(e) => setSettings({ ...settings, apiUrl: e.target.value })}
-              >
-                <option value={OPENAI_API_URL}>OpenAI ({OPENAI_API_URL})</option>
-                <option value={OPENROUTER_API_URL}>OpenRouter.ai ({OPENROUTER_API_URL})</option>
-              </Select>
+              {modelSelect}
+              {customModel}
               <FormHelperText>
                 Advanced option for use with other OpenAI-compatible APIs
               </FormHelperText>
             </FormControl>
-
             <FormControl isInvalid={isApiKeyInvalid}>
               <FormLabel>
                 {provider} API Key{" "}
@@ -199,6 +227,14 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               )}
               <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
               <FormErrorMessage>Unable to verify API Key with {provider}.</FormErrorMessage>
+            </FormControl>
+            <FormControl>
+              <Checkbox
+                isChecked={settings.useStreaming}
+                onChange={(e) => setSettings({ ...settings, useStreaming: e.target.checked })}
+              >
+                Enable Streaming
+              </Checkbox>
             </FormControl>
 
             <FormControl>

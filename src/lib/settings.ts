@@ -11,7 +11,7 @@ import { ChatCraftModel } from "../lib/ChatCraftModel";
  * If using the latter, we need to override the basePath to use the OpenRouter URL.
  */
 export const OPENAI_API_URL = "https://api.openai.com/v1";
-export const OPENROUTER_API_URL = "https://api.endpoints.anyscale.com/v1";
+export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
 
 export type Settings = {
   apiKey?: string;
@@ -23,6 +23,7 @@ export type Settings = {
   sidebarVisible: boolean;
   alwaysSendFunctionResult: boolean;
   customSystemPrompt?: string;
+  useStreaming: boolean;
 };
 
 export const defaults: Settings = {
@@ -35,6 +36,7 @@ export const defaults: Settings = {
   sidebarVisible: false,
   // Disabled by default, so we don't waste tokens
   alwaysSendFunctionResult: false,
+  useStreaming: true,
 };
 
 export const key = "settings";

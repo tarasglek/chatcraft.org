@@ -156,8 +156,10 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
     }
   };
 
+  const { apiKey, apiUrl, useStreaming } = getSettings();
+
   // Only stream if we have an onData callback
-  const streaming: boolean = !!onData;
+  const streaming: boolean = !!onData && useStreaming;
 
   // Regular text response from LLM
   const handleTextResponse = async (text: string = "") => {
@@ -237,7 +239,6 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     throw new Error(`OpenAI API Returned Error: ${error.message}`);
   };
 
-  const { apiKey, apiUrl } = getSettings();
   if (!apiKey) {
     throw new Error("Missing API Key");
   }
@@ -284,7 +285,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 
   let responsePromise;
   // eslint-disable-next-line no-constant-condition
-  if (false) {
+  if (streaming) {
     responsePromise = openai.chat.completions
       .create(
         chatCompletionParams as OpenAI.Chat.CompletionCreateParamsStreaming,
