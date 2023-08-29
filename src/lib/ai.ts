@@ -157,7 +157,7 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   };
 
   // Only stream if we have an onData callback
-  const streaming: boolean = !!onData;
+  const streaming: boolean = false;
 
   // Regular text response from LLM
   const handleTextResponse = async (text: string = "") => {
