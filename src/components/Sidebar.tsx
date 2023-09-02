@@ -5,7 +5,6 @@ import {
   Flex,
   VStack,
   Heading,
-  Tag,
   Text,
   Button,
   Center,
@@ -13,7 +12,11 @@ import {
   IconButton,
   ButtonGroup,
   Input,
-  Divider,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionIcon,
+  AccordionPanel,
 } from "@chakra-ui/react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { MdOutlineChatBubbleOutline } from "react-icons/md";
@@ -271,7 +274,7 @@ type SidebarProps = {
 function Sidebar({ selectedChat, selectedFunction }: SidebarProps) {
   const { user } = useUser();
   const navigate = useNavigate();
-  const [recentCount, setRecentCount] = useState(5);
+  const [recentCount, setRecentCount] = useState(10);
 
   const chatsTotal = useLiveQuery<number, number>(() => db.chats.count(), [], 0);
 
@@ -356,131 +359,117 @@ function Sidebar({ selectedChat, selectedFunction }: SidebarProps) {
 
   return (
     <Flex direction="column" h="100%" p={2} gap={4}>
-      <VStack align="left">
-        <Flex justify="space-between">
-          <Heading as="h3" size="sm">
-            Recent Chats
-          </Heading>
+      <Accordion allowToggle>
+        <AccordionItem>
+          <AccordionButton p={0} minH={10}>
+            <Heading as="h3" size="xs">
+              Saved Chats ({formatNumber(chatsTotal || 0)})
+            </Heading>
 
-          <Flex gap={1}>
             <Button as={Link} to="/c/new" size="xs" variant="ghost">
               New
             </Button>
 
-            <Tag size="sm" variant="subtle" mr={1}>
-              {formatNumber(chatsTotal || 0)} Saved Chats
-            </Tag>
-          </Flex>
-        </Flex>
+            <AccordionIcon ml="auto" />
+          </AccordionButton>
 
-        <Flex direction="column" gap={2}>
-          {recentChats?.length &&
-            recentChats.map((chat) => (
-              <ChatSidebarItem
-                key={chat.id}
-                chat={chat}
-                url={`/c/${chat.id}`}
-                canEdit={true}
-                isSelected={selectedChat?.id === chat.id}
-                onDelete={() => handleDeleteChat(chat.id)}
-              />
-            ))}
-        </Flex>
-
-        {recentCount < chatsTotal && (
-          <Center>
-            <Button size="xs" variant="ghost" onClick={() => handleShowMoreClick()}>
-              ({formatNumber(recentCount)} of {formatNumber(chatsTotal)}) Show More...
-            </Button>
-          </Center>
-        )}
-      </VStack>
-
-      <Divider />
-
-      <VStack align="left">
-        <Flex justify="space-between">
-          <Heading as="h3" size="sm">
-            Shared Chats
-          </Heading>
-
-          {!!sharedChats?.length && (
-            <Tag size="sm" variant="subtle" mr={1}>
-              {formatNumber(sharedChats.length || 0)} Shared Chats
-            </Tag>
-          )}
-        </Flex>
-
-        <Box>
-          {sharedChats?.length ? (
-            sharedChats.map((shared) => (
-              <ChatSidebarItem
-                key={shared.id}
-                chat={shared.chat}
-                url={shared.url}
-                isSelected={selectedChat?.id === shared.id}
-                onDelete={() => handleDeleteSharedChat(shared.id)}
-              />
-            ))
-          ) : (
-            <VStack align="left">
-              <Text>You don&apos;t have any shared chats yet.</Text>
-              <Text>
-                Share your first chat by clicking the <strong>Share Chat...</strong> menu option in
-                the chat header menu. Anyone with this URL will be able to read or duplicate the
-                chat.
-              </Text>
-            </VStack>
-          )}
-        </Box>
-      </VStack>
-
-      <Divider />
-
-      <VStack align="left">
-        <Flex justify="space-between">
-          <Heading as="h3" size="sm">
-            Functions
-          </Heading>
-
-          {!!functions?.length && (
-            <Flex gap={1}>
-              <Button as={Link} to="/f/new" size="xs" variant="ghost">
-                New
-              </Button>
-
-              <Tag size="sm" variant="subtle" mr={1}>
-                {formatNumber(functions.length || 0)} Functions
-              </Tag>
+          <AccordionPanel p={0} pb={4}>
+            <Flex direction="column" gap={2}>
+              {recentChats?.length > 0 &&
+                recentChats.map((chat) => (
+                  <ChatSidebarItem
+                    key={chat.id}
+                    chat={chat}
+                    url={`/c/${chat.id}`}
+                    canEdit={true}
+                    isSelected={selectedChat?.id === chat.id}
+                    onDelete={() => handleDeleteChat(chat.id)}
+                  />
+                ))}
             </Flex>
-          )}
-        </Flex>
 
-        <Box>
-          {functions?.length ? (
-            functions.map((func) => (
-              <FunctionSidebarItem
-                key={func.id}
-                func={func}
-                url={`/f/${func.id}`}
-                isSelected={selectedFunction?.id === func.id}
-                onDelete={() => handleDeleteFunction(func.id)}
-              />
-            ))
-          ) : (
-            <VStack align="left">
-              <Text>You don&apos;t have any functions yet.</Text>
-              <Text>
-                Functions can be called by some models to perform tasks.{" "}
-                <Link to="/f/new" target="_blank" style={{ textDecoration: "underline" }}>
-                  Create a function
-                </Link>
-                .
-              </Text>
-            </VStack>
-          )}
-        </Box>
-      </VStack>
+            {recentCount < chatsTotal && (
+              <Center mt={4}>
+                <Button size="xs" variant="ghost" onClick={() => handleShowMoreClick()}>
+                  ({formatNumber(recentCount)} of {formatNumber(chatsTotal)}) Show More...
+                </Button>
+              </Center>
+            )}
+          </AccordionPanel>
+        </AccordionItem>
+
+        <AccordionItem>
+          <AccordionButton p={0} minH={10}>
+            <Heading as="h3" size="xs">
+              Shared Chats ({formatNumber(sharedChats.length || 0)})
+            </Heading>
+            <AccordionIcon ml="auto" />
+          </AccordionButton>
+          <AccordionPanel p={0} pb={4}>
+            {sharedChats?.length ? (
+              sharedChats.map((shared) => (
+                <ChatSidebarItem
+                  key={shared.id}
+                  chat={shared.chat}
+                  url={shared.url}
+                  isSelected={selectedChat?.id === shared.id}
+                  onDelete={() => handleDeleteSharedChat(shared.id)}
+                />
+              ))
+            ) : (
+              <VStack align="left">
+                <Text>You don&apos;t have any shared chats yet.</Text>
+                <Text>
+                  Share your first chat by clicking the <strong>Share Chat...</strong> menu option
+                  in the chat header menu. Anyone with this URL will be able to read or duplicate
+                  the chat.
+                </Text>
+              </VStack>
+            )}
+          </AccordionPanel>
+        </AccordionItem>
+
+        <AccordionItem>
+          <AccordionButton p={0} minH={10}>
+            <Flex justify="space-between" align="center">
+              <Heading as="h3" size="xs">
+                Functions ({formatNumber(functions.length || 0)})
+              </Heading>
+
+              {functions?.length > 0 && (
+                <Button as={Link} to="/f/new" size="xs" variant="ghost">
+                  New
+                </Button>
+              )}
+            </Flex>
+            <AccordionIcon ml="auto" />
+          </AccordionButton>
+          <AccordionPanel p={0} pb={4}>
+            {functions?.length ? (
+              functions.map((func) => (
+                <FunctionSidebarItem
+                  key={func.id}
+                  func={func}
+                  url={`/f/${func.id}`}
+                  isSelected={selectedFunction?.id === func.id}
+                  onDelete={() => handleDeleteFunction(func.id)}
+                />
+              ))
+            ) : (
+              <VStack align="left">
+                <Text>You don&apos;t have any functions yet.</Text>
+                <Text>
+                  Functions can be called by some models to perform tasks.{" "}
+                  <Link to="/f/new" target="_blank" style={{ textDecoration: "underline" }}>
+                    Create a function
+                  </Link>
+                  .
+                </Text>
+              </VStack>
+            )}
+          </AccordionPanel>
+        </AccordionItem>
+      </Accordion>
     </Flex>
   );
 }
