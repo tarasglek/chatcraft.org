@@ -549,6 +549,14 @@ export class ChatCraftFunctionCallMessage extends ChatCraftMessage {
     });
   }
 
+  toOpenAiMessage(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
+    const function_call = {
+      name: this.func.name,
+      arguments: JSON.stringify(this.func.params),
+    };
+    return { role: "assistant", content: null, function_call: function_call };
+  }
+
   toJSON(): SerializedChatCraftMessage {
     return {
       ...super.toJSON(),
