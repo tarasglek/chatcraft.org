@@ -4,17 +4,20 @@ import { TbPlus } from "react-icons/tb";
 
 type NewButtonProps = {
   forkUrl?: string;
-  disableClear?: boolean;
   variant?: "outline" | "solid" | "ghost";
 };
 
-function NewButton({ forkUrl, variant = "outline", disableClear }: NewButtonProps) {
+function NewButton({ forkUrl, variant = "outline" }: NewButtonProps) {
   return (
     <Menu>
       <MenuButton as={Button} size="sm" variant={variant} rightIcon={<TbPlus />}>
         New
       </MenuButton>
       <MenuList>
+        <MenuItem as={ReactRouterLink} to="/new">
+          Clear Chat
+        </MenuItem>
+        <MenuDivider />
         <MenuItem as={ReactRouterLink} to="/new" target="_blank">
           New Blank Chat...
         </MenuItem>
@@ -22,14 +25,6 @@ function NewButton({ forkUrl, variant = "outline", disableClear }: NewButtonProp
           <MenuItem as={ReactRouterLink} to={forkUrl} target="_blank">
             New Duplicate Chat...
           </MenuItem>
-        )}
-        {!disableClear && (
-          <>
-            <MenuDivider />
-            <MenuItem as={ReactRouterLink} to="./reset-messages">
-              Clear Messages
-            </MenuItem>
-          </>
         )}
       </MenuList>
     </Menu>

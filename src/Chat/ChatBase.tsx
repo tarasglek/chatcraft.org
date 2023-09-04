@@ -336,7 +336,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         <Box maxW="900px" mx="auto" h="100%">
           {chat.readonly ? (
             <Flex w="100%" h="45px" justify="end" align="center" p={2}>
-              <NewButton forkUrl={`./fork`} variant="solid" disableClear={chat.readonly} />
+              <NewButton forkUrl={`./fork`} variant="solid" />
             </Flex>
           ) : (
             <PromptForm
