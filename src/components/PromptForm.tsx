@@ -16,9 +16,11 @@ import {
   Textarea,
   HStack,
   Tag,
+  InputGroup,
+  InputRightElement,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
-import { TbChevronUp } from "react-icons/tb";
+import { TbChevronUp, TbMicrophone } from "react-icons/tb";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
 
@@ -187,41 +189,79 @@ function PromptForm({
                 h={isExpanded ? "100%" : undefined}
               >
                 {isExpanded ? (
-                  <Textarea
-                    ref={inputPromptRef}
-                    h="100%"
-                    resize="none"
-                    isDisabled={isLoading}
-                    onKeyDown={handleKeyDown}
-                    autoFocus={true}
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    bg="white"
-                    _dark={{ bg: "gray.700" }}
-                    placeholder={
-                      !isLoading
-                        ? "Type your question or use /help for more information"
-                        : undefined
-                    }
-                    overflowY="auto"
-                  />
+                  /**
+ *     <InputGroup size="md">
+      <Input {...props} pr="4.5rem" type={show ? "text" : "password"} />
+      <InputRightElement width="4.5rem">
+        <Button variant="ghost" h="1.75rem" size="sm" onClick={() => setShow(!show)}>
+          {show ? "Hide" : "Show"}
+        </Button>
+      </InputRightElement>
+    </InputGroup>
+
+ */
+
+                  <InputGroup h="100%">
+                    <Textarea
+                      ref={inputPromptRef}
+                      h="100%"
+                      resize="none"
+                      isDisabled={isLoading}
+                      onKeyDown={handleKeyDown}
+                      autoFocus={true}
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                      placeholder={
+                        !isLoading
+                          ? "Type your question or use /help for more information"
+                          : undefined
+                      }
+                      overflowY="auto"
+                      pr={12}
+                    />
+                    <InputRightElement mr={2}>
+                      <IconButton
+                        isRound
+                        icon={<TbMicrophone />}
+                        variant="ghost"
+                        aria-label="Record speech"
+                        size="sm"
+                        fontSize="16px"
+                      />
+                    </InputRightElement>
+                  </InputGroup>
                 ) : (
-                  <AutoResizingTextarea
-                    ref={inputPromptRef}
-                    onKeyDown={handleKeyDown}
-                    isDisabled={isLoading}
-                    autoFocus={true}
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    bg="white"
-                    _dark={{ bg: "gray.700" }}
-                    placeholder={
-                      !isLoading
-                        ? "Type your question or use /help for more information"
-                        : undefined
-                    }
-                    overflowY="auto"
-                  />
+                  <InputGroup h="100%">
+                    <AutoResizingTextarea
+                      ref={inputPromptRef}
+                      onKeyDown={handleKeyDown}
+                      isDisabled={isLoading}
+                      autoFocus={true}
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                      placeholder={
+                        !isLoading
+                          ? "Type your question or use /help for more information"
+                          : undefined
+                      }
+                      overflowY="auto"
+                      pr={8}
+                    />
+                    <InputRightElement>
+                      <IconButton
+                        isRound
+                        icon={<TbMicrophone />}
+                        variant="ghost"
+                        aria-label="Record speech"
+                        size="sm"
+                        fontSize="16px"
+                      />
+                    </InputRightElement>
+                  </InputGroup>
                 )}
               </Box>
 
