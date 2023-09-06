@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useRef } from "react";
 import {
   Box,
   Button,
@@ -20,7 +20,7 @@ import {
   InputRightElement,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
-import { TbChevronUp, TbMicrophone } from "react-icons/tb";
+import { TbChevronUp } from "react-icons/tb";
 
 import AutoResizingTextarea from "./AutoResizingTextarea";
 
@@ -29,6 +29,8 @@ import { useModels } from "../hooks/use-models";
 import { isMac, isWindows, formatCurrency } from "../lib/utils";
 import NewButton from "./NewButton";
 import { useCost } from "../hooks/use-cost";
+import MicIcon from "./MicIcon";
+import { SpeechRecognition } from "../lib/speech-recognition";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -93,6 +95,7 @@ function PromptForm({
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
   const { cost } = useCost();
+  const speechRecognitionRef = useRef<SpeechRecognition>();
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -150,6 +153,23 @@ function PromptForm({
     }
   };
 
+  const onRecordingStart = () => {
+    speechRecognitionRef.current = new SpeechRecognition();
+    speechRecognitionRef.current.start();
+  };
+
+  const onRecordingStop = () => {
+    if (speechRecognitionRef.current) {
+      speechRecognitionRef.current.stop();
+    }
+  };
+
+  const onRecordingCancel = () => {
+    if (speechRecognitionRef.current) {
+      speechRecognitionRef.current.cancel();
+    }
+  };
+
   return (
     <Flex direction="column" h="100%" px={1}>
       {settings.apiKey && (
@@ -189,18 +209,6 @@ function PromptForm({
                 h={isExpanded ? "100%" : undefined}
               >
                 {isExpanded ? (
-                  /**
- *     <InputGroup size="md">
-      <Input {...props} pr="4.5rem" type={show ? "text" : "password"} />
-      <InputRightElement width="4.5rem">
-        <Button variant="ghost" h="1.75rem" size="sm" onClick={() => setShow(!show)}>
-          {show ? "Hide" : "Show"}
-        </Button>
-      </InputRightElement>
-    </InputGroup>
-
- */
-
                   <InputGroup h="100%">
                     <Textarea
                       ref={inputPromptRef}
@@ -213,22 +221,15 @@ function PromptForm({
                       onChange={(e) => setPrompt(e.target.value)}
                       bg="white"
                       _dark={{ bg: "gray.700" }}
-                      placeholder={
-                        !isLoading
-                          ? "Type your question or use /help for more information"
-                          : undefined
-                      }
+                      placeholder={!isLoading ? "Type your question or use /help" : undefined}
                       overflowY="auto"
                       pr={12}
                     />
                     <InputRightElement mr={2}>
-                      <IconButton
-                        isRound
-                        icon={<TbMicrophone />}
-                        variant="ghost"
-                        aria-label="Record speech"
-                        size="sm"
-                        fontSize="16px"
+                      <MicIcon
+                        onRecordingStart={onRecordingStart}
+                        onRecordingStop={onRecordingStop}
+                        onRecordingCancel={onRecordingCancel}
                       />
                     </InputRightElement>
                   </InputGroup>
@@ -243,22 +244,15 @@ function PromptForm({
                       onChange={(e) => setPrompt(e.target.value)}
                       bg="white"
                       _dark={{ bg: "gray.700" }}
-                      placeholder={
-                        !isLoading
-                          ? "Type your question or use /help for more information"
-                          : undefined
-                      }
+                      placeholder={!isLoading ? "Type your question or use /help" : undefined}
                       overflowY="auto"
                       pr={8}
                     />
                     <InputRightElement>
-                      <IconButton
-                        isRound
-                        icon={<TbMicrophone />}
-                        variant="ghost"
-                        aria-label="Record speech"
-                        size="sm"
-                        fontSize="16px"
+                      <MicIcon
+                        onRecordingStart={onRecordingStart}
+                        onRecordingStop={onRecordingStop}
+                        onRecordingCancel={onRecordingCancel}
                       />
                     </InputRightElement>
                   </InputGroup>
