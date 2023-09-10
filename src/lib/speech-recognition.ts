@@ -40,7 +40,7 @@ export class SpeechRecognition {
         this._mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
       } catch (e: any) {
         if (e.name === "NotSupportedError") {
-          mimeType = "audio/mp3";
+          mimeType = "audio/mp4";
           this._mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
         } else {
           throw e;
