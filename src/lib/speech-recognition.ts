@@ -37,19 +37,24 @@ export class SpeechRecognition {
         throw e;
       }
 
-      let mimeType = "audio/webm";
-      // Handle Safari not supporting webm
-      try {
-        this._mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
-      } catch (e: any) {
-        if (e.name === "NotSupportedError") {
-          const nextMimeType = "audio/mp4;codecs=avc1";
-          console.log(`${e}: ${mimeType} not supported, trying ${nextMimeType}`);
-          mimeType = nextMimeType;
+      const mimeTypeList = ["audio/webm", "audio/mp4"];
+      let mimeType = mimeTypeList[0];
+      for (const mimeTypeCandidate of mimeTypeList) {
+        mimeType = mimeTypeCandidate;
+        // Handle Safari not supporting webm
+        try {
           this._mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
-        } else {
+          console.log(`Using mimeType: ${mimeType}`);
+        } catch (e: any) {
+          if (e.name === "NotSupportedError") {
+            console.log(`${e}: ${mimeType} not supported`);
+            continue;
+          }
           throw e;
         }
+      }
+      if (!this._mediaRecorder) {
+        throw new Error(`No supported mimeType found in: ${mimeTypeList}`);
       }
 
       this._mediaRecorder.ondataavailable = function (e) {
