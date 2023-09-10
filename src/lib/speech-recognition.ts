@@ -75,6 +75,9 @@ export class SpeechRecognition {
       if (this.isRecording) {
         this._mediaRecorder.start();
       } else {
+        console.log(
+          `Recording cancelled, prior to cancellation mediaRecorder is: ${this._mediaRecorder.state}`
+        );
         this._mediaRecorder = null;
       }
     })();
