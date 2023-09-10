@@ -1,4 +1,3 @@
-import { an } from "vitest/dist/types-198fd1d9";
 import { transcribe } from "./ai";
 
 export class SpeechRecognition {
