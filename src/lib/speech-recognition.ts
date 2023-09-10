@@ -12,9 +12,30 @@ async function startRecording(): Promise<RecordingInProgress> {
   const audioDataPromise = new Promise<File>((resolve) => {
     stopRecordingResolve = resolve;
   });
-  const mimeType = "audio/webm";
-  const stream: MediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  const mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+
+  let stream: MediaStream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e: any) {
+    if (e.name === "NotAllowedError") {
+      throw new Error("Recording permission denied");
+    }
+    throw e;
+  }
+
+  let mimeType = "audio/webm";
+  let mediaRecorder: MediaRecorder;
+  // Handle Safari not supporting webm
+  try {
+    mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+  } catch (e: any) {
+    if (e.name === "NotSupportedError") {
+      mimeType = "audio/mp3";
+      mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+    } else {
+      throw e;
+    }
+  }
 
   mediaRecorder.ondataavailable = function (e) {
     if (e.data.size > 0) {
@@ -82,6 +103,8 @@ export class SpeechRecognition {
     this._recording = null;
 
     const file = await filePromise;
+    // log stats
+    console.log(`Recording stopped. File size: ${file.size} bytes. File type: ${file.type}`);
     const transcription = await transcribe(file);
 
     return transcription;

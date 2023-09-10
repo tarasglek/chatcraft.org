@@ -160,9 +160,11 @@ function PromptForm({
 
   const onRecordingStop = async () => {
     if (speechRecognitionRef.current) {
+      // How do I make exceptions here show up in toast?
       const transcript = await speechRecognitionRef.current.stop();
       if (transcript) {
-        setPrompt(transcript);
+        // this feels much better than setPrompt then force user to click
+        onSendClick(transcript);
       }
     }
   };
