@@ -1,3 +1,4 @@
+import { an } from "vitest/dist/types-198fd1d9";
 import { transcribe } from "./ai";
 
 export class SpeechRecognition {
@@ -9,6 +10,7 @@ export class SpeechRecognition {
   }
 
   async start(): Promise<void> {
+    console.log("start");
     if (this.isRecording) {
       throw new Error("Recording already started");
     }
@@ -26,6 +28,7 @@ export class SpeechRecognition {
 
       let stream: MediaStream;
       try {
+        console.log(`navigator.mediaDevices: ${navigator.mediaDevices}`);
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch (e: any) {
         if (e.name === "NotAllowedError") {
@@ -40,7 +43,9 @@ export class SpeechRecognition {
         this._mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
       } catch (e: any) {
         if (e.name === "NotSupportedError") {
-          mimeType = "audio/mp4";
+          const nextMimeType = "audio/mp4;codecs=avc1";
+          console.log(`${e}: ${mimeType} not supported, trying ${nextMimeType}`);
+          mimeType = nextMimeType;
           this._mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
         } else {
           throw e;
@@ -48,6 +53,9 @@ export class SpeechRecognition {
       }
 
       this._mediaRecorder.ondataavailable = function (e) {
+        console.log(
+          `ondataavailable() e.data.size: ${e.data.size} isRecording: ${self.isRecording}`
+        );
         if (!self.isRecording) {
           // Recording cancelled
           if (self._mediaRecorder) {
@@ -62,10 +70,15 @@ export class SpeechRecognition {
       };
 
       this._mediaRecorder.onstop = function () {
+        console.log(
+          `onstop() isRecording: ${self.isRecording} recordedChunks.length: ${recordedChunks.length}`
+        );
         if (!self.isRecording) {
           return;
         }
-        const fname = mimeType.replace("/", ".");
+
+        const fname = mimeType.split(";")[0].replace("/", ".");
+        console.log(`fname: ${fname} for mimeType: ${mimeType}`);
         const file = new File(recordedChunks, fname, {
           type: mimeType,
         });
@@ -86,6 +99,7 @@ export class SpeechRecognition {
   }
 
   async stop(): Promise<string | null> {
+    console.log("stop");
     const recordingPromise = this._recordingPromise;
     const mediaRecorder = this._mediaRecorder;
     if (!mediaRecorder && recordingPromise) {
@@ -102,11 +116,19 @@ export class SpeechRecognition {
     const file = await recordingPromise;
     this._recordingPromise = null;
     // log stats
+    console.log(`file: ${file} file.name: ${file.name} file.size: ${file.size}`);
+    (window as any).audio = () => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(file);
+      a.download = file.name;
+      a.click();
+    };
     const transcription = await transcribe(file);
     return transcription;
   }
 
   async cancel() {
+    console.log("cancel");
     if (!this.isRecording) {
       throw new Error("No recording in progress");
     }
