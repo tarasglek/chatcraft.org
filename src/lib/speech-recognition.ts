@@ -66,10 +66,11 @@ export class SpeechRecognition {
     this._recording = await startRecording();
   }
 
-  async stop() {
+  async stop(): Promise<string | null> {
     if (this._isCancelled) {
-      // Recording already stopped via `.cancel()`, ignore this.
-      return;
+      // Recording already stopped via `.cancel()`
+      console.warn("Recording cancelled");
+      return null;
     }
 
     const stopFunc = this._recording;
@@ -77,13 +78,13 @@ export class SpeechRecognition {
       throw new Error("No recording in progress");
     }
 
-    const file = await stopFunc();
-    console.log("recorded", file.type, file.size);
-    const transcription = await transcribe(file);
-    console.log("transcription", transcription);
-
-    console.log("Recording stopped");
+    const filePromise = stopFunc();
     this._recording = null;
+
+    const file = await filePromise;
+    const transcription = await transcribe(file);
+
+    return transcription;
   }
 
   async cancel() {

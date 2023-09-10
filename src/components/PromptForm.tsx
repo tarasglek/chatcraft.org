@@ -158,9 +158,12 @@ function PromptForm({
     speechRecognitionRef.current.start();
   };
 
-  const onRecordingStop = () => {
+  const onRecordingStop = async () => {
     if (speechRecognitionRef.current) {
-      speechRecognitionRef.current.stop();
+      const transcript = await speechRecognitionRef.current.stop();
+      if (transcript) {
+        setPrompt(transcript);
+      }
     }
   };
 
