@@ -1,24 +1,24 @@
 import { useState } from "react";
 import { IconButton } from "@chakra-ui/react";
 import { TbMicrophone } from "react-icons/tb";
-import { motion, useSpring } from "framer-motion";
-
-// import { useSettings } from "../hooks/use-settings";
+import { motion, useMotionValue } from "framer-motion";
 
 type MicIconProps = {
   onRecordingStart: () => void;
   onRecordingStop: () => void;
   onRecordingCancel: () => void;
+  isDisabled: boolean;
 };
 
 export default function MicIcon({
   onRecordingStart,
   onRecordingStop,
   onRecordingCancel,
+  isDisabled = false,
 }: MicIconProps) {
-  const spring = useSpring(0, { stiffness: 530, damping: 25 });
   const [colorScheme, setColorScheme] = useState<"blue" | "red">("blue");
   const [isRecording, setIsRecording] = useState(false);
+  const x = useMotionValue(0);
 
   const handleRecordingStart = () => {
     setIsRecording(true);
@@ -55,11 +55,13 @@ export default function MicIcon({
           handleRecordingCancel();
         }
         setColorScheme("blue");
+        x.set(0);
       }}
-      style={{ x: spring }}
+      style={{ x }}
     >
       <IconButton
         isRound
+        isDisabled={isDisabled}
         colorScheme={colorScheme}
         icon={<TbMicrophone />}
         variant={isRecording ? "solid" : "ghost"}

@@ -1,5 +1,42 @@
 import { transcribe } from "./ai";
 
+// We prefer to use webm, but Safari on iOS has to use mp4
+const supportedAudioMimeTypes = ["audio/webm", "audio/mp4"];
+
+// Set up a stream, dealing with permissions from the user
+async function getMediaStream() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    return stream;
+  } catch (e: any) {
+    if (e.name === "NotAllowedError") {
+      throw new Error("Audio recording permission denied");
+    }
+    throw e;
+  }
+}
+
+// Create an audio media recorder using the appropriate file type
+function getCompatibleMediaRecorder(stream: MediaStream) {
+  // Figure out the correct audio format to use (Safari doesn't support webm)
+  let mimeType = supportedAudioMimeTypes[0];
+
+  for (const mimeTypeCandidate of supportedAudioMimeTypes) {
+    mimeType = mimeTypeCandidate;
+    try {
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      return { mediaRecorder, mimeType };
+    } catch (e: any) {
+      if (e.name === "NotSupportedError") {
+        continue;
+      }
+      throw e;
+    }
+  }
+
+  throw new Error("Error creating MediaRecorder: no supported mime-type found");
+}
+
 export class SpeechRecognition {
   private _recordingPromise: Promise<File> | null = null;
   private _mediaRecorder: MediaRecorder | null = null;
@@ -8,135 +45,85 @@ export class SpeechRecognition {
     return this._recordingPromise !== null;
   }
 
-  async start(): Promise<void> {
-    console.log("start");
-    if (this.isRecording) {
+  async start() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+
+    if (self.isRecording) {
       throw new Error("Recording already started");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    let recordingPromiseResolve: (value: File) => void;
-    const audioDataPromise = new Promise<File>((resolve) => {
-      recordingPromiseResolve = resolve;
-    });
+    // Set up the audio stream for the user's mic
+    const stream = await getMediaStream();
+    const { mediaRecorder, mimeType } = getCompatibleMediaRecorder(stream);
 
-    // wrap this up into a promise that runs after we return callback so we can cancel while accepting/rejecting permissions
-    const initPromise = (async () => {
+    self._mediaRecorder = mediaRecorder;
+    this._recordingPromise = new Promise<File>((resolve, reject) => {
       const recordedChunks: BlobPart[] = [];
 
-      let stream: MediaStream;
-      try {
-        console.log(`navigator.mediaDevices: ${navigator.mediaDevices}`);
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (e: any) {
-        if (e.name === "NotAllowedError") {
-          throw new Error("Recording permission denied");
-        }
-        throw e;
+      if (!self._mediaRecorder) {
+        reject(new Error(`No supported mimeType found in: ${supportedAudioMimeTypes}`));
+        return;
       }
 
-      const mimeTypeList = ["audio/webm", "audio/mp4"];
-      let mimeType = mimeTypeList[0];
-      for (const mimeTypeCandidate of mimeTypeList) {
-        mimeType = mimeTypeCandidate;
-        // Handle Safari not supporting webm
-        try {
-          this._mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
-          console.log(`Using mimeType: ${mimeType}`);
-        } catch (e: any) {
-          if (e.name === "NotSupportedError") {
-            console.log(`${e}: ${mimeType} not supported`);
-            continue;
-          }
-          throw e;
-        }
-      }
-      if (!this._mediaRecorder) {
-        throw new Error(`No supported mimeType found in: ${mimeTypeList}`);
-      }
-
-      this._mediaRecorder.ondataavailable = function (e) {
-        console.log(
-          `ondataavailable() e.data.size: ${e.data.size} isRecording: ${self.isRecording}`
-        );
+      self._mediaRecorder.ondataavailable = function ({ data }) {
         if (!self.isRecording) {
-          // Recording cancelled
-          if (self._mediaRecorder) {
-            self._mediaRecorder.stop();
-          }
+          // Recording must have been cancelled, clean up and quit
+          self._mediaRecorder?.stop();
           stream.getTracks().forEach((track) => track.stop());
           return;
         }
-        if (e.data.size > 0) {
-          recordedChunks.push(e.data);
+
+        if (data.size > 0) {
+          recordedChunks.push(data);
         }
       };
 
-      this._mediaRecorder.onstop = function () {
-        console.log(
-          `onstop() isRecording: ${self.isRecording} recordedChunks.length: ${recordedChunks.length}`
-        );
+      self._mediaRecorder.onstop = function () {
         if (!self.isRecording) {
           return;
         }
 
         const fname = mimeType.split(";")[0].replace("/", ".");
-        console.log(`fname: ${fname} for mimeType: ${mimeType}`);
-        const file = new File(recordedChunks, fname, {
-          type: mimeType,
-        });
-        recordingPromiseResolve(file);
+        const file = new File(recordedChunks, fname, { type: mimeType });
+        resolve(file);
       };
+    });
 
-      if (this.isRecording) {
-        this._mediaRecorder.start();
-      } else {
-        console.log(
-          `Recording cancelled, prior to cancellation mediaRecorder is: ${this._mediaRecorder.state}`
-        );
-        this._mediaRecorder = null;
-      }
-    })();
-    this._recordingPromise = initPromise.then(() => audioDataPromise);
-    await initPromise;
+    if (!self.isRecording) {
+      console.warn(
+        `Recording cancelled, prior to cancellation mediaRecorder was in state: ${self._mediaRecorder.state}`
+      );
+      this._mediaRecorder = null;
+      return;
+    }
+
+    // XXX: for iOS, prefer 1 second blobs, see https://webkit.org/blog/11353/mediarecorder-api/
+    self._mediaRecorder.start(1_000);
   }
 
-  async stop(): Promise<string | null> {
-    console.log("stop");
-    const recordingPromise = this._recordingPromise;
-    const mediaRecorder = this._mediaRecorder;
-    if (!mediaRecorder && recordingPromise) {
-      // If we have a recording promise but no mediaRecorder, means we got prompted for permissions and had to abort recording to accept/reject
-      this._recordingPromise = null;
-      return null;
-    } else if (mediaRecorder) {
-      mediaRecorder.stop();
-      this._mediaRecorder = null;
+  async stop() {
+    if (!this._recordingPromise) {
+      throw new Error("No recording in progress");
     }
-    if (!recordingPromise) {
-      return null;
-    }
-    const file = await recordingPromise;
+
+    this._mediaRecorder?.stop();
+    this._mediaRecorder = null;
+    const file = await this._recordingPromise;
     this._recordingPromise = null;
-    // log stats
-    console.log(`file: ${file} file.name: ${file.name} file.size: ${file.size}`);
-    (window as any).audio = () => {
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(file);
-      a.download = file.name;
-      a.click();
-    };
-    const transcription = await transcribe(file);
-    return transcription;
+
+    // Turn audio into text via OpenAI and Whisper
+    return transcribe(file);
   }
 
   async cancel() {
-    console.log("cancel");
     if (!this.isRecording) {
       throw new Error("No recording in progress");
     }
     this._recordingPromise = null;
-    this.stop();
+    this._mediaRecorder?.stop();
+    this._mediaRecorder = null;
+
+    return null;
   }
 }

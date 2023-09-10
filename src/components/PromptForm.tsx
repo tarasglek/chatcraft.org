@@ -31,6 +31,28 @@ import NewButton from "./NewButton";
 import { useCost } from "../hooks/use-cost";
 import MicIcon from "./MicIcon";
 import { SpeechRecognition } from "../lib/speech-recognition";
+import { useAlert } from "../hooks/use-alert";
+import { usingOfficialOpenAI } from "../lib/ai";
+
+type SpeechRecognitionHintProps = {
+  isVisible: boolean;
+};
+
+function SpeechRecognitionHint({ isVisible }: SpeechRecognitionHintProps) {
+  if (!usingOfficialOpenAI()) {
+    return <span />;
+  }
+
+  if (!isVisible) {
+    return <span />;
+  }
+
+  return (
+    <Text fontSize="sm">
+      <span>Recording audio, release to Stop...</span>
+    </Text>
+  );
+}
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -94,8 +116,10 @@ function PromptForm({
   const [isDirty, setIsDirty] = useState(false);
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
+  const { error } = useAlert();
   const { cost } = useCost();
   const speechRecognitionRef = useRef<SpeechRecognition>();
+  const [isListening, setIsListening] = useState(false);
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -153,26 +177,54 @@ function PromptForm({
     }
   };
 
-  const onRecordingStart = () => {
+  const onRecordingStart = async () => {
     speechRecognitionRef.current = new SpeechRecognition();
-    speechRecognitionRef.current.start();
+    try {
+      await speechRecognitionRef.current.start();
+      setIsListening(true);
+    } catch (err: any) {
+      console.error(err);
+      error({
+        title: "Speech Recognition Error",
+        message: `Unable to start audio recording: ${err.message}`,
+      });
+    }
   };
 
   const onRecordingStop = async () => {
-    if (speechRecognitionRef.current) {
-      // How do I make exceptions here show up in toast?
-      const transcript = await speechRecognitionRef.current.stop();
-      if (transcript) {
-        // this feels much better than setPrompt then force user to click
-        onSendClick(transcript);
-      }
+    const speechRecognition = speechRecognitionRef.current;
+    setIsListening(false);
+
+    if (!speechRecognition) {
+      console.warn("Unexpected call to onRecordingStop without speechRecognitionRef instance");
+      return;
+    }
+
+    // See if the recording has already been cancelled
+    if (!speechRecognition.isRecording) {
+      return;
+    }
+
+    try {
+      // Stop the recording and get a transcript
+      const transcript = await speechRecognition.stop();
+      speechRecognitionRef.current = undefined;
+
+      // Use this transcript as our prompt
+      onSendClick(transcript);
+    } catch (err: any) {
+      console.error(err);
+      error({
+        title: "Error Transcribing Speech",
+        message: `There was an error while transcribing: ${err.message}`,
+      });
     }
   };
 
-  const onRecordingCancel = () => {
-    if (speechRecognitionRef.current) {
-      speechRecognitionRef.current.cancel();
-    }
+  const onRecordingCancel = async () => {
+    setIsListening(false);
+    await speechRecognitionRef.current?.cancel();
+    speechRecognitionRef.current = undefined;
   };
 
   return (
@@ -192,6 +244,7 @@ function PromptForm({
             </ButtonGroup>
 
             <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
+            <SpeechRecognitionHint isVisible={isListening} />
           </HStack>
 
           {settings.countTokens && (
@@ -226,17 +279,22 @@ function PromptForm({
                       onChange={(e) => setPrompt(e.target.value)}
                       bg="white"
                       _dark={{ bg: "gray.700" }}
-                      placeholder={!isLoading ? "Type your question or use /help" : undefined}
+                      placeholder={
+                        !isLoading && !isListening ? "Type your question or use /help" : undefined
+                      }
                       overflowY="auto"
-                      pr={12}
+                      pr={usingOfficialOpenAI() ? 12 : undefined}
                     />
-                    <InputRightElement mr={2}>
-                      <MicIcon
-                        onRecordingStart={onRecordingStart}
-                        onRecordingStop={onRecordingStop}
-                        onRecordingCancel={onRecordingCancel}
-                      />
-                    </InputRightElement>
+                    {usingOfficialOpenAI() && (
+                      <InputRightElement mr={2}>
+                        <MicIcon
+                          isDisabled={isLoading}
+                          onRecordingStart={onRecordingStart}
+                          onRecordingStop={onRecordingStop}
+                          onRecordingCancel={onRecordingCancel}
+                        />
+                      </InputRightElement>
+                    )}
                   </InputGroup>
                 ) : (
                   <InputGroup h="100%">
@@ -249,17 +307,22 @@ function PromptForm({
                       onChange={(e) => setPrompt(e.target.value)}
                       bg="white"
                       _dark={{ bg: "gray.700" }}
-                      placeholder={!isLoading ? "Type your question or use /help" : undefined}
+                      placeholder={
+                        !isLoading && !isListening ? "Type your question or use /help" : undefined
+                      }
                       overflowY="auto"
-                      pr={8}
+                      pr={usingOfficialOpenAI() ? 8 : undefined}
                     />
-                    <InputRightElement>
-                      <MicIcon
-                        onRecordingStart={onRecordingStart}
-                        onRecordingStop={onRecordingStop}
-                        onRecordingCancel={onRecordingCancel}
-                      />
-                    </InputRightElement>
+                    {usingOfficialOpenAI() && (
+                      <InputRightElement>
+                        <MicIcon
+                          isDisabled={isLoading}
+                          onRecordingStart={onRecordingStart}
+                          onRecordingStop={onRecordingStop}
+                          onRecordingCancel={onRecordingCancel}
+                        />
+                      </InputRightElement>
+                    )}
                   </InputGroup>
                 )}
               </Box>
