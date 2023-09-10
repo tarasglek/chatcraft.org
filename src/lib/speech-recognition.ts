@@ -1,4 +1,6 @@
-type RecordingInProgress = () => Promise<Blob>;
+import { transcribe } from "./ai";
+
+type RecordingInProgress = () => Promise<File>;
 /**
  * Openai supports: m4a mp3 webm mp4 mpga wav mpeg
  * of these audio/webm is supported by chrome, firefox
@@ -6,8 +8,8 @@ type RecordingInProgress = () => Promise<Blob>;
  */
 async function startRecording(): Promise<RecordingInProgress> {
   const recordedChunks: BlobPart[] = [];
-  let stopRecordingResolve: (value: Blob) => void;
-  const audioDataPromise = new Promise<Blob>((resolve) => {
+  let stopRecordingResolve: (value: File) => void;
+  const audioDataPromise = new Promise<File>((resolve) => {
     stopRecordingResolve = resolve;
   });
   const mimeType = "audio/webm";
@@ -21,10 +23,10 @@ async function startRecording(): Promise<RecordingInProgress> {
   };
 
   mediaRecorder.onstop = function () {
-    const blob = new Blob(recordedChunks, {
+    const file = new File(recordedChunks, mimeType.replace("/", "."), {
       type: mimeType,
     });
-    stopRecordingResolve(blob);
+    stopRecordingResolve(file);
   };
 
   mediaRecorder.start();
@@ -75,8 +77,10 @@ export class SpeechRecognition {
       throw new Error("No recording in progress");
     }
 
-    const result = await stopFunc();
-    console.log("recorded", result.type, result.size);
+    const file = await stopFunc();
+    console.log("recorded", file.type, file.size);
+    const transcription = await transcribe(file);
+    console.log("transcription", transcription);
 
     console.log("Recording stopped");
     this._recording = null;

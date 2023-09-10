@@ -107,6 +107,21 @@ function parseOpenAIResponse(response: OpenAI.Chat.ChatCompletion) {
   return { content, functionName, functionArgs };
 }
 
+export const transcribe = async (audio: File): Promise<string> => {
+  const { apiKey, apiUrl } = getSettings();
+  if (!apiKey) {
+    throw new Error("Missing API Key");
+  }
+
+  const transcription = new OpenAI.Audio.Transcriptions(createClient(apiKey, apiUrl).openai).create(
+    {
+      file: audio,
+      model: "whisper-1",
+    }
+  );
+  return (await transcription).text;
+};
+
 export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
   const {
     onData,
