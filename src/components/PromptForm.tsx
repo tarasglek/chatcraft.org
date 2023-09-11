@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useRef } from "react";
 import {
   Box,
   Button,
@@ -16,6 +16,8 @@ import {
   Textarea,
   HStack,
   Tag,
+  InputGroup,
+  InputRightElement,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
 import { TbChevronUp } from "react-icons/tb";
@@ -27,6 +29,30 @@ import { useModels } from "../hooks/use-models";
 import { isMac, isWindows, formatCurrency } from "../lib/utils";
 import NewButton from "./NewButton";
 import { useCost } from "../hooks/use-cost";
+import MicIcon from "./MicIcon";
+import { SpeechRecognition } from "../lib/speech-recognition";
+import { useAlert } from "../hooks/use-alert";
+import { usingOfficialOpenAI } from "../lib/ai";
+
+type SpeechRecognitionHintProps = {
+  isVisible: boolean;
+};
+
+function SpeechRecognitionHint({ isVisible }: SpeechRecognitionHintProps) {
+  if (!usingOfficialOpenAI()) {
+    return <span />;
+  }
+
+  if (!isVisible) {
+    return <span />;
+  }
+
+  return (
+    <Text fontSize="sm">
+      <span>Recording audio, release to Stop...</span>
+    </Text>
+  );
+}
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -90,7 +116,10 @@ function PromptForm({
   const [isDirty, setIsDirty] = useState(false);
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
+  const { error } = useAlert();
   const { cost } = useCost();
+  const speechRecognitionRef = useRef<SpeechRecognition>();
+  const [isListening, setIsListening] = useState(false);
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -148,6 +177,56 @@ function PromptForm({
     }
   };
 
+  const onRecordingStart = async () => {
+    speechRecognitionRef.current = new SpeechRecognition();
+    try {
+      await speechRecognitionRef.current.start();
+      setIsListening(true);
+    } catch (err: any) {
+      console.error(err);
+      error({
+        title: "Speech Recognition Error",
+        message: `Unable to start audio recording: ${err.message}`,
+      });
+    }
+  };
+
+  const onRecordingStop = async () => {
+    const speechRecognition = speechRecognitionRef.current;
+    setIsListening(false);
+
+    if (!speechRecognition) {
+      console.warn("Unexpected call to onRecordingStop without speechRecognitionRef instance");
+      return;
+    }
+
+    // See if the recording has already been cancelled
+    if (!speechRecognition.isRecording) {
+      return;
+    }
+
+    try {
+      // Stop the recording and get a transcript
+      const transcript = await speechRecognition.stop();
+      speechRecognitionRef.current = undefined;
+
+      // Use this transcript as our prompt
+      onSendClick(transcript);
+    } catch (err: any) {
+      console.error(err);
+      error({
+        title: "Error Transcribing Speech",
+        message: `There was an error while transcribing: ${err.message}`,
+      });
+    }
+  };
+
+  const onRecordingCancel = async () => {
+    setIsListening(false);
+    await speechRecognitionRef.current?.cancel();
+    speechRecognitionRef.current = undefined;
+  };
+
   return (
     <Flex direction="column" h="100%" px={1}>
       {settings.apiKey && (
@@ -165,6 +244,7 @@ function PromptForm({
             </ButtonGroup>
 
             <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
+            <SpeechRecognitionHint isVisible={isListening} />
           </HStack>
 
           {settings.countTokens && (
@@ -187,41 +267,63 @@ function PromptForm({
                 h={isExpanded ? "100%" : undefined}
               >
                 {isExpanded ? (
-                  <Textarea
-                    ref={inputPromptRef}
-                    h="100%"
-                    resize="none"
-                    isDisabled={isLoading}
-                    onKeyDown={handleKeyDown}
-                    autoFocus={true}
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    bg="white"
-                    _dark={{ bg: "gray.700" }}
-                    placeholder={
-                      !isLoading
-                        ? "Type your question or use /help for more information"
-                        : undefined
-                    }
-                    overflowY="auto"
-                  />
+                  <InputGroup h="100%">
+                    <Textarea
+                      ref={inputPromptRef}
+                      h="100%"
+                      resize="none"
+                      isDisabled={isLoading}
+                      onKeyDown={handleKeyDown}
+                      autoFocus={true}
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                      placeholder={
+                        !isLoading && !isListening ? "Type your question or use /help" : undefined
+                      }
+                      overflowY="auto"
+                      pr={usingOfficialOpenAI() ? 12 : undefined}
+                    />
+                    {usingOfficialOpenAI() && (
+                      <InputRightElement mr={2}>
+                        <MicIcon
+                          isDisabled={isLoading}
+                          onRecordingStart={onRecordingStart}
+                          onRecordingStop={onRecordingStop}
+                          onRecordingCancel={onRecordingCancel}
+                        />
+                      </InputRightElement>
+                    )}
+                  </InputGroup>
                 ) : (
-                  <AutoResizingTextarea
-                    ref={inputPromptRef}
-                    onKeyDown={handleKeyDown}
-                    isDisabled={isLoading}
-                    autoFocus={true}
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    bg="white"
-                    _dark={{ bg: "gray.700" }}
-                    placeholder={
-                      !isLoading
-                        ? "Type your question or use /help for more information"
-                        : undefined
-                    }
-                    overflowY="auto"
-                  />
+                  <InputGroup h="100%">
+                    <AutoResizingTextarea
+                      ref={inputPromptRef}
+                      onKeyDown={handleKeyDown}
+                      isDisabled={isLoading}
+                      autoFocus={true}
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                      placeholder={
+                        !isLoading && !isListening ? "Type your question or use /help" : undefined
+                      }
+                      overflowY="auto"
+                      pr={usingOfficialOpenAI() ? 8 : undefined}
+                    />
+                    {usingOfficialOpenAI() && (
+                      <InputRightElement>
+                        <MicIcon
+                          isDisabled={isLoading}
+                          onRecordingStart={onRecordingStart}
+                          onRecordingStop={onRecordingStop}
+                          onRecordingCancel={onRecordingCancel}
+                        />
+                      </InputRightElement>
+                    )}
+                  </InputGroup>
                 )}
               </Box>
 

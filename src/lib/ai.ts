@@ -11,7 +11,7 @@ import { getSettings, OPENAI_API_URL } from "./settings";
 
 import type { Tiktoken } from "tiktoken/lite";
 
-const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
+export const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
 
 const createClient = (apiKey: string, apiUrl?: string) => {
   // If we're using OpenRouter, add extra headers
@@ -106,6 +106,21 @@ function parseOpenAIResponse(response: OpenAI.Chat.ChatCompletion) {
 
   return { content, functionName, functionArgs };
 }
+
+export const transcribe = async (audio: File) => {
+  const { apiKey, apiUrl } = getSettings();
+  if (!apiKey) {
+    throw new Error("Missing OpenAI API Key");
+  }
+
+  const { openai } = createClient(apiKey, apiUrl);
+  const transcriptions = new OpenAI.Audio.Transcriptions(openai);
+  const transcription = await transcriptions.create({
+    file: audio,
+    model: "whisper-1",
+  });
+  return transcription.text;
+};
 
 export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
   const {
