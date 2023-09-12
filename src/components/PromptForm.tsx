@@ -30,28 +30,32 @@ import { isMac, isWindows, formatCurrency } from "../lib/utils";
 import NewButton from "./NewButton";
 import { useCost } from "../hooks/use-cost";
 import MicIcon from "./MicIcon";
-import { SpeechRecognition } from "../lib/speech-recognition";
+import {
+  SpeechRecognition,
+  checkMicrophonePermission,
+  isTranscriptionSupported,
+} from "../lib/speech-recognition";
 import { useAlert } from "../hooks/use-alert";
-import { usingOfficialOpenAI } from "../lib/ai";
 
 type SpeechRecognitionHintProps = {
-  isVisible: boolean;
+  isRecording: boolean;
+  isTranscribing: boolean;
 };
 
-function SpeechRecognitionHint({ isVisible }: SpeechRecognitionHintProps) {
-  if (!usingOfficialOpenAI()) {
+function SpeechRecognitionHint({ isTranscribing, isRecording }: SpeechRecognitionHintProps) {
+  if (!isTranscriptionSupported()) {
     return <span />;
   }
 
-  if (!isVisible) {
-    return <span />;
+  if (isTranscribing) {
+    return <Text fontSize="sm">Transcribing with OpenAI...</Text>;
   }
 
-  return (
-    <Text fontSize="sm">
-      <span>Recording audio, release to Stop...</span>
-    </Text>
-  );
+  if (isRecording) {
+    return <Text fontSize="sm">Recording... (release to stop, slide left to cancel)</Text>;
+  }
+
+  return <span />;
 }
 
 type KeyboardHintProps = {
@@ -119,7 +123,8 @@ function PromptForm({
   const { error } = useAlert();
   const { cost } = useCost();
   const speechRecognitionRef = useRef<SpeechRecognition>();
-  const [isListening, setIsListening] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -178,25 +183,37 @@ function PromptForm({
   };
 
   const onRecordingStart = async () => {
+    if (!(await checkMicrophonePermission())) {
+      error({
+        title: "Audio Transcription",
+        message:
+          "Audio transcription requires microphone access. Please allow this page to access to your microphone in order to record and transcribe speech.",
+      });
+      return;
+    }
+
     speechRecognitionRef.current = new SpeechRecognition();
     try {
       await speechRecognitionRef.current.start();
-      setIsListening(true);
+      setIsRecording(true);
+      setIsTranscribing(false);
     } catch (err: any) {
       console.error(err);
       error({
         title: "Speech Recognition Error",
         message: `Unable to start audio recording: ${err.message}`,
       });
+      setIsRecording(false);
+      setIsTranscribing(false);
     }
   };
 
   const onRecordingStop = async () => {
     const speechRecognition = speechRecognitionRef.current;
-    setIsListening(false);
+    setIsRecording(false);
+    setIsTranscribing(false);
 
     if (!speechRecognition) {
-      console.warn("Unexpected call to onRecordingStop without speechRecognitionRef instance");
       return;
     }
 
@@ -207,6 +224,7 @@ function PromptForm({
 
     try {
       // Stop the recording and get a transcript
+      setIsTranscribing(true);
       const transcript = await speechRecognition.stop();
       speechRecognitionRef.current = undefined;
 
@@ -218,11 +236,14 @@ function PromptForm({
         title: "Error Transcribing Speech",
         message: `There was an error while transcribing: ${err.message}`,
       });
+    } finally {
+      setIsTranscribing(false);
     }
   };
 
   const onRecordingCancel = async () => {
-    setIsListening(false);
+    setIsRecording(false);
+    setIsTranscribing(false);
     await speechRecognitionRef.current?.cancel();
     speechRecognitionRef.current = undefined;
   };
@@ -244,7 +265,7 @@ function PromptForm({
             </ButtonGroup>
 
             <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
-            <SpeechRecognitionHint isVisible={isListening} />
+            <SpeechRecognitionHint isRecording={isRecording} isTranscribing={isTranscribing} />
           </HStack>
 
           {settings.countTokens && (
@@ -280,12 +301,14 @@ function PromptForm({
                       bg="white"
                       _dark={{ bg: "gray.700" }}
                       placeholder={
-                        !isLoading && !isListening ? "Type your question or use /help" : undefined
+                        !isLoading && !isRecording && !isTranscribing
+                          ? "Type your question or use your voice by holding the microphone icon. Type /help for more info."
+                          : undefined
                       }
                       overflowY="auto"
-                      pr={usingOfficialOpenAI() ? 12 : undefined}
+                      pr={isTranscriptionSupported() ? 12 : undefined}
                     />
-                    {usingOfficialOpenAI() && (
+                    {isTranscriptionSupported() && (
                       <InputRightElement mr={2}>
                         <MicIcon
                           isDisabled={isLoading}
@@ -308,12 +331,14 @@ function PromptForm({
                       bg="white"
                       _dark={{ bg: "gray.700" }}
                       placeholder={
-                        !isLoading && !isListening ? "Type your question or use /help" : undefined
+                        !isLoading && !isRecording && !isTranscribing
+                          ? "Type your question or use your voice by holding the microphone icon. Type /help for more info."
+                          : undefined
                       }
                       overflowY="auto"
-                      pr={usingOfficialOpenAI() ? 8 : undefined}
+                      pr={isTranscriptionSupported() ? 8 : undefined}
                     />
-                    {usingOfficialOpenAI() && (
+                    {isTranscriptionSupported() && (
                       <InputRightElement>
                         <MicIcon
                           isDisabled={isLoading}
