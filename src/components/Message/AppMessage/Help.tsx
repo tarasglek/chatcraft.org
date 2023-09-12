@@ -11,8 +11,16 @@ designed to make it easy for software developers to discuss their code with AI a
 
 ## How to Chat
 
-You can ask questions, copy/paste code, get help with error messages, etc.  Here are
-a few examples to get you started:
+You can ask questions, copy/paste code, get help with error messages, etc.
+
+If you'd like to use your voice instead of typing, press and hold the microphone
+icon, ask your question, and release when done.  Your voice will be transcribed by
+OpenAI and added to the chat as text. You can also cancel an audio recording by
+sliding the icon to the left and releasing.
+
+## Examples
+
+Here are a few examples to get you started:
 
 ### Example 1: Learning Technologies and Concepts
 
@@ -91,10 +99,8 @@ Some commands accept arguments as well.
 ## Functions
 
 Some models support function calling (e.g, OpenAI models). ChatCraft provides a way
-to write, load, and run these functions using a special syntax.
-
-Functions are ES6 Modules that export a default function.  They also include metadata
-about for the function name, description, and input arguments schema.
+to write, load, and run these functions using a special syntax. Functions are ES6 Modules
+written in TypeScript.
 
 To create a function within ChatCraft, use the [/f/new](/f/new) URL, which will create
 a new function and load the editor.

@@ -1,4 +1,54 @@
-import { transcribe } from "./ai";
+import { transcribe, usingOfficialOpenAI } from "./ai";
+
+// Audio Recording and Transcribing depends on a bunch of technologies
+export function isTranscriptionSupported() {
+  return (
+    usingOfficialOpenAI() &&
+    !!navigator.permissions &&
+    !!navigator.mediaDevices &&
+    !!window.MediaRecorder
+  );
+}
+
+// See if the user has already granted permission to use the mic or not
+export async function checkMicrophonePermission() {
+  const getState = async () => {
+    // XXX: TypeScript doesn't have proper types here due to browser differences, see
+    // https://github.com/microsoft/TypeScript/issues/33923. For example, Firefox
+    // refuses to implement this https://bugzilla.mozilla.org/show_bug.cgi?id=1449783.
+    // If this throws, send through `granted` and let the page try it every time.
+    try {
+      const permissionName = "microphone" as PermissionName;
+      const { state } = await navigator.permissions.query({ name: permissionName });
+      return state;
+    } catch (err: any) {
+      console.warn(
+        `unable to query for microphone permission, will try to acquire instead: ${err.message}`
+      );
+      return "granted";
+    }
+  };
+
+  try {
+    // Permission may have previously been granted/denied
+    const currentState = await getState();
+    if (currentState !== "prompt") {
+      return currentState === "granted";
+    }
+
+    // If not, try prompting the user for permission now
+    const stream = await getMediaStream();
+    stream.getTracks().forEach((track) => {
+      track.stop();
+    });
+
+    // Recheck the permission based on what they did.
+    return (await getState()) === "granted";
+  } catch (err: any) {
+    console.warn(`error checking audio recording permissions: ${err.message}`);
+    return false;
+  }
+}
 
 // We prefer to use webm, but Safari on iOS has to use mp4
 const supportedAudioMimeTypes = ["audio/webm", "audio/mp4"];
@@ -10,7 +60,9 @@ async function getMediaStream() {
     return stream;
   } catch (e: any) {
     if (e.name === "NotAllowedError") {
-      throw new Error("Audio recording permission denied");
+      throw new Error(
+        "Audio recording permission denied. Please allow microphone access in your browser."
+      );
     }
     throw e;
   }
@@ -48,6 +100,10 @@ export class SpeechRecognition {
   async start() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
+
+    if (!isTranscriptionSupported()) {
+      return new Error("Audio transcription not supported");
+    }
 
     if (self.isRecording) {
       throw new Error("Recording already started");
