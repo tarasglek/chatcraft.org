@@ -10,7 +10,6 @@ export const formatDate = (d: Date, short = false) =>
   short
     ? new Intl.DateTimeFormat(undefined, {
         dateStyle: "short",
-        timeStyle: "short",
       }).format(d)
     : new Intl.DateTimeFormat(undefined, {
         year: "numeric",

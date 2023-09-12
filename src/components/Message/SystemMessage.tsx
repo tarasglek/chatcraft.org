@@ -170,7 +170,7 @@ function SystemMessage(props: SystemMessageProps) {
     <MessageBase
       {...props}
       avatar={avatar}
-      heading="ChatCraft (System Prompt)"
+      heading="System Prompt"
       headingMenu={
         <SystemPromptVersionsMenu
           onChange={handleSystemPromptVersionChange}
