@@ -21,6 +21,7 @@ import {
   Textarea,
   VStack,
   useClipboard,
+  useMediaQuery,
 } from "@chakra-ui/react";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
@@ -91,6 +92,7 @@ function MessageBase({
   const [isHovering, setIsHovering] = useState(false);
   const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
+  const [isNarrowScreen] = useMediaQuery("(max-width: 400px)");
 
   useEffect(() => {
     if (settings.countTokens) {
@@ -190,7 +192,7 @@ function MessageBase({
                     _dark={{ color: "gray.300" }}
                   >
                     <Link as={ReactRouterLink} to={`/c/${chatId}#${id}`}>
-                      {formatDate(date)}
+                      {formatDate(date, isNarrowScreen)}
                     </Link>
                   </Text>
                   {headingMenu}
