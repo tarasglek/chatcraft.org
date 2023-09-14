@@ -23,9 +23,9 @@ export type SerializedChatCraftChat = {
   messages: SerializedChatCraftMessage[];
 };
 
-function createSummary(messages: ChatCraftMessage[], maxLength = 200) {
-  const content = messages.map(({ text }) => text).join("\n\n");
-  const summary = summarize(content);
+function createSummary(chat: ChatCraftChat, maxLength = 200) {
+  const markdown = chat.toMarkdown();
+  const summary = summarize(markdown);
   return summary.length > maxLength ? summary.slice(0, maxLength) + "..." : summary;
 }
 
@@ -131,10 +131,7 @@ export class ChatCraftChat {
   }
 
   get summary() {
-    return (
-      this._summary ||
-      createSummary(this.messages({ includeAppMessages: false, includeSystemMessages: false }))
-    );
+    return this._summary || createSummary(this);
   }
 
   set summary(summary: string) {

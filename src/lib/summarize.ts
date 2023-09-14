@@ -1,122 +1,96 @@
+import nlp from "compromise/one";
+import removeMarkdown from "remove-markdown";
+
 /**
- * Naive summarization algorithm. Likely there is something better,
- * but this is good enough to start.
+ * Use a "Term Frequency-Inverse Document Frequency" (TF-IDF) algorithm to
+ * create a basic summary of a piece of Markdown. This algorithm works by
+ * determining the most important sentences in a text based on the frequency
+ * of their terms.
  *
- * TS rewrite of https://github.com/jbrooksuk/node-summary/tree/browser
- * and https://gist.github.com/SpiffGreen/e163579bfe9ac1f391b2efce9e95c7c5#file-text_summarization_algorithm-js
- * Used under MIT License - https://jbrooksuk.mit-license.org/
+ * It works like this:
+ *
+ * 1. Tokenization: Break the text into sentences and the sentences into terms (i.e., words).
+ * 2. Term Frequency (TF): For each sentence, calculate the frequency of each
+ *    term. The frequency of a term in a sentence is the number of times it
+ *    appears in the sentence divided by the total number of terms in the
+ *    sentence.
+ * 3. Inverse Document Frequency (IDF): For each term, calculate how many sentences
+ *    it appears in. The IDF of a term is the logarithm of the total number of
+ *    sentences divided by the number of sentences that contain the term.
+ * 4. TF-IDF: For each sentence, calculate the TF-IDF for each term (which is
+ *    the TF multiplied by the IDF), and sum them to get the sentence's score.
+ * 5. Summarization: Select the top-scoring sentences to create the summary.
+ *
+ * @param markdown markdown text to summarize
+ * @param summaryLength number of sentences to use in summary
+ * @returns summary string
  */
 
-type SentencesDict = {
-  [key: string]: number;
-};
+export default function summarize(markdown: string, summaryLength = 3) {
+  const plainText = markdownToPlainText(markdown);
+  const { sentences, terms } = tokenize(plainText);
+  const termFrequencies = calculateTermFrequencies(sentences, terms);
+  const inverseDocumentFrequencies = calculateInverseDocumentFrequencies(sentences, terms);
 
-function dedupe(collection: string[]) {
-  return [...new Set(collection)];
+  const sentenceScores = sentences.map((sentence) => {
+    const sentenceTerms = nlp(sentence).terms().out("array");
+    return sentenceTerms.reduce((score: number, term: string) => {
+      return score + (termFrequencies[term] || 0) * (inverseDocumentFrequencies[term] || 0);
+    }, 0);
+  });
+
+  return selectTopSentences(sentences, sentenceScores, summaryLength);
 }
 
-function splitContentToSentences(content: string): string[] {
-  if (content.indexOf(".") === -1) {
-    return [];
-  }
-
-  content = content.replace("\n", ". ");
-  return content.match(/(.+?\.(?:\s|$))/g) ?? [];
+function markdownToPlainText(markdown: string) {
+  // Strip Markdown and replace newlines and long runs of spaces
+  // to produce a single string of plain text.
+  return removeMarkdown(markdown).replace(/\r?\n/g, " ").replace(/ {2,}/g, " ");
 }
 
-function splitContentToParagraphs(content: string): string[] {
-  return content.split("\n\n");
+function tokenize(text: string) {
+  const sentences: string[] = nlp(text)
+    .json()
+    .map((s: { text: string }) => s.text);
+  const terms = nlp(text).terms().out("array");
+
+  return { sentences, terms };
 }
 
-function sentencesIntersection(sent1: string, sent2: string): number {
-  // Split sentences into words/tokens
-  const s1 = new Set(sent1.split(" "));
-  const s2 = new Set(sent2.split(" "));
-
-  if (s1.size + s2.size === 0) {
-    return 0;
+function calculateTermFrequencies(sentences: string[], terms: string[]): Record<string, number> {
+  const termFrequencies: Record<string, number> = {};
+  for (const term of terms) {
+    termFrequencies[term] =
+      sentences.reduce((count, sentence) => {
+        return count + (sentence.includes(term) ? 1 : 0);
+      }, 0) / sentences.length;
   }
-
-  // Normalize the result by the average number of words
-  const intersection = new Set([...s1].filter((i) => s2.has(i)));
-  return intersection.size / ((s1.size + s2.size) / 2);
+  return termFrequencies;
 }
 
-function formatSentence(sentence: string): string {
-  // To support unicode characters.
-  // http://www.unicode.org/reports/tr29/WordBreakTest.html
-  const re = /[\p{L}\p{M}\p{N}\p{Pc}]+/gu;
-  return sentence.replace(re, "");
+function calculateInverseDocumentFrequencies(
+  sentences: string[],
+  terms: string[]
+): Record<string, number> {
+  const inverseDocumentFrequencies: Record<string, number> = {};
+  for (const term of terms) {
+    const sentenceCount = sentences.filter((sentence) => sentence.includes(term)).length;
+    inverseDocumentFrequencies[term] = Math.log(sentences.length / (1 + sentenceCount));
+  }
+  return inverseDocumentFrequencies;
 }
 
-function getBestSentence(paragraph: string, sentences_dict: SentencesDict): string {
-  const sentences = splitContentToSentences(paragraph);
-  if (sentences.length < 2) return "";
-
-  let bestSentence = "";
-  let maxValue = 0;
-  for (const s in sentences) {
-    const sentence = sentences[s];
-    const strip_s = formatSentence(sentence);
-    if (strip_s && sentences_dict[strip_s] > maxValue) {
-      maxValue = sentences_dict[strip_s];
-      bestSentence = sentence;
-    }
-  }
-
-  return bestSentence;
-}
-
-function getSentencesRanks(content: string): SentencesDict {
-  const sentences = splitContentToSentences(content);
-  const n = sentences.length;
-
-  // This is ugly, I know.
-  const values = [];
-  let _val = [];
-  for (let i = 0; i < n; i++) {
-    _val = [];
-    for (let j = 0; j < n; j++) {
-      _val.push(0);
-    }
-    values.push(_val);
-  }
-
-  // Assign each score to each sentence
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      const intersection = sentencesIntersection(sentences[i], sentences[j]);
-      values[i][j] = intersection;
-    }
-  }
-
-  // Build sentence score dictionary
-  const sentences_dict: SentencesDict = {};
-  let score = 0;
-  for (let i = 0; i < n; i++) {
-    score = 0;
-    for (let j = 0; j < n; j++) {
-      if (i !== j) score += values[i][j];
-    }
-
-    const strip_s = formatSentence(sentences[i]);
-    sentences_dict[strip_s] = score;
-  }
-
-  return sentences_dict;
-}
-
-export default function summarize(content: string) {
-  const summarySentences: string[] = [];
-  const dict = getSentencesRanks(content);
-  const paragraphs = splitContentToParagraphs(content);
-
-  for (const paragraph of paragraphs) {
-    const best = getBestSentence(paragraph.trim(), dict);
-    if (best) {
-      summarySentences.push(best);
-    }
-  }
-
-  return summarySentences.length ? dedupe(summarySentences).join(" ") : content;
+function selectTopSentences(
+  sentences: string[],
+  sentenceScores: number[],
+  summaryLength: number
+): string {
+  const sentenceScorePairs = sentences.map(
+    (sentence, i) => [sentence, sentenceScores[i]] as [string, number]
+  );
+  sentenceScorePairs.sort((a, b) => b[1] - a[1]);
+  return sentenceScorePairs
+    .slice(0, summaryLength)
+    .map((pair) => pair[0])
+    .join(" ");
 }
