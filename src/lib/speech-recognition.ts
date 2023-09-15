@@ -2,73 +2,26 @@ import { transcribe, usingOfficialOpenAI } from "./ai";
 
 // Audio Recording and Transcribing depends on a bunch of technologies
 export function isTranscriptionSupported() {
-  return (
-    usingOfficialOpenAI() &&
-    !!navigator.permissions &&
-    !!navigator.mediaDevices &&
-    !!window.MediaRecorder
-  );
-}
-
-// See if the user has already granted permission to use the mic or not
-export async function checkMicrophonePermission() {
-  const getState = async () => {
-    // XXX: TypeScript doesn't have proper types here due to browser differences, see
-    // https://github.com/microsoft/TypeScript/issues/33923. For example, Firefox
-    // refuses to implement this https://bugzilla.mozilla.org/show_bug.cgi?id=1449783.
-    // If this throws, send through `granted` and let the page try it every time.
-    try {
-      const permissionName = "microphone" as PermissionName;
-      const { state } = await navigator.permissions.query({ name: permissionName });
-      return state;
-    } catch (err: any) {
-      console.warn(
-        `unable to query for microphone permission, will try to acquire instead: ${err.message}`
-      );
-      return "granted";
-    }
-  };
-
-  try {
-    // Permission may have previously been granted/denied
-    const currentState = await getState();
-    if (currentState !== "prompt") {
-      return currentState === "granted";
-    }
-
-    // If not, try prompting the user for permission now
-    const stream = await getMediaStream();
-    stream.getTracks().forEach((track) => {
-      track.stop();
-    });
-
-    // Recheck the permission based on what they did.
-    return (await getState()) === "granted";
-  } catch (err: any) {
-    console.warn(`error checking audio recording permissions: ${err.message}`);
-    return false;
-  }
+  return usingOfficialOpenAI() && !!navigator.mediaDevices && !!window.MediaRecorder;
 }
 
 // We prefer to use webm, but Safari on iOS has to use mp4
 const supportedAudioMimeTypes = ["audio/webm", "audio/mp4"];
 
-// Set up a stream, dealing with permissions from the user
+// Set up an audio stream, which may mean dealing with permissions from the user
 async function getMediaStream() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     return stream;
   } catch (e: any) {
     if (e.name === "NotAllowedError") {
-      throw new Error(
-        "Audio recording permission denied. Please allow microphone access in your browser."
-      );
+      throw new Error("SpeechRecognition error: audio recording permission denied.");
     }
     throw e;
   }
 }
 
-// Create an audio media recorder using the appropriate file type
+// Create an audio MediaRecorder using a supported file type
 function getCompatibleMediaRecorder(stream: MediaStream) {
   // Figure out the correct audio format to use (Safari doesn't support webm)
   let mimeType = supportedAudioMimeTypes[0];
@@ -86,47 +39,62 @@ function getCompatibleMediaRecorder(stream: MediaStream) {
     }
   }
 
-  throw new Error("Error creating MediaRecorder: no supported mime-type found");
+  throw new Error("SpeechRecognition error: no supported mime-type found");
 }
 
 export class SpeechRecognition {
   private _recordingPromise: Promise<File> | null = null;
   private _mediaRecorder: MediaRecorder | null = null;
+  private _mediaStream: MediaStream | null = null;
+  private _mimeType: string | null = null;
 
-  get isRecording() {
-    return this._recordingPromise !== null;
-  }
-
-  async start() {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-
+  // Initialize, creating an audio stream, media recorder, deal with permissions, etc.
+  async init() {
     if (!isTranscriptionSupported()) {
-      return new Error("Audio transcription not supported");
+      return new Error("SpeechRecognition error: audio transcription not supported");
     }
 
-    if (self.isRecording) {
-      throw new Error("Recording already started");
-    }
-
-    // Set up the audio stream for the user's mic
     const stream = await getMediaStream();
     const { mediaRecorder, mimeType } = getCompatibleMediaRecorder(stream);
 
-    self._mediaRecorder = mediaRecorder;
+    this._mediaRecorder = mediaRecorder;
+    this._mediaStream = stream;
+    this._mimeType = mimeType;
+  }
+
+  get isInitialized() {
+    return !!this._mediaRecorder && !!this._mediaStream && !!this._mimeType;
+  }
+
+  get isRecording() {
+    return this.isInitialized && this._recordingPromise !== null;
+  }
+
+  async start() {
+    if (!this.isInitialized) {
+      throw new Error("SpeechRecognition error: start() called before init()");
+    }
+
+    if (this.isRecording) {
+      throw new Error("SpeechRecognition error: start() called while already recording");
+    }
+
     this._recordingPromise = new Promise<File>((resolve, reject) => {
       const recordedChunks: BlobPart[] = [];
 
-      if (!self._mediaRecorder) {
-        reject(new Error(`No supported mimeType found in: ${supportedAudioMimeTypes}`));
+      if (!this._mediaRecorder) {
+        reject(
+          new Error(
+            `SpeechRecognition error: no supported mimeType found in: ${supportedAudioMimeTypes}`
+          )
+        );
         return;
       }
 
-      self._mediaRecorder.ondataavailable = function ({ data }) {
-        if (!self.isRecording) {
+      this._mediaRecorder.ondataavailable = ({ data }) => {
+        if (!this.isRecording) {
           // Recording must have been cancelled, clean up and quit
-          self._mediaRecorder?.stop();
-          stream.getTracks().forEach((track) => track.stop());
+          this._cleanup();
           return;
         }
 
@@ -135,51 +103,53 @@ export class SpeechRecognition {
         }
       };
 
-      self._mediaRecorder.onstop = function () {
-        if (!self.isRecording) {
+      this._mediaRecorder.onstop = () => {
+        if (!this.isRecording) {
+          this._cleanup();
           return;
         }
 
+        const mimeType = this._mimeType;
+        if (!mimeType) {
+          throw new Error("SpeechRecognition error: start() called with no mime type available");
+        }
         const fname = mimeType.split(";")[0].replace("/", ".");
         const file = new File(recordedChunks, fname, { type: mimeType });
         resolve(file);
       };
     });
 
-    if (!self.isRecording) {
-      console.warn(
-        `Recording cancelled, prior to cancellation mediaRecorder was in state: ${self._mediaRecorder.state}`
-      );
-      this._mediaRecorder = null;
-      return;
-    }
-
     // XXX: for iOS, prefer 1 second blobs, see https://webkit.org/blog/11353/mediarecorder-api/
-    self._mediaRecorder.start(1_000);
+    if (!this._mediaRecorder) {
+      throw new Error("SpeechRecognition error: start() called with no MediaRecorder available");
+    }
+    this._mediaRecorder.start(1_000);
   }
 
   async stop() {
     if (!this._recordingPromise) {
-      throw new Error("No recording in progress");
+      throw new Error("SpeechRecognition error: stop() called while no recording in progress");
     }
 
     this._mediaRecorder?.stop();
-    this._mediaRecorder = null;
     const file = await this._recordingPromise;
     this._recordingPromise = null;
+    this._cleanup();
 
-    // Turn audio into text via OpenAI and Whisper
-    return transcribe(file);
+    // Turn audio into text via OpenAI and Whisper. If we don't have enough audio
+    // for the file to contain any data, return null.
+    return file.size > 0 ? transcribe(file) : null;
   }
 
-  async cancel() {
-    if (!this.isRecording) {
-      throw new Error("No recording in progress");
-    }
-    this._recordingPromise = null;
+  cancel() {
+    this._cleanup();
+  }
+
+  private _cleanup() {
     this._mediaRecorder?.stop();
     this._mediaRecorder = null;
-
-    return null;
+    this._mediaStream?.getTracks().forEach((track) => track.stop());
+    this._mediaStream = null;
+    this._mimeType = null;
   }
 }
