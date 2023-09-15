@@ -143,10 +143,6 @@ function PromptForm({
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
     const value = prompt.trim();
-    if (!value.length) {
-      return;
-    }
-
     setPrompt("");
     onSendClick(value);
   };
