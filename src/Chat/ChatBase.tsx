@@ -182,9 +182,8 @@ function ChatBase({ chat }: ChatBaseProps) {
       }
 
       // Not a slash command, so pass this prompt to LLM
-      const messages = chat.messages({ includeAppMessages: false, includeSystemMessages: true });
+      let promptMessage: ChatCraftHumanMessage | undefined;
       try {
-        let promptMessage: ChatCraftHumanMessage | undefined;
         // If the prompt text exist, package it up as a human message and add to the chat
         if (prompt) {
           // Add this prompt message to the chat
@@ -193,14 +192,17 @@ function ChatBase({ chat }: ChatBaseProps) {
         } else {
           // If there isn't any prompt text, see if the final message in the chat was a human
           // message. If it was, we'll allow sending that through again (e.g., if you modified
-          // something) and want to try again.  Otherwise bail now.
-          if (!(messages.at(-1) instanceof ChatCraftHumanMessage)) {
+          // something) and want to try again. Otherwise bail now.
+          if (
+            !(chat.messages({ includeAppMessages: false }).at(-1) instanceof ChatCraftHumanMessage)
+          ) {
             return;
           }
         }
 
         // In single-message-mode, trim messages to last few. Otherwise send all.
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
+        const messages = chat.messages({ includeAppMessages: false });
         const messagesToSend = singleMessageMode ? [...messages].slice(-2) : messages;
 
         // If there's any problem loading referenced functions, show an error
