@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useRef } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
 import {
   Box,
   Button,
@@ -20,8 +20,7 @@ import {
   InputRightElement,
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
-import { TbChevronUp } from "react-icons/tb";
-
+import { TbChevronUp, TbMicrophone } from "react-icons/tb";
 import AutoResizingTextarea from "./AutoResizingTextarea";
 
 import { useSettings } from "../hooks/use-settings";
@@ -30,12 +29,7 @@ import { isMac, isWindows, formatCurrency } from "../lib/utils";
 import NewButton from "./NewButton";
 import { useCost } from "../hooks/use-cost";
 import MicIcon from "./MicIcon";
-import {
-  SpeechRecognition,
-  checkMicrophonePermission,
-  isTranscriptionSupported,
-} from "../lib/speech-recognition";
-import { useAlert } from "../hooks/use-alert";
+import { isTranscriptionSupported } from "../lib/speech-recognition";
 
 type SpeechRecognitionHintProps = {
   isRecording: boolean;
@@ -43,19 +37,26 @@ type SpeechRecognitionHintProps = {
 };
 
 function SpeechRecognitionHint({ isTranscribing, isRecording }: SpeechRecognitionHintProps) {
-  if (!isTranscriptionSupported()) {
+  let message: string | null = null;
+  if (isTranscribing) {
+    message = "Transcribing with OpenAI...";
+  }
+  if (isRecording) {
+    message = "Recording... (release to stop, slide left to cancel)";
+  }
+
+  if (!isTranscriptionSupported() || !message) {
     return <span />;
   }
 
-  if (isTranscribing) {
-    return <Text fontSize="sm">Transcribing with OpenAI...</Text>;
-  }
-
-  if (isRecording) {
-    return <Text fontSize="sm">Recording... (release to stop, slide left to cancel)</Text>;
-  }
-
-  return <span />;
+  return (
+    <Flex alignItems="center" my={2}>
+      <Box mr={2}>
+        <TbMicrophone />
+      </Box>
+      <Text fontSize="md">{message}</Text>
+    </Flex>
+  );
 }
 
 type KeyboardHintProps = {
@@ -120,11 +121,10 @@ function PromptForm({
   const [isDirty, setIsDirty] = useState(false);
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const { error } = useAlert();
   const { cost } = useCost();
-  const speechRecognitionRef = useRef<SpeechRecognition>();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const inputType = isRecording || isTranscribing ? "audio" : "text";
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -182,70 +182,27 @@ function PromptForm({
     }
   };
 
-  const onRecordingStart = async () => {
-    if (!(await checkMicrophonePermission())) {
-      error({
-        title: "Audio Transcription",
-        message:
-          "Audio transcription requires microphone access. Please allow this page to access to your microphone in order to record and transcribe speech.",
-      });
-      return;
-    }
-
-    speechRecognitionRef.current = new SpeechRecognition();
-    try {
-      await speechRecognitionRef.current.start();
-      setIsRecording(true);
-      setIsTranscribing(false);
-    } catch (err: any) {
-      console.error(err);
-      error({
-        title: "Speech Recognition Error",
-        message: `Unable to start audio recording: ${err.message}`,
-      });
-      setIsRecording(false);
-      setIsTranscribing(false);
-    }
+  const handleRecording = () => {
+    setIsRecording(true);
+    setIsTranscribing(false);
   };
 
-  const onRecordingStop = async () => {
-    const speechRecognition = speechRecognitionRef.current;
+  const handleTranscribing = () => {
     setIsRecording(false);
-    setIsTranscribing(false);
-
-    if (!speechRecognition) {
-      return;
-    }
-
-    // See if the recording has already been cancelled
-    if (!speechRecognition.isRecording) {
-      return;
-    }
-
-    try {
-      // Stop the recording and get a transcript
-      setIsTranscribing(true);
-      const transcript = await speechRecognition.stop();
-      speechRecognitionRef.current = undefined;
-
-      // Use this transcript as our prompt
-      onSendClick(transcript);
-    } catch (err: any) {
-      console.error(err);
-      error({
-        title: "Error Transcribing Speech",
-        message: `There was an error while transcribing: ${err.message}`,
-      });
-    } finally {
-      setIsTranscribing(false);
-    }
+    setIsTranscribing(true);
   };
 
-  const onRecordingCancel = async () => {
+  const handleRecordingCancel = () => {
     setIsRecording(false);
     setIsTranscribing(false);
-    await speechRecognitionRef.current?.cancel();
-    speechRecognitionRef.current = undefined;
+  };
+
+  const handleTranscriptionAvailable = (transcription: string) => {
+    console.log("transcript available");
+    // Use this transcript as our prompt
+    onSendClick(transcription);
+    setIsRecording(false);
+    setIsTranscribing(false);
   };
 
   return (
@@ -254,14 +211,16 @@ function PromptForm({
         <Flex justify="space-between" alignItems="baseline" w="100%">
           <HStack>
             <ButtonGroup isAttached>
-              <IconButton
-                aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-                title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-                icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
-                variant="ghost"
-                isDisabled={isLoading}
-                onClick={toggleExpanded}
-              />
+              {inputType === "text" && (
+                <IconButton
+                  aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+                  title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
+                  icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
+                  variant="ghost"
+                  isDisabled={isLoading}
+                  onClick={toggleExpanded}
+                />
+              )}
             </ButtonGroup>
 
             <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
@@ -312,9 +271,10 @@ function PromptForm({
                       <InputRightElement mr={2}>
                         <MicIcon
                           isDisabled={isLoading}
-                          onRecordingStart={onRecordingStart}
-                          onRecordingStop={onRecordingStop}
-                          onRecordingCancel={onRecordingCancel}
+                          onRecording={handleRecording}
+                          onTranscribing={handleTranscribing}
+                          onTranscriptionAvailable={handleTranscriptionAvailable}
+                          onCancel={handleRecordingCancel}
                         />
                       </InputRightElement>
                     )}
@@ -342,9 +302,10 @@ function PromptForm({
                       <InputRightElement>
                         <MicIcon
                           isDisabled={isLoading}
-                          onRecordingStart={onRecordingStart}
-                          onRecordingStop={onRecordingStop}
-                          onRecordingCancel={onRecordingCancel}
+                          onRecording={handleRecording}
+                          onTranscribing={handleTranscribing}
+                          onTranscriptionAvailable={handleTranscriptionAvailable}
+                          onCancel={handleRecordingCancel}
                         />
                       </InputRightElement>
                     )}
