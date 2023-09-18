@@ -301,7 +301,7 @@ export class ChatCraftFunction {
     };
   }
 
-  toOpenAIFunction(): OpenAI.Chat.Completions.CompletionCreateParams.Function {
+  toOpenAIFunction(): OpenAI.Chat.Completions.ChatCompletionCreateParams.Function {
     const openaiParameters: Record<string, unknown> = this.parameters as Record<string, unknown>;
     return {
       name: this.name,
