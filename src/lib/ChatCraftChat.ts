@@ -24,7 +24,12 @@ export type SerializedChatCraftChat = {
 };
 
 function createSummary(chat: ChatCraftChat, maxLength = 200) {
-  const markdown = chat.toMarkdown();
+  // We only want to consider human prompts and ai responses for our summary
+  const markdown = chat
+    .messages({ includeAppMessages: false, includeSystemMessages: false })
+    .map((message) => message.text)
+    .join("\n\n");
+
   const summary = summarize(markdown);
   return summary.length > maxLength ? summary.slice(0, maxLength) + "..." : summary;
 }
@@ -224,7 +229,7 @@ export class ChatCraftChat {
   toMarkdown() {
     // Turn the messages into Markdown, with each message separated with an <hr />
     // Strip out the app messages.
-    return this.messages({ includeAppMessages: false, includeSystemMessages: true })
+    return this.messages({ includeAppMessages: false })
       .map((message) => message.text)
       .join("\n\n---\n\n");
   }
