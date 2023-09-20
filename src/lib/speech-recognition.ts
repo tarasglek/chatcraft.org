@@ -126,12 +126,20 @@ export class SpeechRecognition {
     this._mediaRecorder.start(1_000);
   }
 
+  private _stopRecording() {
+    // Safely stop the media recorder if it exists and is recording
+    const mediaRecorder = this._mediaRecorder;
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+    }
+  }
+
   async stop() {
     if (!this._recordingPromise) {
       throw new Error("SpeechRecognition error: stop() called while no recording in progress");
     }
 
-    this._mediaRecorder?.stop();
+    this._stopRecording();
     const file = await this._recordingPromise;
     this._recordingPromise = null;
     this._cleanup();
@@ -146,7 +154,7 @@ export class SpeechRecognition {
   }
 
   private _cleanup() {
-    this._mediaRecorder?.stop();
+    this._stopRecording();
     this._mediaRecorder = null;
     this._mediaStream?.getTracks().forEach((track) => track.stop());
     this._mediaStream = null;
