@@ -21,15 +21,15 @@ import {
 } from "@chakra-ui/react";
 import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
 import { TbChevronUp, TbMicrophone } from "react-icons/tb";
-import AutoResizingTextarea from "./AutoResizingTextarea";
+import AutoResizingTextarea from "../AutoResizingTextarea";
 
-import { useSettings } from "../hooks/use-settings";
-import { useModels } from "../hooks/use-models";
-import { isMac, isWindows, formatCurrency } from "../lib/utils";
-import NewButton from "./NewButton";
-import { useCost } from "../hooks/use-cost";
-import MicIcon from "./MicIcon";
-import { isTranscriptionSupported } from "../lib/speech-recognition";
+import { useSettings } from "../../hooks/use-settings";
+import { useModels } from "../../hooks/use-models";
+import { isMac, isWindows, formatCurrency } from "../../lib/utils";
+import NewButton from "../NewButton";
+import { useCost } from "../../hooks/use-cost";
+import MicIcon from "../MicIcon";
+import { isTranscriptionSupported } from "../../lib/speech-recognition";
 
 type SpeechRecognitionHintProps = {
   isRecording: boolean;
@@ -90,7 +90,7 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
   );
 }
 
-type PromptFormProps = {
+type DesktopPromptFormProps = {
   forkUrl: string;
   onSendClick: (prompt: string) => void;
   // Whether or not to automatically manage the height of the prompt.
@@ -105,7 +105,7 @@ type PromptFormProps = {
   previousMessage?: string;
 };
 
-function PromptForm({
+function DesktopPromptForm({
   forkUrl,
   onSendClick,
   isExpanded,
@@ -115,7 +115,7 @@ function PromptForm({
   inputPromptRef,
   isLoading,
   previousMessage,
-}: PromptFormProps) {
+}: DesktopPromptFormProps) {
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
@@ -194,7 +194,6 @@ function PromptForm({
   };
 
   const handleTranscriptionAvailable = (transcription: string) => {
-    console.log("transcript available");
     // Use this transcript as our prompt
     onSendClick(transcription);
     setIsRecording(false);
@@ -266,6 +265,8 @@ function PromptForm({
                     {isTranscriptionSupported() && (
                       <InputRightElement mr={2}>
                         <MicIcon
+                          variant="ghost"
+                          size="sm"
                           isDisabled={isLoading}
                           onRecording={handleRecording}
                           onTranscribing={handleTranscribing}
@@ -297,6 +298,8 @@ function PromptForm({
                     {isTranscriptionSupported() && (
                       <InputRightElement>
                         <MicIcon
+                          variant="ghost"
+                          size="sm"
                           isDisabled={isLoading}
                           onRecording={handleRecording}
                           onTranscribing={handleTranscribing}
@@ -354,4 +357,4 @@ function PromptForm({
   );
 }
 
-export default PromptForm;
+export default DesktopPromptForm;

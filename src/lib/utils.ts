@@ -6,6 +6,17 @@ export const formatNumber = (n: number) => (n ? n.toLocaleString() : "0");
 export const formatCurrency = (n: number) =>
   Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(n);
 
+export const formatSeconds = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  const minutesString = minutes < 10 ? "0" + minutes : minutes.toString();
+  const secondsString: string =
+    remainingSeconds < 10 ? "0" + remainingSeconds : remainingSeconds.toString();
+
+  return `${minutesString}:${secondsString}`;
+};
+
 export const formatDate = (d: Date, short = false) =>
   short
     ? new Intl.DateTimeFormat(undefined, {

@@ -26,11 +26,12 @@ import { AiOutlineEdit } from "react-icons/ai";
 import { useCopyToClipboard, useKey } from "react-use";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { download, formatDate, formatNumber } from "../lib/utils";
+import { download, formatCurrency, formatDate, formatNumber } from "../lib/utils";
 import ShareModal from "../components/ShareModal";
 import { useSettings } from "../hooks/use-settings";
 import useTitle from "../hooks/use-title";
 import { useAlert } from "../hooks/use-alert";
+import { useCost } from "../hooks/use-cost";
 
 type ChatHeaderProps = {
   chat: ChatCraftChat;
@@ -42,6 +43,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   const fetcher = useFetcher();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [tokens, setTokens] = useState<number | null>(null);
+  const { cost } = useCost();
   const [isEditing, setIsEditing] = useState(false);
   const { settings } = useSettings();
   const title = useTitle(chat);
@@ -200,9 +202,14 @@ function ChatHeader({ chat }: ChatHeaderProps) {
               </Text>
             </Link>
             {settings.countTokens && tokens && (
-              <Tag size="sm" variant="outline" colorScheme="gray">
-                {formatNumber(tokens)} Tokens
-              </Tag>
+              <Flex gap={2}>
+                <Tag size="sm" variant="outline" colorScheme="gray">
+                  {formatNumber(tokens)} Tokens
+                </Tag>
+                <Tag key="token-cost" size="sm" variant="outline" colorScheme="gray">
+                  {formatCurrency(cost)}
+                </Tag>
+              </Flex>
             )}
           </Flex>
         </CardFooter>

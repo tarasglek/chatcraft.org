@@ -92,7 +92,7 @@ function MessageBase({
   const [isHovering, setIsHovering] = useState(false);
   const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
-  const [isNarrowScreen] = useMediaQuery("(max-width: 400px)");
+  const [isNarrowScreen] = useMediaQuery("(max-width: 480px)");
 
   useEffect(() => {
     if (settings.countTokens) {

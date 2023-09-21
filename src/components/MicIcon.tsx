@@ -7,6 +7,9 @@ import { SpeechRecognition } from "../lib/speech-recognition";
 import { useAlert } from "../hooks/use-alert";
 
 type MicIconProps = {
+  variant: "ghost" | "outline";
+  size: "md" | "sm";
+  fontSize?: string;
   onRecording: () => void;
   onTranscribing: () => void;
   onCancel: () => void;
@@ -15,6 +18,9 @@ type MicIconProps = {
 };
 
 export default function MicIcon({
+  variant,
+  size,
+  fontSize = "16px",
   onRecording,
   onTranscribing,
   onCancel,
@@ -127,10 +133,10 @@ export default function MicIcon({
         isDisabled={isDisabled}
         colorScheme={colorScheme}
         icon={<TbMicrophone />}
-        variant={isRecording ? "solid" : "ghost"}
+        variant={isRecording ? "solid" : variant}
         aria-label="Record speech"
-        size={isRecording ? "md" : "sm"}
-        fontSize="16px"
+        size={isRecording ? "md" : size}
+        fontSize={fontSize}
         ref={micIconRef}
         onPointerDown={() => onRecordingStart()}
         onPointerUp={() => onRecordingStop()}
