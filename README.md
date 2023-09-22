@@ -45,7 +45,7 @@ You can begin using ChatCraft today without any installation or account:
 
 Got an idea for a new feature? Talk to us on Discord:
 
-<https://discord.gg/PE2GWHnR>
+<https://discord.gg/JsVe9ZuZCn>
 
 Found a bug you think we should know about? You should [file an Issue](https://github.com/tarasglek/chatcraft.org/issues)
 
