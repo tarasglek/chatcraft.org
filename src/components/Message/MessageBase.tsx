@@ -21,7 +21,6 @@ import {
   Textarea,
   VStack,
   useClipboard,
-  useMediaQuery,
 } from "@chakra-ui/react";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
@@ -43,6 +42,7 @@ import { useAlert } from "../../hooks/use-alert";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
+import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -92,7 +92,7 @@ function MessageBase({
   const [isHovering, setIsHovering] = useState(false);
   const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
-  const [isNarrowScreen] = useMediaQuery("(max-width: 400px)");
+  const isNarrowScreen = useMobileBreakpoint();
 
   useEffect(() => {
     if (settings.countTokens) {

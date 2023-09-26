@@ -28,8 +28,6 @@ function ChatBase({ chat }: ChatBaseProps) {
   const { error: apiError } = useModels();
   // When chatting with OpenAI, a streaming message is returned during loading
   const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
-  // Whether to include the whole message chat history or just the last response
-  const [singleMessageMode, setSingleMessageMode] = useState(false);
   const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
   const { settings, setSettings } = useSettings();
   const { isOpen: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
@@ -200,11 +198,6 @@ function ChatBase({ chat }: ChatBaseProps) {
           }
         }
 
-        // In single-message-mode, trim messages to last few. Otherwise send all.
-        // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
-        const messages = chat.messages({ includeAppMessages: false });
-        const messagesToSend = singleMessageMode ? [...messages].slice(-2) : messages;
-
         // If there's any problem loading referenced functions, show an error
         const onError = (err: Error) => {
           error({
@@ -226,7 +219,9 @@ function ChatBase({ chat }: ChatBaseProps) {
           }
         }
 
-        const response = await callChatApi(messagesToSend, {
+        // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
+        const messages = chat.messages({ includeAppMessages: false });
+        const response = await callChatApi(messages, {
           functions,
           functionToCall,
         });
@@ -268,7 +263,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, chat, singleMessageMode, setLoading, setShouldAutoScroll, callChatApi, error]
+    [user, chat, setLoading, setShouldAutoScroll, callChatApi, error]
   );
 
   // Restart auto-scrolling and resume a paused response when Follow Chat is clicked
@@ -333,7 +328,6 @@ function ChatBase({ chat }: ChatBaseProps) {
             newMessage={streamingMessage}
             isLoading={loading}
             onRemoveMessage={(message) => chat.removeMessage(message.id)}
-            singleMessageMode={singleMessageMode}
             isPaused={paused}
             onTogglePause={togglePause}
             onCancel={cancel}
@@ -354,8 +348,6 @@ function ChatBase({ chat }: ChatBaseProps) {
               onSendClick={onPrompt}
               isExpanded={isExpanded}
               toggleExpanded={toggleExpanded}
-              singleMessageMode={singleMessageMode}
-              onSingleMessageModeChange={setSingleMessageMode}
               isLoading={loading}
               previousMessage={chat.messages().at(-1)?.text}
               inputPromptRef={inputPromptRef}
