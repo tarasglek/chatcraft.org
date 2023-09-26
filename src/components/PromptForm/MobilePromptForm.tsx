@@ -1,53 +1,14 @@
 import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
-import {
-  Box,
-  ButtonGroup,
-  chakra,
-  Flex,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Text,
-} from "@chakra-ui/react";
-import { TbChevronUp, TbSend, TbMicrophone } from "react-icons/tb";
-import { MdOutlineTranscribe } from "react-icons/md";
+import { Box, chakra, Flex } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import { useModels } from "../../hooks/use-models";
-import { isMac, isWindows, formatSeconds } from "../../lib/utils";
+import { isMac, isWindows } from "../../lib/utils";
 import NewButton from "../NewButton";
-import MicIcon from "../MicIcon";
+import MicIcon from "./MicIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
-
-type AudioStatusProps = {
-  isRecording: boolean;
-  recordingSeconds: number;
-  isTranscribing: boolean;
-};
-
-function AudioStatus({ isTranscribing, isRecording, recordingSeconds }: AudioStatusProps) {
-  if (isTranscribing) {
-    return (
-      <Flex alignItems="center" gap={2}>
-        <MdOutlineTranscribe /> Transcribing...
-      </Flex>
-    );
-  }
-
-  if (isRecording) {
-    return (
-      <Flex alignItems="center" gap={2}>
-        <TbMicrophone /> Recording...
-        <Text>{formatSeconds(recordingSeconds)}</Text>
-      </Flex>
-    );
-  }
-
-  return <span />;
-}
+import PromptSendButton from "./PromptSendButton";
+import AudioStatus from "./AudioStatus";
 
 type MobilePromptFormProps = {
   forkUrl: string;
@@ -67,8 +28,7 @@ function MobilePromptForm({
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
-  const { settings, setSettings } = useSettings();
-  const { models } = useModels();
+  const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
@@ -174,25 +134,21 @@ function MobilePromptForm({
     onSendClick(transcription);
   };
 
-  // Skip showing anything if we don't have an API Key to use
-  if (!settings.apiKey) {
-    return null;
-  }
-
-  // If we have an API Key in storage, show the mobile chat form
   return (
     <Box flex={1} w="100%" h="100%" px={1}>
       <chakra.form onSubmit={handlePromptSubmit} h="100%">
-        <Flex mt={2} pb={2} px={1} alignItems="center" gap={2}>
+        <Flex mt={2} pb={2} px={1} alignItems="end" gap={2}>
           <NewButton forkUrl={forkUrl} variant="outline" iconOnly />
 
           <Box flex={1}>
             {inputType === "audio" ? (
-              <AudioStatus
-                isRecording={isRecording}
-                isTranscribing={isTranscribing}
-                recordingSeconds={recordingSeconds}
-              />
+              <Box py={2} px={1}>
+                <AudioStatus
+                  isRecording={isRecording}
+                  isTranscribing={isTranscribing}
+                  recordingSeconds={recordingSeconds}
+                />
+              </Box>
             ) : (
               <AutoResizingTextarea
                 ref={inputPromptRef}
@@ -204,16 +160,13 @@ function MobilePromptForm({
                 bg="white"
                 _dark={{ bg: "gray.700" }}
                 overflowY="auto"
-                pr={isTranscriptionSupported() ? 8 : undefined}
+                placeholder="Ask a question"
               />
             )}
           </Box>
 
           {isTranscriptionSupported() && (
             <MicIcon
-              variant="outline"
-              size="md"
-              fontSize="18px"
               isDisabled={isLoading}
               onRecording={handleRecording}
               onTranscribing={handleTranscribing}
@@ -222,34 +175,7 @@ function MobilePromptForm({
             />
           )}
 
-          <ButtonGroup>
-            <Menu>
-              <MenuButton
-                as={IconButton}
-                isRound
-                variant="outline"
-                size="md"
-                aria-label="Choose Model"
-                title="Choose Model"
-                icon={<TbChevronUp />}
-              />
-              <MenuList>
-                {models.map((model) => (
-                  <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-                    {model.prettyModel}
-                  </MenuItem>
-                ))}
-              </MenuList>
-            </Menu>
-            <IconButton
-              type="submit"
-              size="md"
-              isRound
-              aria-label="Submit"
-              isLoading={isLoading}
-              icon={<TbSend />}
-            />
-          </ButtonGroup>
+          <PromptSendButton isLoading={isLoading} />
         </Flex>
       </chakra.form>
     </Box>

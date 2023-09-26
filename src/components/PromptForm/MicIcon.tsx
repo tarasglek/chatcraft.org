@@ -3,13 +3,11 @@ import { IconButton } from "@chakra-ui/react";
 import { TbMicrophone } from "react-icons/tb";
 import { motion, useMotionValue } from "framer-motion";
 
-import { SpeechRecognition } from "../lib/speech-recognition";
-import { useAlert } from "../hooks/use-alert";
+import { SpeechRecognition } from "../../lib/speech-recognition";
+import { useAlert } from "../../hooks/use-alert";
+import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 
 type MicIconProps = {
-  variant: "ghost" | "outline";
-  size: "md" | "sm";
-  fontSize?: string;
   onRecording: () => void;
   onTranscribing: () => void;
   onCancel: () => void;
@@ -18,21 +16,20 @@ type MicIconProps = {
 };
 
 export default function MicIcon({
-  variant,
-  size,
-  fontSize = "16px",
   onRecording,
   onTranscribing,
   onCancel,
   onTranscriptionAvailable,
   isDisabled = false,
 }: MicIconProps) {
+  const isMobile = useMobileBreakpoint();
   const [colorScheme, setColorScheme] = useState<"blue" | "red">("blue");
   const [isRecording, setIsRecording] = useState(false);
   const micIconRef = useRef<HTMLButtonElement | null>(null);
   const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
   const { error } = useAlert();
   const x = useMotionValue(0);
+  const xCancelOffset = isMobile ? -50 : -100;
 
   const onRecordingStart = async () => {
     speechRecognitionRef.current = new SpeechRecognition();
@@ -113,14 +110,14 @@ export default function MicIcon({
       dragTransition={{ bounceStiffness: 500, bounceDamping: 20 }}
       dragElastic={1}
       onDrag={(_event, info) => {
-        if (info.offset.x < -100) {
+        if (info.offset.x < xCancelOffset) {
           setColorScheme("red");
         } else {
           setColorScheme("blue");
         }
       }}
       onDragEnd={(_event, info) => {
-        if (info.offset.x < -100) {
+        if (info.offset.x < xCancelOffset) {
           onRecordingCancel();
         }
         setColorScheme("blue");
@@ -133,10 +130,10 @@ export default function MicIcon({
         isDisabled={isDisabled}
         colorScheme={colorScheme}
         icon={<TbMicrophone />}
-        variant={isRecording ? "solid" : variant}
+        variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
         aria-label="Record speech"
-        size={isRecording ? "md" : size}
-        fontSize={fontSize}
+        size="md"
+        fontSize="18px"
         ref={micIconRef}
         onPointerDown={() => onRecordingStart()}
         onPointerUp={() => onRecordingStop()}

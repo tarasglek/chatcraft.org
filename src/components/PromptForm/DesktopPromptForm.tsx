@@ -1,70 +1,31 @@
 import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
 import {
   Box,
-  Button,
-  ButtonGroup,
   chakra,
-  Checkbox,
   Flex,
-  IconButton,
   Kbd,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Text,
-  Textarea,
-  HStack,
-  Tag,
   InputGroup,
   InputRightElement,
+  VStack,
+  Card,
+  CardBody,
 } from "@chakra-ui/react";
-import { CgChevronUpO, CgChevronDownO } from "react-icons/cg";
-import { TbChevronUp, TbMicrophone } from "react-icons/tb";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import { useModels } from "../../hooks/use-models";
-import { isMac, isWindows, formatCurrency } from "../../lib/utils";
+import { isMac, isWindows } from "../../lib/utils";
 import NewButton from "../NewButton";
-import { useCost } from "../../hooks/use-cost";
-import MicIcon from "../MicIcon";
+import MicIcon from "./MicIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
-
-type SpeechRecognitionHintProps = {
-  isRecording: boolean;
-  isTranscribing: boolean;
-};
-
-function SpeechRecognitionHint({ isTranscribing, isRecording }: SpeechRecognitionHintProps) {
-  let message: string | null = null;
-  if (isTranscribing) {
-    message = "Transcribing with OpenAI...";
-  }
-  if (isRecording) {
-    message = "Recording... (release to stop, slide left to cancel)";
-  }
-
-  if (!isTranscriptionSupported() || !message) {
-    return <span />;
-  }
-
-  return (
-    <Flex alignItems="center" my={2}>
-      <Box mr={2}>
-        <TbMicrophone />
-      </Box>
-      <Text fontSize="md">{message}</Text>
-    </Flex>
-  );
-}
+import PromptSendButton from "./PromptSendButton";
+import AudioStatus from "./AudioStatus";
 
 type KeyboardHintProps = {
   isVisible: boolean;
-  isExpanded: boolean;
 };
 
-function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
+function KeyboardHint({ isVisible }: KeyboardHintProps) {
   const { settings } = useSettings();
 
   if (!isVisible) {
@@ -74,9 +35,9 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
   const metaKey = isMac() ? "Command ⌘" : "Ctrl";
 
   return (
-    <Text fontSize="sm">
+    <Text fontSize="sm" color="gray">
       <span>
-        {settings.enterBehaviour === "newline" || isExpanded ? (
+        {settings.enterBehaviour === "newline" ? (
           <span>
             <Kbd>{metaKey}</Kbd> + <Kbd>Enter</Kbd> to send
           </span>
@@ -93,13 +54,7 @@ function KeyboardHint({ isVisible, isExpanded }: KeyboardHintProps) {
 type DesktopPromptFormProps = {
   forkUrl: string;
   onSendClick: (prompt: string) => void;
-  // Whether or not to automatically manage the height of the prompt.
-  // When `isExpanded` is `false`, Shit+Enter adds rows. Otherwise,
-  // the height is determined automatically by the parent.
-  isExpanded: boolean;
   toggleExpanded: () => void;
-  singleMessageMode: boolean;
-  onSingleMessageModeChange: (value: boolean) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
@@ -108,10 +63,6 @@ type DesktopPromptFormProps = {
 function DesktopPromptForm({
   forkUrl,
   onSendClick,
-  isExpanded,
-  toggleExpanded,
-  singleMessageMode,
-  onSingleMessageModeChange,
   inputPromptRef,
   isLoading,
   previousMessage,
@@ -119,11 +70,10 @@ function DesktopPromptForm({
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
-  const { settings, setSettings } = useSettings();
-  const { models } = useModels();
-  const { cost } = useCost();
+  const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const inputType = isRecording || isTranscribing ? "audio" : "text";
 
   // If the user clears the prompt, allow up-arrow again
@@ -138,6 +88,26 @@ function DesktopPromptForm({
       inputPromptRef.current?.focus();
     }
   }, [isLoading, inputPromptRef]);
+
+  // Keep track of the number of seconds that we've been recording
+  useEffect(() => {
+    let interval: number | undefined;
+
+    if (isRecording) {
+      interval = window.setInterval(() => {
+        setRecordingSeconds((seconds) => seconds + 1);
+      }, 1_000);
+    } else if (!isRecording && recordingSeconds !== 0) {
+      window.clearInterval(interval!);
+      setRecordingSeconds(0);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isRecording, recordingSeconds]);
 
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
@@ -161,7 +131,7 @@ function DesktopPromptForm({
       // Prevent blank submissions and allow for multiline input.
       case "Enter":
         // Deal with Enter key based on user preference and state of prompt form
-        if (settings.enterBehaviour === "newline" || isExpanded) {
+        if (settings.enterBehaviour === "newline") {
           if ((isMac() && e.metaKey) || (isWindows() && e.ctrlKey)) {
             handlePromptSubmit(e);
           }
@@ -201,159 +171,71 @@ function DesktopPromptForm({
   };
 
   return (
-    <Flex direction="column" h="100%" px={1}>
-      {settings.apiKey && (
-        <Flex justify="space-between" alignItems="baseline" w="100%">
-          <HStack>
-            <ButtonGroup isAttached>
-              {inputType === "text" && (
-                <IconButton
-                  aria-label={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-                  title={isExpanded ? "Minimize prompt area" : "Maximize prompt area"}
-                  icon={isExpanded ? <CgChevronDownO /> : <CgChevronUpO />}
-                  variant="ghost"
-                  isDisabled={isLoading}
-                  onClick={toggleExpanded}
-                />
-              )}
-            </ButtonGroup>
-
-            <KeyboardHint isVisible={!!prompt.length && !isLoading} isExpanded={isExpanded} />
-            <SpeechRecognitionHint isRecording={isRecording} isTranscribing={isTranscribing} />
-          </HStack>
-
-          {settings.countTokens && (
-            <Tag key="token-cost" size="sm">
-              {formatCurrency(cost)}
-            </Tag>
-          )}
-        </Flex>
-      )}
-
-      <Box flex={1} w="100%">
-        {/* If we have an API Key in storage, show the chat form */}
-        {settings.apiKey ? (
-          <chakra.form onSubmit={handlePromptSubmit} h="100%" pb={2}>
-            <Flex flexDir="column" h={isExpanded ? "100%" : undefined}>
-              <Box
-                flex={isExpanded ? "1" : undefined}
-                mt={2}
-                pb={2}
-                h={isExpanded ? "100%" : undefined}
-              >
-                {isExpanded ? (
-                  <InputGroup h="100%">
-                    <Textarea
-                      ref={inputPromptRef}
-                      h="100%"
-                      resize="none"
-                      isDisabled={isLoading}
-                      onKeyDown={handleKeyDown}
-                      autoFocus={true}
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      bg="white"
-                      _dark={{ bg: "gray.700" }}
-                      placeholder={
-                        !isLoading && !isRecording && !isTranscribing
-                          ? "Type your question or use your voice by holding the microphone icon. Type /help for more info."
-                          : undefined
-                      }
-                      overflowY="auto"
-                      pr={isTranscriptionSupported() ? 12 : undefined}
-                    />
-                    {isTranscriptionSupported() && (
-                      <InputRightElement mr={2}>
-                        <MicIcon
-                          variant="ghost"
-                          size="sm"
-                          isDisabled={isLoading}
-                          onRecording={handleRecording}
-                          onTranscribing={handleTranscribing}
-                          onTranscriptionAvailable={handleTranscriptionAvailable}
-                          onCancel={handleRecordingCancel}
+    <Box w="100%" h="100%" px={1} my={4}>
+      <chakra.form onSubmit={handlePromptSubmit} h="100%">
+        <Flex flexDir="column">
+          <Card>
+            <CardBody p={2}>
+              <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }} p={2}>
+                <VStack w="100%" gap={4}>
+                  <Box w="100%" h={8} alignItems="center">
+                    {inputType === "audio" ? (
+                      <Box py={2} px={1}>
+                        <AudioStatus
+                          isRecording={isRecording}
+                          isTranscribing={isTranscribing}
+                          recordingSeconds={recordingSeconds}
                         />
-                      </InputRightElement>
-                    )}
-                  </InputGroup>
-                ) : (
-                  <InputGroup h="100%">
-                    <AutoResizingTextarea
-                      ref={inputPromptRef}
-                      onKeyDown={handleKeyDown}
-                      isDisabled={isLoading}
-                      autoFocus={true}
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      bg="white"
-                      _dark={{ bg: "gray.700" }}
-                      placeholder={
-                        !isLoading && !isRecording && !isTranscribing
-                          ? "Type your question or use your voice by holding the microphone icon. Type /help for more info."
-                          : undefined
-                      }
-                      overflowY="auto"
-                      pr={isTranscriptionSupported() ? 8 : undefined}
-                    />
-                    {isTranscriptionSupported() && (
-                      <InputRightElement>
-                        <MicIcon
-                          variant="ghost"
-                          size="sm"
-                          isDisabled={isLoading}
-                          onRecording={handleRecording}
-                          onTranscribing={handleTranscribing}
-                          onTranscriptionAvailable={handleTranscriptionAvailable}
-                          onCancel={handleRecordingCancel}
-                        />
-                      </InputRightElement>
-                    )}
-                  </InputGroup>
-                )}
-              </Box>
-
-              <Flex gap={1} justify={"space-between"} align="center">
-                <Checkbox
-                  isDisabled={isLoading}
-                  checked={singleMessageMode}
-                  onChange={(e) => onSingleMessageModeChange(e.target.checked)}
-                >
-                  Single Message
-                </Checkbox>
-
-                <Flex gap={2} align="center">
-                  <NewButton forkUrl={forkUrl} variant="outline" />
-                  <ButtonGroup isAttached>
-                    <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
-                      Ask {settings.model.prettyModel}
-                    </Button>
-                    <Menu>
-                      <MenuButton
-                        as={IconButton}
-                        size="sm"
-                        aria-label="Choose Model"
-                        title="Choose Model"
-                        icon={<TbChevronUp />}
+                      </Box>
+                    ) : (
+                      <AutoResizingTextarea
+                        ref={inputPromptRef}
+                        variant="unstyled"
+                        onKeyDown={handleKeyDown}
+                        isDisabled={isLoading}
+                        autoFocus={true}
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        bg="white"
+                        _dark={{ bg: "gray.700" }}
+                        placeholder={
+                          !isLoading && !isRecording && !isTranscribing
+                            ? "Ask a question or use /help to learn more"
+                            : undefined
+                        }
+                        overflowY="auto"
+                        pr={isTranscriptionSupported() ? 8 : undefined}
+                        pl={2}
                       />
-                      <MenuList>
-                        {models.map((model) => (
-                          <MenuItem
-                            key={model.id}
-                            onClick={() => setSettings({ ...settings, model })}
-                          >
-                            {model.prettyModel}
-                          </MenuItem>
-                        ))}
-                      </MenuList>
-                    </Menu>
-                  </ButtonGroup>
-                </Flex>
-              </Flex>
-            </Flex>
-          </chakra.form>
-        ) : null}
-      </Box>
-    </Flex>
+                    )}
+                    {isTranscriptionSupported() && (
+                      <InputRightElement pt={2}>
+                        <MicIcon
+                          isDisabled={isLoading}
+                          onRecording={handleRecording}
+                          onTranscribing={handleTranscribing}
+                          onTranscriptionAvailable={handleTranscriptionAvailable}
+                          onCancel={handleRecordingCancel}
+                        />
+                      </InputRightElement>
+                    )}
+                  </Box>
+
+                  <Flex w="100%" gap={1} justify={"space-between"} align="center" px={1}>
+                    <NewButton forkUrl={forkUrl} variant="outline" />
+
+                    <Flex alignItems="center" gap={2}>
+                      <KeyboardHint isVisible={!!prompt.length && !isLoading} />
+                      <PromptSendButton isLoading={isLoading} />
+                    </Flex>
+                  </Flex>
+                </VStack>
+              </InputGroup>
+            </CardBody>
+          </Card>
+        </Flex>
+      </chakra.form>
+    </Box>
   );
 }
 

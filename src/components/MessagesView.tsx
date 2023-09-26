@@ -19,7 +19,6 @@ type MessagesViewProps = {
   newMessage?: ChatCraftAiMessage;
   isLoading: boolean;
   onRemoveMessage: (message: ChatCraftMessage) => void;
-  singleMessageMode: boolean;
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
@@ -31,7 +30,6 @@ function MessagesView({
   newMessage,
   isLoading,
   onRemoveMessage,
-  singleMessageMode,
   isPaused,
   onTogglePause,
   onCancel,
@@ -76,23 +74,7 @@ function MessagesView({
 
   // Memoize the previous messages so we don't have to update when newMessage changes
   const prevMessages = useMemo(() => {
-    // When we're in singleMessageMode, we collapse all but the final message
-    if (singleMessageMode) {
-      const lastMessage = messages.at(-1);
-      if (lastMessage) {
-        return (
-          <Message
-            message={lastMessage}
-            chatId={chatId}
-            isLoading={isLoading}
-            onDeleteClick={() => memoizedOnRemoveMessage(lastMessage)}
-            onPrompt={onPrompt}
-          />
-        );
-      }
-    }
-
-    // Otherwise, show all messages in order, unless the only message in the chat
+    // Show all messages in order, unless the only message in the chat
     // is the system prompt AND the user has not entered an API Key. In this case
     // we'll show an instruction message instead (see below).
     if (
@@ -130,7 +112,6 @@ function MessagesView({
     messages,
     settings.apiKey,
     chatId,
-    singleMessageMode,
     onPrompt,
     isLoading,
     memoizedOnRemoveMessage,
