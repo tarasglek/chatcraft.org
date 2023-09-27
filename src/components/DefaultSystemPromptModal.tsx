@@ -14,7 +14,7 @@ import {
   Text,
   Textarea,
 } from "@chakra-ui/react";
-import { debounce } from "lodash";
+import debounce from "lodash-es/debounce";
 
 import { useSettings } from "../hooks/use-settings";
 import { defaultSystemPrompt } from "../lib/system-prompt";

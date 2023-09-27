@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate, redirect } from "react-router-dom";
 
 import { LocalChat, RemoteChat } from "./Chat";
@@ -6,8 +7,10 @@ import { ChatCraftChat } from "./lib/ChatCraftChat";
 import Search, { loader as searchLoader } from "./Search";
 import db from "./lib/db";
 import { ChatCraftFunction, initialFunctionCode } from "./lib/ChatCraftFunction";
-import Function from "./Function";
 import AppError from "./AppError";
+
+// We won't usually need the Function component (editor), so lazily load it
+const Function = lazy(() => import("./Function"));
 
 export default createBrowserRouter([
   // Load the user's most recent chat, or start a new one the first time
@@ -220,7 +223,12 @@ export default createBrowserRouter([
       }
       return id;
     },
-    element: <Function />,
+    element: (
+      // We load the <Function/> component lazily, so wait on it to be ready
+      <Suspense fallback={null}>
+        <Function />
+      </Suspense>
+    ),
     errorElement: <AppError />,
   },
   // Delete a function from the local db

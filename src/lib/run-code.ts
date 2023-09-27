@@ -1,4 +1,3 @@
-import * as esbuild from "esbuild-wasm";
 import esbuildWasmUrl from "esbuild-wasm/esbuild.wasm?url";
 
 // By default, we haven't loaded the esbuild wasm module, and
@@ -58,15 +57,18 @@ async function runJavaScript(code: string) {
   }
 }
 
+// Load esbuild lazily, only on demand, for size savings
 async function loadEsBuild() {
-  // If we've already initialized the module, don't do it again
-  if (globalThis.__esbuildWasmLoaded) {
-    return;
-  }
-
   try {
-    await esbuild.initialize({ wasmURL: esbuildWasmUrl });
-    globalThis.__esbuildWasmLoaded = true;
+    const esbuild = await import("esbuild-wasm");
+
+    // If we've already initialized the module, don't do it again
+    if (!globalThis.__esbuildWasmLoaded) {
+      await esbuild.initialize({ wasmURL: esbuildWasmUrl });
+      globalThis.__esbuildWasmLoaded = true;
+    }
+
+    return esbuild;
   } catch (error: any) {
     if (!error.message.includes('Cannot call "initialize" more than once')) {
       throw error;
@@ -76,7 +78,10 @@ async function loadEsBuild() {
 
 export async function toJavaScript(tsCode: string) {
   // Compile TypeScript code
-  await loadEsBuild();
+  const esbuild = await loadEsBuild();
+  if (!esbuild) {
+    throw new Error("Unable to load esbuild, needed to parse TS code");
+  }
   const js = await esbuild.transform(tsCode, {
     loader: "ts",
   });

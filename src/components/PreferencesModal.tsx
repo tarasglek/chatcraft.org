@@ -24,7 +24,6 @@ import {
   ButtonGroup,
   FormErrorMessage,
 } from "@chakra-ui/react";
-import { exportDB, importDB } from "dexie-export-import";
 
 import RevealablePasswordInput from "./RevealablePasswordInput";
 import { useSettings } from "../hooks/use-settings";
@@ -97,6 +96,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
   const handleExportClick = useCallback(
     async function () {
+      // Don't load this unless it's needed (150K)
+      const { exportDB } = await import("dexie-export-import");
       const blob = await exportDB(db);
       download(blob, "chatcraft-db.json", "application/json");
       info({
@@ -114,7 +115,9 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         const reader = new FileReader();
         reader.onloadend = () => {
           const blob = new Blob([new Uint8Array(reader.result as ArrayBuffer)]);
-          importDB(blob)
+          // Don't load this unless it's needed (150K)
+          import("dexie-export-import")
+            .then(({ importDB }) => importDB(blob))
             .then(() => {
               info({
                 title: "Database Import",
