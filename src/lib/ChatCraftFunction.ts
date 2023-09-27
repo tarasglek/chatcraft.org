@@ -114,6 +114,8 @@ export async function echo(txt: string) {
  *  Use esbuild to parse the code and return a module we can import.
  */
 const parseModule = async (tsCode: string) => {
+  let url: string | null = null;
+
   try {
     // strip typescript
     const js = await toJavaScript(tsCode);
@@ -124,7 +126,7 @@ const parseModule = async (tsCode: string) => {
     const functionDeclarations = parseTypeScript(tsCode);
 
     const blob = new Blob([js], { type: "text/javascript" });
-    const url = URL.createObjectURL(blob);
+    url = URL.createObjectURL(blob);
     const module = await import(/* @vite-ignore */ url);
     const exportedFunctionCount = Object.keys(module).length;
     if (exportedFunctionCount === 0) {
@@ -151,7 +153,9 @@ const parseModule = async (tsCode: string) => {
     console.warn("Unable to parse module", err);
     throw new Error(`Unable to parse module: ${err.message}`);
   } finally {
-    URL.revokeObjectURL(url);
+    if (url) {
+      URL.revokeObjectURL(url);
+    }
   }
 };
 
