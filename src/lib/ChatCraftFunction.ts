@@ -3,7 +3,6 @@ import db, { ChatCraftFunctionTable } from "./db";
 import { formatAsCodeBlock } from "./utils";
 import { ChatCraftFunctionResultMessage } from "./ChatCraftMessage";
 import OpenAI from "openai";
-import { parseTypeScript } from "typescript2openai";
 import { toJavaScript } from "./run-code";
 export type FunctionModule = {
   name: string;
@@ -115,16 +114,17 @@ export async function echo(txt: string) {
  *  Use esbuild to parse the code and return a module we can import.
  */
 const parseModule = async (tsCode: string) => {
-  // strip typescript
-  const js = await toJavaScript(tsCode);
-
-  // pull out function declarations
-  const functionDeclarations = parseTypeScript(tsCode);
-
-  const blob = new Blob([js], { type: "text/javascript" });
-  const url = URL.createObjectURL(blob);
-
   try {
+    // strip typescript
+    const js = await toJavaScript(tsCode);
+
+    // pull out function declarations. this depends on some big deps
+    // so lazily load it only on-demand.
+    const { parseTypeScript } = await import("typescript2openai");
+    const functionDeclarations = parseTypeScript(tsCode);
+
+    const blob = new Blob([js], { type: "text/javascript" });
+    const url = URL.createObjectURL(blob);
     const module = await import(/* @vite-ignore */ url);
     const exportedFunctionCount = Object.keys(module).length;
     if (exportedFunctionCount === 0) {
