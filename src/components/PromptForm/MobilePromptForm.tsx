@@ -135,7 +135,7 @@ function MobilePromptForm({
   };
 
   return (
-    <Box flex={1} w="100%" h="100%" px={1}>
+    <Box flex={1} w="100%" h="100%" px={1} pt={2} pb={4}>
       <chakra.form onSubmit={handlePromptSubmit} h="100%">
         <Flex mt={2} pb={2} px={1} alignItems="end" gap={2}>
           <NewButton forkUrl={forkUrl} variant="outline" iconOnly />
@@ -161,6 +161,7 @@ function MobilePromptForm({
                 _dark={{ bg: "gray.700" }}
                 overflowY="auto"
                 placeholder="Ask a question"
+                mb={1}
               />
             )}
           </Box>

@@ -132,7 +132,7 @@ export default function MicIcon({
         icon={<TbMicrophone />}
         variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
         aria-label="Record speech"
-        size="md"
+        size={isMobile ? "lg" : "md"}
         fontSize="18px"
         ref={micIconRef}
         onPointerDown={() => onRecordingStart()}
