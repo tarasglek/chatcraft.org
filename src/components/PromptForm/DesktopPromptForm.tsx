@@ -171,71 +171,69 @@ function DesktopPromptForm({
   };
 
   return (
-    <Box w="100%" h="100%" px={1} my={4}>
-      <chakra.form onSubmit={handlePromptSubmit} h="100%">
-        <Flex flexDir="column">
-          <Card>
-            <CardBody p={2}>
-              <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }} p={2}>
-                <VStack w="100%" gap={4}>
-                  <Box w="100%" h={8} alignItems="center">
-                    {inputType === "audio" ? (
-                      <Box py={2} px={1}>
-                        <AudioStatus
-                          isRecording={isRecording}
-                          isTranscribing={isTranscribing}
-                          recordingSeconds={recordingSeconds}
-                        />
-                      </Box>
-                    ) : (
-                      <AutoResizingTextarea
-                        ref={inputPromptRef}
-                        variant="unstyled"
-                        onKeyDown={handleKeyDown}
-                        isDisabled={isLoading}
-                        autoFocus={true}
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        bg="white"
-                        _dark={{ bg: "gray.700" }}
-                        placeholder={
-                          !isLoading && !isRecording && !isTranscribing
-                            ? "Ask a question or use /help to learn more"
-                            : undefined
-                        }
-                        overflowY="auto"
-                        pr={isTranscriptionSupported() ? 8 : undefined}
-                        pl={2}
+    <Flex dir="column" w="100%" h="100%">
+      <Card flex={1} my={4}>
+        <chakra.form onSubmit={handlePromptSubmit} h="100%">
+          <CardBody p={2} h="100%">
+            <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }} p={2}>
+              <VStack w="100%" h="100%" gap={4}>
+                <Box w="100%" h="100%" alignItems="center">
+                  {inputType === "audio" ? (
+                    <Box py={2} px={1}>
+                      <AudioStatus
+                        isRecording={isRecording}
+                        isTranscribing={isTranscribing}
+                        recordingSeconds={recordingSeconds}
                       />
-                    )}
-                    {isTranscriptionSupported() && (
-                      <InputRightElement pt={2}>
-                        <MicIcon
-                          isDisabled={isLoading}
-                          onRecording={handleRecording}
-                          onTranscribing={handleTranscribing}
-                          onTranscriptionAvailable={handleTranscriptionAvailable}
-                          onCancel={handleRecordingCancel}
-                        />
-                      </InputRightElement>
-                    )}
-                  </Box>
+                    </Box>
+                  ) : (
+                    <AutoResizingTextarea
+                      ref={inputPromptRef}
+                      variant="unstyled"
+                      onKeyDown={handleKeyDown}
+                      isDisabled={isLoading}
+                      autoFocus={true}
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                      placeholder={
+                        !isLoading && !isRecording && !isTranscribing
+                          ? "Ask a question or use /help to learn more"
+                          : undefined
+                      }
+                      overflowY="auto"
+                      pr={isTranscriptionSupported() ? 8 : undefined}
+                      pl={2}
+                    />
+                  )}
+                  {isTranscriptionSupported() && (
+                    <InputRightElement pt={2}>
+                      <MicIcon
+                        isDisabled={isLoading}
+                        onRecording={handleRecording}
+                        onTranscribing={handleTranscribing}
+                        onTranscriptionAvailable={handleTranscriptionAvailable}
+                        onCancel={handleRecordingCancel}
+                      />
+                    </InputRightElement>
+                  )}
+                </Box>
 
-                  <Flex w="100%" gap={1} justify={"space-between"} align="center" px={1}>
-                    <NewButton forkUrl={forkUrl} variant="outline" />
+                <Flex w="100%" gap={1} justify={"space-between"} align="center" px={1}>
+                  <NewButton forkUrl={forkUrl} variant="outline" />
 
-                    <Flex alignItems="center" gap={2}>
-                      <KeyboardHint isVisible={!!prompt.length && !isLoading} />
-                      <PromptSendButton isLoading={isLoading} />
-                    </Flex>
+                  <Flex alignItems="center" gap={2}>
+                    <KeyboardHint isVisible={!!prompt.length && !isLoading} />
+                    <PromptSendButton isLoading={isLoading} />
                   </Flex>
-                </VStack>
-              </InputGroup>
-            </CardBody>
-          </Card>
-        </Flex>
-      </chakra.form>
-    </Box>
+                </Flex>
+              </VStack>
+            </InputGroup>
+          </CardBody>
+        </chakra.form>
+      </Card>
+    </Flex>
   );
 }
 
