@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import wasm from "vite-plugin-wasm";
 import { VitePWA } from "vite-plugin-pwa";
+import { visualizer } from "rollup-plugin-visualizer";
 
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -38,6 +39,8 @@ function buildLanguageIgnoreGlobPatterns(prefix: string) {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    // See generated stats.html file for visualization of bundle sizes
+    visualizer(),
     react(),
     wasm(),
     // https://vite-pwa-org.netlify.app/guide/
@@ -76,7 +79,7 @@ export default defineConfig({
     }),
   ],
   build: {
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 2200,
     outDir: "build",
     target: "esnext",
   },

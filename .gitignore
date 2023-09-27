@@ -25,3 +25,6 @@ dist-ssr
 
 build
 .wrangler
+
+# Visualization of bundle sizes
+stats.html
