@@ -1,16 +1,5 @@
 import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
-import {
-  Box,
-  chakra,
-  Flex,
-  Kbd,
-  Text,
-  InputGroup,
-  InputRightElement,
-  VStack,
-  Card,
-  CardBody,
-} from "@chakra-ui/react";
+import { Box, chakra, Flex, Kbd, Text, InputGroup, VStack, Card, CardBody } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
@@ -172,14 +161,14 @@ function DesktopPromptForm({
 
   return (
     <Flex dir="column" w="100%" h="100%">
-      <Card flex={1} my={4}>
+      <Card flex={1} my={4} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
-          <CardBody p={2} h="100%">
-            <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }} p={2}>
-              <VStack w="100%" h="100%" gap={4}>
-                <Box w="100%" h="100%" alignItems="center">
+          <CardBody h="100%" py={4} px={6}>
+            <VStack w="100%" h="100%" gap={2}>
+              <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }}>
+                <Flex w="100%" h="100%">
                   {inputType === "audio" ? (
-                    <Box py={2} px={1}>
+                    <Box py={2} px={1} flex={1}>
                       <AudioStatus
                         isRecording={isRecording}
                         isTranscribing={isTranscribing}
@@ -203,33 +192,30 @@ function DesktopPromptForm({
                           : undefined
                       }
                       overflowY="auto"
-                      pr={isTranscriptionSupported() ? 8 : undefined}
-                      pl={2}
+                      flex={1}
                     />
                   )}
                   {isTranscriptionSupported() && (
-                    <InputRightElement pt={2}>
-                      <MicIcon
-                        isDisabled={isLoading}
-                        onRecording={handleRecording}
-                        onTranscribing={handleTranscribing}
-                        onTranscriptionAvailable={handleTranscriptionAvailable}
-                        onCancel={handleRecordingCancel}
-                      />
-                    </InputRightElement>
+                    <MicIcon
+                      isDisabled={isLoading}
+                      onRecording={handleRecording}
+                      onTranscribing={handleTranscribing}
+                      onTranscriptionAvailable={handleTranscriptionAvailable}
+                      onCancel={handleRecordingCancel}
+                    />
                   )}
-                </Box>
-
-                <Flex w="100%" gap={1} justify={"space-between"} align="center" px={1}>
-                  <NewButton forkUrl={forkUrl} variant="outline" />
-
-                  <Flex alignItems="center" gap={2}>
-                    <KeyboardHint isVisible={!!prompt.length && !isLoading} />
-                    <PromptSendButton isLoading={isLoading} />
-                  </Flex>
                 </Flex>
-              </VStack>
-            </InputGroup>
+              </InputGroup>
+
+              <Flex w="100%" gap={1} justify={"space-between"} align="center">
+                <NewButton forkUrl={forkUrl} variant="outline" />
+
+                <Flex alignItems="center" gap={2}>
+                  <KeyboardHint isVisible={!!prompt.length && !isLoading} />
+                  <PromptSendButton isLoading={isLoading} />
+                </Flex>
+              </Flex>
+            </VStack>
           </CardBody>
         </chakra.form>
       </Card>
