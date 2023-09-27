@@ -26,7 +26,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
       <Menu>
         <IconButton
           type="submit"
-          size="md"
+          size="lg"
           variant="solid"
           isRound
           aria-label="Submit"
@@ -35,7 +35,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
         />
         <MenuButton
           as={IconButton}
-          size="md"
+          size="lg"
           isRound
           variant="solid"
           aria-label="Choose Model"

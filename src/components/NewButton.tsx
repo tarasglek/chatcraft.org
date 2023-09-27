@@ -20,7 +20,7 @@ function NewButton({ forkUrl, variant = "outline", iconOnly = false }: NewButton
   return (
     <Menu>
       {iconOnly ? (
-        <MenuButton as={IconButton} size="md" variant="outline" icon={<TbPlus />} isRound />
+        <MenuButton as={IconButton} size="lg" variant="outline" icon={<TbPlus />} isRound />
       ) : (
         <MenuButton as={Button} size="sm" variant={variant} rightIcon={<TbPlus />}>
           New
