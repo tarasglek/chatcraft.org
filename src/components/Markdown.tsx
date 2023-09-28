@@ -69,8 +69,10 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
             );
           }
 
-          // Look for named code blocks (e.g., `language-html`)
-          const match = /language-(\w+)/.exec(className || "");
+          // Look for named code blocks (e.g., `language-html`) allowing for
+          // R Markdown code blocks as well, which look like {r} vs. r or
+          // {python} vs. python
+          const match = /language-{?(\w+)/.exec(className || "");
           const language = (match && match[1]) || "text";
 
           // Include rendered versions of some code blocks before the code
