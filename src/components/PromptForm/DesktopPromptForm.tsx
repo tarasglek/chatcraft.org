@@ -163,8 +163,8 @@ function DesktopPromptForm({
     <Flex dir="column" w="100%" h="100%">
       <Card flex={1} my={4} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
-          <CardBody h="100%" py={4} px={6}>
-            <VStack w="100%" h="100%" gap={2}>
+          <CardBody h="100%" p={6}>
+            <VStack w="100%" h="100%" gap={3}>
               <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }}>
                 <Flex w="100%" h="100%">
                   {inputType === "audio" ? (
