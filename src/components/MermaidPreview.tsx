@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { Card, CardBody, IconButton, useClipboard } from "@chakra-ui/react";
 import mermaid from "mermaid";
 import { TbCopy } from "react-icons/tb";
@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import { useAlert } from "../hooks/use-alert";
 
 type MermaidPreviewProps = {
-  children: React.ReactNode & React.ReactNode[];
+  children: ReactNode & ReactNode[];
 };
 
 const MermaidPreview = ({ children }: MermaidPreviewProps) => {

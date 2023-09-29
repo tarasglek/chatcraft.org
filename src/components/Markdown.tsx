@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Box, useColorModeValue } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeExternalLinks from "rehype-external-links";
 
 // Use highlight.js (via lowlight) vs. prism.js (via refractor) due to
 // https://github.com/tarasglek/chatcraft.org/issues/32
@@ -58,10 +59,19 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
       className="message-text"
       children={children}
       remarkPlugins={[remarkGfm]}
-      linkTarget={"_blank"}
+      rehypePlugins={[
+        // Open links in new tab
+        [rehypeExternalLinks, { target: "_blank" }],
+      ]}
       components={{
-        code({ inline, className, children, ...props }) {
-          if (inline) {
+        code({ className, children, ...props }) {
+          // Look for named code blocks (e.g., `language-html`) allowing for
+          // R Markdown code blocks as well, which look like {r} vs. r or
+          // {python} vs. python
+          const match = /language-{?(\w+)/.exec(className || "");
+
+          // If we don't have a language-... match, it's inline code
+          if (!match) {
             return (
               <code className="inline-code" {...props}>
                 {children}
@@ -69,19 +79,17 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
             );
           }
 
-          // Look for named code blocks (e.g., `language-html`) allowing for
-          // R Markdown code blocks as well, which look like {r} vs. r or
-          // {python} vs. python
-          const match = /language-{?(\w+)/.exec(className || "");
-          const language = (match && match[1]) || "text";
+          const language = match[1] || "text";
 
           // Include rendered versions of some code blocks before the code
           let preview = null;
           if (previewCode === undefined || previewCode === true) {
             if (language === "html") {
-              preview = <HtmlPreview children={children} />;
+              preview = <HtmlPreview children={Array.isArray(children) ? children : [children]} />;
             } else if (language === "mermaid") {
-              preview = <MermaidPreview children={children} />;
+              preview = (
+                <MermaidPreview children={Array.isArray(children) ? children : [children]} />
+              );
             }
           }
           const code = String(children);
