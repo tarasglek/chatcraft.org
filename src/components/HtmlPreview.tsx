@@ -1,9 +1,9 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, type ReactNode } from "react";
 import { chakra, Card, CardBody, IconButton } from "@chakra-ui/react";
 import { TbExternalLink } from "react-icons/tb";
 
 type HtmlPreviewProps = {
-  children: React.ReactNode & React.ReactNode[];
+  children: ReactNode & ReactNode[];
 };
 
 const toUrl = (html: string) => URL.createObjectURL(new Blob([html], { type: "text/html" }));
