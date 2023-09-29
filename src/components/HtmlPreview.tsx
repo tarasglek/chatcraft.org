@@ -28,7 +28,7 @@ const HtmlPreview = ({ children }: HtmlPreviewProps) => {
         color="gray.600"
         variant="ghost"
       />
-      <CardBody p={2}>
+      <CardBody mt={6} p={2}>
         <chakra.iframe w="100%" minHeight="200px" frameBorder="0" src={url}></chakra.iframe>
       </CardBody>
     </Card>
