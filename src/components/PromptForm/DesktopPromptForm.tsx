@@ -9,6 +9,7 @@ import MicIcon from "./MicIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
+import { useLocation } from "react-router-dom";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -64,6 +65,7 @@ function DesktopPromptForm({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const inputType = isRecording || isTranscribing ? "audio" : "text";
+  const location = useLocation();
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -72,6 +74,11 @@ function DesktopPromptForm({
     }
   }, [prompt, setIsDirty]);
 
+  // Focus the prompt form when the user navigates
+  useEffect(() => {
+    inputPromptRef.current?.focus();
+  }, [location, inputPromptRef]);
+  // Also focus when the chat stops loading
   useEffect(() => {
     if (!isLoading) {
       inputPromptRef.current?.focus();
