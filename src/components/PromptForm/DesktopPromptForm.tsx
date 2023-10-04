@@ -44,7 +44,6 @@ function KeyboardHint({ isVisible }: KeyboardHintProps) {
 type DesktopPromptFormProps = {
   forkUrl: string;
   onSendClick: (prompt: string) => void;
-  toggleExpanded: () => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;

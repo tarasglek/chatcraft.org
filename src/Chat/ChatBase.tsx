@@ -28,7 +28,6 @@ function ChatBase({ chat }: ChatBaseProps) {
   const { error: apiError } = useModels();
   // When chatting with OpenAI, a streaming message is returned during loading
   const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
-  const { isOpen: isExpanded, onToggle: toggleExpanded } = useDisclosure();
   const { settings, setSettings } = useSettings();
   const { isOpen: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
     defaultIsOpen: settings.sidebarVisible,
@@ -276,7 +275,7 @@ function ChatBase({ chat }: ChatBaseProps) {
     <Grid
       w="100%"
       h="100%"
-      gridTemplateRows={isExpanded ? "min-content 1fr 1fr" : "min-content 1fr min-content"}
+      gridTemplateRows="min-content 1fr min-content"
       gridTemplateColumns={{
         base: isSidebarVisible ? "300px 1fr" : "0 1fr",
         sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
@@ -346,8 +345,6 @@ function ChatBase({ chat }: ChatBaseProps) {
             <PromptForm
               forkUrl={`./fork`}
               onSendClick={onPrompt}
-              isExpanded={isExpanded}
-              toggleExpanded={toggleExpanded}
               isLoading={loading}
               previousMessage={chat.messages().at(-1)?.text}
               inputPromptRef={inputPromptRef}
