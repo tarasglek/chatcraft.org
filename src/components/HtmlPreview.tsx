@@ -1,5 +1,5 @@
 import { memo, useMemo, type ReactNode } from "react";
-import { chakra, Card, CardBody, IconButton } from "@chakra-ui/react";
+import { Card, CardBody, IconButton } from "@chakra-ui/react";
 import { TbExternalLink } from "react-icons/tb";
 import IframeResizer from "iframe-resizer-react";
 
