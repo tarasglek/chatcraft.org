@@ -39,7 +39,13 @@ const HtmlPreview = ({ children }: HtmlPreviewProps) => {
         variant="ghost"
       />
       <CardBody mt={6} p={2}>
-        <IframeResizer checkOrigin={false} src={url} width="100%" scrolling={true} />
+        <IframeResizer
+          maxHeight={1200}
+          checkOrigin={false}
+          src={url}
+          width="100%"
+          scrolling={true}
+        />
       </CardBody>
     </Card>
   );
