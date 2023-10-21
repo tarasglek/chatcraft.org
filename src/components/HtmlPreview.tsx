@@ -1,6 +1,7 @@
 import { memo, useMemo, type ReactNode } from "react";
-import { chakra, Card, CardBody, IconButton } from "@chakra-ui/react";
+import { Card, CardBody, IconButton } from "@chakra-ui/react";
 import { TbExternalLink } from "react-icons/tb";
+import IframeResizer from "iframe-resizer-react";
 
 type HtmlPreviewProps = {
   children: ReactNode & ReactNode[];
@@ -9,7 +10,15 @@ type HtmlPreviewProps = {
 const toUrl = (html: string) => URL.createObjectURL(new Blob([html], { type: "text/html" }));
 
 const HtmlPreview = ({ children }: HtmlPreviewProps) => {
-  const url = useMemo(() => toUrl(String(children)), [children]);
+  const url = useMemo(() => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(String(children), "text/html");
+    const scriptElement = document.createElement("script");
+    scriptElement.src = new URL("/js/iframeResizer.contentWindow.min.js", import.meta.url).href;
+    doc.body.appendChild(scriptElement);
+    const html = `<!DOCTYPE html>${doc.documentElement.innerHTML}`;
+    return toUrl(html);
+  }, [children]);
 
   return (
     <Card variant="outline" position="relative" mt={2} minHeight="12em" resize="vertical">
@@ -29,7 +38,12 @@ const HtmlPreview = ({ children }: HtmlPreviewProps) => {
         variant="ghost"
       />
       <CardBody mt={6} p={2}>
-        <chakra.iframe w="100%" minHeight="200px" frameBorder="0" src={url}></chakra.iframe>
+        <IframeResizer
+          checkOrigin={false}
+          src={url}
+          style={{ width: "1px", minWidth: "100%" }}
+          scrolling={true}
+        />
       </CardBody>
     </Card>
   );
