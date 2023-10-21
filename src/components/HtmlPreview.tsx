@@ -16,8 +16,8 @@ const HtmlPreview = ({ children }: HtmlPreviewProps) => {
     const scriptElement = document.createElement("script");
     scriptElement.src = new URL("/js/iframeResizer.contentWindow.min.js", import.meta.url).href;
     doc.body.appendChild(scriptElement);
-    const HtmlContent = `<!DOCTYPE html>${doc.documentElement.innerHTML}`;
-    return toUrl(HtmlContent);
+    const html = `<!DOCTYPE html>${doc.documentElement.innerHTML}`;
+    return toUrl(html);
   }, [children]);
 
   return (
