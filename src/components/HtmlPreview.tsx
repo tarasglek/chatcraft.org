@@ -14,8 +14,7 @@ const HtmlPreview = ({ children }: HtmlPreviewProps) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(String(children), "text/html");
     const scriptElement = document.createElement("script");
-    scriptElement.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.7/iframeResizer.contentWindow.min.js";
+    scriptElement.src = new URL("/js/iframeResizer.contentWindow.min.js", import.meta.url).href;
     doc.body.appendChild(scriptElement);
     const HtmlContent = `<!DOCTYPE html>${doc.documentElement.innerHTML}`;
     return toUrl(HtmlContent);
