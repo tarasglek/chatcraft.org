@@ -1,7 +1,8 @@
-import { memo, useMemo, type ReactNode } from "react";
+import { lazy, memo, useMemo, type ReactNode } from "react";
 import { Card, CardBody, IconButton } from "@chakra-ui/react";
 import { TbExternalLink } from "react-icons/tb";
-import IframeResizer from "iframe-resizer-react";
+
+const IframeResizer = lazy(() => import("iframe-resizer-react"));
 
 type HtmlPreviewProps = {
   children: ReactNode & ReactNode[];
