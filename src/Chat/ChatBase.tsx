@@ -272,89 +272,87 @@ function ChatBase({ chat }: ChatBaseProps) {
   }
 
   return (
-    <>
-      <Grid
-        w="100%"
-        h="100%"
-        gridTemplateRows="min-content 1fr min-content"
-        gridTemplateColumns={{
-          base: isSidebarVisible ? "300px 1fr" : "0 1fr",
-          sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
-          md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
-        }}
-        bgGradient="linear(to-b, white, gray.100)"
-        _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
-      >
-        <GridItem colSpan={2}>
-          <Header
-            chatId={chat.id}
-            inputPromptRef={inputPromptRef}
-            onToggleSidebar={handleToggleSidebarVisible}
-          />
-        </GridItem>
+    <Grid
+      w="100%"
+      h="100%"
+      gridTemplateRows="min-content 1fr min-content"
+      gridTemplateColumns={{
+        base: isSidebarVisible ? "300px 1fr" : "0 1fr",
+        sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
+        md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
+      }}
+      bgGradient="linear(to-b, white, gray.100)"
+      _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
+    >
+      <GridItem colSpan={2}>
+        <Header
+          chatId={chat.id}
+          inputPromptRef={inputPromptRef}
+          onToggleSidebar={handleToggleSidebarVisible}
+        />
+      </GridItem>
 
-        <GridItem rowSpan={2} overflowY="auto">
-          <Sidebar selectedChat={chat} />
-        </GridItem>
+      <GridItem rowSpan={2} overflowY="auto">
+        <Sidebar selectedChat={chat} />
+      </GridItem>
 
-        <GridItem overflowY="auto" ref={messageListRef} pos="relative">
-          <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
-            {
-              /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
-              !!scrollProgress && !shouldAutoScroll && (
-                <Flex
-                  w="100%"
-                  maxW="900px"
-                  mx="auto"
-                  justify="center"
-                  position="fixed"
-                  top="5em"
-                  zIndex="500"
-                >
-                  <Button onClick={() => handleFollowChatClick()}>
-                    <CgArrowDownO />
-                    <Text ml={2}>Follow Chat</Text>
-                  </Button>
-                </Flex>
-              )
-            }
-
-            <ChatHeader chat={chat} />
-
-            <ScrollRestoration />
-
-            <MessagesView
-              chat={chat}
-              newMessage={streamingMessage}
-              isLoading={loading}
-              onRemoveMessage={(message) => chat.removeMessage(message.id)}
-              isPaused={paused}
-              onTogglePause={togglePause}
-              onCancel={cancel}
-              onPrompt={onPrompt}
-            />
-          </Flex>
-        </GridItem>
-
-        <GridItem>
-          <Box maxW="900px" mx="auto" h="100%">
-            {chat.readonly ? (
-              <Flex w="100%" h="45px" justify="end" align="center" p={2}>
-                <NewButton forkUrl={`./fork`} variant="solid" />
+      <GridItem overflowY="auto" ref={messageListRef} pos="relative">
+        <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
+          {
+            /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
+            !!scrollProgress && !shouldAutoScroll && (
+              <Flex
+                w="100%"
+                maxW="900px"
+                mx="auto"
+                justify="center"
+                position="fixed"
+                top="5em"
+                zIndex="500"
+              >
+                <Button onClick={() => handleFollowChatClick()}>
+                  <CgArrowDownO />
+                  <Text ml={2}>Follow Chat</Text>
+                </Button>
               </Flex>
-            ) : (
-              <PromptForm
-                forkUrl={`./fork`}
-                onSendClick={onPrompt}
-                isLoading={loading}
-                previousMessage={chat.messages().at(-1)?.text}
-                inputPromptRef={inputPromptRef}
-              />
-            )}
-          </Box>
-        </GridItem>
-      </Grid>
-    </>
+            )
+          }
+
+          <ChatHeader chat={chat} />
+
+          <ScrollRestoration />
+
+          <MessagesView
+            chat={chat}
+            newMessage={streamingMessage}
+            isLoading={loading}
+            onRemoveMessage={(message) => chat.removeMessage(message.id)}
+            isPaused={paused}
+            onTogglePause={togglePause}
+            onCancel={cancel}
+            onPrompt={onPrompt}
+          />
+        </Flex>
+      </GridItem>
+
+      <GridItem>
+        <Box maxW="900px" mx="auto" h="100%">
+          {chat.readonly ? (
+            <Flex w="100%" h="45px" justify="end" align="center" p={2}>
+              <NewButton forkUrl={`./fork`} variant="solid" />
+            </Flex>
+          ) : (
+            <PromptForm
+              forkUrl={`./fork`}
+              onSendClick={onPrompt}
+              isLoading={loading}
+              previousMessage={chat.messages().at(-1)?.text}
+              inputPromptRef={inputPromptRef}
+            />
+          )}
+        </Box>
+      </GridItem>
+    </Grid>
   );
 }
 
