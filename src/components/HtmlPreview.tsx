@@ -6,20 +6,25 @@ const IframeResizer = lazy(() => import("iframe-resizer-react"));
 
 type HtmlPreviewProps = {
   children: ReactNode & ReactNode[];
+  isLoading: boolean;
 };
 
 const toUrl = (html: string) => URL.createObjectURL(new Blob([html], { type: "text/html" }));
 
-const HtmlPreview = ({ children }: HtmlPreviewProps) => {
+const HtmlPreview = ({ children, isLoading = false }: HtmlPreviewProps) => {
   const url = useMemo(() => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(String(children), "text/html");
-    const scriptElement = document.createElement("script");
-    scriptElement.src = new URL("/js/iframeResizer.contentWindow.min.js", import.meta.url).href;
-    doc.body.appendChild(scriptElement);
-    const html = `<!DOCTYPE html>${doc.documentElement.innerHTML}`;
-    return toUrl(html);
-  }, [children]);
+    if (isLoading) {
+      return "about:blank";
+    } else {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(String(children), "text/html");
+      const scriptElement = document.createElement("script");
+      scriptElement.src = new URL("/js/iframeResizer.contentWindow.min.js", import.meta.url).href;
+      doc.body.appendChild(scriptElement);
+      const html = `<!DOCTYPE html>${doc.documentElement.innerHTML}`;
+      return toUrl(html);
+    }
+  }, [children, isLoading]);
 
   return (
     <Card variant="outline" position="relative" mt={2} minHeight="12em" resize="vertical">

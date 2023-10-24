@@ -85,7 +85,12 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
           let preview = null;
           if (previewCode === undefined || previewCode === true) {
             if (language === "html") {
-              preview = <HtmlPreview children={Array.isArray(children) ? children : [children]} />;
+              preview = (
+                <HtmlPreview
+                  children={Array.isArray(children) ? children : [children]}
+                  isLoading={isLoading}
+                />
+              );
             } else if (language === "mermaid") {
               preview = (
                 <MermaidPreview children={Array.isArray(children) ? children : [children]} />
