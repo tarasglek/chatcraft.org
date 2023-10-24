@@ -23,7 +23,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 
   return (
     <ButtonGroup variant="outline" isAttached>
-      <Menu>
+      <Menu placement="top" strategy="fixed">
         <IconButton
           type="submit"
           size="lg"
@@ -42,7 +42,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList>
+        <MenuList height={400} overflowY={"auto"}>
           {models.map((model) => (
             <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
               {model.prettyModel}
