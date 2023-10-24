@@ -88,10 +88,6 @@ function ChatBase({ chat }: ChatBaseProps) {
     forceScroll();
   }, [forceScroll, scrollProgress, shouldAutoScroll, chat.date]);
 
-  useEffect(() => {
-    document.getElementById("topAnchor")?.scrollIntoView();
-  }, [chat]);
-
   // Disable auto scroll when we're in the middle of streaming and the user scrolls
   // up to read previous content.
   const handleScroll = useCallback(() => {
@@ -277,7 +273,6 @@ function ChatBase({ chat }: ChatBaseProps) {
 
   return (
     <>
-      <p id="topAnchor"></p>
       <Grid
         w="100%"
         h="100%"
@@ -298,7 +293,7 @@ function ChatBase({ chat }: ChatBaseProps) {
           />
         </GridItem>
 
-        <GridItem rowSpan={3} overflowY="auto">
+        <GridItem rowSpan={2} overflowY="auto">
           <Sidebar selectedChat={chat} />
         </GridItem>
 

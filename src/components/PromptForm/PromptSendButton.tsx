@@ -63,7 +63,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
         Ask {settings.model.prettyModel}
       </Button>
-      <Menu>
+      <Menu placement="top" strategy="fixed">
         <MenuButton
           as={IconButton}
           size="sm"
@@ -71,7 +71,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList>
+        <MenuList height={400} overflowY={"auto"}>
           {models.map((model) => (
             <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
               {model.prettyModel}
