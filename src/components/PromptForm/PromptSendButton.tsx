@@ -42,7 +42,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList height={400} overflowY={"auto"}>
+        <MenuList maxHeight={400} overflowY={"auto"}>
           {models.map((model) => (
             <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
               {model.prettyModel}
@@ -71,7 +71,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList height={400} overflowY={"auto"}>
+        <MenuList maxHeight={400} overflowY={"auto"}>
           {models.map((model) => (
             <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
               {model.prettyModel}
