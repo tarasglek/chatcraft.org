@@ -23,7 +23,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 
   return (
     <ButtonGroup variant="outline" isAttached>
-      <Menu placement="top" strategy="fixed">
+      <Menu placement="top" strategy="fixed" offset={[-90, 0]}>
         <IconButton
           type="submit"
           size="lg"
