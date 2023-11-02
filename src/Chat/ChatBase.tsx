@@ -8,7 +8,11 @@ import MessagesView from "../components/MessagesView";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import useChatOpenAI from "../hooks/use-chat-openai";
-import { ChatCraftFunctionCallMessage, ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
+import {
+  ChatCraftFunctionCallMessage,
+  ChatCraftFunctionResultMessage,
+  ChatCraftHumanMessage,
+} from "../lib/ChatCraftMessage";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import NewButton from "../components/NewButton";
@@ -188,10 +192,15 @@ function ChatBase({ chat }: ChatBaseProps) {
           await chat.addMessage(promptMessage);
         } else {
           // If there isn't any prompt text, see if the final message in the chat was a human
-          // message. If it was, we'll allow sending that through again (e.g., if you modified
-          // something) and want to try again. Otherwise bail now.
+          // message or a function response. If it was either, we'll allow sending that through
+          // again (e.g., if you modified something and want to retry, or want to share the
+          // response from the function). Otherwise bail now.
+          const finalMessage = chat.messages({ includeAppMessages: false }).at(-1);
           if (
-            !(chat.messages({ includeAppMessages: false }).at(-1) instanceof ChatCraftHumanMessage)
+            !(
+              finalMessage instanceof ChatCraftHumanMessage ||
+              finalMessage instanceof ChatCraftFunctionResultMessage
+            )
           ) {
             return;
           }
