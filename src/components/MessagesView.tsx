@@ -97,6 +97,10 @@ function MessagesView({
           message={message}
           chatId={chatId}
           isLoading={isLoading}
+          onResubmitClick={async () => {
+            await deleteMessages(message.id, "after");
+            onPrompt(message.prompt);
+          }}
           onDeleteBeforeClick={
             hasMessagesBefore ? () => deleteMessages(message.id, "before") : undefined
           }

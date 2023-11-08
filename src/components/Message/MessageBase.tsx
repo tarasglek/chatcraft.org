@@ -1,4 +1,12 @@
-import { memo, useCallback, type ReactNode, useState, FormEvent, useEffect } from "react";
+import {
+  memo,
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  type ReactNode,
+  type FormEvent,
+} from "react";
 import {
   Box,
   Button,
@@ -31,6 +39,7 @@ import { Link as ReactRouterLink } from "react-router-dom";
 import { formatDate, download, formatNumber } from "../../lib/utils";
 import Markdown from "../Markdown";
 import {
+  ChatCraftHumanMessage,
   ChatCraftAiMessage,
   ChatCraftAiMessageVersion,
   ChatCraftMessage,
@@ -57,6 +66,7 @@ export interface MessageBaseProps {
   isLoading: boolean;
   hidePreviews?: boolean;
   onPrompt?: (prompt?: string) => void;
+  onResubmitClick?: () => void;
   onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;
   onDeleteAfterClick?: () => void;
@@ -77,6 +87,7 @@ function MessageBase({
   footer,
   isLoading,
   hidePreviews,
+  onResubmitClick,
   onDeleteBeforeClick,
   onDeleteClick,
   onDeleteAfterClick,
@@ -93,6 +104,7 @@ function MessageBase({
   const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
   const isNarrowScreen = useMobileBreakpoint();
+  const messageForm = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (settings.countTokens) {
@@ -116,9 +128,14 @@ function MessageBase({
     });
   }, [info, text]);
 
+  const handleClick = useCallback((e: React.SyntheticEvent) => {
+    messageForm.current?.setAttribute("data-action", e.target.name);
+  }, []);
+
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      const action = e.target.getAttribute("data-action") || "save";
 
       const data = new FormData(e.target as HTMLFormElement);
       const text = data.get("text");
@@ -147,7 +164,10 @@ function MessageBase({
               message: err.message,
             });
           })
-          .finally(() => onEditingChange(false));
+          .finally(() => {
+            onEditingChange(false);
+            e.target.removeAttribute("data-action");
+          });
       } else {
         message.text = text;
         message.date = editedAt;
@@ -160,10 +180,16 @@ function MessageBase({
               message: err.message,
             });
           })
-          .finally(() => onEditingChange(false));
+          .finally(() => {
+            onEditingChange(false);
+            if (action === "resubmit" && onResubmitClick) {
+              onResubmitClick();
+            }
+            e.target.removeAttribute("data-action");
+          });
       }
     },
-    [message, error, chatId, onEditingChange]
+    [message, onResubmitClick, chatId, error, onEditingChange]
   );
 
   return (
@@ -293,7 +319,7 @@ function MessageBase({
           <Flex direction="column" gap={3}>
             <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
               {editing ? (
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} ref={messageForm}>
                   <VStack align="end">
                     <Textarea
                       as={ResizeTextarea}
@@ -311,9 +337,14 @@ function MessageBase({
                       <Button size="sm" variant="outline" onClick={() => onEditingChange(false)}>
                         Cancel
                       </Button>
-                      <Button size="sm" type="submit">
+                      <Button size="sm" type="submit" name="save" onClick={handleClick}>
                         Save
                       </Button>
+                      {message instanceof ChatCraftHumanMessage && (
+                        <Button size="sm" type="submit" name="resubmit" onClick={handleClick}>
+                          Save & Submit
+                        </Button>
+                      )}
                     </ButtonGroup>
                   </VStack>
                 </form>
