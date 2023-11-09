@@ -65,6 +65,7 @@ function DesktopPromptForm({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const inputType = isRecording || isTranscribing ? "audio" : "text";
+  // Base64 images
   const [inputImages, setInputImages] = useState<string[]>([]);
   const location = useLocation();
 
@@ -168,13 +169,25 @@ function DesktopPromptForm({
     setIsTranscribing(false);
   };
 
+  const getBase64FromFile = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        resolve(base64data);
+      };
+    });
+  };
+
   const handleDropImage = (e: React.DragEvent) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
-    const newImages = files
-      .filter((file) => file.type.startsWith("image/"))
-      .map((file) => URL.createObjectURL(file));
-    setInputImages((prevImages) => [...prevImages, ...newImages]);
+    Promise.all(
+      files.filter((file) => file.type.startsWith("image/")).map((file) => getBase64FromFile(file))
+    ).then((base64Strings) => {
+      setInputImages((prevImages) => [...prevImages, ...base64Strings]);
+    });
   };
 
   const handleDeleteImage = (index: number) => {
