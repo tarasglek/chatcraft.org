@@ -4,6 +4,7 @@ import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
 import { getMetaKey } from "../../lib/utils";
+import { TiDeleteOutline } from "react-icons/ti";
 import NewButton from "../NewButton";
 import MicIcon from "./MicIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
@@ -65,6 +66,7 @@ function DesktopPromptForm({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const inputType = isRecording || isTranscribing ? "audio" : "text";
+  const [draggedImages, setDraggedImages] = useState<string[]>([]);
   const location = useLocation();
 
   // If the user clears the prompt, allow up-arrow again
@@ -168,51 +170,95 @@ function DesktopPromptForm({
     setIsTranscribing(false);
   };
 
+  const handleDropImage = (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    const newImages = files
+      .filter((file) => file.type.startsWith("image/"))
+      .map((file) => URL.createObjectURL(file));
+    setDraggedImages((prevImages) => [...prevImages, ...newImages]);
+  };
+
+  const handleDeleteImage = (index: number) => {
+    const updatedImages = [...draggedImages];
+    updatedImages.splice(index, 1);
+    setDraggedImages(updatedImages);
+  };
+
   return (
     <Flex dir="column" w="100%" h="100%">
       <Card flex={1} my={4} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody h="100%" p={6}>
             <VStack w="100%" h="100%" gap={3}>
-              <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }}>
-                <Flex w="100%" h="100%">
-                  {inputType === "audio" ? (
-                    <Box py={2} px={1} flex={1}>
-                      <AudioStatus
-                        isRecording={isRecording}
-                        isTranscribing={isTranscribing}
-                        recordingSeconds={recordingSeconds}
+              <InputGroup
+                h="100%"
+                bg="white"
+                _dark={{ bg: "gray.700" }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDropImage}
+              >
+                <Flex w="100%" h="100%" direction="column">
+                  <Flex flexWrap="wrap">
+                    {draggedImages.map((image, index) => (
+                      <Box key={index}>
+                        <Flex direction="column">
+                          <img
+                            src={image}
+                            alt={`Dragged ${index}`}
+                            style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                          />
+                          <Flex justify="flex-end">
+                            <TiDeleteOutline
+                              onClick={() => handleDeleteImage(index)}
+                              style={{ cursor: "pointer" }}
+                            >
+                              Delete
+                            </TiDeleteOutline>
+                          </Flex>
+                        </Flex>
+                      </Box>
+                    ))}
+                  </Flex>
+                  <Flex flexWrap="wrap">
+                    {inputType === "audio" ? (
+                      <Box py={2} px={1} flex={1}>
+                        <AudioStatus
+                          isRecording={isRecording}
+                          isTranscribing={isTranscribing}
+                          recordingSeconds={recordingSeconds}
+                        />
+                      </Box>
+                    ) : (
+                      <AutoResizingTextarea
+                        ref={inputPromptRef}
+                        variant="unstyled"
+                        onKeyDown={handleKeyDown}
+                        isDisabled={isLoading}
+                        autoFocus={true}
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        bg="white"
+                        _dark={{ bg: "gray.700" }}
+                        placeholder={
+                          !isLoading && !isRecording && !isTranscribing
+                            ? "Ask a question or use /help to learn more"
+                            : undefined
+                        }
+                        overflowY="auto"
+                        flex={1}
                       />
-                    </Box>
-                  ) : (
-                    <AutoResizingTextarea
-                      ref={inputPromptRef}
-                      variant="unstyled"
-                      onKeyDown={handleKeyDown}
-                      isDisabled={isLoading}
-                      autoFocus={true}
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      bg="white"
-                      _dark={{ bg: "gray.700" }}
-                      placeholder={
-                        !isLoading && !isRecording && !isTranscribing
-                          ? "Ask a question or use /help to learn more"
-                          : undefined
-                      }
-                      overflowY="auto"
-                      flex={1}
-                    />
-                  )}
-                  {isTranscriptionSupported() && (
-                    <MicIcon
-                      isDisabled={isLoading}
-                      onRecording={handleRecording}
-                      onTranscribing={handleTranscribing}
-                      onTranscriptionAvailable={handleTranscriptionAvailable}
-                      onCancel={handleRecordingCancel}
-                    />
-                  )}
+                    )}
+                    {isTranscriptionSupported() && (
+                      <MicIcon
+                        isDisabled={isLoading}
+                        onRecording={handleRecording}
+                        onTranscribing={handleTranscribing}
+                        onTranscriptionAvailable={handleTranscriptionAvailable}
+                        onCancel={handleRecordingCancel}
+                      />
+                    )}
+                  </Flex>
                 </Flex>
               </InputGroup>
 
