@@ -98,14 +98,14 @@ export class ChatCraftMessage {
     };
   }
 
-  toOpenAiMessage(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
+  toOpenAiMessage(): OpenAI.Chat.Completions.ChatCompletionMessageParam {
     const text = this.text;
 
-    const content = [];
-    content.push({ type: "text", text: this.text });
+    const textAndImage = [];
+    textAndImage.push({ type: "text", text: this.text });
     if (this.image && this.image.length > 0) {
       this.image.forEach((image) => {
-        content.push({
+        textAndImage.push({
           type: "image_url",
           image_url: { url: image },
         });
@@ -116,7 +116,7 @@ export class ChatCraftMessage {
       case "ai":
         return { role: "assistant", content: text };
       case "human":
-        return { role: "user", content };
+        return { role: "user", content: textAndImage };
       case "system":
         return { role: "system", content: text };
       case "function":
