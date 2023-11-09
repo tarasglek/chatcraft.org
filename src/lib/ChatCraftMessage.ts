@@ -45,6 +45,7 @@ export class ChatCraftMessage {
   date: Date;
   type: MessageType;
   text: string;
+  image: string[];
   readonly: boolean;
 
   constructor({
@@ -52,18 +53,21 @@ export class ChatCraftMessage {
     date,
     type,
     text,
+    image,
     readonly,
   }: {
     id?: string;
     date?: Date;
     type: MessageType;
     text: string;
+    image?: string[];
     readonly?: boolean;
   }) {
     this.id = id ?? nanoid();
     this.date = date ?? new Date();
     this.type = type;
     this.text = text;
+    this.image = image ?? [];
 
     // When we load a message outside the db (e.g., from shared chat via JSON) it is readonly
     this.readonly = readonly === true;
@@ -81,6 +85,7 @@ export class ChatCraftMessage {
     return new ChatCraftMessage({
       type: this.type,
       text: this.text,
+      image: this.image,
     });
   }
 
@@ -95,11 +100,23 @@ export class ChatCraftMessage {
 
   toOpenAiMessage(): OpenAI.Chat.Completions.CreateChatCompletionRequestMessage {
     const text = this.text;
+
+    const content = [];
+    content.push({ type: "text", text: this.text });
+    if (this.image && this.image.length > 0) {
+      this.image.forEach((image) => {
+        content.push({
+          type: "image_url",
+          image_url: { url: image },
+        });
+      });
+    }
+
     switch (this.type) {
       case "ai":
         return { role: "assistant", content: text };
       case "human":
-        return { role: "user", content: text };
+        return { role: "user", content };
       case "system":
         return { role: "system", content: text };
       case "function":
@@ -311,34 +328,32 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
 
 export class ChatCraftHumanMessage extends ChatCraftMessage {
   user?: User;
-  image_url?: string[];
 
   constructor({
     id,
     date,
     user,
     text,
-    image_url,
+    image,
     readonly,
   }: {
     id?: string;
     date?: Date;
     user?: User;
     text: string;
-    image_url?: string[];
+    image?: string[];
     readonly?: boolean;
   }) {
-    super({ id, date, type: "human", text, readonly });
+    super({ id, date, type: "human", text, image, readonly });
 
     this.user = user;
-    this.image_url = image_url;
   }
 
   clone() {
     return new ChatCraftHumanMessage({
       user: this.user,
       text: this.text,
-      image_url: this.image_url,
+      image: this.image,
     });
   }
 
