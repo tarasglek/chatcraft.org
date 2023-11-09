@@ -311,29 +311,34 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
 
 export class ChatCraftHumanMessage extends ChatCraftMessage {
   user?: User;
+  image_url?: string[];
 
   constructor({
     id,
     date,
     user,
     text,
+    image_url,
     readonly,
   }: {
     id?: string;
     date?: Date;
     user?: User;
     text: string;
+    image_url?: string[];
     readonly?: boolean;
   }) {
     super({ id, date, type: "human", text, readonly });
 
     this.user = user;
+    this.image_url = image_url;
   }
 
   clone() {
     return new ChatCraftHumanMessage({
       user: this.user,
       text: this.text,
+      image_url: this.image_url,
     });
   }
 
