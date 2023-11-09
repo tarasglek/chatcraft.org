@@ -45,7 +45,7 @@ function KeyboardHint({ isVisible }: KeyboardHintProps) {
 
 type DesktopPromptFormProps = {
   forkUrl: string;
-  onSendClick: (prompt: string) => void;
+  onSendClick: (prompt: string, image_url: string[]) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
@@ -66,7 +66,7 @@ function DesktopPromptForm({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const inputType = isRecording || isTranscribing ? "audio" : "text";
-  const [draggedImages, setDraggedImages] = useState<string[]>([]);
+  const [inputImages, setInputImages] = useState<string[]>([]);
   const location = useLocation();
 
   // If the user clears the prompt, allow up-arrow again
@@ -110,9 +110,10 @@ function DesktopPromptForm({
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const value = prompt.trim();
+    const textValue = prompt.trim();
     setPrompt("");
-    onSendClick(value);
+    setInputImages([]);
+    onSendClick(textValue, inputImages);
   };
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
@@ -165,7 +166,7 @@ function DesktopPromptForm({
 
   const handleTranscriptionAvailable = (transcription: string) => {
     // Use this transcript as our prompt
-    onSendClick(transcription);
+    onSendClick(transcription, inputImages);
     setIsRecording(false);
     setIsTranscribing(false);
   };
@@ -176,13 +177,13 @@ function DesktopPromptForm({
     const newImages = files
       .filter((file) => file.type.startsWith("image/"))
       .map((file) => URL.createObjectURL(file));
-    setDraggedImages((prevImages) => [...prevImages, ...newImages]);
+    setInputImages((prevImages) => [...prevImages, ...newImages]);
   };
 
   const handleDeleteImage = (index: number) => {
-    const updatedImages = [...draggedImages];
+    const updatedImages = [...inputImages];
     updatedImages.splice(index, 1);
-    setDraggedImages(updatedImages);
+    setInputImages(updatedImages);
   };
 
   return (
@@ -200,7 +201,7 @@ function DesktopPromptForm({
               >
                 <Flex w="100%" h="100%" direction="column">
                   <Flex flexWrap="wrap">
-                    {draggedImages.map((image, index) => (
+                    {inputImages.map((image, index) => (
                       <Box key={index}>
                         <Flex direction="column">
                           <img
