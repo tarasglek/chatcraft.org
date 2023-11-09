@@ -45,7 +45,7 @@ function KeyboardHint({ isVisible }: KeyboardHintProps) {
 
 type DesktopPromptFormProps = {
   forkUrl: string;
-  onSendClick: (prompt: string, image_url: string[]) => void;
+  onSendClick: (prompt: string, image: string[]) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
