@@ -7,6 +7,7 @@ import {
   type ReactNode,
   type MouseEvent,
   type FormEvent,
+  type KeyboardEvent,
 } from "react";
 import {
   Box,
@@ -132,6 +133,19 @@ function MessageBase({
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     messageForm.current?.setAttribute("data-action", e.currentTarget.name);
   }, []);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.ctrlKey && (e.key === "Enter" || e.key === "NumpadEnter")) {
+        const submitEvent = new Event("submit", { cancelable: true, bubbles: true });
+        messageForm.current?.dispatchEvent(submitEvent);
+      }
+      if (e.key === "Escape") {
+        onEditingChange(false);
+      }
+    },
+    [onEditingChange]
+  );
 
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
@@ -320,7 +334,8 @@ function MessageBase({
           <Flex direction="column" gap={3}>
             <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
               {editing ? (
-                <form onSubmit={handleSubmit} ref={messageForm}>
+                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <form onSubmit={handleSubmit} ref={messageForm} onKeyDown={handleKeyDown}>
                   <VStack align="end">
                     <Textarea
                       as={ResizeTextarea}
@@ -338,14 +353,20 @@ function MessageBase({
                       <Button size="sm" variant="outline" onClick={() => onEditingChange(false)}>
                         Cancel
                       </Button>
-                      <Button size="sm" type="submit" name="save" onClick={handleClick}>
-                        Save
-                      </Button>
                       {message instanceof ChatCraftHumanMessage && (
-                        <Button size="sm" type="submit" name="resubmit" onClick={handleClick}>
+                        <Button
+                          size="sm"
+                          type="submit"
+                          name="resubmit"
+                          colorScheme="teal"
+                          onClick={handleClick}
+                        >
                           Save & Submit
                         </Button>
                       )}
+                      <Button size="sm" type="submit" name="save" onClick={handleClick}>
+                        Save
+                      </Button>
                     </ButtonGroup>
                   </VStack>
                 </form>
