@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   type ReactNode,
+  type MouseEvent,
   type FormEvent,
 } from "react";
 import {
@@ -128,16 +129,16 @@ function MessageBase({
     });
   }, [info, text]);
 
-  const handleClick = useCallback((e: React.SyntheticEvent) => {
-    messageForm.current?.setAttribute("data-action", e.target.name);
+  const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+    messageForm.current?.setAttribute("data-action", e.currentTarget.name);
   }, []);
 
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const action = e.target.getAttribute("data-action") || "save";
+      const action = e.currentTarget.getAttribute("data-action") || "save";
 
-      const data = new FormData(e.target as HTMLFormElement);
+      const data = new FormData(e.currentTarget);
       const text = data.get("text");
       if (typeof text !== "string") {
         return;
@@ -166,7 +167,7 @@ function MessageBase({
           })
           .finally(() => {
             onEditingChange(false);
-            e.target.removeAttribute("data-action");
+            e.currentTarget.removeAttribute("data-action");
           });
       } else {
         message.text = text;
@@ -185,7 +186,7 @@ function MessageBase({
             if (action === "resubmit" && onResubmitClick) {
               onResubmitClick();
             }
-            e.target.removeAttribute("data-action");
+            e.currentTarget.removeAttribute("data-action");
           });
       }
     },
