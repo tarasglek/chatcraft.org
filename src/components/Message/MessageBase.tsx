@@ -358,7 +358,7 @@ function MessageBase({
                           size="sm"
                           type="submit"
                           name="resubmit"
-                          colorScheme="teal"
+                          colorScheme="cyan"
                           onClick={handleClick}
                         >
                           Save & Submit
