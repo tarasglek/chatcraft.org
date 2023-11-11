@@ -40,11 +40,18 @@ export type ChatCraftFunctionTable = {
   code: string;
 };
 
+export type ChatCraftStarredTextTable = {
+  id: string;
+  date: Date;
+  text: string;
+};
+
 class ChatCraftDatabase extends Dexie {
   chats: Table<ChatCraftChatTable, string>;
   messages: Table<ChatCraftMessageTable, string>;
   shared: Table<SharedChatCraftChatTable, string>;
   functions: Table<ChatCraftFunctionTable, string>;
+  starred: Table<ChatCraftStarredTextTable, string>;
 
   constructor() {
     super("ChatCraftDatabase");
@@ -107,11 +114,34 @@ class ChatCraftDatabase extends Dexie {
     this.version(7).stores({
       messages: "id, date, chatId, type, model, user, text, versions, starred",
     });
+    this.version(8)
+      .stores({
+        messages: "id, date, chatId, type, model, user, text, versions, starred",
+        starred: "id, date, text",
+      })
+      .upgrade((tx) => {
+        // Select entries from messages where starred is true and type is 'system'
+        return tx
+          .table("messages")
+          .where({ type: "system" })
+          .toArray()
+          .then((entries) => {
+            // Prepare the entries for the systemPrompts table by removing the starred attribute
+            const promptsEntries = entries
+              .filter((entry) => entry.starred === true)
+              .map(({ id, date, text }) => {
+                return { id: id, date: date, text: text };
+              });
+            // Add the entries to the systemPrompts table
+            return tx.table("starred").bulkAdd(promptsEntries, { allKeys: true });
+          });
+      });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
     this.shared = this.table("shared");
     this.functions = this.table("functions");
+    this.starred = this.table("starred");
   }
 }
 
