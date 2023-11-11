@@ -293,6 +293,14 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
           ? { name: functionToCall.name }
           : "auto"
         : undefined,
+
+    /*
+     Got this value from error message from OpenAI that gpt-4-preview max_tokens
+     by setting very large number,
+     After setting this value, seems no cutoff
+     TODO: check this setting is needed or a hack
+     */
+    max_tokens: 4096,
   };
 
   const chatCompletionReqOptions = {
