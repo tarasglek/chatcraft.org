@@ -20,43 +20,69 @@ import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { createSystemPromptSummary, defaultSystemPrompt } from "../../lib/system-prompt";
 import db from "../../lib/db";
 import { ChatCraftSystemMessage } from "../../lib/ChatCraftMessage";
+import { ChatCraftStarredText } from "../../lib/ChatCraftStarredText";
 import { useAlert } from "../../hooks/use-alert";
 
 function SystemPromptVersionsMenu({
   onChange,
-  isStarred,
-  onStarClick,
+  promptMessage,
 }: {
   onChange: (value: string) => void;
-  isStarred: boolean;
-  onStarClick: () => void;
+  promptMessage: ChatCraftSystemMessage;
 }) {
+  const { error } = useAlert();
+
   const prevSystemPrompts = useLiveQuery<string[], string[]>(
     async () => {
       // Get all starred System Messages, sorted by date
-      const records = await db.messages
-        .where("type")
-        .equals("system")
-        .and((m) => m.starred === true)
-        .sortBy("date");
+      const records = await db.starred
+        .orderBy("date")
+        .toArray() // Retrieve all entries as an array
+        .then((entries) => {
+          // Map the array of entries to get an array of 'text' attributes
+          return entries.map((entry) => entry.text);
+        })
+        .catch((error) => {
+          console.error("Failed to query the starred table:", error);
+        });
       if (!records) {
-        return [];
+        return Promise.resolve([defaultSystemPrompt()]);
       }
 
-      // Create a unique set of prompt strings and return
-      const uniq = new Set<string>();
-      records.reverse().forEach((message) => {
-        const { text } = message;
-        uniq.add(text);
-      });
-
-      return Promise.resolve([defaultSystemPrompt(), ...uniq]);
+      return Promise.resolve([defaultSystemPrompt(), ...records]);
     },
     [],
     []
   );
 
-  const title = isStarred ? "Unstar System Prompt" : "Star System Prompt";
+  const isStarredMessage = useLiveQuery<boolean>(async () => {
+    return ChatCraftStarredText.check(promptMessage.text);
+  }, [promptMessage]);
+
+  const handleStarredChanged = () => {
+    const starredText = new ChatCraftStarredText({ text: promptMessage.text });
+    if (!isStarredMessage) {
+      starredText.save().catch((err) => {
+        console.warn("Unable to update system prompt", err);
+        error({
+          title: `Error changing starred for System Prompt`,
+          message: err.message,
+        });
+      });
+    } else {
+      starredText.remove().catch((err) => {
+        console.warn("Unable to update system prompt", err);
+        error({
+          title: `Error changing starred for System Prompt`,
+          message: err.message,
+        });
+      });
+    }
+  };
+
+  const title = isStarredMessage
+    ? "Unstar System Prompt to forget it"
+    : "Star System Prompt to save for future use";
 
   return (
     <Flex align="center">
@@ -64,9 +90,9 @@ function SystemPromptVersionsMenu({
         size="sm"
         aria-label={title}
         title={title}
-        icon={isStarred ? <TbStarFilled /> : <TbStar />}
+        icon={isStarredMessage ? <TbStarFilled /> : <TbStar />}
         variant="ghost"
-        onClick={() => onStarClick()}
+        onClick={handleStarredChanged}
       />
       <Menu placement="bottom-end" isLazy={true}>
         <MenuButton
@@ -155,17 +181,6 @@ function SystemMessage(props: SystemMessageProps) {
     });
   };
 
-  const handleStarredChanged = () => {
-    message.starred = !message.starred;
-    message.save(chatId).catch((err) => {
-      console.warn("Unable to update system prompt", err);
-      error({
-        title: `Error changing starred for System Prompt`,
-        message: err.message,
-      });
-    });
-  };
-
   return (
     <MessageBase
       {...props}
@@ -174,8 +189,7 @@ function SystemMessage(props: SystemMessageProps) {
       headingMenu={
         <SystemPromptVersionsMenu
           onChange={handleSystemPromptVersionChange}
-          isStarred={!!message.starred}
-          onStarClick={handleStarredChanged}
+          promptMessage={message}
         />
       }
       summaryText={!isOpen ? summaryText : undefined}
