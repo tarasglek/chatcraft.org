@@ -1,13 +1,13 @@
 import { nanoid } from "nanoid";
-import db, { type ChatCraftStarredTextTable } from "./db";
+import db, { type ChatCraftStarredSystemPromptTable } from "./db";
 
-export type SerializedChatCraftStarredText = {
+export type SerializedChatCraftStarredSystemPrompt = {
   id: string;
   date: string;
   text: string;
 };
 
-export class ChatCraftStarredText {
+export class ChatCraftStarredSystemPrompt {
   id: string;
   date: Date;
   text: string;
@@ -19,7 +19,7 @@ export class ChatCraftStarredText {
   }
 
   clone() {
-    return new ChatCraftStarredText({
+    return new ChatCraftStarredSystemPrompt({
       text: this.text,
     });
   }
@@ -58,40 +58,21 @@ export class ChatCraftStarredText {
       });
   }
 
-  static async check(text: string): Promise<boolean> {
+  static async exists(text: string): Promise<boolean> {
     return db.starred
       .where("text")
       .equalsIgnoreCase(text)
       .count()
       .then((count) => {
-        if (count > 0) {
-          return Promise.resolve(true);
-        }
-        return Promise.resolve(false);
+        return count > 0;
       });
   }
 
-  // static fromJSON(message: SerializedChatCraftStarredText) {
-  //   return new ChatCraftSystemMessage({
-  //     id: message.id,
-  //     date: new Date(message.date),
-  //     text: message.text,
-  //   });
-  // }
-
-  toDB(): ChatCraftStarredTextTable {
+  toDB(): ChatCraftStarredSystemPromptTable {
     return {
       id: this.id,
       date: this.date,
       text: this.text,
     };
   }
-
-  // static fromDB(message: ChatCraftStarredTextTable) {
-  //   return new ChatCraftSystemMessage({
-  //     id: message.id,
-  //     date: message.date,
-  //     text: message.text,
-  //   });
-  // }
 }

@@ -20,7 +20,7 @@ import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { createSystemPromptSummary, defaultSystemPrompt } from "../../lib/system-prompt";
 import db from "../../lib/db";
 import { ChatCraftSystemMessage } from "../../lib/ChatCraftMessage";
-import { ChatCraftStarredText } from "../../lib/ChatCraftStarredText";
+import { ChatCraftStarredSystemPrompt } from "../../lib/ChatCraftStarredSystemPrompt";
 import { useAlert } from "../../hooks/use-alert";
 
 function SystemPromptVersionsMenu({
@@ -55,17 +55,17 @@ function SystemPromptVersionsMenu({
     []
   );
 
-  const isStarredMessage = useLiveQuery<boolean>(async () => {
-    return ChatCraftStarredText.check(promptMessage.text);
+  const isStarredSystemPrompt = useLiveQuery<boolean>(async () => {
+    return ChatCraftStarredSystemPrompt.exists(promptMessage.text);
   }, [promptMessage]);
 
   const handleStarredChanged = () => {
-    const starredText = new ChatCraftStarredText({ text: promptMessage.text });
-    if (!isStarredMessage) {
+    const starredText = new ChatCraftStarredSystemPrompt({ text: promptMessage.text });
+    if (!isStarredSystemPrompt) {
       starredText.save().catch((err) => {
         console.warn("Unable to update system prompt", err);
         error({
-          title: `Error changing starred for System Prompt`,
+          title: `Error while saving Starred System Prompt to db`,
           message: err.message,
         });
       });
@@ -73,14 +73,14 @@ function SystemPromptVersionsMenu({
       starredText.remove().catch((err) => {
         console.warn("Unable to update system prompt", err);
         error({
-          title: `Error changing starred for System Prompt`,
+          title: `Error while removing Starred System Prompt from db`,
           message: err.message,
         });
       });
     }
   };
 
-  const title = isStarredMessage
+  const title = isStarredSystemPrompt
     ? "Unstar System Prompt to forget it"
     : "Star System Prompt to save for future use";
 
@@ -90,7 +90,7 @@ function SystemPromptVersionsMenu({
         size="sm"
         aria-label={title}
         title={title}
-        icon={isStarredMessage ? <TbStarFilled /> : <TbStar />}
+        icon={isStarredSystemPrompt ? <TbStarFilled /> : <TbStar />}
         variant="ghost"
         onClick={handleStarredChanged}
       />

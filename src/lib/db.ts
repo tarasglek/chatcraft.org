@@ -40,7 +40,7 @@ export type ChatCraftFunctionTable = {
   code: string;
 };
 
-export type ChatCraftStarredTextTable = {
+export type ChatCraftStarredSystemPromptTable = {
   id: string;
   date: Date;
   text: string;
@@ -51,7 +51,7 @@ class ChatCraftDatabase extends Dexie {
   messages: Table<ChatCraftMessageTable, string>;
   shared: Table<SharedChatCraftChatTable, string>;
   functions: Table<ChatCraftFunctionTable, string>;
-  starred: Table<ChatCraftStarredTextTable, string>;
+  starred: Table<ChatCraftStarredSystemPromptTable, string>;
 
   constructor() {
     super("ChatCraftDatabase");
