@@ -41,9 +41,8 @@ export type ChatCraftFunctionTable = {
 };
 
 export type ChatCraftStarredSystemPromptTable = {
-  id: string;
-  date: Date;
   text: string;
+  date: Date;
 };
 
 class ChatCraftDatabase extends Dexie {
@@ -117,7 +116,7 @@ class ChatCraftDatabase extends Dexie {
     this.version(8)
       .stores({
         messages: "id, date, chatId, type, model, user, text, versions, starred",
-        starred: "id, date, text",
+        starred: "text, date",
       })
       .upgrade((tx) => {
         // Select entries from messages where starred is true and type is 'system'
@@ -129,8 +128,8 @@ class ChatCraftDatabase extends Dexie {
             // Prepare the entries for the systemPrompts table by removing the starred attribute
             const promptsEntries = entries
               .filter((entry) => entry.starred === true)
-              .map(({ id, date, text }) => {
-                return { id: id, date: date, text: text };
+              .map(({ text, date }) => {
+                return { text: text, date: date };
               });
             // Add the entries to the systemPrompts table
             return tx.table("starred").bulkAdd(promptsEntries, { allKeys: true });

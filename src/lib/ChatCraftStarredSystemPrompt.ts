@@ -1,21 +1,17 @@
-import { nanoid } from "nanoid";
 import db, { type ChatCraftStarredSystemPromptTable } from "./db";
 
 export type SerializedChatCraftStarredSystemPrompt = {
-  id: string;
-  date: string;
   text: string;
+  date: string;
 };
 
 export class ChatCraftStarredSystemPrompt {
-  id: string;
-  date: Date;
   text: string;
+  date: Date;
 
-  constructor({ id, date, text }: { id?: string; date?: Date; text: string }) {
-    this.id = id ?? nanoid();
-    this.date = date ?? new Date();
+  constructor({ text, date }: { text: string; date?: Date }) {
     this.text = text;
+    this.date = date ?? new Date();
   }
 
   clone() {
@@ -25,54 +21,26 @@ export class ChatCraftStarredSystemPrompt {
   }
 
   async save() {
-    const promptText = this.text;
-    return db.starred
-      .where("text")
-      .equalsIgnoreCase(promptText)
-      .count()
-      .then((count) => {
-        if (count == 0) {
-          db.starred.put(this.toDB());
-        } else {
-          console.warn(`${promptText} was already found in DB. Ignoring`);
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to query the systemPrompts table:", error);
-      });
+    return db.starred.get(this.text).then((starred) => {
+      if (starred === undefined) {
+        db.starred.put(this.toDB());
+      }
+      return this.text;
+    });
   }
 
-  async remove() {
-    const promptText = this.text;
-    return db.starred
-      .where("text")
-      .equalsIgnoreCase(promptText)
-      .toArray()
-      .then((entries) => {
-        entries.forEach((entry) => {
-          return db.starred.delete(entry.id);
-        });
-      })
-      .catch((error) => {
-        console.error("Failed to query the systemPrompts table:", error);
-      });
+  remove() {
+    return db.starred.delete(this.text);
   }
 
-  static async exists(text: string): Promise<boolean> {
-    return db.starred
-      .where("text")
-      .equalsIgnoreCase(text)
-      .count()
-      .then((count) => {
-        return count > 0;
-      });
+  static exists(text: string): Promise<boolean> {
+    return db.starred.get(text).then((entry) => entry !== undefined);
   }
 
   toDB(): ChatCraftStarredSystemPromptTable {
     return {
-      id: this.id,
-      date: this.date,
       text: this.text,
+      date: this.date,
     };
   }
 }

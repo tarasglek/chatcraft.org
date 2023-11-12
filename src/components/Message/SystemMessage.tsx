@@ -46,34 +46,43 @@ function SystemPromptVersionsMenu({
           console.error("Failed to query the starred table:", error);
         });
       if (!records) {
-        return Promise.resolve([defaultSystemPrompt()]);
+        return [defaultSystemPrompt()];
       }
 
-      return Promise.resolve([defaultSystemPrompt(), ...records]);
+      return [defaultSystemPrompt(), ...records];
     },
     [],
     []
   );
 
-  const isStarredSystemPrompt = useLiveQuery<boolean>(async () => {
-    return ChatCraftStarredSystemPrompt.exists(promptMessage.text);
-  }, [promptMessage]);
+  const isStarredSystemPrompt = useLiveQuery<boolean>(
+    () =>
+      ChatCraftStarredSystemPrompt.exists(promptMessage.text).catch((err) => {
+        console.warn("Unable to query 'starred' table for PK", err);
+        error({
+          title: "Error while checking for presense of Starred System Prompt in db",
+          message: err.message,
+        });
+        return false;
+      }),
+    [promptMessage]
+  );
 
   const handleStarredChanged = () => {
     const starredText = new ChatCraftStarredSystemPrompt({ text: promptMessage.text });
     if (!isStarredSystemPrompt) {
       starredText.save().catch((err) => {
-        console.warn("Unable to update system prompt", err);
+        console.warn("Unable to save text to 'starred' table", err);
         error({
-          title: `Error while saving Starred System Prompt to db`,
+          title: "Error while saving Starred System Prompt to db",
           message: err.message,
         });
       });
     } else {
       starredText.remove().catch((err) => {
-        console.warn("Unable to update system prompt", err);
+        console.warn("Unable to remove text from 'starred' table", err);
         error({
-          title: `Error while removing Starred System Prompt from db`,
+          title: "Error while removing Starred System Prompt from db",
           message: err.message,
         });
       });
