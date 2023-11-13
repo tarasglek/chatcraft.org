@@ -58,3 +58,5 @@ export const formatAsCodeBlock = (code: string, language = "text") =>
 
 export const isProd = () => location.origin === "https://chatcraft.org";
 export const isDev = () => !isProd();
+
+export const getMetaKey = () => (isMac() ? "Command ⌘" : "Ctrl");

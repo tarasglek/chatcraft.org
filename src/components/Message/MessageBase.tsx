@@ -8,6 +8,7 @@ import {
   type MouseEvent,
   type FormEvent,
   type KeyboardEvent,
+  useMemo,
 } from "react";
 import {
   Box,
@@ -40,7 +41,7 @@ import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink } from "react-router-dom";
 
-import { formatDate, download, formatNumber } from "../../lib/utils";
+import { formatDate, download, formatNumber, getMetaKey } from "../../lib/utils";
 import Markdown from "../Markdown";
 import {
   ChatCraftHumanMessage,
@@ -109,6 +110,7 @@ function MessageBase({
   const [tokens, setTokens] = useState<number | null>(null);
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
+  const meta = useMemo(getMetaKey, []);
 
   useEffect(() => {
     if (settings.countTokens) {
@@ -355,7 +357,7 @@ function MessageBase({
                       <Spacer />
                       <Text fontSize="sm" color="gray">
                         <span>
-                          <Kbd>Ctrl</Kbd> + <Kbd>Enter</Kbd>
+                          <Kbd>{meta}</Kbd> + <Kbd>Enter</Kbd>
                           <span> to save</span>
                         </span>
                       </Text>

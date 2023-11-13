@@ -1,9 +1,9 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useMemo } from "react";
 import { Box, chakra, Flex, Kbd, Text, InputGroup, VStack, Card, CardBody } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import { isMac, isWindows } from "../../lib/utils";
+import { getMetaKey, isMac, isWindows } from "../../lib/utils";
 import NewButton from "../NewButton";
 import MicIcon from "./MicIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
@@ -18,18 +18,18 @@ type KeyboardHintProps = {
 function KeyboardHint({ isVisible }: KeyboardHintProps) {
   const { settings } = useSettings();
 
+  const memo = useMemo(() => getMetaKey(), []);
+
   if (!isVisible) {
     return <span />;
   }
-
-  const metaKey = isMac() ? "Command ⌘" : "Ctrl";
 
   return (
     <Text fontSize="sm" color="gray">
       <span>
         {settings.enterBehaviour === "newline" ? (
           <span>
-            <Kbd>{metaKey}</Kbd> + <Kbd>Enter</Kbd> to send
+            <Kbd>{memo}</Kbd> + <Kbd>Enter</Kbd> to send
           </span>
         ) : (
           <span>
