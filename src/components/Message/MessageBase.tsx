@@ -31,6 +31,8 @@ import {
   Textarea,
   VStack,
   useClipboard,
+  Kbd,
+  Spacer,
 } from "@chakra-ui/react";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
@@ -349,25 +351,34 @@ function MessageBase({
                       defaultValue={text}
                       autoFocus={true}
                     />
-                    <ButtonGroup>
-                      <Button size="sm" variant="outline" onClick={() => onEditingChange(false)}>
+                    <Flex width="100%" alignItems="center" alignContent="end" gap={2}>
+                      <Spacer />
+                      <Text fontSize="sm" color="gray">
+                        <span>
+                          <Kbd>Ctrl</Kbd> + <Kbd>Enter</Kbd>
+                          <span> to save</span>
+                        </span>
+                      </Text>
+                      <Button size="sm" variant="ghost" onClick={() => onEditingChange(false)}>
                         Cancel
                       </Button>
-                      {message instanceof ChatCraftHumanMessage && (
-                        <Button
-                          size="sm"
-                          type="submit"
-                          name="resubmit"
-                          colorScheme="cyan"
-                          onClick={handleClick}
-                        >
-                          Save & Submit
+                      <ButtonGroup>
+                        {message instanceof ChatCraftHumanMessage && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            type="submit"
+                            name="resubmit"
+                            onClick={handleClick}
+                          >
+                            Re-Ask
+                          </Button>
+                        )}
+                        <Button size="sm" type="submit" name="save" onClick={handleClick}>
+                          Save
                         </Button>
-                      )}
-                      <Button size="sm" type="submit" name="save" onClick={handleClick}>
-                        Save
-                      </Button>
-                    </ButtonGroup>
+                      </ButtonGroup>
+                    </Flex>
                   </VStack>
                 </form>
               ) : (
