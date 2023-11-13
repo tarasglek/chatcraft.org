@@ -60,7 +60,7 @@ function SystemPromptVersionsMenu({
       ChatCraftStarredSystemPrompt.exists(promptMessage.text).catch((err) => {
         console.warn("Unable to query 'starred' table for PK", err);
         error({
-          title: "Error while checking for presense of Starred System Prompt in db",
+          title: "Error while checking for presence of starred System Prompt in db",
           message: err.message,
         });
         return false;
