@@ -304,7 +304,7 @@ function MessageBase({
                       maxH="30vh"
                       resize="vertical"
                       minRows={1}
-                      defaultValue={text}
+                      value={text}
                       autoFocus={true}
                     />
                     <ButtonGroup>

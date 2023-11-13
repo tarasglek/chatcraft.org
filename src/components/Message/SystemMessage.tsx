@@ -26,9 +26,11 @@ import { useAlert } from "../../hooks/use-alert";
 function SystemPromptVersionsMenu({
   onChange,
   promptMessage,
+  editing,
 }: {
   onChange: (value: string) => void;
   promptMessage: ChatCraftSystemMessage;
+  editing: boolean;
 }) {
   const { error } = useAlert();
 
@@ -95,38 +97,41 @@ function SystemPromptVersionsMenu({
 
   return (
     <Flex align="center">
-      <IconButton
-        size="sm"
-        aria-label={title}
-        title={title}
-        icon={isStarredSystemPrompt ? <TbStarFilled /> : <TbStar />}
-        variant="ghost"
-        onClick={handleStarredChanged}
-      />
-      <Menu placement="bottom-end" isLazy={true}>
-        <MenuButton
-          as={IconButton}
-          size="xs"
+      {!editing ? (
+        <IconButton
+          size="sm"
+          aria-label={title}
+          title={title}
+          icon={isStarredSystemPrompt ? <TbStarFilled /> : <TbStar />}
           variant="ghost"
-          icon={<TbChevronDown title={`${prevSystemPrompts.length} Previous System Prompts`} />}
+          onClick={handleStarredChanged}
         />
-        <MenuList>
-          {prevSystemPrompts.map((systemPrompt, idx, arr) => (
-            <MenuItem
-              key={systemPrompt}
-              value={systemPrompt}
-              onClick={() => onChange(systemPrompt)}
-            >
-              <Container>
-                <Text noOfLines={3} title={systemPrompt}>
-                  {systemPrompt}
-                </Text>
-                {idx < arr.length - 1 && <Divider mt={4} />}
-              </Container>
-            </MenuItem>
-          ))}
-        </MenuList>
-      </Menu>
+      ) : (
+        <Menu placement="bottom-end" isLazy={true}>
+          <MenuButton
+            as={IconButton}
+            size="xs"
+            variant="ghost"
+            icon={<TbChevronDown title={`${prevSystemPrompts.length} Previous System Prompts`} />}
+          />
+          <MenuList>
+            {prevSystemPrompts.map((systemPrompt, idx, arr) => (
+              <MenuItem
+                key={systemPrompt}
+                value={systemPrompt}
+                onClick={() => onChange(systemPrompt)}
+              >
+                <Container>
+                  <Text noOfLines={3} title={systemPrompt}>
+                    {systemPrompt}
+                  </Text>
+                  {idx < arr.length - 1 && <Divider mt={4} />}
+                </Container>
+              </MenuItem>
+            ))}
+          </MenuList>
+        </Menu>
+      )}
     </Flex>
   );
 }
@@ -136,10 +141,9 @@ type SystemMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
 };
 
 function SystemMessage(props: SystemMessageProps) {
-  const { chatId, message, editing, onEditingChange } = props;
+  const { message, editing, onEditingChange } = props;
   const { isOpen, onToggle } = useDisclosure();
   const summaryText = createSystemPromptSummary(message);
-  const { error } = useAlert();
 
   const avatar = (
     <Avatar
@@ -181,13 +185,6 @@ function SystemMessage(props: SystemMessageProps) {
 
   const handleSystemPromptVersionChange = (systemPrompt: string) => {
     message.text = systemPrompt;
-    message.save(chatId).catch((err) => {
-      console.warn("Unable to update system prompt", err);
-      error({
-        title: `Error Switching System Prompt`,
-        message: err.message,
-      });
-    });
   };
 
   return (
@@ -199,6 +196,7 @@ function SystemMessage(props: SystemMessageProps) {
         <SystemPromptVersionsMenu
           onChange={handleSystemPromptVersionChange}
           promptMessage={message}
+          editing={editing}
         />
       }
       summaryText={!isOpen ? summaryText : undefined}
