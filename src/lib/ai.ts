@@ -129,7 +129,7 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
     onPause,
     onResume,
     onError,
-    temperature,
+    temperature = getSettings().temperature,
     model = getSettings().model,
     functions,
     functionToCall,

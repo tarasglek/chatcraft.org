@@ -17,6 +17,7 @@ export type Settings = {
   apiKey?: string;
   model: ChatCraftModel;
   apiUrl: string;
+  temperature: number;
   enterBehaviour: EnterBehaviour;
   justShowMeTheCode: boolean;
   countTokens: boolean;
@@ -28,6 +29,7 @@ export type Settings = {
 export const defaults: Settings = {
   model: new ChatCraftModel("gpt-3.5-turbo"),
   apiUrl: OPENAI_API_URL,
+  temperature: 0,
   enterBehaviour: "send",
   // Disabled by default, since token parsing requires downloading larger deps
   countTokens: false,
