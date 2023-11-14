@@ -21,6 +21,7 @@ type MessageProps = {
   isLoading: boolean;
   hidePreviews?: boolean;
   onPrompt?: (prompt?: string) => void;
+  onResubmitClick?: () => void;
   onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;
   onDeleteAfterClick?: () => void;
@@ -33,6 +34,7 @@ function Message({
   chatId,
   isLoading,
   hidePreviews,
+  onResubmitClick,
   onDeleteBeforeClick,
   onDeleteClick,
   onDeleteAfterClick,
@@ -81,6 +83,7 @@ function Message({
         isLoading={isLoading}
         hidePreviews={hidePreviews}
         onPrompt={onPrompt}
+        onResubmitClick={onResubmitClick}
         onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
         onDeleteAfterClick={onDeleteAfterClick}

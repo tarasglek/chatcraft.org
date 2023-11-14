@@ -1,4 +1,15 @@
-import { memo, useCallback, type ReactNode, useState, FormEvent, useEffect } from "react";
+import {
+  memo,
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  type ReactNode,
+  type MouseEvent,
+  type FormEvent,
+  type KeyboardEvent,
+  useMemo,
+} from "react";
 import {
   Box,
   Button,
@@ -21,6 +32,8 @@ import {
   Textarea,
   VStack,
   useClipboard,
+  Kbd,
+  Spacer,
 } from "@chakra-ui/react";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
@@ -28,9 +41,10 @@ import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink } from "react-router-dom";
 
-import { formatDate, download, formatNumber } from "../../lib/utils";
+import { formatDate, download, formatNumber, getMetaKey } from "../../lib/utils";
 import Markdown from "../Markdown";
 import {
+  ChatCraftHumanMessage,
   ChatCraftAiMessage,
   ChatCraftAiMessageVersion,
   ChatCraftMessage,
@@ -57,6 +71,7 @@ export interface MessageBaseProps {
   isLoading: boolean;
   hidePreviews?: boolean;
   onPrompt?: (prompt?: string) => void;
+  onResubmitClick?: () => void;
   onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;
   onDeleteAfterClick?: () => void;
@@ -77,6 +92,7 @@ function MessageBase({
   footer,
   isLoading,
   hidePreviews,
+  onResubmitClick,
   onDeleteBeforeClick,
   onDeleteClick,
   onDeleteAfterClick,
@@ -93,6 +109,8 @@ function MessageBase({
   const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
   const isNarrowScreen = useMobileBreakpoint();
+  const messageForm = useRef<HTMLFormElement>(null);
+  const meta = useMemo(getMetaKey, []);
 
   useEffect(() => {
     if (settings.countTokens) {
@@ -116,11 +134,29 @@ function MessageBase({
     });
   }, [info, text]);
 
+  const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+    messageForm.current?.setAttribute("data-action", e.currentTarget.name);
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.ctrlKey && (e.key === "Enter" || e.key === "NumpadEnter")) {
+        const submitEvent = new Event("submit", { cancelable: true, bubbles: true });
+        messageForm.current?.dispatchEvent(submitEvent);
+      }
+      if (e.key === "Escape") {
+        onEditingChange(false);
+      }
+    },
+    [onEditingChange]
+  );
+
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      const action = e.currentTarget.getAttribute("data-action") || "save";
 
-      const data = new FormData(e.target as HTMLFormElement);
+      const data = new FormData(e.currentTarget);
       const text = data.get("text");
       if (typeof text !== "string") {
         return;
@@ -147,7 +183,10 @@ function MessageBase({
               message: err.message,
             });
           })
-          .finally(() => onEditingChange(false));
+          .finally(() => {
+            onEditingChange(false);
+            e.currentTarget.removeAttribute("data-action");
+          });
       } else {
         message.text = text;
         message.date = editedAt;
@@ -160,10 +199,16 @@ function MessageBase({
               message: err.message,
             });
           })
-          .finally(() => onEditingChange(false));
+          .finally(() => {
+            onEditingChange(false);
+            if (action === "resubmit" && onResubmitClick) {
+              onResubmitClick();
+            }
+            e.currentTarget.removeAttribute("data-action");
+          });
       }
     },
-    [message, error, chatId, onEditingChange]
+    [message, onResubmitClick, chatId, error, onEditingChange]
   );
 
   return (
@@ -293,7 +338,8 @@ function MessageBase({
           <Flex direction="column" gap={3}>
             <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
               {editing ? (
-                <form onSubmit={handleSubmit}>
+                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <form onSubmit={handleSubmit} ref={messageForm} onKeyDown={handleKeyDown}>
                   <VStack align="end">
                     <Textarea
                       as={ResizeTextarea}
@@ -307,14 +353,34 @@ function MessageBase({
                       defaultValue={text}
                       autoFocus={true}
                     />
-                    <ButtonGroup>
-                      <Button size="sm" variant="outline" onClick={() => onEditingChange(false)}>
+                    <Flex width="100%" alignItems="center" alignContent="end" gap={2}>
+                      <Spacer />
+                      <Text fontSize="sm" color="gray">
+                        <span>
+                          <Kbd>{meta}</Kbd> + <Kbd>Enter</Kbd>
+                          <span> to save</span>
+                        </span>
+                      </Text>
+                      <Button size="sm" variant="ghost" onClick={() => onEditingChange(false)}>
                         Cancel
                       </Button>
-                      <Button size="sm" type="submit">
-                        Save
-                      </Button>
-                    </ButtonGroup>
+                      <ButtonGroup>
+                        {message instanceof ChatCraftHumanMessage && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            type="submit"
+                            name="resubmit"
+                            onClick={handleClick}
+                          >
+                            Re-Ask
+                          </Button>
+                        )}
+                        <Button size="sm" type="submit" name="save" onClick={handleClick}>
+                          Save
+                        </Button>
+                      </ButtonGroup>
+                    </Flex>
                   </VStack>
                 </form>
               ) : (
