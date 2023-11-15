@@ -2,6 +2,7 @@ import { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from
 import { useCopyToClipboard, useDebounce } from "react-use";
 import {
   Button,
+  Box,
   FormControl,
   FormLabel,
   FormHelperText,
@@ -18,6 +19,10 @@ import {
   VStack,
   Stack,
   Select,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
   Kbd,
   Checkbox,
   Link,
@@ -61,8 +66,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const inputRef = useRef<HTMLInputElement>(null);
   const provider = settings.apiUrl === OPENAI_API_URL ? "OpenAI" : "OpenRouter.ai";
   const [isApiKeyInvalid, setIsApiKeyInvalid] = useState(false);
-  const [temperature, setTemperature] = useState(settings.temperature || 0);
-  const [isTemperatureValid, setIsTemperatureValid] = useState(true);
   // Check the API Key, but debounce requests if user is typing
   useDebounce(
     () => {
@@ -95,20 +98,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       setIsPersisted(persisted);
     }
   }
-
-  useEffect(() => {
-    const isValid = temperature >= 0 && temperature <= 2;
-    setIsTemperatureValid(isValid);
-  }, [temperature]);
-
-  useEffect(() => {
-    setSettings({ ...settings, temperature });
-  }, [temperature, setSettings, settings]);
-
-  const handleTemperatureChange = (e) => {
-    const value = parseFloat(e.target.value);
-    setTemperature(value);
-  };
 
   const handleExportClick = useCallback(
     async function () {
@@ -306,17 +295,23 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               </FormHelperText>
             </FormControl>
 
-            <FormControl isInvalid={!isTemperatureValid}>
-              <FormLabel>Temperature</FormLabel>
-              <Input
-                type="number"
-                value={temperature}
-                onChange={handleTemperatureChange}
-                min={0}
-                max={2}
-                step={0.01}
-              />
-              <FormErrorMessage>Temperature must be a number between 0 and 1.</FormErrorMessage>
+            <FormControl>
+              <FormLabel>Temperature: {settings.temperature}</FormLabel>
+              <Box px="5">
+                <Slider
+                  value={settings.temperature}
+                  onChange={(value) => setSettings({ ...settings, temperature: value })}
+                  min={0}
+                  max={2}
+                  step={0.05}
+                >
+                  <SliderTrack>
+                    <SliderFilledTrack />
+                  </SliderTrack>
+                  <SliderThumb />
+                </Slider>
+              </Box>
+              <FormErrorMessage>Temperature must be a number between 0 and 2.</FormErrorMessage>
               <FormHelperText>
                 Adjust the temperature to control the randomness of the AI response (0.0 - 2.0).
               </FormHelperText>
