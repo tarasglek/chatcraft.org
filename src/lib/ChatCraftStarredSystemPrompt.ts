@@ -23,10 +23,14 @@ export class ChatCraftStarredSystemPrompt {
     this.usage = usage ?? 1;
   }
 
-  clone() {
-    return new ChatCraftStarredSystemPrompt({
-      text: this.text,
-    });
+  // Find in db or load via URL
+  static async find(text: string) {
+    const starred = await db.starred.get(text);
+    if (!starred) {
+      return;
+    }
+
+    return new ChatCraftStarredSystemPrompt(starred);
   }
 
   async save() {
@@ -38,12 +42,17 @@ export class ChatCraftStarredSystemPrompt {
     });
   }
 
-  remove() {
-    return db.starred.delete(this.text);
+  static async delete(text: string) {
+    const starred = await ChatCraftStarredSystemPrompt.find(text);
+    if (!starred) {
+      return;
+    }
+
+    return db.starred.delete(text);
   }
 
   static exists(text: string): Promise<boolean> {
-    return db.starred.get(text).then((entry) => entry !== undefined);
+    return ChatCraftStarredSystemPrompt.find(text).then((entry) => entry !== undefined);
   }
 
   toDB(): ChatCraftStarredSystemPromptTable {

@@ -70,8 +70,8 @@ function SystemPromptVersionsMenu({
   );
 
   const handleStarredChanged = () => {
-    const starredText = new ChatCraftStarredSystemPrompt({ text: promptMessage.text });
     if (!isStarredSystemPrompt) {
+      const starredText = new ChatCraftStarredSystemPrompt({ text: promptMessage.text });
       starredText.save().catch((err) => {
         console.warn("Unable to save text to 'starred' table", err);
         error({
@@ -80,7 +80,7 @@ function SystemPromptVersionsMenu({
         });
       });
     } else {
-      starredText.remove().catch((err) => {
+      ChatCraftStarredSystemPrompt.delete(promptMessage.text).catch((err) => {
         console.warn("Unable to remove text from 'starred' table", err);
         error({
           title: "Error while removing Starred System Prompt from db",

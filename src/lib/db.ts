@@ -120,19 +120,18 @@ class ChatCraftDatabase extends Dexie {
     this.version(7).stores({
       messages: "id, date, chatId, type, model, user, text, versions, starred",
     });
+    // Version 8 Migration - adds and populates starred table, removes starred messages
     this.version(8)
       .stores({
-        messages: "id, date, chatId, type, text, starred", // Keep the old table and data for now
-        starred: "text, date, title, usage", // New starred table schema
+        messages: "id, date, chatId, type, model, user, text, versions, starred",
+        starred: "text, date, title, usage",
       })
       .upgrade(async (tx) => {
         await tx
           .table("messages")
           .where({ type: "system" })
           .each(async (record: ChatCraftSystemMessage) => {
-            const starred: ChatCraftStarredSystemPromptTable = await tx
-              .table("starred")
-              .get(record.text);
+            const starred = await tx.table("starred").get(record.text);
             if (starred) {
               const earliestDate = record.date > starred.date ? starred.date : record.date;
               return await tx
@@ -147,7 +146,16 @@ class ChatCraftDatabase extends Dexie {
               usage: 1,
             });
           });
+        await tx
+          .table("messages")
+          .where({ type: "system" })
+          .filter((message) => message.starred)
+          .delete();
       });
+    // Version 9 Migration - removes .starred from messages table
+    this.version(9).stores({
+      messages: "id, date, chatId, type, text",
+    });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
