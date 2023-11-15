@@ -1,7 +1,12 @@
 import Dexie, { Table } from "dexie";
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 
-import type { MessageType, FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
+import type {
+  ChatCraftSystemMessage,
+  MessageType,
+  FunctionCallParams,
+  FunctionCallResult,
+} from "./ChatCraftMessage";
 
 export type ChatCraftChatTable = {
   id: string;
@@ -40,11 +45,19 @@ export type ChatCraftFunctionTable = {
   code: string;
 };
 
+export type ChatCraftStarredSystemPromptTable = {
+  text: string;
+  date: Date;
+  title: string;
+  usage: number;
+};
+
 class ChatCraftDatabase extends Dexie {
   chats: Table<ChatCraftChatTable, string>;
   messages: Table<ChatCraftMessageTable, string>;
   shared: Table<SharedChatCraftChatTable, string>;
   functions: Table<ChatCraftFunctionTable, string>;
+  starred: Table<ChatCraftStarredSystemPromptTable, string>;
 
   constructor() {
     super("ChatCraftDatabase");
@@ -107,11 +120,40 @@ class ChatCraftDatabase extends Dexie {
     this.version(7).stores({
       messages: "id, date, chatId, type, model, user, text, versions, starred",
     });
+    this.version(8)
+      .stores({
+        messages: "id, date, chatId, type, text, starred", // Keep the old table and data for now
+        starred: "text, date, title, usage", // New starred table schema
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("messages")
+          .where({ type: "system" })
+          .each(async (record: ChatCraftSystemMessage) => {
+            const starred: ChatCraftStarredSystemPromptTable = await tx
+              .table("starred")
+              .get(record.text);
+            if (starred) {
+              const earliestDate = record.date > starred.date ? starred.date : record.date;
+              return await tx
+                .table("starred")
+                .where({ text: starred.text })
+                .modify({ usage: starred.usage + 1, date: earliestDate });
+            }
+            await tx.table("starred").add({
+              text: record.text,
+              date: record.date,
+              title: record.text.split("\n")[0].substring(0, 61),
+              usage: 1,
+            });
+          });
+      });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
     this.shared = this.table("shared");
     this.functions = this.table("functions");
+    this.starred = this.table("starred");
   }
 }
 

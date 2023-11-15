@@ -20,43 +20,79 @@ import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { createSystemPromptSummary, defaultSystemPrompt } from "../../lib/system-prompt";
 import db from "../../lib/db";
 import { ChatCraftSystemMessage } from "../../lib/ChatCraftMessage";
+import { ChatCraftStarredSystemPrompt } from "../../lib/ChatCraftStarredSystemPrompt";
 import { useAlert } from "../../hooks/use-alert";
 
 function SystemPromptVersionsMenu({
   onChange,
-  isStarred,
-  onStarClick,
+  promptMessage,
 }: {
   onChange: (value: string) => void;
-  isStarred: boolean;
-  onStarClick: () => void;
+  promptMessage: ChatCraftSystemMessage;
 }) {
+  const { error } = useAlert();
+
   const prevSystemPrompts = useLiveQuery<string[], string[]>(
     async () => {
       // Get all starred System Messages, sorted by date
-      const records = await db.messages
-        .where("type")
-        .equals("system")
-        .and((m) => m.starred === true)
-        .sortBy("date");
+      const records = await db.starred
+        .orderBy("usage")
+        .reverse()
+        .toArray() // Retrieve all entries as an array
+        .then((entries) => {
+          // Map the array of entries to get an array of 'text' attributes
+          return entries.map((entry) => entry.text);
+        })
+        .catch((error) => {
+          console.error("Failed to query the starred table:", error);
+        });
       if (!records) {
-        return [];
+        return [defaultSystemPrompt()];
       }
 
-      // Create a unique set of prompt strings and return
-      const uniq = new Set<string>();
-      records.reverse().forEach((message) => {
-        const { text } = message;
-        uniq.add(text);
-      });
-
-      return Promise.resolve([defaultSystemPrompt(), ...uniq]);
+      return records;
     },
     [],
     []
   );
 
-  const title = isStarred ? "Unstar System Prompt" : "Star System Prompt";
+  const isStarredSystemPrompt = useLiveQuery<boolean>(
+    () =>
+      ChatCraftStarredSystemPrompt.exists(promptMessage.text).catch((err) => {
+        console.warn("Unable to query 'starred' table for PK", err);
+        error({
+          title: "Error while checking for presense of Starred System Prompt in db",
+          message: err.message,
+        });
+        return false;
+      }),
+    [promptMessage]
+  );
+
+  const handleStarredChanged = () => {
+    const starredText = new ChatCraftStarredSystemPrompt({ text: promptMessage.text });
+    if (!isStarredSystemPrompt) {
+      starredText.save().catch((err) => {
+        console.warn("Unable to save text to 'starred' table", err);
+        error({
+          title: "Error while saving Starred System Prompt to db",
+          message: err.message,
+        });
+      });
+    } else {
+      starredText.remove().catch((err) => {
+        console.warn("Unable to remove text from 'starred' table", err);
+        error({
+          title: "Error while removing Starred System Prompt from db",
+          message: err.message,
+        });
+      });
+    }
+  };
+
+  const title = isStarredSystemPrompt
+    ? "Unstar System Prompt to forget it"
+    : "Star System Prompt to save for future use";
 
   return (
     <Flex align="center">
@@ -64,9 +100,9 @@ function SystemPromptVersionsMenu({
         size="sm"
         aria-label={title}
         title={title}
-        icon={isStarred ? <TbStarFilled /> : <TbStar />}
+        icon={isStarredSystemPrompt ? <TbStarFilled /> : <TbStar />}
         variant="ghost"
-        onClick={() => onStarClick()}
+        onClick={handleStarredChanged}
       />
       <Menu placement="bottom-end" isLazy={true}>
         <MenuButton
@@ -155,17 +191,6 @@ function SystemMessage(props: SystemMessageProps) {
     });
   };
 
-  const handleStarredChanged = () => {
-    message.starred = !message.starred;
-    message.save(chatId).catch((err) => {
-      console.warn("Unable to update system prompt", err);
-      error({
-        title: `Error changing starred for System Prompt`,
-        message: err.message,
-      });
-    });
-  };
-
   return (
     <MessageBase
       {...props}
@@ -174,8 +199,7 @@ function SystemMessage(props: SystemMessageProps) {
       headingMenu={
         <SystemPromptVersionsMenu
           onChange={handleSystemPromptVersionChange}
-          isStarred={!!message.starred}
-          onStarClick={handleStarredChanged}
+          promptMessage={message}
         />
       }
       summaryText={!isOpen ? summaryText : undefined}
