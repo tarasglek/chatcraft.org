@@ -59,7 +59,7 @@ function CodeHeader({
 
     let ret = undefined;
     try {
-      let resultWithLogs = await runCode(code, language);
+      const resultWithLogs = await runCode(code, language);
       let result = resultWithLogs.ret;
       if (typeof result === "string") {
         // catch corner cases with strings
@@ -69,7 +69,7 @@ function CodeHeader({
           // result is good to include inline, might have formatting, etc
         }
       } else {
-        let maybeJSON = JSON.stringify(result);
+        const maybeJSON = JSON.stringify(result);
         // catch corner case where JSON.stringify returns undefined but underlying object is truthy, eg a function
         if (!maybeJSON && result && typeof result.toString === "function") {
           result = formatAsCodeBlock(result.toString(), "js");
@@ -81,11 +81,11 @@ function CodeHeader({
         resultWithLogs.logs = formatAsCodeBlock(resultWithLogs.logs, "logs");
         result = resultWithLogs.logs + "\n\n" + result;
       }
-      // let js decide how to render the result
       ret = result;
     } catch (error: any) {
       ret = formatAsCodeBlock(
-        error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
+        error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`,
+        "js"
       );
     }
     if (ret !== undefined) {
