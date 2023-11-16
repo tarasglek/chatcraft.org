@@ -84,8 +84,7 @@ function CodeHeader({
       ret = result;
     } catch (error: any) {
       ret = formatAsCodeBlock(
-        error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`,
-        "js"
+        error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
       );
     }
     if (ret !== undefined) {
