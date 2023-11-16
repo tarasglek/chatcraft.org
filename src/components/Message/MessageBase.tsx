@@ -185,7 +185,7 @@ function MessageBase({
           })
           .finally(() => {
             onEditingChange(false);
-            e.currentTarget.removeAttribute("data-action");
+            messageForm.current?.removeAttribute("data-action");
           });
       } else {
         message.text = text;
@@ -204,7 +204,7 @@ function MessageBase({
             if (action === "resubmit" && onResubmitClick) {
               onResubmitClick();
             }
-            e.currentTarget.removeAttribute("data-action");
+            messageForm.current?.removeAttribute("data-action");
           });
       }
     },
