@@ -59,11 +59,28 @@ function CodeHeader({
 
     let ret = undefined;
     try {
-      let result = await runCode(code, language);
-      if (result !== undefined && typeof result !== "string") {
-        result = formatAsCodeBlock(JSON.stringify(result), "json");
+      const resultWithLogs = await runCode(code, language);
+      let result = resultWithLogs.ret;
+      if (typeof result === "string") {
+        // catch corner cases with strings
+        if (!result.length || result[0] === "/") {
+          result = formatAsCodeBlock(JSON.stringify(result), "js");
+        } else {
+          // result is good to include inline, might have formatting, etc
+        }
+      } else {
+        const maybeJSON = JSON.stringify(result);
+        // catch corner case where JSON.stringify returns undefined but underlying object is truthy, eg a function
+        if (!maybeJSON && result && typeof result.toString === "function") {
+          result = formatAsCodeBlock(result.toString(), "js");
+        } else {
+          result = formatAsCodeBlock(maybeJSON, "json");
+        }
       }
-      // let js decide how to render the result
+      if (resultWithLogs.logs) {
+        resultWithLogs.logs = formatAsCodeBlock(resultWithLogs.logs, "logs");
+        result = resultWithLogs.logs + "\n\n" + result;
+      }
       ret = result;
     } catch (error: any) {
       ret = formatAsCodeBlock(
