@@ -7,7 +7,6 @@ import {
   type ReactNode,
   type MouseEvent,
   type FormEvent,
-  type KeyboardEvent,
   useMemo,
 } from "react";
 import {
@@ -43,6 +42,7 @@ import { Link as ReactRouterLink } from "react-router-dom";
 
 import { formatDate, download, formatNumber, getMetaKey } from "../../lib/utils";
 import Markdown from "../Markdown";
+import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import {
   ChatCraftHumanMessage,
   ChatCraftAiMessage,
@@ -138,23 +138,20 @@ function MessageBase({
     messageForm.current?.setAttribute("data-action", e.currentTarget.name);
   }, []);
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.ctrlKey && (e.key === "Enter" || e.key === "NumpadEnter")) {
-        const submitEvent = new Event("submit", { cancelable: true, bubbles: true });
-        messageForm.current?.dispatchEvent(submitEvent);
-      }
-      if (e.key === "Escape") {
-        onEditingChange(false);
-      }
+  const handleKeyDown = useKeyDownHandler<HTMLFormElement>({
+    onEscape: () => {
+      onEditingChange(false);
     },
-    [onEditingChange]
-  );
+    onMetaEnter() {
+      const submitEvent = new Event("submit", { cancelable: true, bubbles: true });
+      messageForm.current?.dispatchEvent(submitEvent);
+    },
+  });
 
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const action = e.currentTarget.getAttribute("data-action") || "save";
+      const action = messageForm.current?.getAttribute("data-action") || "save";
 
       const data = new FormData(e.currentTarget);
       const text = data.get("text");

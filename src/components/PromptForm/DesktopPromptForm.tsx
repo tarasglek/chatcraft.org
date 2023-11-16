@@ -3,13 +3,14 @@ import { Box, chakra, Flex, Kbd, Text, InputGroup, VStack, Card, CardBody } from
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import { getMetaKey, isMac, isWindows } from "../../lib/utils";
+import { getMetaKey } from "../../lib/utils";
 import NewButton from "../NewButton";
 import MicIcon from "./MicIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useLocation } from "react-router-dom";
+import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -112,6 +113,10 @@ function DesktopPromptForm({
     onSendClick(value);
   };
 
+  const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
+    onMetaEnter: handlePromptSubmit,
+  });
+
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     switch (e.key) {
       // Allow the user to cursor-up to repeat last prompt
@@ -127,9 +132,7 @@ function DesktopPromptForm({
       case "Enter":
         // Deal with Enter key based on user preference and state of prompt form
         if (settings.enterBehaviour === "newline") {
-          if ((isMac() && e.metaKey) || (isWindows() && e.ctrlKey)) {
-            handlePromptSubmit(e);
-          }
+          handleMetaEnter(e);
         } else if (settings.enterBehaviour === "send") {
           if (!e.shiftKey && prompt.length) {
             handlePromptSubmit(e);
