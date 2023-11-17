@@ -260,7 +260,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 
   const chatCompletionParams: OpenAI.Chat.ChatCompletionCreateParams = {
     model: model ? model.id : getSettings().model.id,
-    temperature: temperature ?? 0,
+    temperature: Math.min(Math.max(temperature ?? 0, 0.0), 2.0),
 
     /**
      * Convert the list of ChatCraftMessages to OpenAI messages.
