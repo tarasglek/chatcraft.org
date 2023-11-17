@@ -313,7 +313,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               </Box>
               <FormErrorMessage>Temperature must be a number between 0 and 2.</FormErrorMessage>
               <FormHelperText>
-                Adjust the temperature to control the randomness of the AI response (0.0 - 2.0).
+                The temperature increases the randomness of the response (0.0 - 2.0).
               </FormHelperText>
             </FormControl>
 
