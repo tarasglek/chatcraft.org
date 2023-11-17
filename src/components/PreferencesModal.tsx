@@ -2,6 +2,7 @@ import { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from
 import { useCopyToClipboard, useDebounce } from "react-use";
 import {
   Button,
+  Box,
   FormControl,
   FormLabel,
   FormHelperText,
@@ -18,6 +19,10 @@ import {
   VStack,
   Stack,
   Select,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
   Kbd,
   Checkbox,
   Link,
@@ -287,6 +292,28 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   pricing
                 </Link>
                 . NOTE: not all accounts have access to GPT - 4
+              </FormHelperText>
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>Temperature: {settings.temperature}</FormLabel>
+              <Box px="5">
+                <Slider
+                  value={settings.temperature}
+                  onChange={(value) => setSettings({ ...settings, temperature: value })}
+                  min={0}
+                  max={2}
+                  step={0.05}
+                >
+                  <SliderTrack>
+                    <SliderFilledTrack />
+                  </SliderTrack>
+                  <SliderThumb />
+                </Slider>
+              </Box>
+              <FormErrorMessage>Temperature must be a number between 0 and 2.</FormErrorMessage>
+              <FormHelperText>
+                The temperature increases the randomness of the response (0.0 - 2.0).
               </FormHelperText>
             </FormControl>
 

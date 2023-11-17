@@ -129,7 +129,7 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
     onPause,
     onResume,
     onError,
-    temperature,
+    temperature = getSettings().temperature,
     model = getSettings().model,
     functions,
     functionToCall,
@@ -258,9 +258,9 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   }
   const { openai, headers } = createClient(apiKey, apiUrl);
 
-  const chatCompletionParams: OpenAI.Chat.CompletionCreateParams = {
+  const chatCompletionParams: OpenAI.Chat.ChatCompletionCreateParams = {
     model: model ? model.id : getSettings().model.id,
-    temperature: temperature ?? 0,
+    temperature: Math.min(Math.max(temperature ?? 0, 0.0), 2.0),
 
     /**
      * Convert the list of ChatCraftMessages to OpenAI messages.
@@ -301,7 +301,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   if (streaming) {
     responsePromise = openai.chat.completions
       .create(
-        chatCompletionParams as OpenAI.Chat.CompletionCreateParamsStreaming,
+        chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
         chatCompletionReqOptions
       )
       .then(async (streamResponse) => {
