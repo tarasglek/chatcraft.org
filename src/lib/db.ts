@@ -48,7 +48,6 @@ export type ChatCraftFunctionTable = {
 export type ChatCraftStarredSystemPromptTable = {
   text: string;
   date: Date;
-  title: string;
   usage: number;
 };
 
@@ -124,7 +123,7 @@ class ChatCraftDatabase extends Dexie {
     this.version(8)
       .stores({
         messages: "id, date, chatId, type, model, user, text, versions, starred",
-        starred: "text, date, title, usage",
+        starred: "text, date, usage",
       })
       .upgrade(async (tx) => {
         await tx
@@ -142,15 +141,10 @@ class ChatCraftDatabase extends Dexie {
             await tx.table("starred").add({
               text: record.text,
               date: record.date,
-              title: record.text.split("\n")[0].substring(0, 61),
               usage: 1,
             });
           });
-        await tx
-          .table("messages")
-          .where({ type: "system" })
-          .filter((message) => message.starred)
-          .delete();
+        await tx.table("messages").where({ type: "system" }).modify({ starred: undefined });
       });
     // Version 9 Migration - removes .starred from messages table
     this.version(9).stores({
