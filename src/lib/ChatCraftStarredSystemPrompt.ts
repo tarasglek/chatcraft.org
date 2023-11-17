@@ -11,7 +11,7 @@ export class ChatCraftStarredSystemPrompt {
     this.usage = usage ?? 1;
   }
 
-  title() {
+  get title() {
     return this.text.split("\n")[0].substring(0, 42);
   }
 
@@ -26,12 +26,12 @@ export class ChatCraftStarredSystemPrompt {
   }
 
   async save() {
-    return db.starred.get(this.text).then((starred) => {
-      if (starred === undefined) {
-        return db.starred.put(this.toDB());
-      }
-      return starred.text;
-    });
+    const starred = await db.starred.get(this.text);
+    if (!starred) {
+      return db.starred.put(this.toDB());
+    }
+
+    return starred.text;
   }
 
   static async delete(text: string) {
@@ -43,8 +43,8 @@ export class ChatCraftStarredSystemPrompt {
     return db.starred.delete(text);
   }
 
-  static exists(text: string): Promise<boolean> {
-    return ChatCraftStarredSystemPrompt.find(text).then((entry) => entry !== undefined);
+  static exists(text: string) {
+    return ChatCraftStarredSystemPrompt.find(text).then(Boolean);
   }
 
   toDB(): ChatCraftStarredSystemPromptTable {

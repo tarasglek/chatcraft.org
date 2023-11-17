@@ -1,12 +1,7 @@
 import Dexie, { Table } from "dexie";
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 
-import type {
-  ChatCraftSystemMessage,
-  MessageType,
-  FunctionCallParams,
-  FunctionCallResult,
-} from "./ChatCraftMessage";
+import type { MessageType, FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
 
 export type ChatCraftChatTable = {
   id: string;
@@ -25,7 +20,6 @@ export type ChatCraftMessageTable = {
   func?: FunctionCallParams | FunctionCallResult;
   text: string;
   versions?: { id: string; date: Date; model: string; text: string }[];
-  starred?: boolean;
 };
 
 export type SharedChatCraftChatTable = {
@@ -119,7 +113,8 @@ class ChatCraftDatabase extends Dexie {
     this.version(7).stores({
       messages: "id, date, chatId, type, model, user, text, versions, starred",
     });
-    // Version 8 Migration - adds and populates starred table, removes starred messages
+    // Version 8 Migration - adds and populates starred table and
+    // removes starred property from messages table.
     this.version(8)
       .stores({
         messages: "id, date, chatId, type, model, user, text, versions, starred",
@@ -129,7 +124,7 @@ class ChatCraftDatabase extends Dexie {
         await tx
           .table("messages")
           .where({ type: "system" })
-          .each(async (record: ChatCraftSystemMessage) => {
+          .each(async (record: ChatCraftMessageTable) => {
             const starred = await tx.table("starred").get(record.text);
             if (starred) {
               const earliestDate = record.date > starred.date ? starred.date : record.date;
@@ -146,9 +141,9 @@ class ChatCraftDatabase extends Dexie {
           });
         await tx.table("messages").where({ type: "system" }).modify({ starred: undefined });
       });
-    // Version 9 Migration - removes .starred from messages table
+    // Version 9 Migration - removes .starred index from messages table
     this.version(9).stores({
-      messages: "id, date, chatId, type, text",
+      messages: "id, date, chatId, type, model, user, text, versions",
     });
 
     this.chats = this.table("chats");
