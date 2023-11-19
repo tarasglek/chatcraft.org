@@ -101,7 +101,7 @@ export class ChatCraftMessage {
   toOpenAiMessage(): OpenAI.Chat.Completions.ChatCompletionMessageParam {
     const text = this.text;
 
-    const textAndImage = [];
+    const textAndImage: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [];
     textAndImage.push({ type: "text", text: this.text });
     if (this.image && this.image.length > 0) {
       this.image.forEach((image) => {
