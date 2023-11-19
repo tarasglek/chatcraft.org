@@ -400,6 +400,15 @@ export class ChatCraftSystemMessage extends ChatCraftMessage {
     super({ id, date, type: "system", text, readonly });
   }
 
+  static fromJSON(message: SerializedChatCraftMessage) {
+    return new ChatCraftSystemMessage({
+      id: message.id,
+      date: new Date(message.date),
+      text: message.text,
+      readonly: true,
+    });
+  }
+
   static fromDB(message: ChatCraftMessageTable) {
     return new ChatCraftSystemMessage({
       id: message.id,
