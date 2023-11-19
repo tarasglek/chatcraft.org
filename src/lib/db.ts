@@ -20,7 +20,6 @@ export type ChatCraftMessageTable = {
   func?: FunctionCallParams | FunctionCallResult;
   text: string;
   versions?: { id: string; date: Date; model: string; text: string }[];
-  starred?: boolean;
 };
 
 export type SharedChatCraftChatTable = {
@@ -40,11 +39,18 @@ export type ChatCraftFunctionTable = {
   code: string;
 };
 
+export type ChatCraftStarredSystemPromptTable = {
+  text: string;
+  date: Date;
+  usage: number;
+};
+
 class ChatCraftDatabase extends Dexie {
   chats: Table<ChatCraftChatTable, string>;
   messages: Table<ChatCraftMessageTable, string>;
   shared: Table<SharedChatCraftChatTable, string>;
   functions: Table<ChatCraftFunctionTable, string>;
+  starred: Table<ChatCraftStarredSystemPromptTable, string>;
 
   constructor() {
     super("ChatCraftDatabase");
@@ -107,11 +113,44 @@ class ChatCraftDatabase extends Dexie {
     this.version(7).stores({
       messages: "id, date, chatId, type, model, user, text, versions, starred",
     });
+    // Version 8 Migration - adds and populates starred table and
+    // removes starred property from messages table.
+    this.version(8)
+      .stores({
+        messages: "id, date, chatId, type, model, user, text, versions, starred",
+        starred: "text, date, usage",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("messages")
+          .where({ type: "system" })
+          .each(async (record: ChatCraftMessageTable) => {
+            const starred = await tx.table("starred").get(record.text);
+            if (starred) {
+              const earliestDate = record.date > starred.date ? starred.date : record.date;
+              return await tx
+                .table("starred")
+                .where({ text: starred.text })
+                .modify({ usage: starred.usage + 1, date: earliestDate });
+            }
+            await tx.table("starred").add({
+              text: record.text,
+              date: record.date,
+              usage: 1,
+            });
+          });
+        await tx.table("messages").where({ type: "system" }).modify({ starred: undefined });
+      });
+    // Version 9 Migration - removes .starred index from messages table
+    this.version(9).stores({
+      messages: "id, date, chatId, type, model, user, text, versions",
+    });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
     this.shared = this.table("shared");
     this.functions = this.table("functions");
+    this.starred = this.table("starred");
   }
 }
 
