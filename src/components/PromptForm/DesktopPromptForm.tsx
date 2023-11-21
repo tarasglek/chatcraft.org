@@ -71,7 +71,6 @@ function DesktopPromptForm({
   const [inputImages, setInputImages] = useState<string[]>([]);
   const location = useLocation();
 
-  console.log(settings.model.supportsImages, "settings");
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
     if (!prompt) {
@@ -221,8 +220,8 @@ function DesktopPromptForm({
                         <Flex direction="column">
                           <img
                             src={image}
-                            alt={`Dragged ${index}`}
-                            style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                            alt={`Images# ${index}`}
+                            style={{ height: "100px", objectFit: "cover" }}
                           />
                           <Flex justify="flex-end">
                             <TiDeleteOutline
