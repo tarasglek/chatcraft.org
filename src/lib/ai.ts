@@ -295,12 +295,12 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         : undefined,
 
     /*
-     Got this value from error message from OpenAI that gpt-4-preview max_tokens
-     by setting very large number,
+     Got this value from error message of OpenAI's gpt-4-vision-preview max_tokens
+     by setting a very large number,
      After setting this value, seems no cutoff
      TODO: check this setting is needed or a hack
      */
-    max_tokens: 4096,
+    max_tokens: model.supportsImages ? 4096 : undefined,
   };
 
   const chatCompletionReqOptions = {
