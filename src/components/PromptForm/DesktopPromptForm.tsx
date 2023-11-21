@@ -7,6 +7,7 @@ import { getMetaKey } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
 import NewButton from "../NewButton";
 import MicIcon from "./MicIcon";
+import ClipIcon from "./ClipIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
@@ -70,6 +71,7 @@ function DesktopPromptForm({
   const [inputImages, setInputImages] = useState<string[]>([]);
   const location = useLocation();
 
+  console.log(settings.model.supportsImages, "settings");
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
     if (!prompt) {
@@ -235,6 +237,7 @@ function DesktopPromptForm({
                     ))}
                   </Flex>
                   <Flex flexWrap="wrap">
+                    <ClipIcon isDisabled={isLoading} />
                     {inputType === "audio" ? (
                       <Box py={2} px={1} flex={1}>
                         <AudioStatus
