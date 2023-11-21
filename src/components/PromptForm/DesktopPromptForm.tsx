@@ -237,7 +237,12 @@ function DesktopPromptForm({
                     ))}
                   </Flex>
                   <Flex flexWrap="wrap">
-                    <ClipIcon isDisabled={isLoading} />
+                    <ClipIcon
+                      isDisabled={isLoading}
+                      onFileSelected={(base64String) =>
+                        setInputImages((prevImages) => [...prevImages, base64String])
+                      }
+                    />
                     {inputType === "audio" ? (
                       <Box py={2} px={1} flex={1}>
                         <AudioStatus
