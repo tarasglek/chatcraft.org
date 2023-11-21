@@ -23,6 +23,8 @@ export default function ClipIcon({ isDisabled = false, onFileSelected }: ClipIco
         onFileSelected(e.target?.result as string);
       };
       reader.readAsDataURL(files[0]);
+      // Reset the input value after file read
+      event.target.value = "";
     }
   };
 
