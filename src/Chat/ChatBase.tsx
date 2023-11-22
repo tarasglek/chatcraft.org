@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Button, Flex, Text, useDisclosure, Grid, GridItem } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Text,
+  useDisclosure,
+  Grid,
+  GridItem,
+  keyframes,
+} from "@chakra-ui/react";
 import { ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
 
@@ -294,16 +303,34 @@ function ChatBase({ chat }: ChatBaseProps) {
     resume();
   }
 
+  // Sidebar Animations
+  const sidebarOpenAnimation = keyframes`
+  0% {
+    transform: scaleX(0);
+  }
+  50% {
+    transform: scaleX(1.075);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+`;
+
+  const sidebarClosedAnimation = keyframes`
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+  `;
+
   return (
     <Grid
       w="100%"
       h="100%"
       gridTemplateRows="min-content 1fr min-content"
-      gridTemplateColumns={{
-        base: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
-      }}
+      gridTemplateColumns={"0 1fr"}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
@@ -315,8 +342,27 @@ function ChatBase({ chat }: ChatBaseProps) {
         />
       </GridItem>
 
-      <GridItem rowSpan={2} overflowY="auto">
-        <Sidebar selectedChat={chat} />
+      <GridItem rowSpan={2} colSpan={1}>
+        <Box
+          position="relative"
+          width={{
+            base: "300px",
+            lg: "20vw",
+          }}
+          bgGradient="linear(to-b, white, gray.100)"
+          _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
+          zIndex={99999}
+          overflowY="auto"
+          height={"100%"}
+          maxHeight={"100%"}
+          boxShadow={"base"}
+          transformOrigin={"left"}
+          animation={`${
+            isSidebarVisible ? sidebarOpenAnimation : sidebarClosedAnimation
+          } 200ms ease-in-out forwards`}
+        >
+          <Sidebar selectedChat={chat} />
+        </Box>
       </GridItem>
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">
