@@ -298,7 +298,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
      Got this value from error message of OpenAI's gpt-4-vision-preview max_tokens
      by setting a very large number,
      After setting this value, seems no cutoff
-     TODO: check this setting is needed or a hack
+     Tested on latest version openai@v4.20.0, without max_tokens response still cutoff
      */
     max_tokens: model.supportsImages ? 4096 : undefined,
   };
