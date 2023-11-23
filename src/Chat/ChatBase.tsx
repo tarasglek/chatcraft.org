@@ -359,7 +359,7 @@ function ChatBase({ chat }: ChatBaseProps) {
           transformOrigin={"left"}
           animation={`${
             isSidebarVisible ? sidebarOpenAnimation : sidebarClosedAnimation
-          } 200ms ease-in-out forwards`}
+          } 150ms ease-out forwards`}
         >
           <Sidebar selectedChat={chat} />
         </Box>
