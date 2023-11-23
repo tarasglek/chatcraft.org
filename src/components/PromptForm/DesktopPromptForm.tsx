@@ -1,5 +1,23 @@
 import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useMemo } from "react";
-import { Box, chakra, Flex, Kbd, Text, InputGroup, VStack, Card, CardBody } from "@chakra-ui/react";
+import {
+  Box,
+  chakra,
+  Flex,
+  Kbd,
+  Text,
+  InputGroup,
+  VStack,
+  Card,
+  CardBody,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  Image,
+  CloseButton,
+} from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
@@ -71,6 +89,9 @@ function DesktopPromptForm({
   const inputType = isRecording || isTranscribing ? "audio" : "text";
   // Base64 images
   const [inputImages, setInputImages] = useState<string[]>([]);
+  // state for the modal display selectedImage
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedImage, setSelectedImage] = useState<string>("");
   const location = useLocation();
 
   // If the user clears the prompt, allow up-arrow again
@@ -215,6 +236,11 @@ function DesktopPromptForm({
     setInputImages(updatedImages);
   };
 
+  const handleClickImage = (image: string) => {
+    setSelectedImage(image);
+    onOpen(); // Opens the modal
+  };
+
   return (
     <Flex dir="column" w="100%" h="100%">
       <Card flex={1} my={4} mx={1}>
@@ -241,10 +267,12 @@ function DesktopPromptForm({
                               Delete
                             </TiDeleteOutline>
                           </Flex>
-                          <img
+                          <Image
                             src={image}
-                            alt={`Images# ${index}`}
+                            alt={`Image# ${index}`}
                             style={{ height: "100px", objectFit: "cover" }}
+                            cursor="pointer"
+                            onClick={() => handleClickImage(image)}
                           />
                         </Flex>
                       </Box>
@@ -310,6 +338,16 @@ function DesktopPromptForm({
           </CardBody>
         </chakra.form>
       </Card>
+      {/* Modal for the larger image view */}
+      <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalCloseButton />
+          <ModalBody>
+            <Image src={selectedImage} alt="Selected Image" maxW="100%" maxH="100vh" m="auto" />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Flex>
   );
 }
