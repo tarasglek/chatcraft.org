@@ -136,6 +136,7 @@ export class ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
+      image: this.image,
     };
   }
 
@@ -284,12 +285,14 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
+      image: this.image,
       model: this.model.toString(),
       versions: this.versions.map((version) => ({
         id: version.id,
         date: version.date,
         model: version.model.toString(),
         text: version.text,
+        image: [], // Set to [] due to ChatCraftAiMessage not store image for now, has not the image property
       })),
     };
   }
@@ -371,6 +374,7 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
+      image: this.image,
       user: this.user,
     };
   }
@@ -401,6 +405,7 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
       date: message.date,
       user: message.user,
       text: message.text,
+      image: message.image,
     });
   }
 }
@@ -566,6 +571,7 @@ export class ChatCraftFunctionCallMessage extends ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
+      image: this.image,
       model: this.model.toString(),
       func: this.func,
     };
@@ -656,6 +662,7 @@ export class ChatCraftFunctionResultMessage extends ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
+      image: this.image,
       func: this.func,
     };
   }
