@@ -16,7 +16,6 @@ import {
   ModalCloseButton,
   useDisclosure,
   Image,
-  CloseButton,
 } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
@@ -257,24 +256,31 @@ function DesktopPromptForm({
                 <Flex w="100%" h="100%" direction="column">
                   <Flex flexWrap="wrap">
                     {inputImages.map((image, index) => (
-                      <Box key={index}>
-                        <Flex direction="column">
-                          <Flex justify="flex-end">
-                            <TiDeleteOutline
-                              onClick={() => handleDeleteImage(index)}
-                              style={{ cursor: "pointer" }}
-                            >
-                              Delete
-                            </TiDeleteOutline>
-                          </Flex>
-                          <Image
-                            src={image}
-                            alt={`Image# ${index}`}
-                            style={{ height: "100px", objectFit: "cover" }}
-                            cursor="pointer"
-                            onClick={() => handleClickImage(image)}
-                          />
-                        </Flex>
+                      <Box key={index} position="relative" height="100px" m={2}>
+                        <Image
+                          src={image}
+                          alt={`Image# ${index}`}
+                          style={{ height: "100px", objectFit: "cover" }}
+                          cursor="pointer"
+                          onClick={() => handleClickImage(image)}
+                        />
+                        <Box
+                          position="absolute"
+                          top="0"
+                          right="0"
+                          bg="whiteAlpha.600"
+                          borderRadius="full"
+                          p="1"
+                          onClick={() => handleDeleteImage(index)}
+                          cursor="pointer"
+                          zIndex="2"
+                          _hover={{
+                            bg: "red.500",
+                            color: "white",
+                          }}
+                        >
+                          <TiDeleteOutline size="1.5em" />
+                        </Box>
                       </Box>
                     ))}
                   </Flex>
