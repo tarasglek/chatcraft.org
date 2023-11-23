@@ -103,7 +103,7 @@ function MessageBase({
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
-  const { id, date, text } = message;
+  const { id, date, text, image } = message;
   const { models } = useModels();
   const { onCopy } = useClipboard(text);
   const { info, error } = useAlert();
@@ -481,6 +481,14 @@ function MessageBase({
                   // Add a single pixel of offset for rendering to canvas (offset handled above with m=-1)
                   p={1}
                 >
+                  {image.map((image, index) => (
+                    <img
+                      key={`${id}-${index}`}
+                      src={image}
+                      alt={`Images# ${index}`}
+                      style={{ height: "300px" }}
+                    />
+                  ))}
                   <Markdown
                     previewCode={!hidePreviews && !displaySummaryText}
                     isLoading={isLoading}
