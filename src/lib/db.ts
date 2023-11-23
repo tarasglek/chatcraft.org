@@ -19,7 +19,8 @@ export type ChatCraftMessageTable = {
   user?: User;
   func?: FunctionCallParams | FunctionCallResult;
   text: string;
-  versions?: { id: string; date: Date; model: string; text: string }[];
+  image: string[];
+  versions?: { id: string; date: Date; model: string; text: string; image: string[] }[];
 };
 
 export type SharedChatCraftChatTable = {
@@ -142,8 +143,9 @@ class ChatCraftDatabase extends Dexie {
         await tx.table("messages").where({ type: "system" }).modify({ starred: undefined });
       });
     // Version 9 Migration - removes .starred index from messages table
+    // Add image to 9 for test, will update version if needed
     this.version(9).stores({
-      messages: "id, date, chatId, type, model, user, text, versions",
+      messages: "id, date, chatId, type, model, user, text, image, versions",
     });
 
     this.chats = this.table("chats");
