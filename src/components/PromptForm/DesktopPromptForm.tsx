@@ -185,6 +185,7 @@ function DesktopPromptForm({
     onSendClick(transcription, inputImages);
     setIsRecording(false);
     setIsTranscribing(false);
+    setInputImages([]);
   };
 
   const getBase64FromFile = (file: File): Promise<string> => {
