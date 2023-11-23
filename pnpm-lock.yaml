@@ -9164,7 +9164,7 @@ packages:
   /reflect.getprototypeof@1.0.4:
     resolution: {integrity: sha512-ECkTw8TmJwW60lOTR+ZkODISW6RQ8+2CL3COqtiJKLd6MmB45hN51HprHFziKLGkAuTGQhBb91V8cy+KHlaCjw==}
     engines: {node: '>= 0.4'}
-    dependencies:
+    dependencies:git rebase --continue
       call-bind: 1.0.5
       define-properties: 1.2.1
       es-abstract: 1.22.3
