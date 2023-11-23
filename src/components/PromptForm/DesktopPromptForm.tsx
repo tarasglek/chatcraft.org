@@ -9,6 +9,7 @@ import NewButton from "../NewButton";
 import MicIcon from "./MicIcon";
 import ClipIcon from "./ClipIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
+import { useModels } from "../../hooks/use-models";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useLocation } from "react-router-dom";
@@ -62,7 +63,8 @@ function DesktopPromptForm({
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
-  const { settings } = useSettings();
+  const { models } = useModels();
+  const { settings, setSettings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
@@ -108,6 +110,18 @@ function DesktopPromptForm({
       }
     };
   }, [isRecording, recordingSeconds]);
+
+  // Update model to the supported model when inputImages is not empty
+  useEffect(() => {
+    if (inputImages && inputImages.length > 0) {
+      const modelSupportsImages = models.find((model) => model.supportsImages);
+      if (modelSupportsImages) {
+        setSettings({ ...settings, model: modelSupportsImages });
+      }
+    }
+    // Assuming models and setSettings are stable and don't need to be in the dependencies array
+    // eslint-disable-next-line
+  }, [inputImages]);
 
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
