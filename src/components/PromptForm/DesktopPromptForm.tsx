@@ -232,11 +232,6 @@ function DesktopPromptForm({
                     {inputImages.map((image, index) => (
                       <Box key={index}>
                         <Flex direction="column">
-                          <img
-                            src={image}
-                            alt={`Images# ${index}`}
-                            style={{ height: "100px", objectFit: "cover" }}
-                          />
                           <Flex justify="flex-end">
                             <TiDeleteOutline
                               onClick={() => handleDeleteImage(index)}
@@ -245,6 +240,11 @@ function DesktopPromptForm({
                               Delete
                             </TiDeleteOutline>
                           </Flex>
+                          <img
+                            src={image}
+                            alt={`Images# ${index}`}
+                            style={{ height: "100px", objectFit: "cover" }}
+                          />
                         </Flex>
                       </Box>
                     ))}
