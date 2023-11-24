@@ -70,6 +70,8 @@ function ChatBase({ chat }: ChatBaseProps) {
     const newValue = !isSidebarVisible;
     toggleSidebarVisible();
     setSettings({ ...settings, sidebarVisible: newValue });
+
+    setSidebarTouched(true);
   }, [isSidebarVisible, settings, setSettings, toggleSidebarVisible]);
 
   // Scroll chat to bottom (or to bottom of element specified by scrollBottomRef),
@@ -325,6 +327,8 @@ function ChatBase({ chat }: ChatBaseProps) {
   }
   `;
 
+  const [sidebarTouched, setSidebarTouched] = useState<boolean>(false);
+
   return (
     <Grid
       w="100%"
@@ -345,10 +349,8 @@ function ChatBase({ chat }: ChatBaseProps) {
       <GridItem rowSpan={2} colSpan={1}>
         <Box
           position="relative"
-          width={{
-            base: "300px",
-            lg: "20vw",
-          }}
+          minWidth={"300px"}
+          width={"20vw"}
           bgGradient="linear(to-b, white, gray.100)"
           _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
           zIndex={99999}
@@ -357,8 +359,16 @@ function ChatBase({ chat }: ChatBaseProps) {
           maxHeight={"100%"}
           boxShadow={"base"}
           transformOrigin={"left"}
+          transform={`translateX(${isSidebarVisible ? 0 : "-100%"})`}
           animation={`${
-            isSidebarVisible ? sidebarOpenAnimation : sidebarClosedAnimation
+            isSidebarVisible // If visible, trigger open animation
+              ? sidebarOpenAnimation
+              : // Only trigger closed animation when closed manually.
+              // This is because the sidebar open/close state is persisted across refreshes
+              // and may cause unnecessary animations if not handled
+              sidebarTouched
+              ? sidebarClosedAnimation
+              : "none"
           } 150ms ease-out forwards`}
         >
           <Sidebar selectedChat={chat} />
