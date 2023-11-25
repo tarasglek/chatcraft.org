@@ -12,6 +12,7 @@ import { TbChevronUp, TbSend } from "react-icons/tb";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
+import theme from "../../theme";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -42,7 +43,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList maxHeight={"70vh"} overflowY={"auto"}>
+        <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
           {models.map((model) => (
             <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
               {model.prettyModel}
@@ -71,7 +72,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList maxHeight={"70vh"} overflowY={"auto"}>
+        <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
           {models.map((model) => (
             <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
               {model.prettyModel}
