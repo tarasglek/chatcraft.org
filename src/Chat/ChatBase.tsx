@@ -33,6 +33,7 @@ import { useAutoScroll } from "../hooks/use-autoscroll";
 import { useAlert } from "../hooks/use-alert";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import { ChatCraftCommand } from "../lib/ChatCraftCommand";
+import theme from "../theme";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -353,7 +354,7 @@ function ChatBase({ chat }: ChatBaseProps) {
           width={"20vw"}
           bgGradient="linear(to-b, white, gray.100)"
           _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
-          zIndex={99999}
+          zIndex={theme.zIndices.modal}
           overflowY="auto"
           height={"100%"}
           maxHeight={"100%"}
@@ -364,11 +365,11 @@ function ChatBase({ chat }: ChatBaseProps) {
             isSidebarVisible // If visible, trigger open animation
               ? sidebarOpenAnimation
               : // Only trigger closed animation when closed manually.
-              // This is because the sidebar open/close state is persisted across refreshes
-              // and may cause unnecessary animations if not handled
-              sidebarTouched
-              ? sidebarClosedAnimation
-              : "none"
+                // This is because the sidebar open/close state is persisted across refreshes
+                // and may cause unnecessary animations if not handled
+                sidebarTouched
+                ? sidebarClosedAnimation
+                : "none"
           } 150ms ease-out forwards`}
         >
           <Sidebar selectedChat={chat} />
