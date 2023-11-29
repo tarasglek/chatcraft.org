@@ -413,7 +413,7 @@ function MessageBase({
                       key={`${id}-${index}`}
                       src={image}
                       alt={`Images# ${index}`}
-                      style={{ height: "300px" }}
+                      style={{ width: "100%" }}
                     />
                   ))}
                   <Markdown
