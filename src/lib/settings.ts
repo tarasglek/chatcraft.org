@@ -30,6 +30,7 @@ export type Settings = {
   customSystemPrompt?: string;
   announceMessages?: boolean;
   providers: ProviderData;
+  sidebarPinned: boolean;
 };
 
 export const defaults: Settings = {
@@ -44,6 +45,8 @@ export const defaults: Settings = {
   alwaysSendFunctionResult: false,
   announceMessages: false,
   providers: {},
+  // Do not pin by default
+  sidebarPinned: false,
 };
 
 export const key = "settings";

@@ -4,6 +4,7 @@ import {
   Box,
   ButtonGroup,
   Flex,
+  Icon,
   IconButton,
   Input,
   InputGroup,
@@ -26,6 +27,9 @@ import { Form } from "react-router-dom";
 import PreferencesModal from "./PreferencesModal";
 import DefaultSystemPromptModal from "./DefaultSystemPromptModal";
 import { useUser } from "../hooks/use-user";
+import { useSettings } from "../hooks/use-settings";
+import { MdOutlinePinDrop, MdPinDrop } from "react-icons/md";
+import useDesktopBreakpoint from "../hooks/use-desktop-breakpoint";
 
 type HeaderProps = {
   chatId?: string;
@@ -56,6 +60,17 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     }
   }, [chatId, user, login, logout]);
 
+  const { settings, setSettings } = useSettings();
+
+  const togglePinnedSidebar = () => {
+    setSettings({
+      ...settings,
+      sidebarPinned: !settings.sidebarPinned,
+    });
+  };
+
+  const isDesktop = useDesktopBreakpoint();
+
   return (
     <Flex
       w="100%"
@@ -67,15 +82,21 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       borderColor={useColorModeValue("gray.50", "gray.600")}
     >
       <Flex pl={1} align="center" gap={2}>
-        <IconButton
-          icon={<BiMenu />}
-          variant="ghost"
-          aria-label="Toggle Sidebar Menu"
-          title="Toggle Sidebar Menu"
-          onClick={onToggleSidebar}
-        />
+        {(!settings.sidebarPinned || !isDesktop) && (
+          <IconButton
+            icon={<BiMenu />}
+            variant="ghost"
+            aria-label="Toggle Sidebar Menu"
+            title="Toggle Sidebar Menu"
+            onClick={onToggleSidebar}
+          />
+        )}
 
-        <Text fontWeight="bold" color={useColorModeValue("blue.600", "blue.200")}>
+        <Text
+          fontWeight="bold"
+          color={useColorModeValue("blue.600", "blue.200")}
+          marginInlineStart={settings.sidebarPinned && isDesktop ? 2 : 0}
+        >
           <Link
             href="/"
             _hover={{ textDecoration: "none", color: useColorModeValue("blue.400", "blue.100") }}
@@ -95,6 +116,22 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       </Box>
 
       <ButtonGroup isAttached pr={2} alignItems="center">
+        {isDesktop && (
+          <IconButton
+            aria-label={settings.sidebarPinned ? "Unpin Sidebar" : "Pin Sidebar"}
+            title={settings.sidebarPinned ? "Unpin Sidebar" : "Pin Sidebar"}
+            icon={
+              settings.sidebarPinned ? (
+                <Icon boxSize={5} as={MdPinDrop} />
+              ) : (
+                <Icon boxSize={5} as={MdOutlinePinDrop} />
+              )
+            }
+            variant={"ghost"}
+            onClick={togglePinnedSidebar}
+          />
+        )}
+
         <IconButton
           aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
           title={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}

@@ -34,6 +34,7 @@ import { useAlert } from "../hooks/use-alert";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import { ChatCraftCommand } from "../lib/ChatCraftCommand";
 import theme from "../theme";
+import useDesktopBreakpoint from "../hooks/use-desktop-breakpoint";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -330,6 +331,8 @@ function ChatBase({ chat }: ChatBaseProps) {
 
   const [sidebarTouched, setSidebarTouched] = useState<boolean>(false);
 
+  const isDesktop = useDesktopBreakpoint();
+
   return (
     <Grid
       w="100%"
@@ -362,7 +365,7 @@ function ChatBase({ chat }: ChatBaseProps) {
           transformOrigin={"left"}
           transform={`translateX(${isSidebarVisible ? 0 : "-100%"})`}
           animation={`${
-            isSidebarVisible // If visible, trigger open animation
+            isSidebarVisible || (settings.sidebarPinned && isDesktop) // If visible or pinned, open the sidebar
               ? sidebarOpenAnimation
               : // Only trigger closed animation when closed manually.
                 // This is because the sidebar open/close state is persisted across refreshes
