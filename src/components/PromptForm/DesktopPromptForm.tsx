@@ -110,6 +110,10 @@ function DesktopPromptForm({
       inputPromptRef.current?.focus();
     }
   }, [isLoading, inputPromptRef]);
+  // Also focus when the attached images changes
+  useEffect(() => {
+    inputPromptRef.current?.focus();
+  }, [inputImages, inputPromptRef]);
 
   // Keep track of the number of seconds that we've been recording
   useEffect(() => {
