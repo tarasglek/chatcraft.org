@@ -147,6 +147,20 @@ function DesktopPromptForm({
     // eslint-disable-next-line
   }, [inputImages]);
 
+  // Attach paste event listener to the textarea
+  useEffect(() => {
+    const textAreaElement = inputPromptRef.current;
+    if (textAreaElement) {
+      textAreaElement.addEventListener("paste", handlePasteImage);
+    }
+    return () => {
+      if (textAreaElement) {
+        textAreaElement.removeEventListener("paste", handlePasteImage);
+      }
+    };
+    // eslint-disable-next-line
+  }, []);
+
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -242,6 +256,19 @@ function DesktopPromptForm({
   const handleClickImage = (image: string) => {
     setSelectedImage(image);
     onOpen(); // Opens the modal
+  };
+
+  const handlePasteImage = (e: ClipboardEvent) => {
+    const clipboardData = e.clipboardData;
+    const items = Array.from(clipboardData?.items || []);
+    const imageFiles = items
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => file != null && file.type.startsWith("image/"));
+    if (imageFiles.length > 0) {
+      Promise.all(imageFiles.map((file) => getBase64FromFile(file))).then((base64Strings) => {
+        setInputImages((prevImages) => [...prevImages, ...base64Strings]);
+      });
+    }
   };
 
   return (
