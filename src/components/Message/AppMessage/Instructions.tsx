@@ -31,7 +31,6 @@ We think ChatCraft is the best platform for learning, experimenting, and getting
 | Edit Generated AI Replies             | ✅        | ❌      | ✅      |
 | Use Custom System Prompts             | ✅        | ✅      | ❌      |
 | Easy to retry with different AI models| ✅        | ❌      | ❌      |
-| Just Show Me The Code                 | ✅        | ❌      | ✅      |
 | Edit/Run Generated Code and Custom Functions | ✅        | ❌      | ✅      |
 | Open Source                           | ✅        | ❌      | ❌      |
 

@@ -12,16 +12,10 @@ I follow these rules when responding:
 - If using functions, only use the specific functions I have been provided with
 `;
 
-const justShowMeTheCodeText =
-  "- When responding with code, ONLY return the code and NOTHING else (i.e., don't explain ANYTHING)";
-
 export const defaultSystemPrompt = () => {
-  const { justShowMeTheCode, customSystemPrompt } = getSettings();
+  const { customSystemPrompt } = getSettings();
 
-  let systemPrompt = customSystemPrompt ?? defaultSystemPromptText;
-  if (justShowMeTheCode) {
-    systemPrompt += justShowMeTheCodeText;
-  }
+  const systemPrompt = customSystemPrompt ?? defaultSystemPromptText;
   return systemPrompt;
 };
 
