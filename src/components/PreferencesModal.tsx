@@ -345,19 +345,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 Track and Display Token Count and Cost
               </Checkbox>
             </FormControl>
-
-            <FormControl>
-              <Checkbox
-                isChecked={settings.justShowMeTheCode}
-                onChange={(e) => setSettings({ ...settings, justShowMeTheCode: e.target.checked })}
-              >
-                Just show me the code, don&apos;t explain anything
-              </Checkbox>
-              <FormHelperText>
-                NOTE: this change will alter the default system prompt and be used for new chats you
-                create (i.e., it won&apos;t affect the current chat)
-              </FormHelperText>
-            </FormControl>
           </VStack>
         </ModalBody>
 

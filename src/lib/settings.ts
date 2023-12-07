@@ -19,7 +19,6 @@ export type Settings = {
   apiUrl: string;
   temperature: number;
   enterBehaviour: EnterBehaviour;
-  justShowMeTheCode: boolean;
   countTokens: boolean;
   sidebarVisible: boolean;
   alwaysSendFunctionResult: boolean;
@@ -33,7 +32,6 @@ export const defaults: Settings = {
   enterBehaviour: "send",
   // Disabled by default, since token parsing requires downloading larger deps
   countTokens: false,
-  justShowMeTheCode: false,
   sidebarVisible: false,
   // Disabled by default, so we don't waste tokens
   alwaysSendFunctionResult: false,
