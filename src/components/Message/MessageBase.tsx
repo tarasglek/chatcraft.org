@@ -21,6 +21,7 @@ import {
   Flex,
   Heading,
   IconButton,
+  Image,
   Link,
   Tag,
   Text,
@@ -409,7 +410,7 @@ function MessageBase({
               ) : (
                 <>
                   {image.map((image, index) => (
-                    <img
+                    <Image
                       key={`${id}-${index}`}
                       src={image}
                       alt={`Images# ${index}`}
