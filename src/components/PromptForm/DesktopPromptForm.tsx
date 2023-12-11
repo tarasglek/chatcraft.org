@@ -9,12 +9,6 @@ import {
   VStack,
   Card,
   CardBody,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
   Image,
 } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
@@ -31,6 +25,7 @@ import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useLocation } from "react-router-dom";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
+import ImageModal from "../ImageModal";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -89,7 +84,7 @@ function DesktopPromptForm({
   // Base64 images
   const [inputImages, setInputImages] = useState<string[]>([]);
   // state for the modal display selectedImage
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const location = useLocation();
 
@@ -255,8 +250,9 @@ function DesktopPromptForm({
 
   const handleClickImage = (image: string) => {
     setSelectedImage(image);
-    onOpen(); // Opens the modal
+    setIsOpen(true);
   };
+  const closeModal = () => setIsOpen(false);
 
   const handlePasteImage = (e: ClipboardEvent) => {
     const clipboardData = e.clipboardData;
@@ -376,15 +372,7 @@ function DesktopPromptForm({
         </chakra.form>
       </Card>
       {/* Modal for the larger image view */}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalCloseButton />
-          <ModalBody>
-            <Image src={selectedImage} alt="Selected Image" maxW="100%" maxH="100vh" m="auto" />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+      <ImageModal isOpen={isOpen} onClose={closeModal} imageSrc={selectedImage} />
     </Flex>
   );
 }
