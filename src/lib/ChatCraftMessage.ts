@@ -101,11 +101,11 @@ export class ChatCraftMessage {
   toOpenAiMessage(): OpenAI.Chat.Completions.ChatCompletionMessageParam {
     const text = this.text;
 
-    const textAndImage: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [];
-    textAndImage.push({ type: "text", text: this.text });
+    const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [];
+    content.push({ type: "text", text: this.text });
     if (this.image && this.image.length > 0) {
       this.image.forEach((image) => {
-        textAndImage.push({
+        content.push({
           type: "image_url",
           image_url: { url: image },
         });
@@ -116,7 +116,7 @@ export class ChatCraftMessage {
       case "ai":
         return { role: "assistant", content: text };
       case "human":
-        return { role: "user", content: textAndImage };
+        return { role: "user", content };
       case "system":
         return { role: "system", content: text };
       case "function":
