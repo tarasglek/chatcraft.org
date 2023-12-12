@@ -13,8 +13,6 @@ import type { Tiktoken } from "tiktoken/lite";
 import {
   ChatCompletion,
   ChatCompletionChunk,
-  ChatCompletionCreateParamsStreaming,
-  CreateChatCompletionRequestMessage,
 } from "openai/resources";
 import { Stream } from "openai/streaming";
 
