@@ -4,12 +4,12 @@ import { BsPaperclip } from "react-icons/bs";
 
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 
-type ClipIconProps = {
+type AttachProps = {
   isDisabled: boolean;
   onFileSelected: (base64: string) => void;
 };
 
-export default function ClipIcon({ isDisabled = false, onFileSelected }: ClipIconProps) {
+export default function Attach({ isDisabled = false, onFileSelected }: AttachProps) {
   const isMobile = useMobileBreakpoint();
   const [colorScheme] = useState<"blue" | "red">("blue");
   const clipIconRef = useRef<HTMLButtonElement | null>(null);
