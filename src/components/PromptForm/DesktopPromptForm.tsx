@@ -25,6 +25,7 @@ import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useLocation } from "react-router-dom";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
+import { useAlert } from "../../hooks/use-alert";
 import ImageModal from "../ImageModal";
 
 type KeyboardHintProps = {
@@ -75,6 +76,7 @@ function DesktopPromptForm({
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
+  const { error } = useAlert();
   const { models } = useModels();
   const { settings, setSettings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
@@ -237,9 +239,17 @@ function DesktopPromptForm({
     const files = Array.from(e.dataTransfer.files);
     Promise.all(
       files.filter((file) => file.type.startsWith("image/")).map((file) => getBase64FromFile(file))
-    ).then((base64Strings) => {
-      setInputImages((prevImages) => [...prevImages, ...base64Strings]);
-    });
+    )
+      .then((base64Strings) => {
+        setInputImages((prevImages) => [...prevImages, ...base64Strings]);
+      })
+      .catch((err) => {
+        console.warn("Error processing images", err);
+        error({
+          title: "Error Processing Images",
+          message: err.message,
+        });
+      });
   };
 
   const handleDeleteImage = (index: number) => {
@@ -261,9 +271,17 @@ function DesktopPromptForm({
       .map((item) => item.getAsFile())
       .filter((file): file is File => file != null && file.type.startsWith("image/"));
     if (imageFiles.length > 0) {
-      Promise.all(imageFiles.map((file) => getBase64FromFile(file))).then((base64Strings) => {
-        setInputImages((prevImages) => [...prevImages, ...base64Strings]);
-      });
+      Promise.all(imageFiles.map((file) => getBase64FromFile(file)))
+        .then((base64Strings) => {
+          setInputImages((prevImages) => [...prevImages, ...base64Strings]);
+        })
+        .catch((err) => {
+          console.warn("Error processing images", err);
+          error({
+            title: "Error Processing Images",
+            message: err.message,
+          });
+        });
     }
   };
 
