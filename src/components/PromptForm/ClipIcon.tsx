@@ -11,7 +11,7 @@ type ClipIconProps = {
 
 export default function ClipIcon({ isDisabled = false, onFileSelected }: ClipIconProps) {
   const isMobile = useMobileBreakpoint();
-  const [colorScheme /*, setColorScheme */] = useState<"blue" | "red">("blue");
+  const [colorScheme] = useState<"blue" | "red">("blue");
   const clipIconRef = useRef<HTMLButtonElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
