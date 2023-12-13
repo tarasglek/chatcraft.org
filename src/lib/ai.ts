@@ -357,8 +357,23 @@ export async function queryModels(apiKey: string) {
 
   try {
     const models = [];
-    for await (const page of openai.models.list()) {
-      models.push(page);
+
+    if (usingOpenAI) {
+      for await (const page of openai.models.list()) {
+        models.push(page);
+      }
+    } else {
+      // Use response from https://openrouter.ai/docs#limits to check if API key is valid
+      const res = await fetch(`https://openrouter.ai/api/v1/auth/key`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`${res.status} ${await res.text()}`);
+      }
     }
 
     return models
