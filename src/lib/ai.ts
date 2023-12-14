@@ -8,13 +8,10 @@ import { ChatCraftModel } from "./ChatCraftModel";
 import { ChatCraftFunction } from "./ChatCraftFunction";
 import { getReferer } from "./utils";
 import { getSettings, OPENAI_API_URL } from "./settings";
+import { Stream } from "openai/streaming";
 
 import type { Tiktoken } from "tiktoken/lite";
-import {
-  ChatCompletion,
-  ChatCompletionChunk,
-} from "openai/resources";
-import { Stream } from "openai/streaming";
+import type { ChatCompletionChunk } from "openai/resources";
 
 export const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
 
@@ -126,10 +123,6 @@ export const transcribe = async (audio: File) => {
   });
   return transcription.text;
 };
-
-interface ResponseHandlerStrategy {
-  (response: any): Promise<any>;
-}
 
 export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
   const {
@@ -306,9 +299,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     signal: controller.signal,
   };
 
-  const handleStreamingResponse: ResponseHandlerStrategy = async (
-    streamResponse: Stream<ChatCompletionChunk>
-  ) => {
+  const handleStreamingResponse = async (streamResponse: Stream<ChatCompletionChunk>) => {
     for await (const streamChunk of streamResponse) {
       const parsedData = parseOpenAIChunkResponse(streamChunk);
       await streamOpenAIResponse(
@@ -322,26 +313,20 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     return handleOpenAIResponse(content, functionName, functionArgs);
   };
 
-  const handleNonStreamingResponse: ResponseHandlerStrategy = async (response: ChatCompletion) => {
+  const handleNonStreamingResponse = async (response: any) => {
     const { content, functionName, functionArgs } = parseOpenAIResponse(response);
     return handleOpenAIResponse(content, functionName, functionArgs);
   };
 
-  const responseHandler: ResponseHandlerStrategy = streaming
-    ? handleStreamingResponse
-    : handleNonStreamingResponse;
+  const handleResponse = streaming ? handleStreamingResponse : handleNonStreamingResponse;
 
   const responsePromise = openai.chat.completions
     .create(
       chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
       chatCompletionReqOptions
     )
-    .then(async (response) => {
-      return responseHandler(response);
-    })
-    .catch((err) => {
-      return handleError(err);
-    })
+    .then(handleResponse)
+    .catch(handleError)
     .finally(() => {
       removeEventListener("keydown", handleCancel);
     });
