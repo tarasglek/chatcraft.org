@@ -37,7 +37,7 @@ import db from "../lib/db";
 import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
-import { openRouterPkceRedirect, validateOpenAiApiKey } from "../lib/ai";
+import { openRouterPkceRedirect, validateApiKey } from "../lib/ai";
 import { useAlert } from "../hooks/use-alert";
 
 // https://dexie.org/docs/StorageManager
@@ -73,7 +73,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       if (!apiKey) {
         setIsApiKeyInvalid(true);
       } else {
-        validateOpenAiApiKey(apiKey)
+        validateApiKey(apiKey)
           .then((result: boolean) => setIsApiKeyInvalid(!result))
           .catch((err) => {
             console.warn("Error validating API key", err);
@@ -164,7 +164,9 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               <FormLabel>API URL</FormLabel>
               <Select
                 value={settings.apiUrl}
-                onChange={(e) => setSettings({ ...settings, apiUrl: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, apiUrl: e.target.value, apiKey: undefined })
+                }
               >
                 <option value={OPENAI_API_URL}>OpenAI ({OPENAI_API_URL})</option>
                 <option value={OPENROUTER_API_URL}>OpenRouter.ai ({OPENROUTER_API_URL})</option>

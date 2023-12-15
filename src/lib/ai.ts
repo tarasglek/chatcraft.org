@@ -12,7 +12,7 @@ import { getSettings, OPENAI_API_URL, OPENROUTER_API_URL } from "./settings";
 import type { Tiktoken } from "tiktoken/lite";
 
 export const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
-export const usingOfficialOpenRouterAI = () => getSettings().apiUrl === OPENROUTER_API_URL;
+export const usingOfficialOpenRouter = () => getSettings().apiUrl === OPENROUTER_API_URL;
 
 const createClient = (apiKey: string, apiUrl?: string) => {
   // If we're using OpenRouter, add extra headers
@@ -354,24 +354,9 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 export async function queryModels(apiKey: string) {
   const { apiUrl } = getSettings();
   const usingOpenAI = usingOfficialOpenAI();
-  const usingOpenRouterAI = usingOfficialOpenRouterAI();
   const { openai } = createClient(apiKey, apiUrl);
 
   try {
-    if (usingOpenRouterAI) {
-      // Use response from https://openrouter.ai/docs#limits to check if API key is valid
-      const res = await fetch(`https://openrouter.ai/api/v1/auth/key`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error(`${res.status} ${await res.text()}`);
-      }
-    }
-
     const models = [];
     for await (const page of openai.models.list()) {
       models.push(page);
@@ -387,6 +372,35 @@ export async function queryModels(apiKey: string) {
 
 export async function validateOpenAiApiKey(apiKey: string) {
   return !!(await queryModels(apiKey));
+}
+
+export async function validateOpenRouterApiKey(apiKey: string) {
+  // Use response from https://openrouter.ai/docs#limits to check if API key is valid
+  const res = await fetch(`https://openrouter.ai/api/v1/auth/key`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`${res.status} ${await res.text()}`);
+  }
+
+  return res;
+}
+
+export async function validateApiKey(apiKey: string) {
+  const usingOpenAI = usingOfficialOpenAI();
+  const usingOpenRouter = usingOfficialOpenRouter();
+
+  if (usingOpenAI) {
+    return validateOpenAiApiKey(apiKey);
+  } else if (usingOpenRouter) {
+    return !!(await validateOpenRouterApiKey(apiKey));
+  } else {
+    return false;
+  }
 }
 
 // Cache this instance on first use
