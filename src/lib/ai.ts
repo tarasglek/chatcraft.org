@@ -387,20 +387,20 @@ export async function validateOpenRouterApiKey(apiKey: string) {
     throw new Error(`${res.status} ${await res.text()}`);
   }
 
-  return res;
+  return true;
 }
 
 export async function validateApiKey(apiKey: string) {
-  const usingOpenAI = usingOfficialOpenAI();
-  const usingOpenRouter = usingOfficialOpenRouter();
-
-  if (usingOpenAI) {
+  if (usingOfficialOpenAI()) {
     return validateOpenAiApiKey(apiKey);
-  } else if (usingOpenRouter) {
-    return !!(await validateOpenRouterApiKey(apiKey));
-  } else {
-    return false;
   }
+
+  if (usingOfficialOpenRouter()) {
+    return validateOpenRouterApiKey(apiKey);
+  }
+
+  // If not either of those providers, something is wrong
+  throw new Error("unexpected provider, not able to validate api key");
 }
 
 // Cache this instance on first use
