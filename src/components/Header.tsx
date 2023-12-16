@@ -19,7 +19,11 @@ import {
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
-import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
+import { BiSun, BiMoon } from "react-icons/bi";
+import {
+  TbLayoutSidebarRightCollapseFilled,
+  TbLayoutSidebarRightExpandFilled,
+} from "react-icons/tb";
 import { BsGithub } from "react-icons/bs";
 import { TbSearch } from "react-icons/tb";
 import { Form } from "react-router-dom";
@@ -28,7 +32,6 @@ import PreferencesModal from "./PreferencesModal";
 import DefaultSystemPromptModal from "./DefaultSystemPromptModal";
 import { useUser } from "../hooks/use-user";
 import { useSettings } from "../hooks/use-settings";
-import { MdOutlinePinDrop, MdPinDrop } from "react-icons/md";
 import useDesktopBreakpoint from "../hooks/use-desktop-breakpoint";
 
 type HeaderProps = {
@@ -60,14 +63,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     }
   }, [chatId, user, login, logout]);
 
-  const { settings, setSettings } = useSettings();
-
-  const togglePinnedSidebar = () => {
-    setSettings({
-      ...settings,
-      sidebarPinned: !settings.sidebarPinned,
-    });
-  };
+  const { settings } = useSettings();
 
   const isDesktop = useDesktopBreakpoint();
 
@@ -84,7 +80,13 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       <Flex pl={1} align="center" gap={2}>
         {(!settings.sidebarPinned || !isDesktop) && (
           <IconButton
-            icon={<BiMenu />}
+            icon={
+              settings.sidebarVisible ? (
+                <Icon boxSize={6} as={TbLayoutSidebarRightExpandFilled} />
+              ) : (
+                <Icon boxSize={6} as={TbLayoutSidebarRightCollapseFilled} />
+              )
+            }
             variant="ghost"
             aria-label="Toggle Sidebar Menu"
             title="Toggle Sidebar Menu"
@@ -116,22 +118,6 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       </Box>
 
       <ButtonGroup isAttached pr={2} alignItems="center">
-        {isDesktop && (
-          <IconButton
-            aria-label={settings.sidebarPinned ? "Unpin Sidebar" : "Pin Sidebar"}
-            title={settings.sidebarPinned ? "Unpin Sidebar" : "Pin Sidebar"}
-            icon={
-              settings.sidebarPinned ? (
-                <Icon boxSize={5} as={MdPinDrop} />
-              ) : (
-                <Icon boxSize={5} as={MdOutlinePinDrop} />
-              )
-            }
-            variant={"ghost"}
-            onClick={togglePinnedSidebar}
-          />
-        )}
-
         <IconButton
           aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
           title={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}

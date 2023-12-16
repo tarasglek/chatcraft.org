@@ -17,9 +17,11 @@ import {
   AccordionButton,
   AccordionIcon,
   AccordionPanel,
+  Icon,
+  Tooltip,
 } from "@chakra-ui/react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { MdOutlineChatBubbleOutline } from "react-icons/md";
+import { MdOutlineChatBubbleOutline, MdOutlinePinDrop, MdPinDrop } from "react-icons/md";
 import { TbCheck, TbTrash } from "react-icons/tb";
 import { CgClose } from "react-icons/cg";
 import { AiOutlineEdit } from "react-icons/ai";
@@ -34,6 +36,8 @@ import { SharedChatCraftChat } from "../lib/SharedChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import { useAlert } from "../hooks/use-alert";
+import { useSettings } from "../hooks/use-settings";
+import useDesktopBreakpoint from "../hooks/use-desktop-breakpoint";
 
 /**
  * Chat Sidebar Items
@@ -357,9 +361,44 @@ function Sidebar({ selectedChat, selectedFunction }: SidebarProps) {
       .catch((err) => console.warn("Unable to delete shared chat", err));
   }
 
+  const { settings, setSettings } = useSettings();
+
+  const togglePinnedSidebar = () => {
+    setSettings({
+      ...settings,
+      sidebarPinned: !settings.sidebarPinned,
+    });
+  };
+
+  const isDesktop = useDesktopBreakpoint();
+
   return (
     <Flex direction="column" h="100%" p={2} gap={4}>
       <Accordion allowToggle>
+        <AccordionItem>
+          <Flex justifyContent={"flex-end"}>
+            {isDesktop && (
+              <Tooltip
+                label={settings.sidebarPinned ? "Unpin Sidebar" : "Pin Sidebar"}
+                fontSize="md"
+              >
+                <IconButton
+                  aria-label={settings.sidebarPinned ? "Unpin Sidebar" : "Pin Sidebar"}
+                  icon={
+                    settings.sidebarPinned ? (
+                      <Icon boxSize={5} as={MdPinDrop} />
+                    ) : (
+                      <Icon boxSize={5} as={MdOutlinePinDrop} />
+                    )
+                  }
+                  variant={"ghost"}
+                  onClick={togglePinnedSidebar}
+                />
+              </Tooltip>
+            )}
+          </Flex>
+        </AccordionItem>
+
         <AccordionItem>
           <AccordionButton p={0} minH={10}>
             <Heading as="h3" size="xs">
