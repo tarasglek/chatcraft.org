@@ -14,7 +14,7 @@ import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
 import RevealablePasswordInput from "../../RevealablePasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
-import { openRouterPkceRedirect, validateOpenAiApiKey } from "../../../lib/ai";
+import { openRouterPkceRedirect, validateApiKey } from "../../../lib/ai";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../../../lib/settings";
 
 const ApiKeyInstructionsText = `## Getting Started with ChatCraft
@@ -68,7 +68,7 @@ function Instructions(props: MessageBaseProps) {
 
     // See if this API Key is valid
     setIsValidating(true);
-    validateOpenAiApiKey(apiKey)
+    validateApiKey(apiKey)
       .then((valid) => {
         if (valid) {
           setIsInvalid(false);

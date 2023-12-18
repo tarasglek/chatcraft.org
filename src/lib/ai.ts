@@ -7,13 +7,14 @@ import {
 import { ChatCraftModel } from "./ChatCraftModel";
 import { ChatCraftFunction } from "./ChatCraftFunction";
 import { getReferer } from "./utils";
-import { getSettings, OPENAI_API_URL } from "./settings";
+import { getSettings, OPENAI_API_URL, OPENROUTER_API_URL } from "./settings";
 import { Stream } from "openai/streaming";
 
 import type { Tiktoken } from "tiktoken/lite";
 import type { ChatCompletionChunk } from "openai/resources";
 
 export const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
+export const usingOfficialOpenRouter = () => getSettings().apiUrl === OPENROUTER_API_URL;
 
 const createClient = (apiKey: string, apiUrl?: string) => {
   // If we're using OpenRouter, add extra headers
@@ -361,6 +362,35 @@ export async function queryModels(apiKey: string) {
 
 export async function validateOpenAiApiKey(apiKey: string) {
   return !!(await queryModels(apiKey));
+}
+
+export async function validateOpenRouterApiKey(apiKey: string) {
+  // Use response from https://openrouter.ai/docs#limits to check if API key is valid
+  const res = await fetch(`https://openrouter.ai/api/v1/auth/key`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`${res.status} ${await res.text()}`);
+  }
+
+  return true;
+}
+
+export async function validateApiKey(apiKey: string) {
+  if (usingOfficialOpenAI()) {
+    return validateOpenAiApiKey(apiKey);
+  }
+
+  if (usingOfficialOpenRouter()) {
+    return validateOpenRouterApiKey(apiKey);
+  }
+
+  // If not either of those providers, something is wrong
+  throw new Error("unexpected provider, not able to validate api key");
 }
 
 // Cache this instance on first use

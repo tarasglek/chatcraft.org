@@ -37,7 +37,7 @@ import db from "../lib/db";
 import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
-import { openRouterPkceRedirect, validateOpenAiApiKey } from "../lib/ai";
+import { openRouterPkceRedirect, validateApiKey } from "../lib/ai";
 import { useAlert } from "../hooks/use-alert";
 
 // https://dexie.org/docs/StorageManager
@@ -73,7 +73,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       if (!apiKey) {
         setIsApiKeyInvalid(true);
       } else {
-        validateOpenAiApiKey(apiKey)
+        validateApiKey(apiKey)
           .then((result: boolean) => setIsApiKeyInvalid(!result))
           .catch((err) => {
             console.warn("Error validating API key", err);
