@@ -8,8 +8,10 @@ import { ChatCraftModel } from "./ChatCraftModel";
 import { ChatCraftFunction } from "./ChatCraftFunction";
 import { getReferer } from "./utils";
 import { getSettings, OPENAI_API_URL } from "./settings";
+import { Stream } from "openai/streaming";
 
 import type { Tiktoken } from "tiktoken/lite";
+import type { ChatCompletionChunk } from "openai/resources";
 
 export const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
 
@@ -297,49 +299,37 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     signal: controller.signal,
   };
 
-  let responsePromise;
-  if (streaming) {
-    responsePromise = openai.chat.completions
-      .create(
-        chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
-        chatCompletionReqOptions
-      )
-      .then(async (streamResponse) => {
-        for await (const streamChunk of streamResponse) {
-          const parsedData = parseOpenAIChunkResponse(streamChunk);
-          await streamOpenAIResponse(
-            parsedData.token,
-            parsedData.functionName,
-            parsedData.functionArgs
-          );
-        }
+  const handleStreamingResponse = async (streamResponse: Stream<ChatCompletionChunk>) => {
+    for await (const streamChunk of streamResponse) {
+      const parsedData = parseOpenAIChunkResponse(streamChunk);
+      await streamOpenAIResponse(
+        parsedData.token,
+        parsedData.functionName,
+        parsedData.functionArgs
+      );
+    }
 
-        const content = buffer.join("");
-        return handleOpenAIResponse(content, functionName, functionArgs);
-      })
-      .catch((err) => {
-        return handleError(err);
-      })
-      .finally(() => {
-        removeEventListener("keydown", handleCancel);
-      });
-  } else {
-    responsePromise = openai.chat.completions
-      .create(
-        chatCompletionParams as OpenAI.Chat.CompletionCreateParamsNonStreaming,
-        chatCompletionReqOptions
-      )
-      .then(async (response: OpenAI.Chat.ChatCompletion) => {
-        const { content, functionName, functionArgs } = parseOpenAIResponse(response);
-        return handleOpenAIResponse(content, functionName, functionArgs);
-      })
-      .catch((err) => {
-        return handleError(err);
-      })
-      .finally(() => {
-        removeEventListener("keydown", handleCancel);
-      });
-  }
+    const content = buffer.join("");
+    return handleOpenAIResponse(content, functionName, functionArgs);
+  };
+
+  const handleNonStreamingResponse = async (response: any) => {
+    const { content, functionName, functionArgs } = parseOpenAIResponse(response);
+    return handleOpenAIResponse(content, functionName, functionArgs);
+  };
+
+  const handleResponse = streaming ? handleStreamingResponse : handleNonStreamingResponse;
+
+  const responsePromise = openai.chat.completions
+    .create(
+      chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
+      chatCompletionReqOptions
+    )
+    .then(handleResponse)
+    .catch(handleError)
+    .finally(() => {
+      removeEventListener("keydown", handleCancel);
+    });
 
   return {
     promise: responsePromise,
