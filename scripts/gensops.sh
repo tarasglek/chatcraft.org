@@ -49,6 +49,9 @@ elementInArray() {
     return 1
 }
 
+# Array to keep track of found users
+FOUND_USERS=()
+
 # Read the authorized_keys file and convert each SSH key to an age key
 while IFS= read -r line; do
     # Skip empty lines
@@ -62,6 +65,9 @@ while IFS= read -r line; do
 
     # Check if the key_id is in the SOPS_USERS array
     if elementInArray "$key_id" "${SOPS_USERS[@]}"; then
+        # Add the key_id to the FOUND_USERS array
+        FOUND_USERS+=("$key_id")
+
         # Convert the SSH key to an age key by calling the binary directly
         age_key=$("$BINARY_PATH" -i <(echo "$ssh_key") 2>/dev/null)
         if [ -z "$age_key" ]; then
@@ -78,6 +84,13 @@ while IFS= read -r line; do
         echo "Warning: Key ID '$key_id' is not listed in the allowed users and will not be added."
     fi
 done < "$AUTHORIZED_KEYS_PATH"
+
+# Check for allowed users not found in the authorized_keys file
+for user in "${SOPS_USERS[@]}"; do
+    if ! elementInArray "$user" "${FOUND_USERS[@]}"; then
+        echo "Warning: SOPS user '$user' not present in authorized_keys file."
+    fi
+done
 
 echo "The .sops.yaml file has been created at the root of the git repository:"
 echo "$SOPS_FILE"
