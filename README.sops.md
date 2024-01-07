@@ -1,3 +1,5 @@
+This repo uses sops to share secrets. This requires users to upload a ssh-ed25519 pubkey to github. And for their github username to get added to sops_users.txt
+
 ```bash
 # install prereqs
 go install github.com/getsops/sops/v3/cmd/sops@v3.8.1
