@@ -1,4 +1,10 @@
-This repo uses sops to share secrets. This requires users to upload a ssh-ed25519 pubkey to github. And for their github username to get added to sops/admin/users.sops-protected.yaml
+# Working with Secrets using sops
+
+This repo uses [sops](https://github.com/getsops/sops) to share secrets. This requires users to upload a [ssh-ed25519 pubkey to GitHub](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) and for their GitHub username to get added to [sops/admin/users.sops-protected.yaml](./sops/admin/users.sops-protected.yaml).
+
+## Install Dependencies
+
+You need to have the command line tools [sops](https://github.com/getsops/sops) and [ssh-to-age](https://github.com/Mic92/ssh-to-age/blob/main/README.md). This can be done in a variety of ways, including using `go`:
 
 ```bash
 # install prereqs
@@ -6,11 +12,13 @@ go install github.com/getsops/sops/v3/cmd/sops@v3.8.1
 go install github.com/Mic92/ssh-to-age/cmd/ssh-to-age@latest
 ```
 
-### Admin: Adding a user
+The remainder of these instructions assume you are running in a Unix environment.
 
-Add user to project, ensure they have ssh-ed25519 pubkey uploaded to github.
+## Admin: Adding a user
 
-Add user to sops/admin/users.sops-protected.yaml so we can encrypt secrets for them
+To add a new user to the project, ensure that they have an ssh-ed25519 pubkey uploaded to GitHub.
+
+Add the user's GitHub username to [sops/admin/users.sops-protected.yaml](./sops/admin/users.sops-protected.yaml) so we can encrypt secrets for them:
 
 ```bash
 # fetch pub keys for all users in repo, ensure they ssh-ed25519
@@ -38,11 +46,10 @@ git diff sops/keys.enc.yaml
 
 ### User: Decrypting secrets
 
-```
-SOPS_AGE_KEY=`scripts/sops_age_key.sh
+```bash
+SOPS_AGE_KEY=scripts/sops_age_key.sh
 
 sops -d sops/keys.enc.yaml
-
 ```
 
 ### Holes
