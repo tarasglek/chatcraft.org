@@ -10,6 +10,7 @@ go install github.com/Mic92/ssh-to-age/cmd/ssh-to-age@latest
 
 ```bash
 # fetch pub keys for all users in repo, ensure they ssh-ed25519
+# this script will complain if user doesn't have a key or if it's not ssh-ed25519
 ./scripts/fetchkeys.sh /tmp/authorized_keys
 # generate REPO_ROOT/.sops.yaml with keys that match users defined in sops_users.txt
 # this ensures random contributors don't get access to keys until we trust em
