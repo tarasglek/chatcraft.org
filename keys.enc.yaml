@@ -1,5 +1,14 @@
 keys:
   OPENAI_API_KEY: ENC[AES256_GCM,data:syXR0o6zu6VattiIhb/2++VP0J+I1qaRvdgsYUwb4nDtl/c3exs8EtAlMxZFpN8Z,iv:yGfFPV7bGEGaW2ePiPcxpBc2YMnX9FaxK2Mm1123kvk=,tag:0bA9m70x8WFRDaKHNsD+Dw==,type:str]
+users_unencrypted:
+  - tarasglek
+  - humphd
+  - Amnish04
+  - Rachit1313
+  - kliu57
+  - mingming-ma
+  - WangGithub0
+  - rjwignar
 sops:
   kms: []
   gcp_kms: []
@@ -24,8 +33,8 @@ sops:
         Uy8vUlUxV1drYUNDTkRDSlBLSEJqdzgKn4NiW6x6r+PUGgQzySkHfKbCVi8Ov8hZ
         sT6kRMKV3xZpMFkJaCIvFymgOXwaHgdbPG02yxqHHZtPDiyxtc0iaQ==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2024-01-07T20:13:12Z"
-  mac: ENC[AES256_GCM,data:fZ4mOIOzZfA5RMw4SwKOxZKid4AYXOxqpahvOyQXW42IaPA+9fy4DlDa/ZE518VRn7GucKu9BovYMXt9XO/FDs1VrPVDDc/IwClfz3fdNbp2e3g7uQPtBcalvBOonoxzm+L8u9ay+cWvQfW3TyVm1ALzn56oBNlVRYl5rc8LbeE=,iv:d9fC1ky60v9WINcH8Aqmt+wVV7ZD5pDMCHkxNuh4BXc=,tag:W3DhNBvJvkFEuGFTqWmrCQ==,type:str]
+  lastmodified: "2024-01-07T20:43:35Z"
+  mac: ENC[AES256_GCM,data:rIUPITNUNQwzSBRKYxjQ7/28sVvcUdY9o0t9SzIyD1HpHAr32zfGo4y+0UqO577qZp5hGti9+mWjba7Agr4jdeh5xFOVotT+I7VAXONUDMMcO/saHfWqy48xFb23YybTFyah/NOwgMwlnYGkyyoo2mLsSHuBxgN4DKlyy5R4ep0=,iv:UJoxp2s9sQTS2hc2bnL0nTPJWDYvZhVlLBbU7oYE7ns=,tag:ppqUrH+fNcH5LxG4JoLZow==,type:str]
   pgp: []
   unencrypted_suffix: _unencrypted
   version: 3.8.1

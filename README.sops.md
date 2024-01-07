@@ -14,7 +14,8 @@ go install github.com/Mic92/ssh-to-age/cmd/ssh-to-age@latest
 ./scripts/fetchkeys.sh /tmp/authorized_keys
 # generate REPO_ROOT/.sops.yaml with keys that match users defined in sops_users.txt
 # this ensures random contributors don't get access to keys until we trust em
-./scripts/gensops.sh sops_users.txt $TMPDIR/authorized_keys
+ALLOWED_USERS=$(sops -d  --extract '["users_unencrypted"]'  --output-type json keys.enc.yaml | jq -r 'join(",")')
+./scripts/gensops.sh $ALLOWED_USERS $TMPDIR/authorized_keys
 # at this point sops -e will be able to encrypt any yaml file for all recipients who have ssh-ed25519 keys uploaded to github and have been added to sops_users.txt
 ```
 

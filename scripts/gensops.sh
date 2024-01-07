@@ -4,15 +4,16 @@
 SCRIPT_DIR=$(dirname "$0")
 source "$SCRIPT_DIR/lib/ssh-to-age.sh"
 
-# Check if an argument is provided
+# Check if two arguments are provided
 if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 /path/to/sops_users /path/to/authorized_keys"
+    echo "Usage: $0 'allowed_user1,allowed_user2' /path/to/authorized_keys"
     exit 1
 fi
 
-SOPS_USERS_FILE="$1"
+# Get the SOPS_USERS string from the first argument and split into an array
+IFS=',' read -r -a SOPS_USERS <<< "$1"
 
-# Get the authorized_keys file path from the first argument
+# Get the authorized_keys file path from the second argument
 AUTHORIZED_KEYS_PATH="$2"
 
 # Find the binary using the function from the library
@@ -35,14 +36,8 @@ echo "creation_rules:" > "$SOPS_FILE"
 echo "  - key_groups:" >> "$SOPS_FILE"
 echo "      - age:" >> "$SOPS_FILE"
 
-# Read the sops_users.txt file into an array, ensuring the last line is read even without a newline
-SOPS_USERS=()
-while IFS= read -r user || [[ -n "$user" ]]; do
-    SOPS_USERS+=("$user")
-done < "$SOPS_USERS_FILE"
-
 # Debug: Print the contents of SOPS_USERS
-echo "Loaded SOPS_USERS:"
+echo "Allowed SOPS users:"
 printf "'%s'\n" "${SOPS_USERS[@]}"
 
 # Function to check if an element is in the array
@@ -65,10 +60,7 @@ while IFS= read -r line; do
     ssh_key=$(echo "$line" | awk '{print $1 " " $2}')
     key_id=$(echo "$line" | awk '{print $3}')
 
-    # Debug: Print the key_id being checked
-    echo "Checking key ID: '$key_id'"
-
-    # Check if the key_id is in the sops_users.txt file
+    # Check if the key_id is in the SOPS_USERS array
     if elementInArray "$key_id" "${SOPS_USERS[@]}"; then
         # Convert the SSH key to an age key by calling the binary directly
         age_key=$("$BINARY_PATH" -i <(echo "$ssh_key") 2>/dev/null)
@@ -83,7 +75,7 @@ while IFS= read -r line; do
         fi
         echo "          - $age_key" >> "$SOPS_FILE"
     else
-        echo "Warning: Key ID '$key_id' is not listed in sops_users.txt and will not be added."
+        echo "Warning: Key ID '$key_id' is not listed in the allowed users and will not be added."
     fi
 done < "$AUTHORIZED_KEYS_PATH"
 
