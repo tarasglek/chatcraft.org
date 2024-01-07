@@ -23,7 +23,7 @@ ALLOWED_USERS=$(sops -d  --extract '["users_unencrypted"]'  --output-type json s
 # at this point sops -e will be able to encrypt any yaml file for all recipients who have ssh-ed25519 keys uploaded to github and have been added to sops_users.txt
 ```
 
-Now we need to rencrypt secrets for the new user
+Now we need to re-encrypt secrets for the new user
 
 ```bash
 # convert your ssh private key to sops env var
