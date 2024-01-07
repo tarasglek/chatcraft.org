@@ -1,4 +1,4 @@
-This repo uses sops to share secrets. This requires users to upload a ssh-ed25519 pubkey to github. And for their github username to get added to sops_users.txt
+This repo uses sops to share secrets. This requires users to upload a ssh-ed25519 pubkey to github. And for their github username to get added to sops/admin/users.sops-protected.yaml
 
 ```bash
 # install prereqs
