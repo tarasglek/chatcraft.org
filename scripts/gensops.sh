@@ -1,12 +1,12 @@
 #!/bin/bash
-
+set -e
 # Source the ssh-to-age.sh library script
 SCRIPT_DIR=$(dirname "$0")
 source "$SCRIPT_DIR/lib/ssh-to-age.sh"
 
 # Check if two arguments are provided
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 'allowed_user1,allowed_user2' /path/to/authorized_keys"
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 'allowed_user1,allowed_user2' /path/to/authorized_keys /path/to/.sops.yaml"
     exit 1
 fi
 
@@ -29,7 +29,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Create the .sops.yaml file in the git repository root
-SOPS_FILE="$GIT_REPO_ROOT/.sops.yaml"
+SOPS_FILE="$3"
 
 # Write the header for the .sops.yaml file with key_groups and age subsections
 echo "creation_rules:" > "$SOPS_FILE"
@@ -79,6 +79,7 @@ while IFS= read -r line; do
         if [ -n "$key_id" ]; then
             echo "          # $key_id" >> "$SOPS_FILE"
         fi
+        echo "Adding key ID '$key_id' to $SOPS_FILE"
         echo "          - $age_key" >> "$SOPS_FILE"
     else
         echo "Warning: Key ID '$key_id' is not listed in the allowed users and will not be added."
@@ -92,5 +93,4 @@ for user in "${SOPS_USERS[@]}"; do
     fi
 done
 
-echo "The .sops.yaml file has been created at the root of the git repository:"
-echo "$SOPS_FILE"
+echo "Generated $SOPS_FILE"
