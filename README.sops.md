@@ -6,7 +6,11 @@ go install github.com/getsops/sops/v3/cmd/sops@v3.8.1
 go install github.com/Mic92/ssh-to-age/cmd/ssh-to-age@latest
 ```
 
-### encryption
+### Admin: Adding a user
+
+Add user to project, ensure they have ssh-ed25519 pubkey uploaded to github.
+
+Add user to sops/admin/users.sops-protected.yaml so we can encrypt secrets for them
 
 ```bash
 # fetch pub keys for all users in repo, ensure they ssh-ed25519
@@ -19,19 +23,30 @@ ALLOWED_USERS=$(sops -d  --extract '["users_unencrypted"]'  --output-type json s
 # at this point sops -e will be able to encrypt any yaml file for all recipients who have ssh-ed25519 keys uploaded to github and have been added to sops_users.txt
 ```
 
-### decryption
+Now we need to rencrypt secrets for the new user
 
 ```bash
 # convert your ssh private key to sops env var
 SOPS_AGE_KEY=`scripts/sops_age_key.sh
 
-# edit secrets as you like
-sops -i keys.enc.yaml
+# edit secrets, this should re-encrypt them for new user
+sops -i sops/keys.enc.yaml
 
-# or just decrypt em
-sops -d keys.enc.yaml
+# check with git diff that we encrypted for new user
+git diff sops/keys.enc.yaml
+```
+
+### User: Decrypting secrets
+
+```
+SOPS_AGE_KEY=`scripts/sops_age_key.sh
+
+sops -d sops/keys.enc.yaml
+
 ```
 
 ### Holes
 
 To paraphrase sops docs: note that, while sops user list is in cleartext, unencrypted content is still added to the checksum of the file, and thus cannot be modified outside of SOPS without breaking the file integrity check.
+
+It's up to git review to ensure that only users in sops/admin/.sops.yaml can add new users to sops/users.sops.yaml. From there on sops integrity checks help. In theory github action could verify this. In practice users can override github actions in their pull req.
