@@ -1,3 +1,9 @@
+```bash
+# install prereqs
+go install github.com/getsops/sops/v3/cmd/sops@v3.8.1
+go install github.com/Mic92/ssh-to-age/cmd/ssh-to-age@latest
+```
+
 ### encryption
 
 ```bash
@@ -11,7 +17,7 @@
 
 ### decryption
 
-```
+```bash
 # convert your ssh private key to sops env var
 SOPS_AGE_KEY=`scripts/sops_age_key.sh
 
