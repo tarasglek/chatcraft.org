@@ -1,0 +1,38 @@
+users_unencrypted:
+  - tarasglek
+  - humphd
+  - Amnish04
+  - Rachit1313
+  - kliu57
+  - mingming-ma
+  - WangGithub0
+  - rjwignar
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age19j4d6v9j7rx5fs629fu387qz4zmlpsqjexa4s08tkfrrmfdl5cwqjlaupd
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBDbVhjWTA2c2VJOTZDUzBp
+        V0F4bjhCdjgrWE5VdkUrcXQwVTBIUVhZSnhVCnVrQVhJU2hrQXdIUDczQklzTTlL
+        ejFGT2h0WVZDNlFWTHRiZjFuM3IzZ2cKLS0tIFNONEdyTEpmQUY3QmRQeCtBRUpT
+        M0wveU9XQTZZcVc1eHpNRkFpeDNvOEkKRVX8K2ylRjf13zpf95leFVZqUhRCiF7x
+        1XghwtK6MVnWPMZst9nvOa02E64VsY51OiActXcDjUjgqHvlSHx5Mg==
+        -----END AGE ENCRYPTED FILE-----
+    - recipient: age13runq29jhy9kfpaegczrzttykerswh0qprq59msgd754yermtfmsa3hwg2
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBONCtGa1Zxb2dYS1Fhb3pj
+        MG1GalYvT2E0cExqSE1iN0pHRFNyRUtRQVRnCmhLdzZrQ2x3SGVud3BXQTZMWUpO
+        VjhyaXVpakFpRzAvNHRUaHAzbVRJR2MKLS0tIDZFTVhwYTBPL3oxL0FXSnBJbmZX
+        VUZaUTlROGpudWlVK3h5S3VZbU9lZlUKTmKNebPIX96Io4BS6gq6+OE4ygyqYOAy
+        5iuxy1J27bRf5HeueiczFs45veTsSPFkwnw/FvdvP5sx+GhgQKnXag==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2024-01-07T21:21:35Z"
+  mac: ENC[AES256_GCM,data:s8mtwOdKjLLzAqNhW8LFF34bU0/swJc7Qsc/aJURussV15O/vkN8oYYjVJWbFeIUqGKm1FnGMIksrJ/daRM9tXvMlztJrLK60S9WfwZw15bNn9SOptFh3mbQ8FLgN7lmZ5Ub7onh5SmVw3APrfusGvFJDKH3VZLtF798o63R8AM=,iv:ppTY5I5LYriVOFAXN6X6cOeEoxQC212oax3WIYHkcBM=,tag:FMKfzJPdoO/9APdUITVEYg==,type:str]
+  pgp: []
+  unencrypted_suffix: _unencrypted
+  version: 3.8.1

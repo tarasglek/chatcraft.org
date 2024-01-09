@@ -12,6 +12,7 @@ Thank you for considering contributing to ChatCraft.org! This document outlines 
   - [Running the App with Backend](#running-the-app-with-backend)
   - [Submitting Changes](#submitting-changes)
   - [Code Style](#code-style)
+  - [Secrets](#secrets)
   - [Documentation](#documentation)
   - [Issue and Pull Request Guidelines](#issue-and-pull-request-guidelines)
   - [Community](#community)
@@ -74,6 +75,10 @@ We follow a specific code style to maintain consistency throughout the project. 
 - Write clear and concise comments when necessary.
 - Keep lines of code within 80 characters.
 - use `prettier` via VSCode or run the `prettier` script to auto-format. We also format on commit with Husky.
+
+## Secrets
+
+See [README.sops.md](./README.sops.md) for details regarding how we encrypt and share secrets.
 
 ## Documentation
 
