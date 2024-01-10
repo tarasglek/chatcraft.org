@@ -1,5 +1,5 @@
 keys:
-  OPENAI_API_KEY: ENC[AES256_GCM,data:syXR0o6zu6VattiIhb/2++VP0J+I1qaRvdgsYUwb4nDtl/c3exs8EtAlMxZFpN8Z,iv:yGfFPV7bGEGaW2ePiPcxpBc2YMnX9FaxK2Mm1123kvk=,tag:0bA9m70x8WFRDaKHNsD+Dw==,type:str]
+  OPENAI_API_KEY: ENC[AES256_GCM,data:elwDiserNtn4zzZ1OgAJ89Qf4AYZzw9Zo9KuDBajNA8IzcHJqQCgI9/NXBg+k0nZYqXL,iv:wpafefzHC27e2AzJkk0dMtBAsgzg2DsWm76avteHJdQ=,tag:r2s7SauoQNBY2vWxFl7AIA==,type:str]
 sops:
   kms: []
   gcp_kms: []
@@ -24,8 +24,8 @@ sops:
         Q1ZUS3BLc09DKzBJL0kyOVhqZWFPZEEKUB/ynrfh5f+SOsswpE7T+5ajhzwX6zbE
         8hAhLVTZZR63ZBSqTOX8A3dR1hzHBIVKSx2zfiWnIw6suDGTdoJm1A==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2024-01-07T21:25:57Z"
-  mac: ENC[AES256_GCM,data:AJKc5XmAHIkqHTMutCSDidfblQy656meeimrWJImY9LZKYghrUSw95N3nrMMcbo5mXlvYOoUNWQ2e/cHcr1C1IA66WvguecEGa+wt+6sxMC4xCWhx2rAx2NOvkI09TE0CHfbalkyoVosH+cu4hevso2LUv6ctsIid6QW4SG/J14=,iv:N2sIl/hIXCRiYwZU5RpiA5/0CAqUPFwisdQAnWoIgNA=,tag:5ssIWJPJyPud9HLCMZj4mg==,type:str]
+  lastmodified: "2024-01-10T05:54:15Z"
+  mac: ENC[AES256_GCM,data:YyRfUG6EtkIkJwWqBLXhBDc0vs+7fZaVVsV4UlXBkl5sirw2033WTStVLoP5tu6BR8zghEmUCP/kGfNu9kNAGMueH0yzTFyYS4BvzSfzXTLPWsy9D5Ngvu/cVlAiYg2nXdGiCjfd7v5ULL3NBW3aQKV0iFztFRo8qABosni1+2o=,iv:u8yWFMJuf3f+/RP1gZwgxm/QpJ1v8mAQ+xk3OstoBcc=,tag:9fatoAPe7IoMhyJOOM7anA==,type:str]
   pgp: []
   unencrypted_suffix: _unencrypted
   version: 3.8.1

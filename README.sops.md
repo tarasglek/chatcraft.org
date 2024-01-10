@@ -35,7 +35,7 @@ Now we need to re-encrypt secrets for the new user
 
 ```bash
 # convert your ssh private key to sops env var
-SOPS_AGE_KEY=`scripts/sops_age_key.sh
+SOPS_AGE_KEY=`scripts/sops_age_key.sh`
 
 # update secrets, this will re-encrypt them for new user
 (cd sops/ && sops updatekeys keys.enc.yaml)
@@ -47,7 +47,7 @@ git diff sops/keys.enc.yaml
 ### User: Decrypting secrets
 
 ```bash
-SOPS_AGE_KEY=scripts/sops_age_key.sh
+export SOPS_AGE_KEY=scripts/sops_age_key.sh
 
 sops -d sops/keys.enc.yaml
 ```
