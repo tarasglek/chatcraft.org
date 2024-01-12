@@ -1,3 +1,12 @@
+### Decryption
+
+```bash
+export SOPS_AGE_KEY=$(ssh-to-age -private-key < ~/.ssh/id_ed25519)
+sops -i keys.enc.yaml
+```
+
+### Encryption
+
 To add/remove users from repo do something like:
 
 ```bash
