@@ -3,8 +3,8 @@
 # top-most EditorConfig file
 root = true
 
-# For all TS under src directory
-[src/**.tsx]
+# For all the files
+[*]
 end_of_line = lf
 trim_trailing_whitespace = true
 insert_final_newline = true
