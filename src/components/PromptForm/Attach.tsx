@@ -17,12 +17,14 @@ export default function Attach({ isDisabled = false, onFileSelected }: AttachPro
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files && files[0]) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        onFileSelected(e.target?.result as string);
-      };
-      reader.readAsDataURL(files[0]);
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          onFileSelected(e.target?.result as string);
+        };
+        reader.readAsDataURL(files[i]);
+      }
       // Reset the input value after file read
       event.target.value = "";
     }
@@ -34,7 +36,14 @@ export default function Attach({ isDisabled = false, onFileSelected }: AttachPro
 
   return (
     <>
-      <Input type="file" ref={fileInputRef} hidden onChange={handleFileChange} accept="image/*" />
+      <Input
+        multiple
+        type="file"
+        ref={fileInputRef}
+        hidden
+        onChange={handleFileChange}
+        accept="image/*"
+      />
       <IconButton
         onClick={handleClick}
         isRound
