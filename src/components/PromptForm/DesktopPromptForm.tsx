@@ -312,6 +312,21 @@ function DesktopPromptForm({
                         <Box
                           position="absolute"
                           top="0"
+                          left="0"
+                          bg="whiteAlpha.600"
+                          borderRadius="full"
+                          p="1"
+                          zIndex="2"
+                          _hover={{
+                            bg: "blue.500",
+                            color: "white",
+                          }}
+                        >
+                          {index + 1}
+                        </Box>
+                        <Box
+                          position="absolute"
+                          top="0"
                           right="0"
                           bg="whiteAlpha.600"
                           borderRadius="full"
