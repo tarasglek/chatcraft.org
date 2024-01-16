@@ -299,13 +299,16 @@ function MessageBase({
                     <>
                       <MenuDivider />
                       <Menu>
-                        <MenuButton
-                          as={Button}
-                          px={"15vh"}
-                          py={"1vh"}
-                          rightIcon={<ChevronDownIcon />}
-                        >
-                          Retry with
+                        <MenuButton as={Text} cursor="pointer" paddingX="2vh" paddingY="1vh">
+                          <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            width="full"
+                            alignItems="center"
+                          >
+                            <Text>Retry with</Text>
+                            <ChevronDownIcon />
+                          </Box>
                         </MenuButton>
                         <MenuList>
                           {models
