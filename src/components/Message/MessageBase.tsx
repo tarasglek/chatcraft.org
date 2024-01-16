@@ -297,11 +297,18 @@ function MessageBase({
                   {onRetryClick && (
                     <>
                       <MenuDivider />
-                      {models.map((model) => (
-                        <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
-                          Retry with {model.prettyModel}
-                        </MenuItem>
-                      ))}
+                      <Menu>
+                        <MenuButton as={Text} paddingLeft="3">
+                          Retry with
+                        </MenuButton>
+                        <MenuList>
+                          {models.map((model) => (
+                            <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
+                              {model.prettyModel}
+                            </MenuItem>
+                          ))}
+                        </MenuList>
+                      </Menu>
                     </>
                   )}
 
