@@ -34,6 +34,7 @@ import {
   Kbd,
   Spacer,
 } from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
@@ -298,15 +299,22 @@ function MessageBase({
                     <>
                       <MenuDivider />
                       <Menu>
-                        <MenuButton as={Text} paddingLeft="3">
+                        <MenuButton
+                          as={Button}
+                          px={"15vh"}
+                          py={"1vh"}
+                          rightIcon={<ChevronDownIcon />}
+                        >
                           Retry with
                         </MenuButton>
                         <MenuList>
-                          {models.map((model) => (
-                            <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
-                              {model.prettyModel}
-                            </MenuItem>
-                          ))}
+                          {models
+                            .sort((a, b) => a.prettyModel.localeCompare(b.prettyModel))
+                            .map((model) => (
+                              <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
+                                {model.prettyModel}
+                              </MenuItem>
+                            ))}
                         </MenuList>
                       </Menu>
                     </>

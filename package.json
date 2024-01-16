@@ -14,6 +14,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.1",
     "@codemirror/lang-javascript": "^6.2.1",
     "@emotion/react": "^11.11.1",
