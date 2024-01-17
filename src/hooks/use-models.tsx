@@ -54,9 +54,9 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       isFetching.current = true;
       try {
         const models = await queryModels(apiKey).then((models) => {
-          models.sort();
           return models.map((modelName) => new ChatCraftModel(modelName));
         });
+        models.sort((a, b) => a.prettyModel.localeCompare(b.prettyModel));
         setModels(models);
         setSettings({ ...settings, model: pickDefaultModel(settings.model, models) });
       } catch (err) {
@@ -73,7 +73,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, [settings.apiUrl, settings.apiKey]);
 
   const value = {
-    models: models?.sort((a, b) => a.prettyModel.localeCompare(b.prettyModel)) || defaultModels,
+    models: models || defaultModels,
     error,
   };
 
