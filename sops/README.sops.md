@@ -1,6 +1,12 @@
 ### Decryption
 
 ```bash
+export SOPS_AGE_KEY=$(bash ./scripts/sops_age_key.sh)
+
+sops -d sops/keys.enc.yaml
+```
+
+```bash
 export SOPS_AGE_KEY=$(ssh-to-age -private-key < ~/.ssh/id_ed25519)
 sops -i keys.enc.yaml
 ```
