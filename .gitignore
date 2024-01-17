@@ -28,3 +28,6 @@ build
 
 # Visualization of bundle sizes
 stats.html
+
+# sops
+keys.yaml
