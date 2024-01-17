@@ -2,7 +2,10 @@ import { memo } from "react";
 import { Box, useColorModeValue } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import rehypeExternalLinks from "rehype-external-links";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 // Use highlight.js (via lowlight) vs. prism.js (via refractor) due to
 // https://github.com/tarasglek/chatcraft.org/issues/32
@@ -58,10 +61,11 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
     <ReactMarkdown
       className="message-text"
       children={children}
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, [remarkMath]]}
       rehypePlugins={[
         // Open links in new tab
         [rehypeExternalLinks, { target: "_blank" }],
+        rehypeKatex,
       ]}
       components={{
         code({ className, children, ...props }) {
