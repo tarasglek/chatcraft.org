@@ -46,13 +46,8 @@ git diff sops/keys.enc.yaml
 
 ### User: Decrypting secrets
 
-```bash
-export SOPS_AGE_KEY=scripts/sops_age_key.sh
-
-sops -d sops/keys.enc.yaml
-```
-
 If you are using an encrypted key, you will have to first export the password in `SSH_TO_AGE_PASSPHRASE` and then export the AGE key in `SOPS_AGE_KEY`:
+
 ```bash
 read -s SSH_TO_AGE_PASSPHRASE; export SSH_TO_AGE_PASSPHRASE
 # Type passphrase then press [Enter]
