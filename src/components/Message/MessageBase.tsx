@@ -297,13 +297,11 @@ function MessageBase({
                   {onRetryClick && (
                     <>
                       <MenuDivider />
-                      {models
-                        .sort((a, b) => a.prettyModel.localeCompare(b.prettyModel))
-                        .map((model) => (
-                          <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
-                            Retry with {model.prettyModel}
-                          </MenuItem>
-                        ))}
+                      {models.map((model) => (
+                        <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
+                          Retry with {model.prettyModel}
+                        </MenuItem>
+                      ))}
                     </>
                   )}
 
