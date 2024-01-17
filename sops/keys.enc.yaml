@@ -1,5 +1,5 @@
 secrets:
-  OPENAI_API_KEY: ENC[AES256_GCM,data:sXrnTgpW53DpH+ut68jMXx1RvmqBh0VnafB7lUFaCTDO1MNsQYVlA/tReMGmZDU+irfl,iv:OA0GHxJWEDh3q1vNkxgvEaJFbDF4nE6DDxJZFtR7CmY=,tag:Z+4FP1PNUOUnp4CSlJfL5w==,type:str]
+  OPENAI_API_KEY: ENC[AES256_GCM,data:xFfUxm74bHTOciWIsfu2mA5qLE16uePDbO5F+YyMNY6j33XxaeRLAT2Xd0ceKMOLqUgh,iv:WNOeU77mnHJSVB25AMXvWYOS7qeSTw5Ln6znLtoHfRQ=,tag:1oZYSmYCIa3+FA8/M5PJ0w==,type:str]
   OPENROUTER_API_KEY: ENC[AES256_GCM,data:aoKBptIENgELVki9xMCAJYT4kdl+fLBedtoxlKf7xdcVPyUth6Zb4aP1+bF2Xdl3RgkW8wu9fLV3Wg9a13NCgwQqERA3hNb6ug==,iv:ff4k6Y2yPmi6/t2zl9RkSpkF3C2UHfg9aaeRoWHc/nc=,tag:FUts6mWSFSCfkr8Sb/4zfQ==,type:str]
 sops:
   kms: []
@@ -79,8 +79,8 @@ sops:
         OGV2eWh2MU5nbm1BUytpZWZUdDZidGsKytm5kPJb4awxrCPSdtz2stMhoEvWbUzI
         NJSkrfJx9dDrhU5rvumHknXTfo+tLQ4S3ExToFt3wHctXFijAHrSLg==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2024-01-15T20:59:03Z"
-  mac: ENC[AES256_GCM,data:lNVJ/VqdLVRQhvL3Fwc2Yu3sieSmGYE8jjxPmVeqF5RXDC5zblJ7rPyTv9DxRwQ4xygZYSy7Kl1KXPGnhCTiMtOiplG7LOWo2UR01tpQKdoKIbYNQu6i0ZGxex2gxkZQm8k+3UUVYPR1FUmMmWHK1XTJmLi5St9OJjhvzLCenPo=,iv:GvWC0PSlI2Dr7QmCAUIjBMzDJh89s4MnCbu6oYhc/Fw=,tag:2X4PPD9+rQaU2jGG2e7uWw==,type:str]
+  lastmodified: "2024-01-17T06:17:07Z"
+  mac: ENC[AES256_GCM,data:l+UG8uTGC9H9zQ70s0Jb3pFZrTu8ugtPIIKniiFb4FowMopD/M73YTouGI5zmt84wJw1fPOws5gK/milW0IooPI3b8kG+wEIABEE7x7Z5Ji5zdlfAMHB5Rbi3a7ZpkTYIithkvJeo5LEJtrtrKzyFYqkES1YagjAtstkvkEpoSM=,iv:NI3D7i9lEq98Ic01OPKdinx6ZZI+iFpZPDUUhwNVbO4=,tag:h87sC6dj7YC9kQP6wKk27A==,type:str]
   pgp: []
   unencrypted_suffix: _unencrypted
   version: 3.8.1
