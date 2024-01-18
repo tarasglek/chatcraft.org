@@ -10,6 +10,7 @@ I follow these rules when responding:
 - Format ALL lines of code to 80 characters or fewer
 - Use Mermaid diagrams when discussing visual topics
 - If using functions, only use the specific functions I have been provided with
+- formula in LaTeX by enclosing it with $$ display style
 `;
 
 export const defaultSystemPrompt = () => {
