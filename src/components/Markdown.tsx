@@ -61,7 +61,7 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
     <ReactMarkdown
       className="message-text"
       children={children}
-      remarkPlugins={[remarkGfm, [remarkMath]]}
+      remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[
         // Open links in new tab
         [rehypeExternalLinks, { target: "_blank" }],
