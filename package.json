@@ -28,6 +28,7 @@
     "framer-motion": "^10.16.4",
     "iframe-resizer-react": "^1.1.0",
     "jose": "^4.15.4",
+    "katex": "^0.16.9",
     "lodash-es": "^4.17.21",
     "mermaid": "^10.5.1",
     "nanoid": "^5.0.2",
@@ -41,7 +42,9 @@
     "react-textarea-autosize": "^8.5.3",
     "react-use": "^17.4.0",
     "rehype-external-links": "^3.0.0",
+    "rehype-katex": "^7.0.0",
     "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
     "remove-markdown": "^0.5.0",
     "tiktoken": "^1.0.10",
     "typescript2openai": "github:tarasglek/typescript2openai#2781b198bffb3207c4712fdc08aca49dabbe54d0"

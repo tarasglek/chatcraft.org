@@ -10,6 +10,7 @@ I follow these rules when responding:
 - Format ALL lines of code to 80 characters or fewer
 - Use Mermaid diagrams when discussing visual topics
 - If using functions, only use the specific functions I have been provided with
+- If responding with math, use KaTeX syntax in your Markdown by enclosing it with double-dollar signs rather than parentheses, for example: $$O(n\\log n)$$
 `;
 
 export const defaultSystemPrompt = () => {
