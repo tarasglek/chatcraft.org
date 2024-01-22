@@ -7,11 +7,18 @@ import {
   ChatCraftFunctionCallMessage,
 } from "../lib/ChatCraftMessage";
 import { useCost } from "./use-cost";
-import { calculateTokenCost, chatWithLLM, countTokensInMessages, textToSpeech } from "../lib/ai";
+import {
+  calculateTokenCost,
+  chatWithLLM,
+  countTokensInMessages,
+  isTtsSupported,
+  textToSpeech,
+} from "../lib/ai";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import { useAutoScroll } from "./use-autoscroll";
 import useAudioPlayer from "./use-audio-player";
+import { getSettings } from "../lib/settings";
 
 const noop = () => {};
 
@@ -56,7 +63,12 @@ function useChatOpenAI() {
       setShouldAutoScroll(true);
       resetScrollProgress();
 
-      let lastIndex = 0;
+      let lastTTSIndex = 0; // To calculate new words in the AI generated text stream
+
+      // Buffer the response stream before calling tts function
+      // This reduces latency and number of TTS api calls
+      const TTS_BUFFER_THRESHOLD = 50;
+      const ttsWordsBuffer: string[] = [];
 
       const chat = chatWithLLM(messages, {
         model,
@@ -70,13 +82,23 @@ function useChatOpenAI() {
         },
         async onData({ currentText }) {
           if (!pausedRef.current) {
-            // TODO: Hook tts code here
-            const newWords = currentText.split(" ").slice(lastIndex).join(" ");
-            lastIndex = currentText.split(" ").length;
+            // Hook tts code here
+            const newWords = currentText.split(" ").slice(lastTTSIndex);
+            const newWordsCount = currentText.split(" ").length;
+            lastTTSIndex = newWordsCount;
 
-            if (newWords.length > 0) {
-              const audioClipUri = textToSpeech(newWords);
+            ttsWordsBuffer.push(...newWords);
+
+            if (
+              isTtsSupported() &&
+              getSettings().announceMessages &&
+              ttsWordsBuffer.length >= TTS_BUFFER_THRESHOLD
+            ) {
+              const audioClipUri = textToSpeech(ttsWordsBuffer.join(" "));
               addToAudioQueue(audioClipUri);
+
+              // Clear the buffer
+              ttsWordsBuffer.splice(0);
             }
 
             setStreamingMessage(
@@ -124,6 +146,14 @@ function useChatOpenAI() {
           setPaused(false);
           resetScrollProgress();
           setShouldAutoScroll(false);
+
+          if (isTtsSupported() && getSettings().announceMessages) {
+            // Call TTS for remaining words that did not cross the threshold
+            const audioClipUri = textToSpeech(ttsWordsBuffer.join(" "));
+            addToAudioQueue(audioClipUri);
+            // Clear the buffer
+            ttsWordsBuffer.splice(0);
+          }
         });
     },
     [

@@ -442,6 +442,11 @@ export const openRouterPkceRedirect = () => {
   location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
 };
 
+// Audio Recording and Transcribing depends on a bunch of technologies
+export function isTtsSupported() {
+  return usingOfficialOpenAI();
+}
+
 /**
  *
  * @param message The text for which speech needs to be generated
