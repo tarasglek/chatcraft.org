@@ -441,3 +441,24 @@ export const openRouterPkceRedirect = () => {
   // Redirect the user to the OpenRouter authentication page in the same tab
   location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
 };
+
+export const textToSpeech = async (message: string) => {
+  const { apiKey, apiUrl } = getSettings();
+  if (!apiKey) {
+    throw new Error("Missing API Key");
+  }
+  const { openai } = createClient(apiKey, apiUrl);
+
+  const mp3 = await openai.audio.speech.create({
+    model: "tts-1",
+    voice: "onyx",
+    input: message,
+  });
+
+  const blob = new Blob([await mp3.arrayBuffer()], { type: "audio/mpeg" });
+  const objectUrl = URL.createObjectURL(blob);
+
+  // Testing for now
+  const audio = new Audio(objectUrl);
+  audio.play();
+};

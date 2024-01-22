@@ -23,6 +23,7 @@ export type Settings = {
   sidebarVisible: boolean;
   alwaysSendFunctionResult: boolean;
   customSystemPrompt?: string;
+  announceMessages?: boolean;
 };
 
 export const defaults: Settings = {
@@ -35,6 +36,7 @@ export const defaults: Settings = {
   sidebarVisible: false,
   // Disabled by default, so we don't waste tokens
   alwaysSendFunctionResult: false,
+  announceMessages: false,
 };
 
 export const key = "settings";

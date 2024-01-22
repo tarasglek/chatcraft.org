@@ -65,6 +65,8 @@ function useChatOpenAI() {
         },
         onData({ currentText }) {
           if (!pausedRef.current) {
+            // TODO: Hook tts code here
+
             setStreamingMessage(
               new ChatCraftAiMessage({
                 id: message.id,

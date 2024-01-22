@@ -6,6 +6,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Tooltip,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend } from "react-icons/tb";
 
@@ -13,6 +14,7 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
+import { AiFillSound, AiOutlineSound } from "react-icons/ai";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -64,6 +66,15 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
         Ask {settings.model.prettyModel}
       </Button>
+      <Tooltip label={settings.announceMessages ? "TTS Enabled" : "TTS Disabled"}>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setSettings({ ...settings, announceMessages: !settings.announceMessages })}
+        >
+          {settings.announceMessages ? <AiFillSound /> : <AiOutlineSound />}
+        </Button>
+      </Tooltip>
       <Menu placement="top" strategy="fixed">
         <MenuButton
           as={IconButton}
