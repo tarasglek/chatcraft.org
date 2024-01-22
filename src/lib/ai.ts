@@ -442,7 +442,12 @@ export const openRouterPkceRedirect = () => {
   location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
 };
 
-export const textToSpeech = async (message: string) => {
+/**
+ *
+ * @param message The text for which speech needs to be generated
+ * @returns The URL of generated audio clip
+ */
+export const textToSpeech = async (message: string): Promise<string> => {
   const { apiKey, apiUrl } = getSettings();
   if (!apiKey) {
     throw new Error("Missing API Key");
@@ -455,10 +460,8 @@ export const textToSpeech = async (message: string) => {
     input: message,
   });
 
-  const blob = new Blob([await mp3.arrayBuffer()], { type: "audio/mpeg" });
+  const blob = new Blob([await mp3.arrayBuffer()], { type: "audio/mp3" });
   const objectUrl = URL.createObjectURL(blob);
 
-  // Testing for now
-  const audio = new Audio(objectUrl);
-  audio.play();
+  return objectUrl;
 };

@@ -7,10 +7,11 @@ import {
   ChatCraftFunctionCallMessage,
 } from "../lib/ChatCraftMessage";
 import { useCost } from "./use-cost";
-import { calculateTokenCost, chatWithLLM, countTokensInMessages } from "../lib/ai";
+import { calculateTokenCost, chatWithLLM, countTokensInMessages, textToSpeech } from "../lib/ai";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import { useAutoScroll } from "./use-autoscroll";
+import useAudioPlayer from "./use-audio-player";
 
 const noop = () => {};
 
@@ -33,6 +34,8 @@ function useChatOpenAI() {
     pausedRef.current = paused;
   }, [paused]);
 
+  const { addToAudioQueue } = useAudioPlayer();
+
   const callChatApi = useCallback(
     (
       messages: ChatCraftMessage[],
@@ -53,6 +56,8 @@ function useChatOpenAI() {
       setShouldAutoScroll(true);
       resetScrollProgress();
 
+      let lastIndex = 0;
+
       const chat = chatWithLLM(messages, {
         model,
         functions,
@@ -63,9 +68,16 @@ function useChatOpenAI() {
         onResume() {
           setPaused(false);
         },
-        onData({ currentText }) {
+        async onData({ currentText }) {
           if (!pausedRef.current) {
             // TODO: Hook tts code here
+            const newWords = currentText.split(" ").slice(lastIndex).join(" ");
+            lastIndex = currentText.split(" ").length;
+
+            if (newWords.length > 0) {
+              const audioClipUri = textToSpeech(newWords);
+              addToAudioQueue(audioClipUri);
+            }
 
             setStreamingMessage(
               new ChatCraftAiMessage({
@@ -122,6 +134,7 @@ function useChatOpenAI() {
       incrementScrollProgress,
       setStreamingMessage,
       incrementCost,
+      addToAudioQueue,
     ]
   );
 
