@@ -99,7 +99,14 @@ export default function Search() {
       </GridItem>
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">
-        <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
+        <Flex
+          direction="column"
+          h="100%"
+          maxH="100%"
+          maxW={settings.useFullWidth ? "100%" : "900px"}
+          mx="auto"
+          px={1}
+        >
           {hasResults ? (
             <>
               <Card
@@ -148,7 +155,15 @@ export default function Search() {
       </GridItem>
 
       <GridItem>
-        <Flex w="100%" maxW="900px" mx="auto" h="45px" justify="end" align="center" p={2}>
+        <Flex
+          w="100%"
+          maxW={settings.useFullWidth ? "100%" : "900px"}
+          mx="auto"
+          h="45px"
+          justify="end"
+          align="center"
+          p={2}
+        >
           <NewButton variant="solid" />
         </Flex>
       </GridItem>

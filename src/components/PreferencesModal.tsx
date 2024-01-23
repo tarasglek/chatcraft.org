@@ -347,6 +347,15 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 Track and Display Token Count and Cost
               </Checkbox>
             </FormControl>
+
+            <FormControl>
+              <Checkbox
+                isChecked={settings.useFullWidth}
+                onChange={(e) => setSettings({ ...settings, useFullWidth: e.target.checked })}
+              >
+                Setting Chat Full-width
+              </Checkbox>
+            </FormControl>
           </VStack>
         </ModalBody>
 

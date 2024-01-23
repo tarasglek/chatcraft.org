@@ -126,7 +126,15 @@ export default function Function() {
       </GridItem>
 
       <GridItem overflowY="auto" pos="relative">
-        <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1} gap={4}>
+        <Flex
+          direction="column"
+          h="100%"
+          maxH="100%"
+          maxW={settings.useFullWidth ? "100%" : "900px"}
+          mx="auto"
+          px={1}
+          gap={4}
+        >
           <>
             <Card
               variant="filled"

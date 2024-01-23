@@ -306,13 +306,20 @@ function ChatBase({ chat }: ChatBaseProps) {
       </GridItem>
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">
-        <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
+        <Flex
+          direction="column"
+          h="100%"
+          maxH="100%"
+          maxW={settings.useFullWidth ? "100%" : "900px"}
+          mx="auto"
+          px={1}
+        >
           {
             /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
             !!scrollProgress && !shouldAutoScroll && (
               <Flex
                 w="100%"
-                maxW="900px"
+                maxW={settings.useFullWidth ? "100%" : "900px"}
                 mx="auto"
                 justify="center"
                 position="fixed"
@@ -345,7 +352,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       </GridItem>
 
       <GridItem>
-        <Box maxW="900px" mx="auto" h="100%">
+        <Box maxW={settings.useFullWidth ? "100%" : "900px"} mx="auto" h="100%">
           {chat.readonly ? (
             <Flex w="100%" h="45px" justify="end" align="center" p={2}>
               <NewButton forkUrl={`./fork`} variant="solid" />
