@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, startTransition } from "react";
 import { Avatar, Button, Flex, useDisclosure } from "@chakra-ui/react";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
@@ -7,7 +7,15 @@ type HumanMessageProps = Omit<MessageBaseProps, "avatar"> & { avatarUrl?: string
 
 function HumanMessage(props: HumanMessageProps) {
   const { avatarUrl, message, name, ...rest } = props;
-  const { isOpen, onToggle } = useDisclosure();
+  const { isOpen, onToggle: originalOnToggle } = useDisclosure();
+
+  // Wrap the onToggle function with startTransition, state update should be deferred due to long message
+  // https://reactjs.org/docs/error-decoder.html?invariant=426
+  const onToggle = () => {
+    startTransition(() => {
+      originalOnToggle();
+    });
+  };
 
   const footer = (
     <Flex w="100%" justify="space-between" align="center">
