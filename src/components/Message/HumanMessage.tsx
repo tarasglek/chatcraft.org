@@ -33,9 +33,8 @@ function HumanMessage(props: HumanMessageProps) {
   );
 
   const { text } = message;
-  const textLines = text.split("\n");
-  const veryLongMessage = textLines.length > 100 || textLines[0].length > 1000;
-  const summaryText = textLines[0].slice(0, 250).trim() + "...";
+  const veryLongMessage = text.length > 5000;
+  const summaryText = text.split("\n")[0].slice(0, 250).trim() + "...";
 
   return (
     <MessageBase
