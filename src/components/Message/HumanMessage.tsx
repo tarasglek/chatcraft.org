@@ -9,7 +9,6 @@ function HumanMessage(props: HumanMessageProps) {
   const { avatarUrl, message, name, ...rest } = props;
   const { isOpen, onToggle } = useDisclosure();
 
-  // If we're showing the whole prompt, don't bother with the "More..." button
   const footer = (
     <Flex w="100%" justify="space-between" align="center">
       <Button size="sm" variant="ghost" onClick={() => onToggle()}>
