@@ -100,7 +100,7 @@ function CodeHeader({
       return "about:blank";
     }
     return toUrl(code);
-  }, [children, isLoading]);
+  }, [isLoading, code]);
 
   return (
     <>
