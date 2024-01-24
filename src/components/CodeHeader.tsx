@@ -1,4 +1,4 @@
-import { memo, useCallback, type ReactNode } from "react";
+import { memo, useCallback, useMemo, type ReactNode } from "react";
 import {
   Flex,
   ButtonGroup,
@@ -8,7 +8,7 @@ import {
   Text,
   Box,
 } from "@chakra-ui/react";
-import { TbCopy, TbDownload, TbRun } from "react-icons/tb";
+import { TbCopy, TbDownload, TbRun, TbExternalLink } from "react-icons/tb";
 
 import { download, formatAsCodeBlock } from "../lib/utils";
 import { useAlert } from "../hooks/use-alert";
@@ -92,6 +92,16 @@ function CodeHeader({
     }
   }, [onPrompt, code, language]);
 
+  const toUrl = (code: string) =>
+    URL.createObjectURL(new Blob([code], { type: "text/plain;charset=utf-8" }));
+
+  const url = useMemo(() => {
+    if (isLoading) {
+      return "about:blank";
+    }
+    return toUrl(code);
+  }, [children, isLoading]);
+
   return (
     <>
       <Flex
@@ -120,6 +130,18 @@ function CodeHeader({
               isDisabled={isLoading}
             />
           )}
+          <IconButton
+            size="sm"
+            as="a"
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open Code in New Window"
+            title="Open Code in New Window"
+            icon={<TbExternalLink />}
+            color="gray.600"
+            variant="ghost"
+          />
           <IconButton
             size="sm"
             aria-label="Download code"
