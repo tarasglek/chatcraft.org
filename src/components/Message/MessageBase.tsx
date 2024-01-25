@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useRef,
+  RefObject,
   type ReactNode,
   type MouseEvent,
   type FormEvent,
@@ -37,7 +38,7 @@ import {
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
-import { MdContentCopy } from "react-icons/md";
+import { MdContentCopy, MdOutlineSkipNext } from "react-icons/md";
 import { Link as ReactRouterLink } from "react-router-dom";
 
 import { formatDate, download, formatNumber, getMetaKey } from "../../lib/utils";
@@ -111,6 +112,7 @@ function MessageBase({
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
   const meta = useMemo(getMetaKey, []);
+  const ScrollRef: RefObject<HTMLDivElement> = useRef(null);
 
   useEffect(() => {
     if (settings.countTokens) {
@@ -208,6 +210,12 @@ function MessageBase({
     [message, onResubmitClick, chatId, error, onEditingChange]
   );
 
+  const executeScroll = () => {
+    if (ScrollRef.current) {
+      ScrollRef.current.scrollIntoView();
+    }
+  };
+
   return (
     <Box
       id={id}
@@ -250,6 +258,13 @@ function MessageBase({
             <Flex align="center">
               {isHovering && (
                 <ButtonGroup isAttached display={{ base: "none", md: "block" }}>
+                  <IconButton
+                    variant="ghost"
+                    icon={<MdOutlineSkipNext />}
+                    aria-label="Scroll to next message"
+                    title="Scroll to next message"
+                    onClick={() => executeScroll()}
+                  />
                   <IconButton
                     variant="ghost"
                     icon={<MdContentCopy />}
@@ -387,6 +402,7 @@ function MessageBase({
               )}
             </Box>
           </Flex>
+          <div ref={ScrollRef}></div>
         </CardBody>
         {footer && <CardFooter py={2}>{footer}</CardFooter>}
       </Card>
