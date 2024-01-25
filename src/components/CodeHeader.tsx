@@ -101,7 +101,7 @@ function CodeHeader({
     }
     return toUrl(code);
   }, [isLoading, code]);
-  
+
   const handlePreviewCode = useCallback(() => {
     window.open(url, "_blank", "noopener,noreferrer");
   }, [url]);
