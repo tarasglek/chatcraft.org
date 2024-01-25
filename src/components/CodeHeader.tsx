@@ -140,6 +140,7 @@ function CodeHeader({
             title="Open Code in New Window"
             icon={<TbExternalLink />}
             color="gray.600"
+            _dark={{ color: "gray.300" }}
             variant="ghost"
             isDisabled={isLoading}
             onClick={handlePreviewCode}
