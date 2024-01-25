@@ -132,15 +132,13 @@ function CodeHeader({
           )}
           <IconButton
             size="sm"
-            as="a"
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
             aria-label="Open Code in New Window"
             title="Open Code in New Window"
             icon={<TbExternalLink />}
             color="gray.600"
             variant="ghost"
+            isDisabled={isLoading}
+            onClick={handlePreviewCode}
           />
           <IconButton
             size="sm"
