@@ -93,7 +93,7 @@ async function runJavaScript(code: string) {
     if (maybeES6Module) {
       const blob = new Blob([code], { type: "text/javascript" });
       const execution = await captureConsole(
-        async () => await import(URL.createObjectURL(blob) /* @vite-ignore */)
+        async () => await import(/* @vite-ignore */ URL.createObjectURL(blob))
       );
       const module = execution.ret;
       if (!("default" in module)) {
