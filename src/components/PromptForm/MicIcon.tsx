@@ -103,7 +103,29 @@ export default function MicIcon({
     onCancel();
   };
 
-  return (
+  const handleMobileMicToggle = () => {
+    if (isRecording) {
+      onRecordingStop();
+    } else {
+      onRecordingStart();
+    }
+  };
+
+  return isMobile ? (
+    <IconButton
+      isRound
+      isDisabled={isDisabled}
+      colorScheme={colorScheme}
+      icon={<TbMicrophone />}
+      variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
+      aria-label="Record speech"
+      size={isMobile ? "lg" : "md"}
+      fontSize="18px"
+      ref={micIconRef}
+      onClick={handleMobileMicToggle}
+      onBlur={() => onRecordingCancel()}
+    />
+  ) : (
     <motion.div
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
@@ -114,6 +136,11 @@ export default function MicIcon({
           setColorScheme("red");
         } else {
           setColorScheme("blue");
+        }
+
+        // If dragging to the right, set x to the maximum allowed value
+        if (info.offset.x > 0) {
+          x.set(0);
         }
       }}
       onDragEnd={(_event, info) => {
