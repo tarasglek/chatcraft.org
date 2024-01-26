@@ -32,6 +32,10 @@ export default function MicIcon({
   const xCancelOffset = isMobile ? -50 : -100;
 
   const onRecordingStart = async () => {
+    // Scroll Lock
+    document
+      .getElementById("chatcraft-conversation-container")
+      ?.style.setProperty("overflow", "hidden");
     speechRecognitionRef.current = new SpeechRecognition();
 
     // Try to get access to the user's microphone. This may or may not work...
@@ -69,6 +73,10 @@ export default function MicIcon({
   };
 
   const onRecordingStop = async () => {
+    // Disable Scroll Lock
+    document
+      .getElementById("chatcraft-conversation-container")
+      ?.style.setProperty("overflow", "auto");
     setIsRecording(false);
 
     // See if the recording has already been cancelled, or hasn't been started yet
@@ -97,6 +105,10 @@ export default function MicIcon({
   };
 
   const onRecordingCancel = () => {
+    // Disable Scroll Lock
+    document
+      .getElementById("chatcraft-conversation-container")
+      ?.style.setProperty("overflow", "auto");
     speechRecognitionRef.current?.cancel();
     speechRecognitionRef.current = null;
     setIsRecording(false);
@@ -106,7 +118,7 @@ export default function MicIcon({
   return (
     <motion.div
       drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
+      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragTransition={{ bounceStiffness: 500, bounceDamping: 20 }}
       dragElastic={1}
       onDrag={(_event, info) => {
@@ -123,9 +135,11 @@ export default function MicIcon({
         setColorScheme("blue");
         x.set(0);
       }}
-      style={{ x }}
+      style={{ x, userSelect: "none" }} // Add 'userSelect: none' to disable text selection
+      onContextMenu={(event) => event.preventDefault()} // Prevent context menu from appearing
     >
       <IconButton
+        id="chatcraft-mic-button"
         isRound
         isDisabled={isDisabled}
         colorScheme={colorScheme}
@@ -137,6 +151,15 @@ export default function MicIcon({
         ref={micIconRef}
         onPointerDown={() => onRecordingStart()}
         onPointerUp={() => onRecordingStop()}
+        onTouchEnd={(event) => {
+          const touch = event.changedTouches[event.changedTouches.length - 1];
+          const elementTouched = document.elementFromPoint(touch.clientX, touch.clientY);
+          const micButton = document.getElementById("chatcraft-mic-button");
+
+          if (!micButton?.contains(elementTouched)) {
+            onRecordingCancel();
+          }
+        }}
         onBlur={() => onRecordingCancel()}
       />
     </motion.div>

@@ -25,7 +25,7 @@ export default function AudioStatus({
 
   if (isRecording) {
     return (
-      <Flex alignItems="center" gap={2}>
+      <Flex alignItems="center" gap={2} flexWrap={"wrap"}>
         <TbMicrophone /> Recording...
         <Text>{formatSeconds(recordingSeconds)}</Text>
       </Flex>

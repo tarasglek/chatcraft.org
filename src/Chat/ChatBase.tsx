@@ -305,7 +305,12 @@ function ChatBase({ chat }: ChatBaseProps) {
         <Sidebar selectedChat={chat} />
       </GridItem>
 
-      <GridItem overflowY="auto" ref={messageListRef} pos="relative">
+      <GridItem
+        id="chatcraft-conversation-container"
+        overflowY="auto"
+        ref={messageListRef}
+        pos="relative"
+      >
         <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
           {
             /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
