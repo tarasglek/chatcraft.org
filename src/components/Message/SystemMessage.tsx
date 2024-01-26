@@ -11,7 +11,6 @@ import {
   MenuItem,
   MenuList,
   Text,
-  useDisclosure,
 } from "@chakra-ui/react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { TbChevronDown, TbStar, TbStarFilled } from "react-icons/tb";
@@ -138,7 +137,6 @@ type SystemMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
 
 function SystemMessage(props: SystemMessageProps) {
   const { chatId, message, editing, onEditingChange } = props;
-  const { isOpen, onToggle } = useDisclosure();
   const summaryText = createSystemPromptSummary(message);
   const { error } = useAlert();
 
@@ -153,32 +151,17 @@ function SystemMessage(props: SystemMessageProps) {
     />
   );
 
-  // If we're showing the whole prompt, don't bother with the "More..." button
-  const footer =
-    message.text.length > summaryText.length ? (
-      !editing && (
-        <Flex w="100%" justify="space-between" align="center">
-          <Button size="sm" variant="ghost" onClick={() => onToggle()}>
-            {isOpen ? "Show Less" : "Show More..."}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => onEditingChange(true)}>
-            <Text fontSize="xs" as="em">
-              Edit to customize
-            </Text>
-          </Button>
-        </Flex>
-      )
-    ) : (
-      <Flex w="100%" justify="flex-end" align="center">
-        {!editing && (
-          <Button size="sm" variant="ghost" onClick={() => onEditingChange(true)}>
-            <Text fontSize="xs" as="em">
-              Edit to customize
-            </Text>
-          </Button>
-        )}
-      </Flex>
-    );
+  const footer = (
+    <Flex w="100%" justify="flex-end" align="center">
+      {!editing && (
+        <Button size="sm" variant="ghost" onClick={() => onEditingChange(true)}>
+          <Text fontSize="xs" as="em">
+            Edit to customize
+          </Text>
+        </Button>
+      )}
+    </Flex>
+  );
 
   const handleSystemPromptVersionChange = (systemPrompt: string) => {
     message.text = systemPrompt;
@@ -202,7 +185,7 @@ function SystemMessage(props: SystemMessageProps) {
           promptMessage={message}
         />
       }
-      summaryText={!isOpen ? summaryText : undefined}
+      summaryText={summaryText}
       footer={footer}
     />
   );

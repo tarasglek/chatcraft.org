@@ -4,13 +4,18 @@ import {
   useState,
   useEffect,
   useRef,
-  RefObject,
   type ReactNode,
   type MouseEvent,
   type FormEvent,
   useMemo,
+  useTransition,
 } from "react";
 import {
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
   Box,
   Button,
   ButtonGroup,
@@ -38,7 +43,7 @@ import {
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
-import { MdContentCopy, MdOutlineSkipNext } from "react-icons/md";
+import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink } from "react-router-dom";
 
 import { formatDate, download, formatNumber, getMetaKey } from "../../lib/utils";
@@ -112,7 +117,8 @@ function MessageBase({
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
   const meta = useMemo(getMetaKey, []);
-  const ScrollRef: RefObject<HTMLDivElement> = useRef(null);
+  const [isPending, startTransition] = useTransition();
+  const [accordionText, setAccordionText] = useState("");
 
   useEffect(() => {
     if (settings.countTokens) {
@@ -210,9 +216,11 @@ function MessageBase({
     [message, onResubmitClick, chatId, error, onEditingChange]
   );
 
-  const executeScroll = () => {
-    if (ScrollRef.current) {
-      ScrollRef.current.scrollIntoView();
+  const handleAccordionChange = (index: number) => {
+    if (index !== null) {
+      startTransition(() => {
+        setAccordionText(text);
+      });
     }
   };
 
@@ -258,13 +266,6 @@ function MessageBase({
             <Flex align="center">
               {isHovering && (
                 <ButtonGroup isAttached display={{ base: "none", md: "block" }}>
-                  <IconButton
-                    variant="ghost"
-                    icon={<MdOutlineSkipNext />}
-                    aria-label="Scroll to next message"
-                    title="Scroll to next message"
-                    onClick={() => executeScroll()}
-                  />
                   <IconButton
                     variant="ghost"
                     icon={<MdContentCopy />}
@@ -395,14 +396,37 @@ function MessageBase({
                     </Flex>
                   </VStack>
                 </form>
+              ) : summaryText || text.length > 5000 ? (
+                <Accordion allowToggle onChange={handleAccordionChange}>
+                  <AccordionItem>
+                    <AccordionButton>
+                      <Box as="span" flex="1" textAlign="left">
+                        {summaryText || text.split("\n")[0].slice(0, 250).trim() + "..."}
+                      </Box>
+                      <AccordionIcon />
+                    </AccordionButton>
+                    <AccordionPanel>
+                      {isPending ? (
+                        <div>Loading...</div>
+                      ) : (
+                        <Markdown
+                          previewCode={!hidePreviews}
+                          isLoading={isLoading}
+                          onPrompt={onPrompt}
+                        >
+                          {accordionText}
+                        </Markdown>
+                      )}
+                    </AccordionPanel>
+                  </AccordionItem>
+                </Accordion>
               ) : (
                 <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
-                  {summaryText || text}
+                  {text}
                 </Markdown>
               )}
             </Box>
           </Flex>
-          <div ref={ScrollRef}></div>
         </CardBody>
         {footer && <CardFooter py={2}>{footer}</CardFooter>}
       </Card>
