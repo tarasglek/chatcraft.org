@@ -114,6 +114,8 @@ function MessageBase({
   const messageForm = useRef<HTMLFormElement>(null);
   const meta = useMemo(getMetaKey, []);
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
+  const isLongMessage = text.length > 5000;
+  const displaySummaryText = !isOpen && (summaryText || isLongMessage);
 
   // Wrap the onToggle function with startTransition, state update should be deferred due to long message
   // https://reactjs.org/docs/error-decoder.html?invariant=426
@@ -347,7 +349,7 @@ function MessageBase({
             <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
               {
                 // only display the button before message if the message is too long
-                text.length > 5000 ? (
+                isLongMessage ? (
                   <Button size="sm" variant="ghost" onClick={() => onToggle()}>
                     {isOpen ? "Show Less" : "Show More..."}
                   </Button>
@@ -401,13 +403,11 @@ function MessageBase({
                 </form>
               ) : (
                 <Markdown
-                  previewCode={!hidePreviews && isOpen}
+                  previewCode={!hidePreviews && !displaySummaryText}
                   isLoading={isLoading}
                   onPrompt={onPrompt}
                 >
-                  {!isOpen && (summaryText || text.length > 5000)
-                    ? summaryText || text.slice(0, 250).trim()
-                    : text}
+                  {displaySummaryText ? summaryText || text.slice(0, 250).trim() : text}
                 </Markdown>
               )}
             </Box>
