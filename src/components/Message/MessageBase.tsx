@@ -1,5 +1,6 @@
 import {
   memo,
+  startTransition,
   useCallback,
   useState,
   useEffect,
@@ -8,14 +9,8 @@ import {
   type MouseEvent,
   type FormEvent,
   useMemo,
-  useTransition,
 } from "react";
 import {
-  Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionPanel,
-  AccordionIcon,
   Box,
   Button,
   ButtonGroup,
@@ -39,6 +34,7 @@ import {
   useClipboard,
   Kbd,
   Spacer,
+  useDisclosure,
 } from "@chakra-ui/react";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
@@ -117,8 +113,15 @@ function MessageBase({
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
   const meta = useMemo(getMetaKey, []);
-  const [isPending, startTransition] = useTransition();
-  const [accordionText, setAccordionText] = useState("");
+  const { isOpen, onToggle: originalOnToggle } = useDisclosure();
+
+  // Wrap the onToggle function with startTransition, state update should be deferred due to long message
+  // https://reactjs.org/docs/error-decoder.html?invariant=426
+  const onToggle = () => {
+    startTransition(() => {
+      originalOnToggle();
+    });
+  };
 
   useEffect(() => {
     if (settings.countTokens) {
@@ -215,14 +218,6 @@ function MessageBase({
     },
     [message, onResubmitClick, chatId, error, onEditingChange]
   );
-
-  const handleAccordionChange = (index: number) => {
-    if (index !== null) {
-      startTransition(() => {
-        setAccordionText(text);
-      });
-    }
-  };
 
   return (
     <Box
@@ -350,6 +345,14 @@ function MessageBase({
         <CardBody p={0}>
           <Flex direction="column" gap={3}>
             <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
+              {
+                // only display the button before message if the message is too long
+                text.length > 5000 ? (
+                  <Button size="sm" variant="ghost" onClick={() => onToggle()}>
+                    {isOpen ? "Show Less" : "Show More..."}
+                  </Button>
+                ) : undefined
+              }
               {editing ? (
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
                 <form onSubmit={handleSubmit} ref={messageForm} onKeyDown={handleKeyDown}>
@@ -396,33 +399,15 @@ function MessageBase({
                     </Flex>
                   </VStack>
                 </form>
-              ) : summaryText || text.length > 5000 ? (
-                <Accordion allowToggle onChange={handleAccordionChange}>
-                  <AccordionItem>
-                    <AccordionButton>
-                      <Box as="span" flex="1" textAlign="left">
-                        {summaryText || text.split("\n")[0].slice(0, 250).trim() + "..."}
-                      </Box>
-                      <AccordionIcon />
-                    </AccordionButton>
-                    <AccordionPanel>
-                      {isPending ? (
-                        <div>Loading...</div>
-                      ) : (
-                        <Markdown
-                          previewCode={!hidePreviews}
-                          isLoading={isLoading}
-                          onPrompt={onPrompt}
-                        >
-                          {accordionText}
-                        </Markdown>
-                      )}
-                    </AccordionPanel>
-                  </AccordionItem>
-                </Accordion>
               ) : (
-                <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
-                  {text}
+                <Markdown
+                  previewCode={!hidePreviews && isOpen}
+                  isLoading={isLoading}
+                  onPrompt={onPrompt}
+                >
+                  {!isOpen && (summaryText || text.length > 5000)
+                    ? summaryText || text.slice(0, 250).trim()
+                    : text}
                 </Markdown>
               )}
             </Box>
