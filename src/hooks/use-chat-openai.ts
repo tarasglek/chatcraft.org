@@ -63,12 +63,14 @@ function useChatOpenAI() {
       setShouldAutoScroll(true);
       resetScrollProgress();
 
-      let lastTTSIndex = 0; // To calculate new words in the AI generated text stream
-
-      // Buffer the response stream before calling tts function
+      // Set a maximum words in a sentence that we need to wait for.
       // This reduces latency and number of TTS api calls
-      const TTS_BUFFER_THRESHOLD = 50;
-      const ttsWordsBuffer: string[] = [];
+      const TTS_BUFFER_THRESHOLD = 25;
+
+      // To calculate the current position in the AI generated text stream
+      let ttsCursor = 0;
+      let ttsWordsBuffer = "";
+      const sentenceEndRegex = new RegExp(/[.!?]+/g);
 
       const chat = chatWithLLM(messages, {
         model,
@@ -83,22 +85,30 @@ function useChatOpenAI() {
         async onData({ currentText }) {
           if (!pausedRef.current) {
             // Hook tts code here
-            const newWords = currentText.split(" ").slice(lastTTSIndex);
-            const newWordsCount = currentText.split(" ").length;
-            lastTTSIndex = newWordsCount;
-
-            ttsWordsBuffer.push(...newWords);
+            ttsWordsBuffer = currentText.slice(ttsCursor);
 
             if (
               isTtsSupported() &&
               getSettings().announceMessages &&
-              ttsWordsBuffer.length >= TTS_BUFFER_THRESHOLD
+              sentenceEndRegex.test(ttsWordsBuffer) // Has full sentence
             ) {
-              const audioClipUri = textToSpeech(ttsWordsBuffer.join(" "));
+              // Reset lastIndex before calling exec
+              sentenceEndRegex.lastIndex = 0;
+              const sentenceEndIndex = sentenceEndRegex.exec(ttsWordsBuffer)!.index;
+
+              // Pass the sentence to tts api for processing
+              const textToBeProcessed = ttsWordsBuffer.slice(0, sentenceEndIndex + 1);
+              const audioClipUri = textToSpeech(textToBeProcessed);
               addToAudioQueue(audioClipUri);
 
-              // Clear the buffer
-              ttsWordsBuffer.splice(0);
+              // Update the tts Cursor
+              ttsCursor += sentenceEndIndex + 1;
+            } else if (ttsWordsBuffer.split(" ").length >= TTS_BUFFER_THRESHOLD) {
+              // Flush the entire buffer into tts api
+              const audioClipUri = textToSpeech(ttsWordsBuffer);
+              addToAudioQueue(audioClipUri);
+
+              ttsCursor += ttsWordsBuffer.length;
             }
 
             setStreamingMessage(
@@ -147,12 +157,14 @@ function useChatOpenAI() {
           resetScrollProgress();
           setShouldAutoScroll(false);
 
-          if (isTtsSupported() && getSettings().announceMessages) {
-            // Call TTS for remaining words that did not cross the threshold
-            const audioClipUri = textToSpeech(ttsWordsBuffer.join(" "));
+          if (
+            isTtsSupported() &&
+            getSettings().announceMessages &&
+            ttsWordsBuffer.slice(ttsCursor).length
+          ) {
+            // Call TTS for any remaining words
+            const audioClipUri = textToSpeech(ttsWordsBuffer);
             addToAudioQueue(audioClipUri);
-            // Clear the buffer
-            ttsWordsBuffer.splice(0);
           }
         });
     },
