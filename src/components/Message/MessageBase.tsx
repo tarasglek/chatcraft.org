@@ -346,7 +346,7 @@ function MessageBase({
         </CardHeader>
         <CardBody p={0}>
           <Flex direction="column" gap={3}>
-            <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2} className="aaa">
+            <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
               {
                 // only display the button before message if the message is too long and toggled
                 !editing && isLongMessage && isOpen ? (
