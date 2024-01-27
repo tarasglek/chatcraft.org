@@ -346,12 +346,12 @@ function MessageBase({
         </CardHeader>
         <CardBody p={0}>
           <Flex direction="column" gap={3}>
-            <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
+            <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2} className="aaa">
               {
-                // only display the button before message if the message is too long
-                isLongMessage ? (
+                // only display the button before message if the message is too long and toggled
+                !editing && isLongMessage && isOpen ? (
                   <Button size="sm" variant="ghost" onClick={() => onToggle()}>
-                    {isOpen ? "Show Less" : "Show More..."}
+                    {"Show Less"}
                   </Button>
                 ) : undefined
               }
@@ -402,13 +402,21 @@ function MessageBase({
                   </VStack>
                 </form>
               ) : (
-                <Markdown
-                  previewCode={!hidePreviews && !displaySummaryText}
-                  isLoading={isLoading}
-                  onPrompt={onPrompt}
-                >
-                  {displaySummaryText ? summaryText || text.slice(0, 250).trim() : text}
-                </Markdown>
+                <>
+                  <Markdown
+                    previewCode={!hidePreviews && !displaySummaryText}
+                    isLoading={isLoading}
+                    onPrompt={onPrompt}
+                    className={displaySummaryText ? "message-text message-text-blur" : undefined}
+                  >
+                    {displaySummaryText ? summaryText || text.slice(0, 250).trim() : text}
+                  </Markdown>
+                  {isLongMessage ? (
+                    <Button zIndex={10} size="sm" variant="ghost" onClick={() => onToggle()}>
+                      {isOpen ? "Show Less" : "Show More..."}
+                    </Button>
+                  ) : undefined}
+                </>
               )}
             </Box>
           </Flex>

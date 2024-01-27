@@ -52,14 +52,21 @@ type MarkdownProps = {
   isLoading: boolean;
   onPrompt?: (prompt: string) => void;
   children: string;
+  className?: string;
 };
 
-function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps) {
+function Markdown({
+  previewCode,
+  isLoading,
+  onPrompt,
+  children,
+  className = "message-text",
+}: MarkdownProps) {
   const style = useColorModeValue(oneLight, oneDark);
 
   return (
     <ReactMarkdown
-      className="message-text"
+      className={className}
       children={children}
       remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
       rehypePlugins={[
