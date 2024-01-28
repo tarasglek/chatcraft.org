@@ -10,6 +10,7 @@ import {
   Card,
   CardBody,
   Image,
+  Square,
 } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
@@ -311,8 +312,8 @@ function DesktopPromptForm({
                         />
                         <Box
                           position="absolute"
-                          top="0"
-                          left="0"
+                          top="2px"
+                          left="2px"
                           bg="whiteAlpha.600"
                           borderRadius="full"
                           p="1"
@@ -322,18 +323,18 @@ function DesktopPromptForm({
                             color: "white",
                           }}
                         >
-                          {index + 1}
+                          <Square size="1.5em">{index + 1}</Square>
                         </Box>
                         <Box
                           position="absolute"
-                          top="0"
-                          right="0"
+                          top="2px"
+                          right="2px"
                           bg="whiteAlpha.600"
                           borderRadius="full"
                           p="1"
                           onClick={() => handleDeleteImage(index)}
                           cursor="pointer"
-                          zIndex="2"
+                          zIndex="3"
                           _hover={{
                             bg: "red.500",
                             color: "white",
