@@ -73,9 +73,9 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
           // R Markdown code blocks as well, which look like {r} vs. r or
           // {python} vs. python
           const match = /language-{?(\w+)/.exec(className || "");
-
-          // If we don't have a language-... match, it's inline code
-          if (!match) {
+          const code = String(children);
+          // If we don't have a language-... match and single line, it's inline code
+          if (!match && !code.includes("\n")) {
             return (
               <code className="inline-code" {...props}>
                 {children}
@@ -83,7 +83,7 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
             );
           }
 
-          const language = match[1] || "text";
+          const language = match ? match[1] : "text";
 
           // Include rendered versions of some code blocks before the code
           let preview = null;
@@ -101,7 +101,6 @@ function Markdown({ previewCode, isLoading, onPrompt, children }: MarkdownProps)
               );
             }
           }
-          const code = String(children);
 
           return (
             <>
