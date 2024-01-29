@@ -352,12 +352,14 @@ function MessageBase({
                     />
                     <Flex width="100%" alignItems="center" alignContent="end" gap={2}>
                       <Spacer />
-                      <Text fontSize="sm" color="gray">
-                        <span>
-                          <Kbd>{meta}</Kbd> + <Kbd>Enter</Kbd>
-                          <span> to save</span>
-                        </span>
-                      </Text>
+                      {!isNarrowScreen && (
+                        <Text fontSize="sm" color="gray">
+                          <span>
+                            <Kbd>{meta}</Kbd> + <Kbd>Enter</Kbd>
+                            <span> to save</span>
+                          </span>
+                        </Text>
+                      )}
                       <Button size="sm" variant="ghost" onClick={() => onEditingChange(false)}>
                         Cancel
                       </Button>
