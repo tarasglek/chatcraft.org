@@ -53,8 +53,7 @@ export class ImportCommand extends ChatCraftCommand {
       throw new Error(`Unable to proxy request for URL: ${res.statusText}`);
     }
 
-    // TODO: deal with different various content-type values to parse text out
-    const type = guessType(res.headers.get("content-type"));
+    const type = guessType(res.headers.get("Content-Type"));
     const content = (await res.text()).trim();
 
     const command = `**Command**: import [${url}](${url})`;
@@ -62,8 +61,7 @@ export class ImportCommand extends ChatCraftCommand {
       `${command}\n\n` +
       // If it's already markdown, dump it into the message as is;
       // otherwise, wrap it in a code block with appropriate type
-      (type === "markdown" ? `${content}` : `\`\`\`${type}\n${content}`) +
-      `\n\`\`\``;
+      (type === "markdown" ? content : `\`\`\`${type}\n${content}` + `\n\`\`\``);
 
     return chat.addMessage(new ChatCraftHumanMessage({ user, text }));
   }

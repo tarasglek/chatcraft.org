@@ -26,6 +26,7 @@
     "dexie-react-hooks": "^1.1.6",
     "esbuild-wasm": "^0.19.5",
     "framer-motion": "^10.16.4",
+    "get-video-id": "^3.6.5",
     "iframe-resizer-react": "^1.1.0",
     "jose": "^4.15.4",
     "katex": "^0.16.9",
@@ -47,10 +48,11 @@
     "remark-math": "^6.0.0",
     "remove-markdown": "^0.5.0",
     "tiktoken": "^1.0.10",
-    "typescript2openai": "^1.0.1"
+    "typescript2openai": "^1.0.1",
+    "youtube-captions-scraper": "^2.0.2"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231016.0",
+    "@cloudflare/workers-types": "^4.20240117.0",
     "@types/cookie": "^0.5.3",
     "@types/lodash-es": "^4.17.10",
     "@types/react": "^18.2.31",
@@ -78,7 +80,7 @@
     "vite-plugin-wasm": "^3.3.0",
     "vitest": "^0.34.6",
     "vitest-environment-miniflare": "^2.14.1",
-    "wrangler": "^3.14.0"
+    "wrangler": "^3.25.0"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
