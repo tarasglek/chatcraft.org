@@ -1,5 +1,6 @@
 import {
   memo,
+  startTransition,
   useCallback,
   useState,
   useEffect,
@@ -33,6 +34,7 @@ import {
   useClipboard,
   Kbd,
   Spacer,
+  useDisclosure,
 } from "@chakra-ui/react";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbDots, TbTrash } from "react-icons/tb";
@@ -111,6 +113,17 @@ function MessageBase({
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
   const meta = useMemo(getMetaKey, []);
+  const { isOpen, onToggle: originalOnToggle } = useDisclosure();
+  const isLongMessage = text.length > 5000;
+  const displaySummaryText = !isOpen && (summaryText || isLongMessage);
+
+  // Wrap the onToggle function with startTransition, state update should be deferred due to long message
+  // https://reactjs.org/docs/error-decoder.html?invariant=426
+  const onToggle = () => {
+    startTransition(() => {
+      originalOnToggle();
+    });
+  };
 
   useEffect(() => {
     if (settings.countTokens) {
@@ -334,6 +347,14 @@ function MessageBase({
         <CardBody p={0}>
           <Flex direction="column" gap={3}>
             <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
+              {
+                // only display the button before message if the message is too long and toggled
+                !editing && isLongMessage && isOpen ? (
+                  <Button size="sm" variant="ghost" onClick={() => onToggle()}>
+                    {"Show Less"}
+                  </Button>
+                ) : undefined
+              }
               {editing ? (
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
                 <form onSubmit={handleSubmit} ref={messageForm} onKeyDown={handleKeyDown}>
@@ -383,9 +404,21 @@ function MessageBase({
                   </VStack>
                 </form>
               ) : (
-                <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
-                  {summaryText || text}
-                </Markdown>
+                <>
+                  <Markdown
+                    previewCode={!hidePreviews && !displaySummaryText}
+                    isLoading={isLoading}
+                    onPrompt={onPrompt}
+                    className={displaySummaryText ? "message-text message-text-blur" : undefined}
+                  >
+                    {displaySummaryText ? summaryText || text.slice(0, 500).trim() : text}
+                  </Markdown>
+                  {isLongMessage ? (
+                    <Button zIndex={10} size="sm" variant="ghost" onClick={() => onToggle()}>
+                      {isOpen ? "Show Less" : "Show More..."}
+                    </Button>
+                  ) : undefined}
+                </>
               )}
             </Box>
           </Flex>

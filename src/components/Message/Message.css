@@ -14,18 +14,23 @@
 .message-text h1 {
   font-size: 1.383em;
 }
+
 .message-text h2 {
   font-size: 1.296em;
 }
+
 .message-text h3 {
   font-size: 1.215em;
 }
+
 .message-text h4 {
   font-size: 1.138em;
 }
+
 .message-text h5 {
   font-size: 1.067em;
 }
+
 .message-text h6 {
   font-size: 1em;
 }
@@ -58,10 +63,12 @@
   content: "`";
   font-size: 0.9em;
 }
+
 .message-text .inline-code {
   font-weight: bold;
   font-size: 0.9em;
 }
+
 .message-text .inline-code::after {
   content: "`";
   font-size: 0.9em;
@@ -88,6 +95,7 @@
 .chakra-ui-light .linenumber {
   color: rgb(160, 161, 167);
 }
+
 .chakra-ui-dark .linenumber {
   color: rgb(92, 99, 112);
 }
@@ -113,4 +121,17 @@
 
 .message-text a {
   text-decoration: underline;
+}
+
+.message-text-blur {
+  --mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 1) 0,
+      rgba(0, 0, 0, 1) 50%,
+      rgba(0, 0, 0, 0) 95%,
+      rgba(0, 0, 0, 0) 0
+    )
+    100% 50% / 100% 100% repeat-x;
+  -webkit-mask: var(--mask);
+  mask: var(--mask);
 }
