@@ -44,9 +44,6 @@ dependencies:
   get-video-id:
     specifier: ^3.6.5
     version: 3.6.5
-  he:
-    specifier: ^1.2.0
-    version: 1.2.0
   iframe-resizer-react:
     specifier: ^1.1.0
     version: 1.1.0(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
@@ -56,9 +53,6 @@ dependencies:
   katex:
     specifier: ^0.16.9
     version: 0.16.9
-  lodash:
-    specifier: ^4.17.21
-    version: 4.17.21
   lodash-es:
     specifier: ^4.17.21
     version: 4.17.21
@@ -110,9 +104,6 @@ dependencies:
   remove-markdown:
     specifier: ^0.5.0
     version: 0.5.0
-  striptags:
-    specifier: ^3.2.0
-    version: 3.2.0
   tiktoken:
     specifier: ^1.0.10
     version: 1.0.10
