@@ -409,7 +409,7 @@ function MessageBase({
                     onPrompt={onPrompt}
                     className={displaySummaryText ? "message-text message-text-blur" : undefined}
                   >
-                    {displaySummaryText ? summaryText || text.slice(0, 250).trim() : text}
+                    {displaySummaryText ? summaryText || text.slice(0, 500).trim() : text}
                   </Markdown>
                   {isLongMessage ? (
                     <Button zIndex={10} size="sm" variant="ghost" onClick={() => onToggle()}>
