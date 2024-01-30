@@ -1,5 +1,4 @@
-import ChakraMenu, { type MenuItemProps } from "../Menu";
-import {
+import React, {
   memo,
   useCallback,
   useState,
@@ -30,6 +29,11 @@ import {
   Kbd,
   Spacer,
 } from "@chakra-ui/react";
+
+import Menu from "../Menu/Menu"; // Assuming Menu is the new component
+import MenuItem from "../Menu/MenuItem"; // Assuming MenuItem is the new component
+import SubMenu from "../Menu/SubMenu"; // Assuming SubMenu is the new component
+import MenuDivider from "../Menu/MenuDivider"; // Assuming MenuDivider is the new component
 import ResizeTextarea from "react-textarea-autosize";
 import { TbTrash } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
@@ -98,11 +102,11 @@ function MessageBase({
   disableEdit,
 }: MessageBaseProps) {
   const { id, date, text } = message;
+  const { models } = useModels();
   const { onCopy } = useClipboard(text);
   const { info, error } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
   const { settings } = useSettings();
-  const { models } = useModels();
   const [tokens, setTokens] = useState<number | null>(null);
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
@@ -204,72 +208,6 @@ function MessageBase({
     [message, onResubmitClick, chatId, error, onEditingChange]
   );
 
-  const menuItems: MenuItemProps[] = [
-    { label: "Copy", onClick: handleCopy },
-    { label: "Download", onClick: handleDownload },
-    // Conditionally add "Duplicate Chat until Message..." menu item
-    ...(disableFork
-      ? []
-      : [
-          {
-            label: "Duplicate Chat until Message...",
-            onClick: () => {
-              // Implement the navigation logic here
-            },
-          } as MenuItemProps,
-        ]),
-    // Conditionally add "Retry with..." submenu
-    ...(onRetryClick
-      ? [
-          {
-            label: "Retry with...",
-            subItems: models.map((model) => ({
-              label: `Retry with ${model.prettyModel}`,
-              onClick: () => onRetryClick(model),
-            })) as MenuItemProps[],
-          },
-        ]
-      : []),
-    // Conditionally add "Edit" or "Cancel Editing" menu item
-    ...(disableEdit
-      ? []
-      : [
-          {
-            label: editing ? "Cancel Editing" : "Edit",
-            onClick: () => onEditingChange(!editing),
-          } as MenuItemProps,
-        ]),
-    // Conditionally add "Delete Messages Before" menu item
-    ...(onDeleteBeforeClick
-      ? [
-          {
-            label: "Delete Messages Before",
-            onClick: onDeleteBeforeClick,
-          } as MenuItemProps,
-        ]
-      : []),
-    // Conditionally add "Delete Message" menu item
-    ...(onDeleteClick
-      ? [
-          {
-            label: "Delete Message",
-            onClick: onDeleteClick,
-          } as MenuItemProps,
-        ]
-      : []),
-    // Conditionally add "Delete Messages After" menu item
-    ...(onDeleteAfterClick
-      ? [
-          {
-            label: "Delete Messages After",
-            onClick: onDeleteAfterClick,
-          } as MenuItemProps,
-        ]
-      : []),
-  ];
-
-  // Now menuItems is guaranteed to be an array of MenuItemProps
-
   return (
     <Box
       id={id}
@@ -339,7 +277,50 @@ function MessageBase({
                   )}
                 </ButtonGroup>
               )}
-              <ChakraMenu items={menuItems} />
+              <Menu>
+                <MenuItem label="Copy" onClick={handleCopy} />
+                <MenuItem label="Download" onClick={handleDownload} />
+                {!disableFork && (
+                  <MenuItem
+                    label={
+                      <Link as={ReactRouterLink} to={`./fork/${id}`} target="_blank">
+                        Duplicate Chat until Message...
+                      </Link>
+                    }
+                    onClick={() => {}} // You can leave this empty or handle additional logic if needed
+                  />
+                )}
+
+                {onRetryClick && (
+                  <>
+                    <MenuDivider />
+                    <SubMenu label="Retry with...">
+                      {models.map((model) => (
+                        <MenuItem
+                          key={model.id}
+                          label={model.prettyModel}
+                          onClick={() => onRetryClick(model)}
+                        />
+                      ))}
+                    </SubMenu>
+                  </>
+                )}
+
+                {(!disableEdit || onDeleteClick) && <MenuDivider />}
+                {!disableEdit && (
+                  <MenuItem
+                    label={editing ? "Cancel Editing" : "Edit"}
+                    onClick={() => onEditingChange(!editing)}
+                  />
+                )}
+                {onDeleteBeforeClick && (
+                  <MenuItem label="Delete Messages Before" onClick={onDeleteBeforeClick} />
+                )}
+                {onDeleteClick && <MenuItem label="Delete Message" onClick={onDeleteClick} />}
+                {onDeleteAfterClick && (
+                  <MenuItem label="Delete Messages After" onClick={onDeleteAfterClick} />
+                )}
+              </Menu>
             </Flex>
           </Flex>
         </CardHeader>
