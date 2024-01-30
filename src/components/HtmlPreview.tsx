@@ -40,9 +40,10 @@ const HtmlPreview = ({ children, isLoading = false }: HtmlPreviewProps) => {
         title="Open HTML Preview in New Window"
         icon={<TbExternalLink />}
         color="gray.600"
+        _dark={{ color: "gray.300" }}
         variant="ghost"
       />
-      <CardBody mt={6} p={2}>
+      <CardBody mt={10} p={2}>
         <IframeResizer
           checkOrigin={false}
           src={url}
