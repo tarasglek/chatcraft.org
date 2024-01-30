@@ -1,24 +1,24 @@
-import { transformers } from "./transformers";
-import { DefaultTransformer } from "./transformers/transformer";
+import { rewriters } from "./rewriters";
+import { DefaultRewriter } from "./rewriters/rewriter";
 
-const defaultTransformer = new DefaultTransformer();
+const defaultRewriter = new DefaultRewriter();
 
 /**
- * Apply the first transformer that matches the request or
- * let the DefaultTransformer handle it if none do.
+ * Apply the first rewriter that matches the request or
+ * let the DefaultRewriter handle it if none do.
  */
 export async function fetchData(url: URL) {
-  for await (const transformer of transformers) {
+  for await (const rewriter of rewriters) {
     try {
-      if (await transformer.shouldTransform(url)) {
-        return transformer.process(url);
+      if (await rewriter.shouldRewrite(url)) {
+        return rewriter.process(url);
       }
     } catch (err) {
       console.error(
-        `Transformer failed: ${transformer.constructor.name} for ${url.href}: ${err.message}`
+        `Rewriter failed: ${rewriter.constructor.name} for ${url.href}: ${err.message}`
       );
     }
   }
 
-  return defaultTransformer.process(url);
+  return defaultRewriter.process(url);
 }

@@ -1,7 +1,7 @@
 import { getSubtitles } from "youtube-captions-scraper";
 import getVideoId from "get-video-id";
 
-import { DefaultTransformer } from "./transformer";
+import { DefaultRewriter } from "./rewriter";
 
 type WebVTTCaption = {
   start: string | undefined;
@@ -20,8 +20,8 @@ function combineCaptions(captions: string[]) {
   );
 }
 
-export class YouTubeTransformer extends DefaultTransformer {
-  async shouldTransform(url: URL) {
+export class YouTubeRewriter extends DefaultRewriter {
+  async shouldRewrite(url: URL) {
     // See if we can parse a YouTube video ID out of the URL
     const videoInfo = getVideoId(url.href);
     return videoInfo.service === "youtube" && !!videoInfo.id;

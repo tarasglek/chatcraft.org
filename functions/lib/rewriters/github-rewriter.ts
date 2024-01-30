@@ -1,12 +1,12 @@
 import { languageFromFilename } from "../languages";
-import { DefaultTransformer } from "./transformer";
+import { DefaultRewriter } from "./rewriter";
 
-export class GitHubTransformer extends DefaultTransformer {
-  async shouldTransform(url: URL) {
+export class GitHubRewriter extends DefaultRewriter {
+  async shouldRewrite(url: URL) {
     return url.origin === "https://github.com" || url.origin === "https://gist.github.com";
   }
 
-  async transformUrl(url: URL) {
+  async rewriteUrl(url: URL) {
     // Blob URLs - https://github.com/<owner>/<repo>/blob/<branch>/<path>
     if (url.origin === "https://github.com" && /\/(.*)\/blob\/(.*)$/.test(url.pathname)) {
       // https://github.com/<owner>/<repo>/blob/<branch>/<path> -> https://raw.githubusercontent.com<owner>/<repo>/<branch>/<path>
@@ -49,7 +49,7 @@ export class GitHubTransformer extends DefaultTransformer {
     return url;
   }
 
-  async transformResponse(res: Response) {
+  async rewriteResponse(res: Response) {
     if (!res.ok) {
       return res;
     }
