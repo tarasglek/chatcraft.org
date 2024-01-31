@@ -8,21 +8,7 @@ export interface MenuItemProps {
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({ label, onClick }) => {
-  const menuItemBg = useColorModeValue("white", "gray.700");
-  const menuItemColor = useColorModeValue("black", "white");
-
-  return (
-    <ReactMenuMenuItem
-      onClick={onClick}
-      style={{
-        color: menuItemColor,
-        backgroundColor: menuItemBg,
-        // Add other styles as needed
-      }}
-    >
-      {label}
-    </ReactMenuMenuItem>
-  );
+  return <ReactMenuItem onClick={onClick}>{label}</ReactMenuItem>;
 };
 
 export default MenuItem;
