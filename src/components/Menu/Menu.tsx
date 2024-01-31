@@ -10,7 +10,6 @@ interface MenuProps {
 
 const Menu: React.FC<MenuProps> = ({ children }) => {
   const theme = useTheme();
-  const menuButtonBg = useColorModeValue(theme.colors.gray[100], theme.colors.gray[700]);
   const menuButtonColor = useColorModeValue(theme.colors.black, theme.colors.white);
   const menuListBg = useColorModeValue(theme.colors.white, theme.colors.gray[700]);
   const menuListBorderColor = useColorModeValue(theme.colors.gray[200], theme.colors.gray[600]);
