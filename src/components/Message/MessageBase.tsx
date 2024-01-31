@@ -284,7 +284,6 @@ function MessageBase({
                         Duplicate Chat until Message...
                       </Link>
                     }
-                    onClick={() => {}} // You can leave this empty or handle additional logic if needed
                   />
                 )}
 
