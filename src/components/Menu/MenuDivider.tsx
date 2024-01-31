@@ -5,14 +5,7 @@ import { Box, useColorModeValue } from "@chakra-ui/react";
 const MenuDivider: React.FC = () => {
   const dividerColor = useColorModeValue("gray.200", "gray.600");
 
-  return (
-    <Box
-      as={ReactMenuDivider}
-      borderColor={dividerColor}
-      my={1} // Adjust margin as needed
-      // Add any additional styles you want to apply to the divider
-    />
-  );
+  return <Box as={ReactMenuDivider} borderColor={dividerColor} my={1} />;
 };
 
 export default MenuDivider;

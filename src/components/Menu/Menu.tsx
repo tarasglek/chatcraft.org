@@ -1,5 +1,5 @@
 import { Box, IconButton, useColorMode } from "@chakra-ui/react";
-import { Menu as ReactMenu } from "@szhsin/react-menu"; // Alias for the imported Menu
+import { Menu as ReactMenu } from "@szhsin/react-menu";
 
 import React from "react";
 import { TbDots } from "react-icons/tb";
@@ -20,7 +20,7 @@ const Menu: React.FC<MenuProps> = ({ children, isLoading }) => {
   const { colorMode } = useColorMode();
   return (
     <Box>
-      <ReactMenu // Use the alias here
+      <ReactMenu
         theming={colorMode === "dark" ? "dark" : undefined}
         menuButton={
           <IconButton
