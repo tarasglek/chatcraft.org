@@ -277,7 +277,7 @@ function MessageBase({
                   )}
                 </ButtonGroup>
               )}
-              <Menu>
+              <Menu isLoading={isLoading}>
                 <MenuItem label="Copy" onClick={handleCopy} />
                 <MenuItem label="Download" onClick={handleDownload} />
                 {!disableFork && (
