@@ -1,5 +1,5 @@
 import React from "react";
-import { MenuItem as ReactMenuMenuItem } from "@szhsin/react-menu";
+import { MenuItem as ReactMenuItem } from "@szhsin/react-menu";
 
 export interface MenuItemProps {
   label: React.ReactNode;
