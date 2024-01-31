@@ -1,6 +1,6 @@
-import React from "react";
+import { Box } from "@chakra-ui/react";
 import { SubMenu as ReactMenuSubMenu } from "@szhsin/react-menu";
-import { Box, useColorModeValue } from "@chakra-ui/react";
+import React from "react";
 
 export interface SubMenuProps {
   label: string;
@@ -8,20 +8,9 @@ export interface SubMenuProps {
 }
 
 const SubMenu: React.FC<SubMenuProps> = ({ label, children }) => {
-  const submenuBg = useColorModeValue("white", "gray.700");
-  const submenuBorderColor = useColorModeValue("gray.200", "gray.600");
-
   return (
     <Box>
-      <ReactMenuSubMenu
-        label={label}
-        menuStyle={{
-          backgroundColor: submenuBg,
-          borderColor: submenuBorderColor,
-        }}
-      >
-        {children}
-      </ReactMenuSubMenu>
+      <ReactMenuSubMenu label={label}>{children}</ReactMenuSubMenu>
     </Box>
   );
 };
