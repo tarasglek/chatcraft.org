@@ -10,6 +10,10 @@
   --chakra-gray-200: #e2e8f0;
 }
 
+.szh-menu {
+  padding-block: 10px;
+}
+
 .szh-menu__item--hover {
   background-color: var(--chakra-gray-100);
 }
