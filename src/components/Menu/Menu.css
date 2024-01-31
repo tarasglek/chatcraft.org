@@ -6,8 +6,14 @@
   https://szhsin.github.io/react-menu/style-guide
 */
 .szh-menu-container {
+  /* Light Mode */
   --chakra-gray-100: #edf2f7;
   --chakra-gray-200: #e2e8f0;
+
+  /* Dark Mode */
+  --chakra-gray-500: #718096;
+  --chakra-gray-600: #4a5568;
+  --chakra-gray-700: #2d3748;
 }
 
 .szh-menu {
@@ -24,4 +30,17 @@
 
 .szh-menu__item a:hover {
   text-decoration: none;
+}
+
+/* Dark Mode */
+.szh-menu-container--theme-dark .szh-menu {
+  background-color: var(--chakra-gray-700);
+}
+
+.szh-menu-container--theme-dark .szh-menu__item--hover {
+  background-color: var(--chakra-gray-600);
+}
+
+.szh-menu-container--theme-dark .szh-menu__item:active {
+  background-color: var(--chakra-gray-500);
 }
