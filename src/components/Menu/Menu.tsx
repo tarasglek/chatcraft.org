@@ -1,11 +1,15 @@
-import React from "react";
+import { Box, IconButton, useColorMode } from "@chakra-ui/react";
 import { Menu as ReactMenu } from "@szhsin/react-menu"; // Alias for the imported Menu
+
+import React from "react";
+import { TbDots } from "react-icons/tb";
+
+// Stylesheets
+import "@szhsin/react-menu/dist/core.css";
 import "@szhsin/react-menu/dist/index.css";
 import "@szhsin/react-menu/dist/theme-dark.css";
 import "@szhsin/react-menu/dist/transitions/slide.css";
-import "@szhsin/react-menu/dist/core.css";
-import { Box, IconButton, useColorMode } from "@chakra-ui/react";
-import { TbDots } from "react-icons/tb";
+import "./Menu.css";
 
 interface MenuProps {
   children: React.ReactNode;
