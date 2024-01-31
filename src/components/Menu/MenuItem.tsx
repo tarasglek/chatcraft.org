@@ -1,6 +1,5 @@
 import React from "react";
 import { MenuItem as ReactMenuMenuItem } from "@szhsin/react-menu";
-import { useColorModeValue } from "@chakra-ui/react";
 
 export interface MenuItemProps {
   label: React.ReactNode;
