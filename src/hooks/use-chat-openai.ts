@@ -82,7 +82,7 @@ function useChatOpenAI() {
         onResume() {
           setPaused(false);
         },
-        async onData({ currentText }) {
+        onData({ currentText }) {
           if (!pausedRef.current) {
             // Hook tts code here
             ttsWordsBuffer = currentText.slice(ttsCursor);

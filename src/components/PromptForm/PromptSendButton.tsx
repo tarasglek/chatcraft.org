@@ -38,12 +38,16 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbSend />}
         />
         {isTtsSupported() && (
-          <Tooltip label={settings.announceMessages ? "TTS Enabled" : "TTS Disabled"}>
+          <Tooltip
+            label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
+          >
             <IconButton
               type="button"
               size="lg"
               variant="solid"
-              aria-label={settings.announceMessages ? "TTS Enabled" : "TTS Disabled"}
+              aria-label={
+                settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"
+              }
               icon={settings.announceMessages ? <AiFillSound /> : <AiOutlineSound />}
               onClick={() =>
                 setSettings({ ...settings, announceMessages: !settings.announceMessages })
@@ -82,7 +86,9 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
         Ask {settings.model.prettyModel}
       </Button>
       {isTtsSupported() && (
-        <Tooltip label={settings.announceMessages ? "TTS Enabled" : "TTS Disabled"}>
+        <Tooltip
+          label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
+        >
           <Button
             type="button"
             size="sm"

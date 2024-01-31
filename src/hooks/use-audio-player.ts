@@ -12,8 +12,10 @@ const useAudioPlayer = () => {
 
   const playAudio = async (audioClipUri: Promise<string>) => {
     setIsPlaying(true);
-    const audio = new Audio(await audioClipUri);
+    const audioUrl: string = await audioClipUri;
+    const audio = new Audio(audioUrl);
     audio.onended = () => {
+      URL.revokeObjectURL(audioUrl);
       setQueue((oldQueue) => oldQueue.slice(1));
       setIsPlaying(false);
     };
