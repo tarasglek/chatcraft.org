@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 
 const useAudioPlayer = () => {
+  // We are managing promises of audio urls instead of directly storing strings
+  // because there is no guarantee when openai tts api finishes processing and resolves a specific url
+  // For more info, check this comment:
+  // https://github.com/tarasglek/chatcraft.org/pull/357#discussion_r1473470003
   const [queue, setQueue] = useState<Promise<string>[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
