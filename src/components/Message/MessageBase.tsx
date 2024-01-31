@@ -310,11 +310,25 @@ function MessageBase({
                   />
                 )}
                 {onDeleteBeforeClick && (
-                  <MenuItem label="Delete Messages Before" onClick={onDeleteBeforeClick} />
+                  <MenuItem
+                    label="Delete Messages Before"
+                    onClick={onDeleteBeforeClick}
+                    className="delete-button"
+                  />
                 )}
-                {onDeleteClick && <MenuItem label="Delete Message" onClick={onDeleteClick} />}
+                {onDeleteClick && (
+                  <MenuItem
+                    label="Delete Message"
+                    onClick={onDeleteClick}
+                    className="delete-button"
+                  />
+                )}
                 {onDeleteAfterClick && (
-                  <MenuItem label="Delete Messages After" onClick={onDeleteAfterClick} />
+                  <MenuItem
+                    label="Delete Messages After"
+                    onClick={onDeleteAfterClick}
+                    className="delete-button"
+                  />
                 )}
               </Menu>
             </Flex>
