@@ -36,6 +36,7 @@ import { download, isMac } from "../lib/utils";
 import db from "../lib/db";
 import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
+import { ChatCraftProvider } from "../lib/ChatCraftProvider";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
 import { openRouterPkceRedirect, validateApiKey } from "../lib/ai";
 import { useAlert } from "../hooks/use-alert";
@@ -164,9 +165,14 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               <FormLabel>API URL</FormLabel>
               <Select
                 value={settings.apiUrl}
-                onChange={(e) =>
-                  setSettings({ ...settings, apiUrl: e.target.value, apiKey: undefined })
-                }
+                onChange={(e) => {
+                  setSettings({
+                    ...settings,
+                    apiUrl: e.target.value,
+                    apiKey: undefined,
+                    providers: {},
+                  });
+                }}
               >
                 <option value={OPENAI_API_URL}>OpenAI ({OPENAI_API_URL})</option>
                 <option value={OPENROUTER_API_URL}>OpenRouter.ai ({OPENROUTER_API_URL})</option>
@@ -190,7 +196,23 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   <Button
                     size="xs"
                     colorScheme="red"
-                    onClick={() => setSettings({ ...settings, apiKey: undefined })}
+                    onClick={() => {
+                      const currentProvider = ChatCraftProvider.fromUrl(
+                        settings.apiUrl,
+                        settings.apiKey
+                      );
+                      const updatedProviders = { ...settings.providers };
+
+                      if (currentProvider.name in updatedProviders) {
+                        delete updatedProviders[currentProvider.name];
+                      }
+
+                      setSettings({
+                        ...settings,
+                        apiKey: undefined,
+                        providers: updatedProviders,
+                      });
+                    }}
                     isDisabled={!settings.apiKey}
                   >
                     Remove
@@ -200,7 +222,18 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               <RevealablePasswordInput
                 type="password"
                 value={settings.apiKey || ""}
-                onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
+                onChange={(e) => {
+                  const newProvider = ChatCraftProvider.fromUrl(settings.apiUrl, e.target.value);
+
+                  setSettings({
+                    ...settings,
+                    apiKey: e.target.value,
+                    providers: {
+                      ...settings.providers,
+                      [newProvider.name]: newProvider,
+                    },
+                  });
+                }}
               />
               {provider === "OpenRouter.ai" && !settings.apiKey && (
                 <Button mt="3" size="sm" onClick={openRouterPkceRedirect}>
