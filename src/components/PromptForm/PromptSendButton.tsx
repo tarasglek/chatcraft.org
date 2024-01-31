@@ -6,6 +6,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Tooltip,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend } from "react-icons/tb";
 
@@ -13,6 +14,8 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
+import { AiFillSound, AiOutlineSound } from "react-icons/ai";
+import { isTtsSupported } from "../../lib/ai";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -34,6 +37,24 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           isLoading={isLoading}
           icon={<TbSend />}
         />
+        {isTtsSupported() && (
+          <Tooltip
+            label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
+          >
+            <IconButton
+              type="button"
+              size="lg"
+              variant="solid"
+              aria-label={
+                settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"
+              }
+              icon={settings.announceMessages ? <AiFillSound /> : <AiOutlineSound />}
+              onClick={() =>
+                setSettings({ ...settings, announceMessages: !settings.announceMessages })
+              }
+            />
+          </Tooltip>
+        )}
         <MenuButton
           as={IconButton}
           size="lg"
@@ -64,6 +85,21 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
         Ask {settings.model.prettyModel}
       </Button>
+      {isTtsSupported() && (
+        <Tooltip
+          label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
+        >
+          <Button
+            type="button"
+            size="sm"
+            onClick={() =>
+              setSettings({ ...settings, announceMessages: !settings.announceMessages })
+            }
+          >
+            {settings.announceMessages ? <AiFillSound /> : <AiOutlineSound />}
+          </Button>
+        </Tooltip>
+      )}
       <Menu placement="top" strategy="fixed">
         <MenuButton
           as={IconButton}

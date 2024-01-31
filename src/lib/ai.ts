@@ -441,3 +441,31 @@ export const openRouterPkceRedirect = () => {
   // Redirect the user to the OpenRouter authentication page in the same tab
   location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
 };
+
+export function isTtsSupported() {
+  return usingOfficialOpenAI();
+}
+
+/**
+ *
+ * @param message The text for which speech needs to be generated
+ * @returns The URL of generated audio clip
+ */
+export const textToSpeech = async (message: string): Promise<string> => {
+  const { apiKey, apiUrl } = getSettings();
+  if (!apiKey) {
+    throw new Error("Missing API Key");
+  }
+  const { openai } = createClient(apiKey, apiUrl);
+
+  const mp3 = await openai.audio.speech.create({
+    model: "tts-1",
+    voice: "onyx",
+    input: message,
+  });
+
+  const blob = new Blob([await mp3.arrayBuffer()], { type: "audio/mp3" });
+  const objectUrl = URL.createObjectURL(blob);
+
+  return objectUrl;
+};
