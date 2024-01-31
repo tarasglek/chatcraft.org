@@ -9,7 +9,7 @@ interface MenuProps {
   isLoading?: boolean;
 }
 
-const Menu: React.FC<MenuProps> = ({ children }) => {
+const Menu: React.FC<MenuProps> = ({ children, isLoading }) => {
   const theme = useTheme();
   const menuButtonColor = useColorModeValue(theme.colors.black, theme.colors.white);
   const menuListBg = useColorModeValue(theme.colors.white, theme.colors.gray[700]);
