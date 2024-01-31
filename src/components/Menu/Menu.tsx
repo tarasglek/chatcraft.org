@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu as ReactMenu, MenuButton } from "@szhsin/react-menu"; // Alias for the imported Menu
+import { Menu as ReactMenu } from "@szhsin/react-menu"; // Alias for the imported Menu
 import "@szhsin/react-menu/dist/index.css";
 import { Box, IconButton, useColorModeValue, useTheme } from "@chakra-ui/react";
 import { TbDots } from "react-icons/tb";
