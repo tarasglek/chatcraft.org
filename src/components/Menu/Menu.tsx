@@ -6,6 +6,7 @@ import { TbDots } from "react-icons/tb";
 
 interface MenuProps {
   children: React.ReactNode;
+  isLoading?: boolean;
 }
 
 const Menu: React.FC<MenuProps> = ({ children }) => {
