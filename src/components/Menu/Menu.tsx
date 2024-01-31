@@ -19,19 +19,12 @@ const Menu: React.FC<MenuProps> = ({ children }) => {
     <Box>
       <ReactMenu // Use the alias here
         menuButton={
-          <MenuButton>
-            <IconButton
-              icon={<TbDots />}
-              variant="ghost"
-              size="sm"
-              aria-label="Options"
-              backgroundColor={menuButtonBg}
-              color={menuButtonColor}
-              _hover={{ bg: menuButtonBg }}
-              _active={{ bg: menuButtonBg }}
-              _focus={{ boxShadow: theme.shadows.outline }}
-            />
-          </MenuButton>
+          <IconButton
+            aria-label="Message Menu"
+            icon={<TbDots />}
+            variant="ghost"
+            isDisabled={isLoading}
+          ></IconButton>
         }
         menuStyle={{
           borderColor: menuListBorderColor,
