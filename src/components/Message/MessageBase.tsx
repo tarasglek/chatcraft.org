@@ -30,10 +30,7 @@ import {
   Spacer,
 } from "@chakra-ui/react";
 
-import Menu from "../Menu/Menu"; // Assuming Menu is the new component
-import MenuItem from "../Menu/MenuItem"; // Assuming MenuItem is the new component
-import SubMenu from "../Menu/SubMenu"; // Assuming SubMenu is the new component
-import MenuDivider from "../Menu/MenuDivider"; // Assuming MenuDivider is the new component
+import { Menu, MenuItem, SubMenu, MenuDivider } from "../Menu";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbTrash } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
