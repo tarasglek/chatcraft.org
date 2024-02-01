@@ -200,6 +200,10 @@ function ChatBase({ chat }: ChatBaseProps) {
           // Add this prompt message to the chat
           promptMessage = new ChatCraftHumanMessage({ text: prompt, image, user });
           await chat.addMessage(promptMessage);
+        } else if (image) {
+          // Add only image to the chat
+          promptMessage = new ChatCraftHumanMessage({ text: "", image, user });
+          await chat.addMessage(promptMessage);
         } else {
           // If there isn't any prompt text, see if the final message in the chat was a human
           // message or a function response. If it was either, we'll allow sending that through
