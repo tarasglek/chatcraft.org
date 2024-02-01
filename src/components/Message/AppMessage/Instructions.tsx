@@ -12,6 +12,7 @@ import {
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
+import { ChatCraftProvider } from "../../../lib/ChatCraftProvider";
 import RevealablePasswordInput from "../../RevealablePasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
 import { openRouterPkceRedirect, validateApiKey } from "../../../lib/ai";
@@ -72,7 +73,16 @@ function Instructions(props: MessageBaseProps) {
       .then((valid) => {
         if (valid) {
           setIsInvalid(false);
-          setSettings({ ...settings, apiKey: apiKey.trim() });
+
+          const newProvider = ChatCraftProvider.fromUrl(settings.apiUrl, apiKey.trim());
+
+          setSettings({
+            ...settings,
+            apiKey: apiKey.trim(),
+            providers: {
+              [newProvider.name]: newProvider,
+            },
+          });
         } else {
           setIsInvalid(true);
         }
