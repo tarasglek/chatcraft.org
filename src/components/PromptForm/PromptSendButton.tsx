@@ -14,7 +14,7 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
-import { AiFillSound, AiOutlineSound } from "react-icons/ai";
+import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
 import { isTtsSupported } from "../../lib/ai";
 
 type PromptSendButtonProps = {
@@ -48,7 +48,9 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
               aria-label={
                 settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"
               }
-              icon={settings.announceMessages ? <AiFillSound /> : <AiOutlineSound />}
+              icon={
+                settings.announceMessages ? <MdVolumeUp size={25} /> : <MdVolumeOff size={25} />
+              }
               onClick={() =>
                 setSettings({ ...settings, announceMessages: !settings.announceMessages })
               }
@@ -96,7 +98,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
               setSettings({ ...settings, announceMessages: !settings.announceMessages })
             }
           >
-            {settings.announceMessages ? <AiFillSound /> : <AiOutlineSound />}
+            {settings.announceMessages ? <MdVolumeUp size={18} /> : <MdVolumeOff size={18} />}
           </Button>
         </Tooltip>
       )}
