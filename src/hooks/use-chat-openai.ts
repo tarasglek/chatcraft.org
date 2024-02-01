@@ -87,28 +87,28 @@ function useChatOpenAI() {
             // Hook tts code here
             ttsWordsBuffer = currentText.slice(ttsCursor);
 
-            if (
-              isTtsSupported() &&
-              getSettings().announceMessages &&
-              sentenceEndRegex.test(ttsWordsBuffer) // Has full sentence
-            ) {
-              // Reset lastIndex before calling exec
-              sentenceEndRegex.lastIndex = 0;
-              const sentenceEndIndex = sentenceEndRegex.exec(ttsWordsBuffer)!.index;
+            if (isTtsSupported() && getSettings().announceMessages) {
+              if (
+                sentenceEndRegex.test(ttsWordsBuffer) // Has full sentence
+              ) {
+                // Reset lastIndex before calling exec
+                sentenceEndRegex.lastIndex = 0;
+                const sentenceEndIndex = sentenceEndRegex.exec(ttsWordsBuffer)!.index;
 
-              // Pass the sentence to tts api for processing
-              const textToBeProcessed = ttsWordsBuffer.slice(0, sentenceEndIndex + 1);
-              const audioClipUri = textToSpeech(textToBeProcessed);
-              addToAudioQueue(audioClipUri);
+                // Pass the sentence to tts api for processing
+                const textToBeProcessed = ttsWordsBuffer.slice(0, sentenceEndIndex + 1);
+                const audioClipUri = textToSpeech(textToBeProcessed);
+                addToAudioQueue(audioClipUri);
 
-              // Update the tts Cursor
-              ttsCursor += sentenceEndIndex + 1;
-            } else if (ttsWordsBuffer.split(" ").length >= TTS_BUFFER_THRESHOLD) {
-              // Flush the entire buffer into tts api
-              const audioClipUri = textToSpeech(ttsWordsBuffer);
-              addToAudioQueue(audioClipUri);
+                // Update the tts Cursor
+                ttsCursor += sentenceEndIndex + 1;
+              } else if (ttsWordsBuffer.split(" ").length >= TTS_BUFFER_THRESHOLD) {
+                // Flush the entire buffer into tts api
+                const audioClipUri = textToSpeech(ttsWordsBuffer);
+                addToAudioQueue(audioClipUri);
 
-              ttsCursor += ttsWordsBuffer.length;
+                ttsCursor += ttsWordsBuffer.length;
+              }
             }
 
             setStreamingMessage(
