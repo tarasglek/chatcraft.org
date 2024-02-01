@@ -49,8 +49,3 @@
 .delete-button {
   color: #fc8181; /* Chakra UI's red.400 */
 }
-
-/* Dark Mode Delete Button Color */
-.szh-menu-container--theme-dark .delete-button {
-  color: #fc8181; /* Chakra UI's red.400 for dark mode */
-}
