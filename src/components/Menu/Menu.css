@@ -14,6 +14,9 @@
   --chakra-gray-500: #718096;
   --chakra-gray-600: #4a5568;
   --chakra-gray-700: #2d3748;
+
+  /* Chakra Red for delete buttons */
+  --chakra-red-400: #fc8181;
 }
 
 .szh-menu {
@@ -45,7 +48,6 @@
   background-color: var(--chakra-gray-500);
 }
 
-/* Light Mode Delete Button Color */
 .delete-button {
-  color: #fc8181; /* Chakra UI's red.400 */
+  color: var(--chakra-red-400);
 }
