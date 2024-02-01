@@ -168,14 +168,19 @@ function ChatBase({ chat }: ChatBaseProps) {
             });
           }
         } else {
-          error({
-            title: `Unknown Command`,
-            message: `Command not recognized. Use /help to get help on valid commands.`,
-          });
-
-          console.log("TODO: show help");
           // The input was a command, but not a recognized one.
           // Handle this case as appropriate for your application.
+          const commandFunction = ChatCraftCommandRegistry.getCommand("/commands")!;
+          setShouldAutoScroll(true);
+          try {
+            await commandFunction(chat, user);
+            forceScroll();
+          } catch (err: any) {
+            error({
+              title: `Unknown Command`,
+              message: `Command not recognized. Use /help to get help on valid commands.`,
+            });
+          }
         }
 
         setLoading(false);

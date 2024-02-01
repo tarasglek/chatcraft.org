@@ -41,6 +41,19 @@ function AppMessage(props: AppMessageProps) {
     );
   }
 
+  if (ChatCraftAppMessage.isCommandsHelp(message)) {
+    return (
+      <Help
+        {...props}
+        onlyCommands={true}
+        avatar={avatar}
+        heading={heading}
+        disableFork={true}
+        disableEdit={true}
+      />
+    );
+  }
+
   // Otherwise, use a basic message type and show the text
   return (
     <MessageBase

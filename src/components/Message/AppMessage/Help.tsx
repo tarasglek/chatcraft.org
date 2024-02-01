@@ -57,7 +57,7 @@ through documentation.
 > \`\`\`
 > ...function...
 > \`\`\`
-> 
+>
 > \`\`\`
 > ...text of error message
 > \`\`\`
@@ -80,7 +80,7 @@ function greeting(name: string) {
 \`\`\`
 
 You can also use [headings](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#headings), [lists](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#lists), [tables](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/organizing-information-with-tables#creating-a-table), [links](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#links),
-etc. to create more readable text. 
+etc. to create more readable text.
 
 ## Commands
 
@@ -133,9 +133,31 @@ have an idea for a feature, or think you've found a bug, get in touch with us:
 - [Discord](https://discord.gg/PE2GWHnR)
 `;
 
-function Help(props: MessageBaseProps) {
+const commandsHelpText = `## Commands
+
+You can use "slash" commands to help accomplish various tasks. Any prompt that begins
+with a "/" (e.g., "/help") will be interpreted as a command that ChatCraft should run.
+Some commands accept arguments as well.
+
+| Command | Description |
+|-----|------|
+| /help         | Shows this help message. |
+| /commands | Shows a list of **supported commands** in ChatCraft |
+| /new          | Creates a new chat. |
+| /clear        | Erases all messages in the current chat. |
+| /summary&nbsp;[max-length] | Uses ChatGPT to create a summary of the current chat. Optionally takes a maximum word length (defaults to 500). |
+| /import&nbsp;<url> | Loads the provided URL and imports the text. Where possible, ChatCraft will try to get raw text vs. HTML from sites like GitHub. NOTE: to prevent abuse, you must be logged into use the import command. |`;
+
+interface HelpMessageProps extends MessageBaseProps {
+  onlyCommands?: boolean;
+}
+
+function Help(props: HelpMessageProps) {
   // Override the text of the message
-  const message = new ChatCraftAppMessage({ ...props.message, text: helpText });
+  const message = new ChatCraftAppMessage({
+    ...props.message,
+    text: props.onlyCommands ? commandsHelpText : helpText,
+  });
 
   return <MessageBase {...props} message={message} />;
 }
