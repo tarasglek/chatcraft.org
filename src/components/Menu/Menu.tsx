@@ -28,7 +28,7 @@ const Menu: React.FC<MenuProps> = ({ children, isLoading }) => {
             icon={<TbDots />}
             variant="ghost"
             isDisabled={isLoading}
-          ></IconButton>
+          />
         }
         transition={true}
       >
