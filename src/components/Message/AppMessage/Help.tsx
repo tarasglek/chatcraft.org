@@ -91,6 +91,7 @@ Some commands accept arguments as well.
 | Command | Description |
 |-----|------|
 | /help         | Shows this help message. |
+| /commands | Shows a list of **supported commands** in ChatCraft |
 | /new          | Creates a new chat. |
 | /clear        | Erases all messages in the current chat. |
 | /summary&nbsp;[max-length] | Uses ChatGPT to create a summary of the current chat. Optionally takes a maximum word length (defaults to 500). |

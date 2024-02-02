@@ -173,12 +173,16 @@ function ChatBase({ chat }: ChatBaseProps) {
           const commandFunction = ChatCraftCommandRegistry.getCommand("/commands")!;
           setShouldAutoScroll(true);
           try {
+            error({
+              title: `Unknown Command`,
+              message: `Command '${prompt}' not recognized. Please refer to the list of supported commands.`,
+            });
             await commandFunction(chat, user);
             forceScroll();
           } catch (err: any) {
             error({
-              title: `Unknown Command`,
-              message: `Command not recognized. Use /help to get help on valid commands.`,
+              title: `Error Running Command`,
+              message: `There was an error running the command: ${err.message}.`,
             });
           }
         }
