@@ -22,11 +22,6 @@ import {
   Heading,
   IconButton,
   Link,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuItem,
-  MenuList,
   Tag,
   Text,
   Textarea,
@@ -36,8 +31,10 @@ import {
   Spacer,
   useDisclosure,
 } from "@chakra-ui/react";
+
+import { Menu, MenuItem, SubMenu, MenuDivider } from "../Menu";
 import ResizeTextarea from "react-textarea-autosize";
-import { TbDots, TbTrash } from "react-icons/tb";
+import { TbTrash } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink } from "react-router-dom";
@@ -290,56 +287,62 @@ function MessageBase({
                   )}
                 </ButtonGroup>
               )}
-              <Menu>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="Message Menu"
-                  icon={<TbDots />}
-                  variant="ghost"
-                  isDisabled={isLoading}
-                />
-                <MenuList>
-                  <MenuItem onClick={() => handleCopy()}>Copy</MenuItem>
-                  <MenuItem onClick={() => handleDownload()}>Download</MenuItem>
-                  {!disableFork && (
-                    <MenuItem as={ReactRouterLink} to={`./fork/${id}`} target="_blank">
-                      Duplicate Chat until Message...
-                    </MenuItem>
-                  )}
+              <Menu isLoading={isLoading}>
+                <MenuItem label="Copy" onClick={handleCopy} />
+                <MenuItem label="Download" onClick={handleDownload} />
+                {!disableFork && (
+                  <MenuItem
+                    label={
+                      <Link as={ReactRouterLink} to={`./fork/${id}`} target="_blank">
+                        Duplicate Chat until Message...
+                      </Link>
+                    }
+                  />
+                )}
 
-                  {onRetryClick && (
-                    <>
-                      <MenuDivider />
+                {onRetryClick && (
+                  <>
+                    <MenuDivider />
+                    <SubMenu label="Retry with...">
                       {models.map((model) => (
-                        <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
-                          Retry with {model.prettyModel}
-                        </MenuItem>
+                        <MenuItem
+                          key={model.id}
+                          label={model.prettyModel}
+                          onClick={() => onRetryClick(model)}
+                        />
                       ))}
-                    </>
-                  )}
+                    </SubMenu>
+                  </>
+                )}
 
-                  {(!disableEdit || onDeleteClick) && <MenuDivider />}
-                  {!disableEdit && (
-                    <MenuItem onClick={() => onEditingChange(!editing)}>
-                      {editing ? "Cancel Editing" : "Edit"}
-                    </MenuItem>
-                  )}
-                  {onDeleteBeforeClick && (
-                    <MenuItem onClick={() => onDeleteBeforeClick()} color="red.400">
-                      Delete Messages Before
-                    </MenuItem>
-                  )}
-                  {onDeleteClick && (
-                    <MenuItem onClick={() => onDeleteClick()} color="red.400">
-                      Delete Message
-                    </MenuItem>
-                  )}
-                  {onDeleteAfterClick && (
-                    <MenuItem onClick={() => onDeleteAfterClick()} color="red.400">
-                      Delete Messages After
-                    </MenuItem>
-                  )}
-                </MenuList>
+                {(!disableEdit || onDeleteClick) && <MenuDivider />}
+                {!disableEdit && (
+                  <MenuItem
+                    label={editing ? "Cancel Editing" : "Edit"}
+                    onClick={() => onEditingChange(!editing)}
+                  />
+                )}
+                {onDeleteBeforeClick && (
+                  <MenuItem
+                    label="Delete Messages Before"
+                    onClick={onDeleteBeforeClick}
+                    className="delete-button"
+                  />
+                )}
+                {onDeleteClick && (
+                  <MenuItem
+                    label="Delete Message"
+                    onClick={onDeleteClick}
+                    className="delete-button"
+                  />
+                )}
+                {onDeleteAfterClick && (
+                  <MenuItem
+                    label="Delete Messages After"
+                    onClick={onDeleteAfterClick}
+                    className="delete-button"
+                  />
+                )}
               </Menu>
             </Flex>
           </Flex>
