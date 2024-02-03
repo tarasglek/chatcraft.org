@@ -87,7 +87,7 @@ function DesktopPromptForm({
   // Base64 images
   const [inputImages, setInputImages] = useState<string[]>([]);
   // state for the modal display selectedImage
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const location = useLocation();
 
@@ -112,6 +112,10 @@ function DesktopPromptForm({
   useEffect(() => {
     inputPromptRef.current?.focus();
   }, [inputImages, inputPromptRef]);
+  // Also focus when the closing the modal image
+  useEffect(() => {
+    inputPromptRef.current?.focus();
+  }, [imageModalOpen, inputPromptRef]);
 
   // Keep track of the number of seconds that we've been recording
   useEffect(() => {
@@ -261,9 +265,9 @@ function DesktopPromptForm({
 
   const handleClickImage = (image: string) => {
     setSelectedImage(image);
-    setIsOpen(true);
+    setImageModalOpen(true);
   };
-  const closeModal = () => setIsOpen(false);
+  const closeModal = () => setImageModalOpen(false);
 
   const handlePasteImage = (e: ClipboardEvent) => {
     const clipboardData = e.clipboardData;
@@ -406,7 +410,7 @@ function DesktopPromptForm({
         </chakra.form>
       </Card>
       {/* Modal for the larger image view */}
-      <ImageModal isOpen={isOpen} onClose={closeModal} imageSrc={selectedImage} />
+      <ImageModal isOpen={imageModalOpen} onClose={closeModal} imageSrc={selectedImage} />
     </Flex>
   );
 }
