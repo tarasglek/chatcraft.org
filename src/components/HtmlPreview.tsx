@@ -49,6 +49,7 @@ const HtmlPreview = ({ children, isLoading = false }: HtmlPreviewProps) => {
           src={url}
           style={{ width: "1px", minWidth: "100%" }}
           scrolling={true}
+          heightCalculationMethod={"max"}
         />
       </CardBody>
     </Card>
