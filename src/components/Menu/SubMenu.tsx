@@ -5,12 +5,15 @@ import React from "react";
 export interface SubMenuProps {
   label: string;
   children: React.ReactNode;
+  className?: string;
 }
 
-const SubMenu: React.FC<SubMenuProps> = ({ label, children }) => {
+const SubMenu: React.FC<SubMenuProps> = ({ label, children, className }) => {
   return (
     <Box>
-      <ReactMenuSubMenu label={label}>{children}</ReactMenuSubMenu>
+      <ReactMenuSubMenu label={label} className={className}>
+        {children}
+      </ReactMenuSubMenu>
     </Box>
   );
 };

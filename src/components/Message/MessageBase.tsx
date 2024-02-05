@@ -322,27 +322,29 @@ function MessageBase({
                     onClick={() => onEditingChange(!editing)}
                   />
                 )}
-                {onDeleteBeforeClick && (
-                  <MenuItem
-                    label="Delete Messages Before"
-                    onClick={onDeleteBeforeClick}
-                    className="delete-button"
-                  />
-                )}
-                {onDeleteClick && (
-                  <MenuItem
-                    label="Delete Message"
-                    onClick={onDeleteClick}
-                    className="delete-button"
-                  />
-                )}
-                {onDeleteAfterClick && (
-                  <MenuItem
-                    label="Delete Messages After"
-                    onClick={onDeleteAfterClick}
-                    className="delete-button"
-                  />
-                )}
+                <SubMenu label="Delete" className="delete-button">
+                  {onDeleteBeforeClick && (
+                    <MenuItem
+                      label="Delete Messages Before"
+                      onClick={onDeleteBeforeClick}
+                      className="delete-button"
+                    />
+                  )}
+                  {onDeleteClick && (
+                    <MenuItem
+                      label="Delete Message"
+                      onClick={onDeleteClick}
+                      className="delete-button"
+                    />
+                  )}
+                  {onDeleteAfterClick && (
+                    <MenuItem
+                      label="Delete Messages After"
+                      onClick={onDeleteAfterClick}
+                      className="delete-button"
+                    />
+                  )}
+                </SubMenu>
               </Menu>
             </Flex>
           </Flex>
