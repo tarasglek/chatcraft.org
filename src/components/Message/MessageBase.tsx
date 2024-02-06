@@ -423,7 +423,7 @@ function MessageBase({
                       key={`${id}-${index}`}
                       src={image}
                       alt={`Images# ${index}`}
-                      width="100%"
+                      width="50%"
                       onClick={() => openModalWithImage(image)}
                     />
                   ))}
