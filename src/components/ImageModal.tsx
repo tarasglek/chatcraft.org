@@ -15,12 +15,19 @@ interface ImageModalProps {
 }
 
 const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageSrc }) => (
-  <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
+  <Modal isOpen={isOpen} onClose={onClose} size="2xl" isCentered>
     <ModalOverlay />
-    <ModalContent>
+    <ModalContent maxW="90vw" maxH="90vh">
       <ModalCloseButton />
       <ModalBody>
-        <Image src={imageSrc} alt="Selected Image" maxW="100%" maxH="100vh" m="auto" />
+        <Image
+          src={imageSrc}
+          alt="Selected Image"
+          m="auto"
+          width="100%"
+          maxH="85vh"
+          objectFit="contain"
+        />
       </ModalBody>
     </ModalContent>
   </Modal>
