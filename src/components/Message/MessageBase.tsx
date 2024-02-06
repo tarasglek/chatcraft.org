@@ -134,8 +134,11 @@ function MessageBase({
     if (!onDeleteAfterClick && !isOpen && !(message instanceof ChatCraftSystemMessage)) {
       onToggle();
     }
+
+    // ignore isOpen as onToggle() will change isOpen status
+    // ignore message as each message has its corresponding onDeleteAfterClick
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onDeleteAfterClick]);
 
   const handleCopy = useCallback(() => {
     onCopy();
