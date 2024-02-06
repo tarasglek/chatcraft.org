@@ -54,7 +54,6 @@ import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { useAlert } from "../../hooks/use-alert";
-import ImageModal from "../ImageModal";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
@@ -105,7 +104,7 @@ function MessageBase({
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
-  const { id, date, text, image } = message;
+  const { id, date, text } = message;
   const { models } = useModels();
   const { onCopy } = useClipboard(text);
   const { info, error } = useAlert();
@@ -116,9 +115,6 @@ function MessageBase({
   const messageForm = useRef<HTMLFormElement>(null);
   const messageContent = useRef<HTMLDivElement>(null);
   const meta = useMemo(getMetaKey, []);
-  const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
-  const [selectedImage, setSelectedImage] = useState<string>("");
-
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
   const isLongMessage = text.length > 5000;
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
@@ -273,12 +269,6 @@ function MessageBase({
     },
     [message, onResubmitClick, chatId, error, onEditingChange]
   );
-
-  const openModalWithImage = (imageSrc: string) => {
-    setSelectedImage(imageSrc);
-    setImageModalOpen(true);
-  };
-  const closeModal = () => setImageModalOpen(false);
 
   return (
     <Box
@@ -492,15 +482,6 @@ function MessageBase({
                   // Add a single pixel of offset for rendering to canvas (offset handled above with m=-1)
                   p={1}
                 >
-                  {image.map((image, index) => (
-                    <Image
-                      key={`${id}-${index}`}
-                      src={image}
-                      alt={`Images# ${index}`}
-                      width="100%"
-                      onClick={() => openModalWithImage(image)}
-                    />
-                  ))}
                   <Markdown
                     previewCode={!hidePreviews && !displaySummaryText}
                     isLoading={isLoading}
@@ -517,7 +498,6 @@ function MessageBase({
                 </Box>
               )}
             </Box>
-            <ImageModal isOpen={imageModalOpen} onClose={closeModal} imageSrc={selectedImage} />
           </Flex>
         </CardBody>
         {footer && <CardFooter py={2}>{footer}</CardFooter>}
