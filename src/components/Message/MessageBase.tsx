@@ -289,7 +289,18 @@ function MessageBase({
                 </ButtonGroup>
               )}
               <Menu isLoading={isLoading}>
-                <MenuItem label="Copy" onClick={handleCopy} />
+                <MenuItem
+                  label="Copy"
+                  onClick={handleCopy}
+                  icon={
+                    <IconButton
+                      variant="ghost"
+                      icon={<MdContentCopy />}
+                      aria-label="Copy message to clipboard"
+                      title="Copy message to clipboard"
+                    />
+                  }
+                />
                 <MenuItem label="Download" onClick={handleDownload} />
                 {!disableFork && (
                   <MenuItem
@@ -319,6 +330,14 @@ function MessageBase({
                   <MenuItem
                     label={editing ? "Cancel Editing" : "Edit"}
                     onClick={() => onEditingChange(!editing)}
+                    icon={
+                      <IconButton
+                        variant="ghost"
+                        icon={<AiOutlineEdit />}
+                        aria-label="Edit message"
+                        title="Edit message"
+                      />
+                    }
                   />
                 )}
 

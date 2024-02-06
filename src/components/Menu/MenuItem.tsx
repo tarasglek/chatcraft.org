@@ -1,16 +1,16 @@
-import React from "react";
-import { MenuItem as ReactMenuItem } from "@szhsin/react-menu";
+import React, { type ReactNode } from "react";
+import {
+  MenuItem as ReactMenuItem,
+  type MenuItemProps as ReactMenuItemProps,
+} from "@szhsin/react-menu";
 
-export interface MenuItemProps {
-  label: React.ReactNode;
-  onClick?: () => void;
-  className?: string;
-}
+export type MenuItemProps = ReactMenuItemProps & { label: ReactNode; icon?: ReactNode };
 
-const MenuItem: React.FC<MenuItemProps> = ({ label, onClick, className }) => {
+const MenuItem: React.FC<MenuItemProps> = (props) => {
   return (
-    <ReactMenuItem onClick={onClick} className={className}>
-      {label}
+    <ReactMenuItem {...props}>
+      {props.label}
+      {props.icon}
     </ReactMenuItem>
   );
 };
