@@ -47,6 +47,7 @@ import {
   ChatCraftAiMessage,
   ChatCraftAiMessageVersion,
   ChatCraftMessage,
+  ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import { useModels } from "../../hooks/use-models";
@@ -127,6 +128,14 @@ function MessageBase({
       message.tokens().then(setTokens).catch(console.warn);
     }
   }, [settings.countTokens, message]);
+
+  // If last message is collapsed, auto expand for better view
+  useEffect(() => {
+    if (!onDeleteAfterClick && !isOpen && !(message instanceof ChatCraftSystemMessage)) {
+      onToggle();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCopy = useCallback(() => {
     onCopy();
