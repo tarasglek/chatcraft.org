@@ -48,7 +48,6 @@ const HtmlPreview = ({ children, isLoading = false }: HtmlPreviewProps) => {
           checkOrigin={false}
           src={url}
           style={{ width: "1px", minWidth: "100%" }}
-          scrolling={true}
           heightCalculationMethod={"max"}
         />
       </CardBody>
