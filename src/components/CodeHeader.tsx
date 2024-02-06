@@ -57,38 +57,51 @@ function CodeHeader({
       return;
     }
 
-    let ret = undefined;
     try {
-      const resultWithLogs = await runCode(code, language);
-      let result = resultWithLogs.ret;
-      if (typeof result === "string") {
+      let { logs, ret } = await runCode(code, language);
+
+      if (typeof ret === "string") {
         // catch corner cases with strings
-        if (!result.length || result[0] === "/") {
-          result = formatAsCodeBlock(JSON.stringify(result), "js");
+        if (!ret.length || ret[0] === "/") {
+          ret = formatAsCodeBlock(JSON.stringify(ret), "js");
+        } else if (ret.startsWith("<")) {
+          // Probably HTML
+          ret = formatAsCodeBlock(ret, "html");
         } else {
-          // result is good to include inline, might have formatting, etc
+          // result is good to include inline as is, might have formatting, etc
         }
       } else {
-        const maybeJSON = JSON.stringify(result);
+        const maybeJSON = JSON.stringify(ret);
         // catch corner case where JSON.stringify returns undefined but underlying object is truthy, eg a function
-        if (!maybeJSON && result && typeof result.toString === "function") {
-          result = formatAsCodeBlock(result.toString(), "js");
+        if (!maybeJSON && ret && typeof ret.toString === "function") {
+          ret = formatAsCodeBlock(ret.toString(), "js");
+        } else if (ret === undefined) {
+          // If we have logs and the return value is `undefined`, prefer the logs.
+          if (logs) {
+            ret = formatAsCodeBlock(logs, "logs");
+            logs = undefined;
+          } else {
+            ret = formatAsCodeBlock(ret, "js");
+          }
         } else {
-          result = formatAsCodeBlock(maybeJSON, "json");
+          ret = formatAsCodeBlock(maybeJSON, "json");
         }
       }
-      if (resultWithLogs.logs) {
-        resultWithLogs.logs = formatAsCodeBlock(resultWithLogs.logs, "logs");
-        result = resultWithLogs.logs + "\n\n" + result;
+
+      if (logs) {
+        logs = formatAsCodeBlock(logs, "logs");
+        ret = logs + "\n\n" + ret;
       }
-      ret = result;
+
+      if (ret !== undefined || logs) {
+        onPrompt(ret);
+      }
     } catch (error: any) {
-      ret = formatAsCodeBlock(
-        error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
+      onPrompt(
+        formatAsCodeBlock(
+          error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
+        )
       );
-    }
-    if (ret !== undefined) {
-      onPrompt(ret);
     }
   }, [onPrompt, code, language]);
 
