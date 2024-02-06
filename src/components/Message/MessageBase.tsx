@@ -113,6 +113,7 @@ function MessageBase({
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
   const isLongMessage = text.length > 5000;
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
+  const shouldShowDeleteMenu = Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick);
 
   // Wrap the onToggle function with startTransition, state update should be deferred due to long message
   // https://reactjs.org/docs/error-decoder.html?invariant=426
@@ -299,7 +300,6 @@ function MessageBase({
                     }
                   />
                 )}
-
                 {onRetryClick && (
                   <>
                     <MenuDivider />
@@ -314,7 +314,6 @@ function MessageBase({
                     </SubMenu>
                   </>
                 )}
-
                 {(!disableEdit || onDeleteClick) && <MenuDivider />}
                 {!disableEdit && (
                   <MenuItem
@@ -322,29 +321,32 @@ function MessageBase({
                     onClick={() => onEditingChange(!editing)}
                   />
                 )}
-                <SubMenu label="Delete" className="delete-button">
-                  {onDeleteBeforeClick && (
-                    <MenuItem
-                      label="Delete Messages Before"
-                      onClick={onDeleteBeforeClick}
-                      className="delete-button"
-                    />
-                  )}
-                  {onDeleteClick && (
-                    <MenuItem
-                      label="Delete Message"
-                      onClick={onDeleteClick}
-                      className="delete-button"
-                    />
-                  )}
-                  {onDeleteAfterClick && (
-                    <MenuItem
-                      label="Delete Messages After"
-                      onClick={onDeleteAfterClick}
-                      className="delete-button"
-                    />
-                  )}
-                </SubMenu>
+
+                {shouldShowDeleteMenu && (
+                  <SubMenu label="Delete" className="delete-button">
+                    {onDeleteBeforeClick && (
+                      <MenuItem
+                        label="Delete Messages Before"
+                        onClick={onDeleteBeforeClick}
+                        className="delete-button"
+                      />
+                    )}
+                    {onDeleteClick && (
+                      <MenuItem
+                        label="Delete Message"
+                        onClick={onDeleteClick}
+                        className="delete-button"
+                      />
+                    )}
+                    {onDeleteAfterClick && (
+                      <MenuItem
+                        label="Delete Messages After"
+                        onClick={onDeleteAfterClick}
+                        className="delete-button"
+                      />
+                    )}
+                  </SubMenu>
+                )}
               </Menu>
             </Flex>
           </Flex>
