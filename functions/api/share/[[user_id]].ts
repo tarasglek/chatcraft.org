@@ -123,8 +123,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
     object.writeHttpMetadata(headers);
     headers.set("etag", object.httpEtag);
 
-    // set text/html if content-type isn't set
-    const contentType = object.httpMetadata.contentType || "text/html";
+    // set to 'application/octet-stream' if content-type isn't set
+    const contentType = object.httpMetadata.contentType || "application/octet-stream";
     headers.set("Content-Type", contentType);
 
     return new Response(object.body, {
