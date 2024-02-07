@@ -109,6 +109,7 @@ function MessagesView({
             hasMessagesAfter ? () => deleteMessages(message.id, "after") : undefined
           }
           onPrompt={onPrompt}
+          hasMessagesAfter={hasMessagesAfter}
         />
       );
     });

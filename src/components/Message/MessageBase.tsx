@@ -47,6 +47,7 @@ import {
   ChatCraftAiMessage,
   ChatCraftAiMessageVersion,
   ChatCraftMessage,
+  ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import { useModels } from "../../hooks/use-models";
@@ -75,6 +76,7 @@ export interface MessageBaseProps {
   onDeleteClick?: () => void;
   onDeleteAfterClick?: () => void;
   onRetryClick?: (model: ChatCraftModel) => void;
+  hasMessagesAfter?: boolean;
   disableFork?: boolean;
   disableEdit?: boolean;
 }
@@ -97,6 +99,7 @@ function MessageBase({
   onDeleteAfterClick,
   onPrompt,
   onRetryClick,
+  hasMessagesAfter,
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
@@ -127,6 +130,17 @@ function MessageBase({
       message.tokens().then(setTokens).catch(console.warn);
     }
   }, [settings.countTokens, message]);
+
+  // If last message is collapsed, auto expand for better view
+  useEffect(() => {
+    if (!hasMessagesAfter && !isOpen && !(message instanceof ChatCraftSystemMessage)) {
+      onToggle();
+    }
+
+    // ignore isOpen as onToggle() will change isOpen status
+    // ignore message as each message has its corresponding hasMessagesAfter
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMessagesAfter]);
 
   const handleCopy = useCallback(() => {
     onCopy();
