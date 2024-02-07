@@ -47,7 +47,7 @@ type ChatSidebarItemProps = {
 };
 
 function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSidebarItemProps) {
-  const text = chat.summary || "(no messages)";
+  const text = chat.title || "(no messages)";
   const bg = useColorModeValue(
     isSelected ? "gray.200" : undefined,
     isSelected ? "gray.800" : undefined
@@ -84,7 +84,7 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
       return;
     }
 
-    chat.summary = summary;
+    chat.title = summary;
     chat
       .save()
       .catch((err) => {
@@ -150,7 +150,7 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
             <Flex align="center">
               <Input
                 flex={1}
-                defaultValue={chat.summary}
+                defaultValue={chat.title}
                 type="text"
                 name="summary"
                 bg="white"

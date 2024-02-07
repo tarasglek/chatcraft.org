@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import * as yaml from "yaml";
 
 import {
   ChatCraftAiMessage,
@@ -311,6 +312,10 @@ export class ChatCraftChat {
         (message) => message.toJSON()
       ),
     };
+  }
+
+  toYAML(): string {
+    return yaml.stringify(this.toJSON());
   }
 
   toDB(): ChatCraftChatTable {

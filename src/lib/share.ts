@@ -1,18 +1,25 @@
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
-import * as yaml from "yaml";
 
-export function createShareUrl(chat: ChatCraftChat, user: User) {
-  // Create a share URL we can give to other people
-  const { origin } = new URL(location.href);
-  const shareUrl = new URL(`/api/share/${user.username}/${chat.id}`, origin);
-
-  return shareUrl.href;
+/**
+ * @param chat
+ * @param user
+ * @returns url that contains chat in cloud storage
+ */
+export function createDataShareUrl(chat: ChatCraftChat, user: User) {
+  return createShareUrl(chat, user, "/api/share");
 }
 
-export function createUIShareUrl(chat: ChatCraftChat, user: User) {
+/**
+ * by default returns url that tells chatcraft to load shared chat
+ * @param chat
+ * @param user
+ * @param prefix
+ * @returns url
+ */
+export function createShareUrl(chat: ChatCraftChat, user: User, prefix = "/c") {
   // Create a share URL we can give to other people
   const { origin } = new URL(location.href);
-  const shareUrl = new URL(`/c/${user.username}/${chat.id}`, origin);
+  const shareUrl = new URL(`${prefix}/${user.username}/${chat.id}`, origin);
 
   return shareUrl.href;
 }
@@ -34,7 +41,7 @@ function generateSharingHTML(chat: ChatCraftChat, user: User) {
 
   mainElement.innerHTML = "";
   // Use html-escaped yaml for payload
-  mainElement.textContent = yaml.stringify(chat.toJSON());
+  mainElement.textContent = chat.toYAML();
 
   const lastMessage = chat.messages().pop();
   const lastMessageText = lastMessage?.text;
@@ -43,13 +50,13 @@ function generateSharingHTML(chat: ChatCraftChat, user: User) {
   clonedDocument.head.querySelectorAll("style")?.forEach((x) => x.remove());
   clonedDocument.head.querySelectorAll("script")?.forEach((x) => x.remove());
   // set a meta refresh tag to redirect to the UI without scripting
-  setMetaContent(clonedDocument, "http-equiv", "refresh", `0;url=${createUIShareUrl(chat, user)}`);
+  setMetaContent(clonedDocument, "http-equiv", "refresh", `0;url=${createShareUrl(chat, user)}`);
 
   // Set various types of titles/summaries
-  setMetaContent(clonedDocument, "property", "og:title", chat.summary);
+  setMetaContent(clonedDocument, "property", "og:title", chat.title);
   setMetaContent(clonedDocument, "property", "og:url", createShareUrl(chat, user));
-  setMetaContent(clonedDocument, "name", "description", chat.summary);
-  setDocumentTitle(clonedDocument, chat.summary);
+  setMetaContent(clonedDocument, "name", "description", chat.title);
+  setDocumentTitle(clonedDocument, chat.title);
   // Set OG bulk text to be that of last message
   if (lastMessageText) {
     setMetaContent(clonedDocument, "property", "og:description", lastMessageText);
