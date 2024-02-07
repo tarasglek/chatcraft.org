@@ -35,20 +35,25 @@ function generateSharingHTML(chat: ChatCraftChat) {
   clonedDocument.head.querySelector("style")?.remove();
 
   // Set various types of titles/summaries
-  setMetaContent(clonedDocument, "og:title", chat.summary);
-  setMetaContent(clonedDocument, "description", chat.summary);
+  setMetaContent(clonedDocument, "property", "og:title", chat.summary);
+  setMetaContent(clonedDocument, "name", "description", chat.summary);
   setDocumentTitle(clonedDocument, chat.summary);
   // Set OG bulk text to be that of last message
   if (lastMessageText) {
-    setMetaContent(clonedDocument, "og:description", lastMessageText);
+    setMetaContent(clonedDocument, "property", "og:description", lastMessageText);
   }
 
   return clonedDocument.documentElement.outerHTML;
 }
 
-function setMetaContent(document: Document, property: string, content: string) {
+function setMetaContent(
+  document: Document,
+  name_or_propery: string,
+  property: string,
+  content: string
+) {
   // First, try to find an existing tag
-  let metaElement = document.head.querySelector(`meta[property='${property}']`);
+  let metaElement = document.head.querySelector(`meta[${name_or_propery}='${property}']`);
 
   // Then, create a new meta tag with the specified property and content
   if (!metaElement) {
@@ -56,7 +61,7 @@ function setMetaContent(document: Document, property: string, content: string) {
     document.head.appendChild(metaElement);
     document.head.appendChild(document.createTextNode("\n"));
   }
-  metaElement.setAttribute("property", property);
+  metaElement.setAttribute(name_or_propery, property);
   metaElement.setAttribute("content", content);
 }
 
