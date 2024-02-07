@@ -25,8 +25,8 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
 
   // We expect JSON
   const contentType = request.headers.get("Content-Type");
-  if (!contentType?.includes("application/json")) {
-    return errorResponse(400, "Expected JSON");
+  if (!contentType?.includes("application/json") && !contentType?.includes("text/html")) {
+    return errorResponse(400, "Expected JSON or HTML");
   }
 
   // We should receive [username, id] (i.e., `user/id` on path)
@@ -85,7 +85,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
         status: 200,
         // Update cookies to further delay expiry
         headers: new Headers([
-          ["Content-Type", "application/json; charset=utf-8"],
+          ["Content-Type", contentType],
           ["Set-Cookie", tokenProvider.serializeToken("access_token", accessToken)],
           ["Set-Cookie", tokenProvider.serializeToken("id_token", idToken)],
         ]),
