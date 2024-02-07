@@ -16,46 +16,54 @@ export function createShareUrl(chat: ChatCraftChat, user: User) {
  * @returns sane-looking html
  */
 function generateSharingHTML(chat: ChatCraftChat) {
-  // clone document. Then find <main> element and empty it, then console log it
   const cloned = document.cloneNode(true);
-
-  // Ensure the cloned node is treated as a Document
   const clonedDocument = cloned instanceof Document ? cloned : null;
-
-  // Find the <main> element in the cloned document
   const mainElement = clonedDocument?.querySelector("main");
 
-  // Check if the main element exists to avoid errors
   if (!clonedDocument || !mainElement) {
     throw new Error("index.html changed without updating this code!");
   }
-  // Empty the <main> element
+
   mainElement.innerHTML = "";
-  // put chat in there as yaml so it's accessible to both us and search engines
+  // Use html-escaped yaml for payload
   mainElement.textContent = yaml.stringify(chat.toJSON());
 
   const lastMessage = chat.messages().pop();
   const lastMessageText = lastMessage?.text;
 
-  // Remove existing OG tags
-  const existingOgTags = clonedDocument.head.querySelectorAll("meta[property^='og:']");
-  existingOgTags.forEach((tag) => tag.remove());
-
-  // create OG structure with lastMessageText
-  const ogTitle = document.createElement("meta");
-  ogTitle.setAttribute("property", "og:title");
-  ogTitle.setAttribute("content", chat.summary);
-  clonedDocument.head.appendChild(ogTitle);
-
+  // Set various types of titles/summaries
+  setMetaContent(clonedDocument, "og:title", chat.summary);
+  setMetaContent(clonedDocument, "description", chat.summary);
+  setDocumentTitle(clonedDocument, chat.summary);
+  // Set OG bulk text to be that of last message
   if (lastMessageText) {
-    const ogDescription = document.createElement("meta");
-    ogDescription.setAttribute("property", "og:description");
-    ogDescription.setAttribute("content", lastMessageText);
-    clonedDocument.head.appendChild(ogDescription);
+    setMetaContent(clonedDocument, "og:description", lastMessageText);
   }
 
-  // Console log the modified cloned document
   return clonedDocument.documentElement.outerHTML;
+}
+
+function setMetaContent(document: Document, property: string, content: string) {
+  // First, try to find an existing tag with the same property and remove it
+  const existingTag = document.head.querySelector(`meta[property='${property}']`);
+  if (existingTag) {
+    existingTag.remove();
+  }
+
+  // Then, create a new meta tag with the specified property and content
+  const metaTag = document.createElement("meta");
+  metaTag.setAttribute("property", property);
+  metaTag.setAttribute("content", content);
+  document.head.appendChild(metaTag);
+}
+
+function setDocumentTitle(document: Document, title: string) {
+  let titleElement = document.head.querySelector("title");
+  if (!titleElement) {
+    titleElement = document.createElement("title");
+    document.head.appendChild(titleElement);
+  }
+  titleElement.textContent = title;
 }
 
 export async function createShare(chat: ChatCraftChat, user: User) {
