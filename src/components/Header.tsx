@@ -20,14 +20,14 @@ import {
 } from "@chakra-ui/react";
 import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
-import { FcGoogle } from "react-icons/fc";
+// import { FcGoogle } from "react-icons/fc";
 import { TbSearch } from "react-icons/tb";
 import { Form } from "react-router-dom";
 
 import PreferencesModal from "./PreferencesModal";
 import DefaultSystemPromptModal from "./DefaultSystemPromptModal";
 import { useUser } from "../hooks/use-user";
-import { oauthSignIn } from "../../functions/google";
+// import { oauthSignIn } from "../../functions/google";
 
 type HeaderProps = {
   chatId?: string;

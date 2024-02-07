@@ -31,7 +31,7 @@ export default createBrowserRouter([
         "GET",
         "https://www.googleapis.com/drive/v3/about?fields=user&" + "access_token=" + accessToken
       );
-      xhr.onreadystatechange = function (e) {
+      xhr.onreadystatechange = function () {
         console.log(xhr.response);
       };
       xhr.send(null);

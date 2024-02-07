@@ -11,7 +11,7 @@ export async function oauthSignIn() {
   form.setAttribute("action", oauth2Endpoint);
 
   // Parameters to pass to OAuth 2.0 endpoint.
-  const params = {
+  const params: { [key: string]: string } = {
     client_id: "70478082635-iaa28pt6bg1h06ooeic3vo8fgtu90trh.apps.googleusercontent.com", // This is my test accout, can be used in testing on http://localhost:5173/
     redirect_uri: "http://localhost:5173",
     response_type: "token",
