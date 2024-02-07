@@ -23,9 +23,15 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageSrc }) =>
       <ModalCloseButton />
       <ModalBody>
         <Flex height={"100%"} justifyContent={"center"} alignItems={"center"}>
-          <Box maxWidth="100%" maxHeight="70vh" overflow={"auto"}>
-            <Image src={imageSrc} alt="Selected Image" m="auto" objectFit="contain" />
-          </Box>
+          <Image
+            maxWidth="100%"
+            maxHeight="70vh"
+            overflow={"auto"}
+            src={imageSrc}
+            alt="Selected Image"
+            m="auto"
+            objectFit="contain"
+          />
         </Flex>
       </ModalBody>
     </ModalContent>
