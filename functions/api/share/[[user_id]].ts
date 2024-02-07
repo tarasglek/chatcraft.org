@@ -119,6 +119,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
     object.writeHttpMetadata(headers);
     headers.set("etag", object.httpEtag);
 
+    const contentType = object.httpMetadata.contentType || "application/octet-stream";
+    headers.set("Content-Type", contentType);
+
     return new Response(object.body, {
       status: 200,
       headers,
