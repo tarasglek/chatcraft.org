@@ -246,4 +246,14 @@ export default createBrowserRouter([
       return redirect("/");
     },
   },
+  // handle the redirection from shared static html
+  {
+    path: "/api/share/chatcraft_dev/:chatId",
+    loader: async ({ params }) => {
+      // Extract the `chatId` parameter from the URL
+      const { chatId } = params;
+      // Redirect to the desired path
+      return redirect(`/c/chatcraft_dev/${chatId}`);
+    },
+  },
 ]);
