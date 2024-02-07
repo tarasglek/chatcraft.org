@@ -17,6 +17,25 @@ export default createBrowserRouter([
   {
     path: "/",
     async loader() {
+      // Because google will redirect_uri to "/" with accessToken
+      const requestedURI = location.pathname;
+      // Accessing anchor values
+      const anchor = location.hash.substring(1); // Exclude the '#' character
+      console.log("Requested URI:", requestedURI);
+      console.log("Anchor:", anchor);
+      const match = anchor.match(/access_token=([^&]*)/);
+      const accessToken = match ? match[1] : null;
+      console.log("accessToken:", accessToken);
+      const xhr = new XMLHttpRequest();
+      xhr.open(
+        "GET",
+        "https://www.googleapis.com/drive/v3/about?fields=user&" + "access_token=" + accessToken
+      );
+      xhr.onreadystatechange = function (e) {
+        console.log(xhr.response);
+      };
+      xhr.send(null);
+
       try {
         const recentChat = await db.chats.orderBy("date").last();
         if (recentChat) {
@@ -25,7 +44,6 @@ export default createBrowserRouter([
       } catch (err) {
         console.warn("Error getting most recent chat", err);
       }
-
       return redirect("/new");
     },
     errorElement: <AppError />,
