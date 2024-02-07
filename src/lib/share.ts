@@ -58,6 +58,7 @@ function setMetaContent(
   // Then, create a new meta tag with the specified property and content
   if (!metaElement) {
     metaElement = document.createElement("meta");
+    document.head.appendChild(document.createTextNode("\n"));
     document.head.appendChild(metaElement);
     document.head.appendChild(document.createTextNode("\n"));
   }
