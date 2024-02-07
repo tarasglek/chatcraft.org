@@ -48,20 +48,25 @@ function generateSharingHTML(chat: ChatCraftChat) {
 
 function setMetaContent(document: Document, property: string, content: string) {
   // First, try to find an existing tag with the same property and remove it
-  document.head.querySelector(`meta[property='${property}']`)?.remove();
+  let metaElement = document.head.querySelector(`meta[property='${property}']`);
 
   // Then, create a new meta tag with the specified property and content
-  const metaTag = document.createElement("meta");
-  metaTag.setAttribute("property", property);
-  metaTag.setAttribute("content", content);
-  document.head.prepend(metaTag);
+  if (!metaElement) {
+    metaElement = document.createElement("meta");
+    document.head.appendChild(metaElement);
+    document.head.appendChild(document.createTextNode("\n"));
+  }
+  metaElement.setAttribute("property", property);
+  metaElement.setAttribute("content", content);
+  document.head.prepend(metaElement);
 }
 
 function setDocumentTitle(document: Document, title: string) {
   let titleElement = document.head.querySelector("title");
   if (!titleElement) {
     titleElement = document.createElement("title");
-    document.head.prepend(titleElement);
+    document.head.appendChild(titleElement);
+    document.head.append(document.createTextNode("\n"));
   }
   titleElement.textContent = title;
 }
