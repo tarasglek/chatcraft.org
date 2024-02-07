@@ -31,6 +31,9 @@ function generateSharingHTML(chat: ChatCraftChat) {
   const lastMessage = chat.messages().pop();
   const lastMessageText = lastMessage?.text;
 
+  // remove style
+  document.head.querySelector("style")?.remove();
+
   // Set various types of titles/summaries
   setMetaContent(clonedDocument, "og:title", chat.summary);
   setMetaContent(clonedDocument, "description", chat.summary);
@@ -45,10 +48,7 @@ function generateSharingHTML(chat: ChatCraftChat) {
 
 function setMetaContent(document: Document, property: string, content: string) {
   // First, try to find an existing tag with the same property and remove it
-  const existingTag = document.head.querySelector(`meta[property='${property}']`);
-  if (existingTag) {
-    existingTag.remove();
-  }
+  document.head.querySelector(`meta[property='${property}']`)?.remove();
 
   // Then, create a new meta tag with the specified property and content
   const metaTag = document.createElement("meta");
