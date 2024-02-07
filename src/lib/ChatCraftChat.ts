@@ -383,6 +383,10 @@ export class ChatCraftChat {
     });
   }
 
+  static fromYAML(str: string): ChatCraftChat {
+    return ChatCraftChat.fromJSON(yaml.parse(str));
+  }
+
   // Parse from db representation, where chat and messages are separate.
   // Assumes all messages have already been obtained for messageIds, but
   // deals with any that are missing (undefined)

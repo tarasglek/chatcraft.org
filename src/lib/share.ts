@@ -151,8 +151,7 @@ export async function loadShare(user: string, id: string) {
   if (!yamlText) {
     throw new Error("No shared found in the shared html");
   }
-  const parsedYaml = yaml.parse(yamlText);
-  return ChatCraftChat.fromJSON(parsedYaml); // Assuming fromJSON can handle YAML parsed object
+  return ChatCraftChat.fromYAML(yamlText);
 }
 
 export async function deleteShare(user: User, chatId: string) {

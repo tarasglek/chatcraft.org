@@ -89,7 +89,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
       return;
     }
 
-    chat.title = summary;
+    chat.summary = summary;
     chat
       .save()
       .catch((err) => {
@@ -124,7 +124,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                   <Flex align="center" gap={2}>
                     <Input
                       flex={1}
-                      defaultValue={chat.title}
+                      defaultValue={chat.summary}
                       type="text"
                       name="summary"
                       bg="white"
