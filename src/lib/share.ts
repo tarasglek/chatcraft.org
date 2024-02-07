@@ -66,7 +66,7 @@ function setDocumentTitle(document: Document, title: string) {
   if (!titleElement) {
     titleElement = document.createElement("title");
     document.head.appendChild(titleElement);
-    document.head.append(document.createTextNode("\n"));
+    document.head.appendChild(document.createTextNode("\n"));
   }
   titleElement.textContent = title;
 }
