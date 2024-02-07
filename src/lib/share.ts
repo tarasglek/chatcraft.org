@@ -15,7 +15,7 @@ export function createShareUrl(chat: ChatCraftChat, user: User) {
  * @param chat Chatcraft chat
  * @returns sane-looking html
  */
-function generateSharingHTML(chat: ChatCraftChat) {
+function generateSharingHTML(chat: ChatCraftChat, user: User) {
   const cloned = document.cloneNode(true);
   const clonedDocument = cloned instanceof Document ? cloned : null;
   const mainElement = clonedDocument?.querySelector("main");
@@ -36,6 +36,7 @@ function generateSharingHTML(chat: ChatCraftChat) {
 
   // Set various types of titles/summaries
   setMetaContent(clonedDocument, "property", "og:title", chat.summary);
+  setMetaContent(clonedDocument, "property", "og:url", createShareUrl(chat, user));
   setMetaContent(clonedDocument, "name", "description", chat.summary);
   setDocumentTitle(clonedDocument, chat.summary);
   // Set OG bulk text to be that of last message
@@ -98,7 +99,7 @@ export async function createShare(chat: ChatCraftChat, user: User) {
     headers: {
       "Content-Type": "text/html",
     },
-    body: generateSharingHTML(chat),
+    body: generateSharingHTML(chat, user),
   });
 
   if (!res.ok) {
