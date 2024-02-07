@@ -341,9 +341,18 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 };
 
-export async function queryModels(apiKey: string) {
+/**
+ *
+ * @param apiKey Api key for the provider
+ * @param filterPredicate A function used to filter the array of returned models
+ * @returns A list of ChatCraft models
+ */
+export async function queryModels(
+  apiKey: string,
+  filterPredicate: (model: ChatCraftModel) => boolean = (model) =>
+    !usingOfficialOpenAI() || model.id.includes("gpt")
+) {
   const { apiUrl } = getSettings();
-  const usingOpenAI = usingOfficialOpenAI();
   const { openai } = createClient(apiKey, apiUrl);
 
   try {
@@ -353,7 +362,7 @@ export async function queryModels(apiKey: string) {
     }
 
     return models
-      .filter((model: any) => !usingOpenAI || model.id.includes("gpt"))
+      .filter((model: any) => filterPredicate(model))
       .map((model: any) => model.id) as string[];
   } catch (err: any) {
     throw new Error(err.message ?? `error querying models API`);
@@ -442,8 +451,19 @@ export const openRouterPkceRedirect = () => {
   location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
 };
 
-export function isTtsSupported() {
-  return usingOfficialOpenAI();
+export async function isTtsSupported() {
+  const { apiKey } = getSettings();
+  if (!apiKey) {
+    throw new Error("Missing API Key");
+  }
+
+  return (
+    (
+      await queryModels(apiKey, (model: ChatCraftModel) => {
+        return model.id.includes("tts");
+      })
+    )?.length > 0
+  );
 }
 
 /**

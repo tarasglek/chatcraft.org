@@ -44,7 +44,7 @@ function useChatOpenAI() {
   const { addToAudioQueue } = useAudioPlayer();
 
   const callChatApi = useCallback(
-    (
+    async (
       messages: ChatCraftMessage[],
       {
         model = settings.model,
@@ -63,6 +63,7 @@ function useChatOpenAI() {
       setShouldAutoScroll(true);
       resetScrollProgress();
 
+      const ttsSupported = await isTtsSupported();
       // Set a maximum words in a sentence that we need to wait for.
       // This reduces latency and number of TTS api calls
       const TTS_BUFFER_THRESHOLD = 25;
@@ -87,7 +88,7 @@ function useChatOpenAI() {
             // Hook tts code here
             ttsWordsBuffer = currentText.slice(ttsCursor);
 
-            if (isTtsSupported() && getSettings().announceMessages) {
+            if (ttsSupported && getSettings().announceMessages) {
               if (
                 sentenceEndRegex.test(ttsWordsBuffer) // Has full sentence
               ) {
@@ -158,7 +159,7 @@ function useChatOpenAI() {
           setShouldAutoScroll(false);
 
           if (
-            isTtsSupported() &&
+            ttsSupported &&
             getSettings().announceMessages &&
             ttsWordsBuffer.slice(ttsCursor).length
           ) {

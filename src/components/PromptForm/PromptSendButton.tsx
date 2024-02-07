@@ -16,6 +16,8 @@ import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
 import { isTtsSupported } from "../../lib/ai";
+import { useEffect, useState } from "react";
+import { useAlert } from "../../hooks/use-alert";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -24,6 +26,25 @@ type PromptSendButtonProps = {
 function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
+
+  const { error } = useAlert();
+
+  const [isTTSSupported, setIsTTSSupported] = useState(false);
+
+  useEffect(() => {
+    async function checkTtsSupport() {
+      try {
+        const supported = await isTtsSupported();
+        setIsTTSSupported(supported);
+      } catch (err: any) {
+        error({
+          title: "Error checking TTS support",
+          message: err.message,
+        });
+      }
+    }
+    checkTtsSupport();
+  }, [error]);
 
   return (
     <ButtonGroup variant="outline" isAttached>
@@ -37,7 +58,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           isLoading={isLoading}
           icon={<TbSend />}
         />
-        {isTtsSupported() && (
+        {isTTSSupported && (
           <Tooltip
             label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
           >
@@ -82,12 +103,31 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
 
+  const { error } = useAlert();
+
+  const [isTTSSupported, setIsTTSSupported] = useState(false);
+
+  useEffect(() => {
+    async function checkTtsSupport() {
+      try {
+        const supported = await isTtsSupported();
+        setIsTTSSupported(supported);
+      } catch (err: any) {
+        error({
+          title: "Error checking TTS support",
+          message: err.message,
+        });
+      }
+    }
+    checkTtsSupport();
+  }, [error]);
+
   return (
     <ButtonGroup isAttached>
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
         Ask {settings.model.prettyModel}
       </Button>
-      {isTtsSupported() && (
+      {isTTSSupported && (
         <Tooltip
           label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
         >
