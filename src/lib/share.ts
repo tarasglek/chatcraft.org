@@ -9,6 +9,14 @@ export function createShareUrl(chat: ChatCraftChat, user: User) {
   return shareUrl.href;
 }
 
+export function createUIShareUrl(chat: ChatCraftChat, user: User) {
+  // Create a share URL we can give to other people
+  const { origin } = new URL(location.href);
+  const shareUrl = new URL(`/c/${user.username}/${chat.id}`, origin);
+
+  return shareUrl.href;
+}
+
 /**
  * Generate static html with our messages in yaml form so they can both be parsed by us and by scrapers/browsers/etc
  * Uses our index.html as a base
@@ -31,8 +39,11 @@ function generateSharingHTML(chat: ChatCraftChat, user: User) {
   const lastMessage = chat.messages().pop();
   const lastMessageText = lastMessage?.text;
 
-  // remove style tags
+  // remove script+style tags
   clonedDocument.head.querySelectorAll("style")?.forEach((x) => x.remove());
+  clonedDocument.head.querySelectorAll("script")?.forEach((x) => x.remove());
+  // set a meta refresh tag to redirect to the UI without scripting
+  setMetaContent(clonedDocument, "http-equiv", "refresh", `0;url=${createUIShareUrl(chat, user)}`);
 
   // Set various types of titles/summaries
   setMetaContent(clonedDocument, "property", "og:title", chat.summary);
