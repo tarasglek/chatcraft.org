@@ -75,7 +75,11 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
   // Put the chat into R2
   try {
     const key = user_id.join("/");
-    await CHATCRAFT_ORG_BUCKET.put(key, request.body);
+    await CHATCRAFT_ORG_BUCKET.put(key, request.body, {
+      httpMetadata: {
+        contentType: contentType,
+      },
+    });
 
     return new Response(
       JSON.stringify({
@@ -119,7 +123,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
     object.writeHttpMetadata(headers);
     headers.set("etag", object.httpEtag);
 
-    const contentType = object.httpMetadata.contentType || "application/octet-stream";
+    // set text/html if content-type isn't set
+    const contentType = object.httpMetadata.contentType || "text/html";
     headers.set("Content-Type", contentType);
 
     return new Response(object.body, {
