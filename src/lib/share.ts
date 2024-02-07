@@ -79,14 +79,28 @@ export async function createShare(chat: ChatCraftChat, user: User) {
 }
 
 export async function loadShare(user: string, id: string) {
-  // We don't need to send credentials for this request
   const res = await fetch(`/api/share/${user}/${id}`);
   if (!res.ok) {
-    throw new Error("Unable to load shared chat" + (await res.json()).message);
+    throw new Error("Unable to load shared chat" + (await res.text()));
   }
 
-  const serialized: SerializedChatCraftChat = await res.json();
-  return ChatCraftChat.fromJSON(serialized);
+  const text = await res.text();
+
+  try {
+    // Try to parse the response as JSON
+    const serialized: SerializedChatCraftChat = JSON.parse(text);
+    return ChatCraftChat.fromJSON(serialized);
+  } catch (error) {
+    // If JSON parsing fails, try to parse as HTML with embedded yaml
+  }
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, "text/html");
+  const yamlText = doc.querySelector("main")?.textContent;
+  if (!yamlText) {
+    throw new Error("No shared found in the shared html");
+  }
+  const parsedYaml = yaml.parse(yamlText);
+  return ChatCraftChat.fromJSON(parsedYaml); // Assuming fromJSON can handle YAML parsed object
 }
 
 export async function deleteShare(user: User, chatId: string) {
