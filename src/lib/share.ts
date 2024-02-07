@@ -53,10 +53,10 @@ function generateSharingHTML(chat: ChatCraftChat, user: User) {
   setMetaContent(clonedDocument, "http-equiv", "refresh", `0;url=${createShareUrl(chat, user)}`);
 
   // Set various types of titles/summaries
-  setMetaContent(clonedDocument, "property", "og:title", chat.title);
+  setMetaContent(clonedDocument, "property", "og:title", chat.summary);
   setMetaContent(clonedDocument, "property", "og:url", createShareUrl(chat, user));
-  setMetaContent(clonedDocument, "name", "description", chat.title);
-  setDocumentTitle(clonedDocument, chat.title);
+  setMetaContent(clonedDocument, "name", "description", chat.summary);
+  setDocumentTitle(clonedDocument, chat.summary);
   // Set OG bulk text to be that of last message
   if (lastMessageText) {
     setMetaContent(clonedDocument, "property", "og:description", lastMessageText);

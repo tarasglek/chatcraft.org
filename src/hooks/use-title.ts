@@ -5,8 +5,8 @@ export default function useTitle(chat: ChatCraftChat) {
   const [title, setTitle] = useState("");
 
   useEffect(() => {
-    setTitle(chat.title || "New Chat");
-  }, [chat.title]);
+    setTitle(chat.summary || "New Chat");
+  }, [chat.summary]);
 
   // Update the window's title as well
   useEffect(() => {
