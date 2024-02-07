@@ -5,6 +5,7 @@ import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
 import Instructions from "./Instructions";
 import Help from "./Help";
+import { CommandsHelpCommand } from "../../../lib/commands/CommandsHelpCommand";
 
 type AppMessageProps = Omit<MessageBaseProps, "avatar">;
 
@@ -46,6 +47,7 @@ function AppMessage(props: AppMessageProps) {
       <Help
         {...props}
         onlyCommands={true}
+        queriedCommand={CommandsHelpCommand.getQueriedCommand(message.text)}
         avatar={avatar}
         heading={heading}
         disableFork={true}

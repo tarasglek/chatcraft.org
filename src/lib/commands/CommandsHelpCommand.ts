@@ -7,7 +7,13 @@ export class CommandsHelpCommand extends ChatCraftCommand {
     super("commands");
   }
 
-  async execute(chat: ChatCraftChat) {
-    return chat.addMessage(new ChatCraftAppMessage({ text: "app:commands" }));
+  static getQueriedCommand(messageText: string) {
+    // Anything after "app:commands"
+    return messageText.split(":")[2];
+  }
+
+  //eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async execute(chat: ChatCraftChat, user: User | undefined, args?: string[]) {
+    return chat.addMessage(new ChatCraftAppMessage({ text: `app:commands:${args?.join(" ")}` }));
   }
 }

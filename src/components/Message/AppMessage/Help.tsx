@@ -2,6 +2,7 @@ import { memo } from "react";
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
+import { ChatCraftCommand } from "../../../lib/ChatCraftCommand";
 
 const commandsHelpText = `## Commands
 
@@ -138,13 +139,26 @@ have an idea for a feature, or think you've found a bug, get in touch with us:
 
 interface HelpMessageProps extends MessageBaseProps {
   onlyCommands?: boolean;
+  // This property can be used to report the
+  // closest matching command in the future
+  queriedCommand?: string;
 }
 
 function Help(props: HelpMessageProps) {
   // Override the text of the message
+  const isQueriedCommandValid =
+    props.onlyCommands && props.queriedCommand && ChatCraftCommand.isCommand(props.queriedCommand);
+
+  const messageText =
+    props.onlyCommands && props.queriedCommand?.length && !isQueriedCommandValid
+      ? `**"${props.queriedCommand}" is not a valid command!**\n\n${commandsHelpText}`
+      : props.onlyCommands
+      ? commandsHelpText
+      : helpText;
+
   const message = new ChatCraftAppMessage({
     ...props.message,
-    text: props.onlyCommands ? commandsHelpText : helpText,
+    text: messageText,
   });
 
   return <MessageBase {...props} message={message} />;

@@ -488,7 +488,7 @@ export class ChatCraftAppMessage extends ChatCraftMessage {
     return new ChatCraftAppMessage({ text: "app:commands" });
   }
   static isCommandsHelp(message: ChatCraftMessage) {
-    return message instanceof ChatCraftAppMessage && message.text === "app:commands";
+    return message instanceof ChatCraftAppMessage && message.text.startsWith("app:commands");
   }
 }
 
