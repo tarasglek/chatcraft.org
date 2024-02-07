@@ -141,6 +141,17 @@ export default createBrowserRouter([
     errorElement: <AppError />,
   },
 
+  // handle the redirection from shared static html
+  {
+    path: "/api/share/:user/:chatId",
+    loader: async ({ params }) => {
+      const { user, chatId } = params;
+      // Redirect to old share path
+      return redirect(`/c/${user}/${chatId}`);
+    },
+    errorElement: <AppError />,
+  },
+
   // Fork a remote chat into the local db
   {
     path: "/c/:user/:chatId/fork/:messageId?",
@@ -244,16 +255,6 @@ export default createBrowserRouter([
         }
       }
       return redirect("/");
-    },
-  },
-  // handle the redirection from shared static html
-  {
-    path: "/api/share/:user/:chatId",
-    loader: async ({ params }) => {
-      // Extract the `chatId` parameter from the URL
-      const { user, chatId } = params;
-      // Redirect to the desired path
-      return redirect(`/c/${user}/${chatId}`);
     },
   },
 ]);
