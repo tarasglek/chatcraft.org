@@ -17,7 +17,6 @@ export function createDataShareUrl(chat: ChatCraftChat, user: User) {
  * @returns url
  */
 export function createShareUrl(chat: ChatCraftChat, user: User, prefix = "/c") {
-  // Create a share URL we can give to other people
   const { origin } = new URL(location.href);
   const shareUrl = new URL(`${prefix}/${user.username}/${chat.id}`, origin);
 
