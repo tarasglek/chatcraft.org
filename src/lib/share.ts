@@ -31,8 +31,8 @@ function generateSharingHTML(chat: ChatCraftChat) {
   const lastMessage = chat.messages().pop();
   const lastMessageText = lastMessage?.text;
 
-  // remove style
-  clonedDocument.head.querySelector("style")?.remove();
+  // remove style tags
+  clonedDocument.head.querySelectorAll("style")?.forEach((x) => x.remove());
 
   // Set various types of titles/summaries
   setMetaContent(clonedDocument, "property", "og:title", chat.summary);
