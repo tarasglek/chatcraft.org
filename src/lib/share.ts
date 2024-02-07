@@ -32,7 +32,7 @@ function generateSharingHTML(chat: ChatCraftChat) {
   const lastMessageText = lastMessage?.text;
 
   // remove style
-  document.head.querySelector("style")?.remove();
+  clonedDocument.head.querySelector("style")?.remove();
 
   // Set various types of titles/summaries
   setMetaContent(clonedDocument, "og:title", chat.summary);
