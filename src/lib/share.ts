@@ -47,7 +47,7 @@ function generateSharingHTML(chat: ChatCraftChat) {
 }
 
 function setMetaContent(document: Document, property: string, content: string) {
-  // First, try to find an existing tag with the same property and remove it
+  // First, try to find an existing tag
   let metaElement = document.head.querySelector(`meta[property='${property}']`);
 
   // Then, create a new meta tag with the specified property and content

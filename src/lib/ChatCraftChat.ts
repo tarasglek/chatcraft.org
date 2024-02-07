@@ -25,10 +25,14 @@ export type SerializedChatCraftChat = {
 
 function createSummary(chat: ChatCraftChat, maxLength = 200) {
   // We only want to consider human prompts and ai responses for our summary
-  const markdown = chat
+  const messages = chat
     .messages({ includeAppMessages: false, includeSystemMessages: false })
-    .map((message) => message.text)
-    .join("\n\n");
+    .map((message) => message.text);
+  if (messages.length > 1) {
+    // remove last message as it will get summarized in OG
+    messages.pop();
+  }
+  const markdown = messages.join("\n\n");
 
   const summary = summarize(markdown);
   return summary.length > maxLength ? summary.slice(0, maxLength) + "..." : summary;
