@@ -58,7 +58,6 @@ function setMetaContent(document: Document, property: string, content: string) {
   }
   metaElement.setAttribute("property", property);
   metaElement.setAttribute("content", content);
-  document.head.prepend(metaElement);
 }
 
 function setDocumentTitle(document: Document, title: string) {
