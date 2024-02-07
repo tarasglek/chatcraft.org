@@ -419,13 +419,15 @@ function MessageBase({
               ) : (
                 <>
                   {image.map((image, index) => (
-                    <Image
-                      key={`${id}-${index}`}
-                      src={image}
-                      alt={`Images# ${index}`}
-                      width="50%"
-                      onClick={() => openModalWithImage(image)}
-                    />
+                    <Box key={`${id}-${index}`}>
+                      <Image
+                        src={image}
+                        alt={`Images# ${index}`}
+                        margin={"auto"}
+                        maxWidth={"100%"}
+                        onClick={() => openModalWithImage(image)}
+                      />
+                    </Box>
                   ))}
                   <Markdown
                     previewCode={!hidePreviews && !displaySummaryText}
