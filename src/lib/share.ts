@@ -54,14 +54,14 @@ function setMetaContent(document: Document, property: string, content: string) {
   const metaTag = document.createElement("meta");
   metaTag.setAttribute("property", property);
   metaTag.setAttribute("content", content);
-  document.head.appendChild(metaTag);
+  document.head.prepend(metaTag);
 }
 
 function setDocumentTitle(document: Document, title: string) {
   let titleElement = document.head.querySelector("title");
   if (!titleElement) {
     titleElement = document.createElement("title");
-    document.head.appendChild(titleElement);
+    document.head.prepend(titleElement);
   }
   titleElement.textContent = title;
 }
