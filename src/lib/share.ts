@@ -4,8 +4,7 @@ import * as yaml from "yaml";
 export function createShareUrl(chat: ChatCraftChat, user: User) {
   // Create a share URL we can give to other people
   const { origin } = new URL(location.href);
-  // hack, we need to change the api urls to include username
-  const shareUrl = new URL(`/api/share/chatcraft_dev/${chat.id}?${user.username}`, origin);
+  const shareUrl = new URL(`/api/share/${user.username}/${chat.id}`, origin);
 
   return shareUrl.href;
 }
