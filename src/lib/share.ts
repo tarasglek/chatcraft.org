@@ -55,12 +55,27 @@ function setMetaContent(
   // First, try to find an existing tag
   let metaElement = document.head.querySelector(`meta[${name_or_propery}='${property}']`);
 
-  // Then, create a new meta tag with the specified property and content
+  // create a new meta tag with the specified property and content
   if (!metaElement) {
+    // Try to insert the new tag next to other similar ones
     metaElement = document.createElement("meta");
-    document.head.appendChild(document.createTextNode("\n"));
-    document.head.appendChild(metaElement);
-    document.head.appendChild(document.createTextNode("\n"));
+    // Initially set lastInit to the last child of the head
+    let lastNode = document.head.lastChild;
+    if (!lastNode) {
+      lastNode = document.createTextNode("\n");
+      document.head.appendChild(lastNode);
+    }
+    // Query all existing meta tags in the document head
+    const metas = document.head.querySelectorAll(`meta[${name_or_propery}]`);
+
+    if (metas.length > 0) {
+      // If there are existing meta tags, update lastInit to the last meta tag
+      lastNode = metas[metas.length - 1];
+    }
+
+    lastNode.after(document.createTextNode("\n"));
+    lastNode.after(metaElement);
+    lastNode.after(document.createTextNode("\n"));
   }
   metaElement.setAttribute(name_or_propery, property);
   metaElement.setAttribute("content", content);
