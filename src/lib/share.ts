@@ -40,7 +40,10 @@ function generateSharingHTML(chat: ChatCraftChat, user: User) {
 
   mainElement.innerHTML = "";
   // Use html-escaped yaml for payload
-  mainElement.textContent = chat.toYAML();
+  preElement = document.createElement("pre");
+  preElement.setText(chat.toYAML());
+  mainElement.append(preElement);
+  mainElement.attributes.forEach((x) => mainElement.attributes.removeNamedItem(x));
 
   const lastMessage = chat.messages().pop();
   const lastMessageText = lastMessage?.text;
