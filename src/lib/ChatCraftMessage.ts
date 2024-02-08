@@ -37,6 +37,7 @@ export type SerializedChatCraftMessage = {
   user?: User;
   func?: FunctionCallParams | FunctionCallResult;
   text: string;
+  image?: string[];
   versions?: { id: string; date: string; model: string; text: string }[];
 };
 
@@ -95,6 +96,7 @@ export class ChatCraftMessage {
       date: this.date.toISOString(),
       type: this.type,
       text: this.text,
+      image: this.image,
     };
   }
 
@@ -394,6 +396,7 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
       date: new Date(message.date),
       user: message.user,
       text: message.text,
+      image: message.image,
       readonly: true,
     });
   }
