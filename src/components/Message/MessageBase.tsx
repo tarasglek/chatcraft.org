@@ -39,7 +39,7 @@ import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink } from "react-router-dom";
 
-import { formatDate, download, formatNumber, getMetaKey } from "../../lib/utils";
+import { formatDate, download, formatNumber, getMetaKey, screenshotElement } from "../../lib/utils";
 import Markdown from "../Markdown";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import {
@@ -112,6 +112,7 @@ function MessageBase({
   const [tokens, setTokens] = useState<number | null>(null);
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
+  const messageContent = useRef<HTMLDivElement>(null);
   const meta = useMemo(getMetaKey, []);
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
   const isLongMessage = text.length > 5000;
@@ -150,13 +151,49 @@ function MessageBase({
     });
   }, [onCopy, info]);
 
-  const handleDownload = useCallback(() => {
-    download(text, "message.md");
+  const handleDownloadMarkdown = useCallback(() => {
+    download(text, "message.md", "text/markdown");
     info({
       title: "Downloaded",
-      message: "Message was downloaded as a file",
+      message: "Message was downloaded as a Markdown file",
     });
   }, [info, text]);
+
+  const handleDownloadImage = useCallback(() => {
+    const elem = messageContent.current;
+    if (!elem) {
+      return;
+    }
+
+    try {
+      screenshotElement(elem).then((blob) => {
+        download(blob, "message.png", "image/png");
+        info({
+          title: "Downloaded",
+          message: "Message was downloaded as an image file",
+        });
+      });
+    } catch (err: any) {
+      console.warn("Unable to download image", err);
+      error({
+        title: `Error Saving Message as Image`,
+        message: err.message,
+      });
+    }
+  }, [messageContent, info, error]);
+
+  const handleDownloadPlainText = useCallback(() => {
+    if (messageContent.current) {
+      const text = messageContent.current.textContent;
+      if (text) {
+        download(text, "message.txt", "text/plain");
+        info({
+          title: "Downloaded",
+          message: "Message was downloaded as text file",
+        });
+      }
+    }
+  }, [messageContent, info]);
 
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     messageForm.current?.setAttribute("data-action", e.currentTarget.name);
@@ -301,9 +338,19 @@ function MessageBase({
                   )}
                 </ButtonGroup>
               )}
-              <Menu isLoading={isLoading}>
+              <Menu isDisabled={isLoading}>
                 <MenuItem label="Copy" onClick={handleCopy} />
-                <MenuItem label="Download" onClick={handleDownload} />
+                <SubMenu label="Download">
+                  <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
+                  <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
+                  <MenuItem
+                    label="Download as Image"
+                    onClick={handleDownloadImage}
+                    // If we're editing, or showing only a summary, don't enable download as image
+                    // since we need the whole element to exist in order to render into the canvas.
+                    disabled={displaySummaryText !== false || editing}
+                  />
+                </SubMenu>
                 {!disableFork && (
                   <MenuItem
                     label={
@@ -363,7 +410,15 @@ function MessageBase({
         </CardHeader>
         <CardBody p={0}>
           <Flex direction="column" gap={3}>
-            <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
+            <Box
+              maxWidth="100%"
+              minH="2em"
+              overflow="hidden"
+              // Offset for the extra pixel of padding added to the messageContent box below
+              m={-1}
+              px={6}
+              pb={2}
+            >
               {
                 // only display the button before message if the message is too long and toggled
                 !editing && isLongMessage && isOpen ? (
@@ -421,7 +476,11 @@ function MessageBase({
                   </VStack>
                 </form>
               ) : (
-                <>
+                <Box
+                  ref={messageContent}
+                  // Add a single pixel of offset for rendering to canvas (offset handled above with m=-1)
+                  p={1}
+                >
                   <Markdown
                     previewCode={!hidePreviews && !displaySummaryText}
                     isLoading={isLoading}
@@ -435,7 +494,7 @@ function MessageBase({
                       {isOpen ? "Show Less" : "Show More..."}
                     </Button>
                   ) : undefined}
-                </>
+                </Box>
               )}
             </Box>
           </Flex>
