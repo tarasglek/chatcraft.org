@@ -358,7 +358,7 @@ function MessageBase({
                         icon={
                           <IconButton
                             variant="ghost"
-                            icon={<TbTrash />}
+                            icon={<TbTrash color="red" />}
                             aria-label="Delete message"
                             title="Delete message"
                           />
