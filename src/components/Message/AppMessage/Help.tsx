@@ -153,8 +153,8 @@ function Help(props: HelpMessageProps) {
     props.onlyCommands && props.queriedCommand?.length && !isQueriedCommandValid
       ? `**"${props.queriedCommand}" is not a valid command!**\n\n${commandsHelpText}`
       : props.onlyCommands
-      ? commandsHelpText
-      : helpText;
+        ? commandsHelpText
+        : helpText;
 
   const message = new ChatCraftAppMessage({
     ...props.message,
