@@ -200,7 +200,7 @@ function ChatBase({ chat }: ChatBaseProps) {
           // Add this prompt message to the chat
           promptMessage = new ChatCraftHumanMessage({ text: prompt, image, user });
           await chat.addMessage(promptMessage);
-        } else if (image) {
+        } else if (image && image.length) {
           // Add only image to the chat
           promptMessage = new ChatCraftHumanMessage({ text: "", image, user });
           await chat.addMessage(promptMessage);
