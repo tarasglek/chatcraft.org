@@ -57,6 +57,7 @@ import { useAlert } from "../../hooks/use-alert";
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
+import { usingOfficialOpenAI } from "../../lib/ai";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -376,13 +377,15 @@ function MessageBase({
                   <>
                     <MenuDivider />
                     <SubMenu label="Retry with...">
-                      {models.map((model) => (
-                        <MenuItem
-                          key={model.id}
-                          label={model.prettyModel}
-                          onClick={() => onRetryClick(model)}
-                        />
-                      ))}
+                      {models
+                        .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                        .map((model) => (
+                          <MenuItem
+                            key={model.id}
+                            label={model.prettyModel}
+                            onClick={() => onRetryClick(model)}
+                          />
+                        ))}
                     </SubMenu>
                   </>
                 )}

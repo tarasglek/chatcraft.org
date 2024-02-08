@@ -15,7 +15,7 @@ import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
-import { isTtsSupported } from "../../lib/ai";
+import { isTtsSupported, usingOfficialOpenAI } from "../../lib/ai";
 import { useEffect, useState } from "react";
 import { useAlert } from "../../hooks/use-alert";
 
@@ -88,11 +88,13 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models.map((model) => (
-            <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-              {model.prettyModel}
-            </MenuItem>
-          ))}
+          {models
+            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+            .map((model) => (
+              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                {model.prettyModel}
+              </MenuItem>
+            ))}
         </MenuList>
       </Menu>
     </ButtonGroup>
@@ -151,11 +153,13 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models.map((model) => (
-            <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-              {model.prettyModel}
-            </MenuItem>
-          ))}
+          {models
+            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+            .map((model) => (
+              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                {model.prettyModel}
+              </MenuItem>
+            ))}
         </MenuList>
       </Menu>
     </ButtonGroup>
