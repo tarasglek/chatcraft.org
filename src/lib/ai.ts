@@ -347,11 +347,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
  * @param filterPredicate A function used to filter the array of returned models
  * @returns A list of ChatCraft models
  */
-export async function queryModels(
-  apiKey: string,
-  filterPredicate: (model: ChatCraftModel) => boolean = (model) =>
-    !usingOfficialOpenAI() || model.id.includes("gpt")
-) {
+export async function queryModels(apiKey: string) {
   const { apiUrl } = getSettings();
   const { openai } = createClient(apiKey, apiUrl);
 
@@ -361,9 +357,7 @@ export async function queryModels(
       models.push(page);
     }
 
-    return models
-      .filter((model: any) => filterPredicate(model))
-      .map((model: any) => model.id) as string[];
+    return models.map((model: any) => model.id) as string[];
   } catch (err: any) {
     throw new Error(err.message ?? `error querying models API`);
   }
@@ -457,13 +451,7 @@ export async function isTtsSupported() {
     throw new Error("Missing API Key");
   }
 
-  return (
-    (
-      await queryModels(apiKey, (model: ChatCraftModel) => {
-        return model.id.includes("tts");
-      })
-    )?.length > 0
-  );
+  return (await queryModels(apiKey)).filter((model: string) => model.includes("tts"))?.length > 0;
 }
 
 /**

@@ -38,7 +38,7 @@ import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { ChatCraftProvider } from "../lib/ChatCraftProvider";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
-import { openRouterPkceRedirect, validateApiKey } from "../lib/ai";
+import { openRouterPkceRedirect, usingOfficialOpenAI, validateApiKey } from "../lib/ai";
 import { useAlert } from "../hooks/use-alert";
 
 // https://dexie.org/docs/StorageManager
@@ -301,11 +301,13 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   setSettings({ ...settings, model: new ChatCraftModel(e.target.value) })
                 }
               >
-                {models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.prettyModel}
-                  </option>
-                ))}
+                {models
+                  .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                  .map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.prettyModel}
+                    </option>
+                  ))}
               </Select>
               <FormHelperText>
                 See{" "}
