@@ -108,14 +108,10 @@ function DesktopPromptForm({
       inputPromptRef.current?.focus();
     }
   }, [isLoading, inputPromptRef]);
-  // Also focus when the attached images changes
+  // Also focus when the attached images changes or closes the image display modal
   useEffect(() => {
     inputPromptRef.current?.focus();
-  }, [inputImages, inputPromptRef]);
-  // Also focus when the closing the modal image
-  useEffect(() => {
-    inputPromptRef.current?.focus();
-  }, [imageModalOpen, inputPromptRef]);
+  }, [inputImages, imageModalOpen, inputPromptRef]);
 
   // Keep track of the number of seconds that we've been recording
   useEffect(() => {
