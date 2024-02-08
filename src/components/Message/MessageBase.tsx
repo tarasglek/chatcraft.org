@@ -355,6 +355,14 @@ function MessageBase({
                         label="Delete Message"
                         onClick={onDeleteClick}
                         className="delete-button"
+                        icon={
+                          <IconButton
+                            variant="ghost"
+                            icon={<TbTrash />}
+                            aria-label="Delete message"
+                            title="Delete message"
+                          />
+                        }
                       />
                     )}
                     {onDeleteAfterClick && (
