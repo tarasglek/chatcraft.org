@@ -54,7 +54,7 @@ export class ChatCraftMessage {
     date,
     type,
     text,
-    imageUrls: imageUrls,
+    imageUrls,
     readonly,
   }: {
     id?: string;
