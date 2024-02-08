@@ -9,7 +9,7 @@ type AttachProps = {
   onFileSelected: (base64: string) => void;
 };
 
-export default function Attach({ isDisabled = false, onFileSelected }: AttachProps) {
+export default function AttachFileButton({ isDisabled = false, onFileSelected }: AttachProps) {
   const isMobile = useMobileBreakpoint();
   const [colorScheme] = useState<"blue" | "red">("blue");
   const clipIconRef = useRef<HTMLButtonElement | null>(null);

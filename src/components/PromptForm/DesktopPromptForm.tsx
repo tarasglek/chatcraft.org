@@ -19,7 +19,7 @@ import { getMetaKey } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
 import NewButton from "../NewButton";
 import MicIcon from "./MicIcon";
-import Attach from "./Attach";
+import AttachFileButton from "./AttachFileButton";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
 import { useModels } from "../../hooks/use-models";
 import PromptSendButton from "./PromptSendButton";
@@ -346,7 +346,7 @@ function DesktopPromptForm({
                     ))}
                   </Flex>
                   <Flex flexWrap="wrap">
-                    <Attach
+                    <AttachFileButton
                       isDisabled={isLoading}
                       onFileSelected={(base64String) =>
                         setInputImages((prevImages) => [...prevImages, base64String])
