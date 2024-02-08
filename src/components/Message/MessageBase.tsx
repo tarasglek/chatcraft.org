@@ -105,7 +105,7 @@ function MessageBase({
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
-  const { id, date, text, image } = message;
+  const { id, date, text, imageUrls } = message;
   const { models } = useModels();
   const { onCopy } = useClipboard(text);
   const { info, error } = useAlert();
@@ -491,14 +491,14 @@ function MessageBase({
                   // Add a single pixel of offset for rendering to canvas (offset handled above with m=-1)
                   p={1}
                 >
-                  {image.map((image, index) => (
+                  {imageUrls.map((imageUrl, index) => (
                     <Box key={`${id}-${index}`}>
                       <Image
-                        src={image}
+                        src={imageUrl}
                         alt={`Images# ${index}`}
                         margin={"auto"}
                         maxWidth={"100%"}
-                        onClick={() => openModalWithImage(image)}
+                        onClick={() => openModalWithImage(imageUrl)}
                       />
                     </Box>
                   ))}

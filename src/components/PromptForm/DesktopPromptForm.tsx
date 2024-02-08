@@ -61,7 +61,7 @@ function KeyboardHint({ isVisible }: KeyboardHintProps) {
 
 type DesktopPromptFormProps = {
   forkUrl: string;
-  onSendClick: (prompt: string, image: string[]) => void;
+  onSendClick: (prompt: string, imageUrls: string[]) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
@@ -85,10 +85,10 @@ function DesktopPromptForm({
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const inputType = isRecording || isTranscribing ? "audio" : "text";
   // Base64 images
-  const [inputImages, setInputImages] = useState<string[]>([]);
+  const [inputImageUrls, setInputImageUrls] = useState<string[]>([]);
   // state for the modal display selectedImage
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
-  const [selectedImage, setSelectedImage] = useState<string>("");
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
   const location = useLocation();
 
   // If the user clears the prompt, allow up-arrow again
@@ -111,7 +111,7 @@ function DesktopPromptForm({
   // Also focus when the attached images changes or closes the image display modal
   useEffect(() => {
     inputPromptRef.current?.focus();
-  }, [inputImages, imageModalOpen, inputPromptRef]);
+  }, [inputImageUrls, imageModalOpen, inputPromptRef]);
 
   // Keep track of the number of seconds that we've been recording
   useEffect(() => {
@@ -135,7 +135,7 @@ function DesktopPromptForm({
 
   // Update model to the supported model when inputImages is not empty
   useEffect(() => {
-    if (inputImages && inputImages.length > 0) {
+    if (inputImageUrls && inputImageUrls.length > 0) {
       const modelSupportsImages = models.find((model) => model.supportsImages);
       if (modelSupportsImages) {
         setSettings({ ...settings, model: modelSupportsImages });
@@ -143,7 +143,7 @@ function DesktopPromptForm({
     }
     // Assuming models and setSettings are stable and don't need to be in the dependencies array
     // eslint-disable-next-line
-  }, [inputImages]);
+  }, [inputImageUrls]);
 
   // Attach paste event listener to the textarea
   useEffect(() => {
@@ -164,8 +164,8 @@ function DesktopPromptForm({
     e.preventDefault();
     const textValue = prompt.trim();
     setPrompt("");
-    setInputImages([]);
-    onSendClick(textValue, inputImages);
+    setInputImageUrls([]);
+    onSendClick(textValue, inputImageUrls);
   };
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
@@ -218,10 +218,10 @@ function DesktopPromptForm({
 
   const handleTranscriptionAvailable = (transcription: string) => {
     // Use this transcript as our prompt
-    onSendClick(transcription, inputImages);
+    onSendClick(transcription, inputImageUrls);
     setIsRecording(false);
     setIsTranscribing(false);
-    setInputImages([]);
+    setInputImageUrls([]);
   };
 
   const getBase64FromFile = (file: File): Promise<string> => {
@@ -242,7 +242,7 @@ function DesktopPromptForm({
       files.filter((file) => file.type.startsWith("image/")).map((file) => getBase64FromFile(file))
     )
       .then((base64Strings) => {
-        setInputImages((prevImages) => [...prevImages, ...base64Strings]);
+        setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...base64Strings]);
       })
       .catch((err) => {
         console.warn("Error processing images", err);
@@ -254,13 +254,13 @@ function DesktopPromptForm({
   };
 
   const handleDeleteImage = (index: number) => {
-    const updatedImages = [...inputImages];
-    updatedImages.splice(index, 1);
-    setInputImages(updatedImages);
+    const updatedImageUrls = [...inputImageUrls];
+    updatedImageUrls.splice(index, 1);
+    setInputImageUrls(updatedImageUrls);
   };
 
-  const handleClickImage = (image: string) => {
-    setSelectedImage(image);
+  const handleClickImage = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
     setImageModalOpen(true);
   };
   const closeModal = () => setImageModalOpen(false);
@@ -274,7 +274,7 @@ function DesktopPromptForm({
     if (imageFiles.length > 0) {
       Promise.all(imageFiles.map((file) => getBase64FromFile(file)))
         .then((base64Strings) => {
-          setInputImages((prevImages) => [...prevImages, ...base64Strings]);
+          setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...base64Strings]);
         })
         .catch((err) => {
           console.warn("Error processing images", err);
@@ -301,14 +301,14 @@ function DesktopPromptForm({
               >
                 <Flex w="100%" h="100%" direction="column">
                   <Flex flexWrap="wrap">
-                    {inputImages.map((image, index) => (
+                    {inputImageUrls.map((imageUrl, index) => (
                       <Box key={index} position="relative" height="100px" m={2}>
                         <Image
-                          src={image}
+                          src={imageUrl}
                           alt={`Image# ${index}`}
                           style={{ height: "100px", objectFit: "cover" }}
                           cursor="pointer"
-                          onClick={() => handleClickImage(image)}
+                          onClick={() => handleClickImage(imageUrl)}
                         />
                         <Box
                           position="absolute"
@@ -349,7 +349,7 @@ function DesktopPromptForm({
                     <AttachFileButton
                       isDisabled={isLoading}
                       onFileSelected={(base64String) =>
-                        setInputImages((prevImages) => [...prevImages, base64String])
+                        setInputImageUrls((prevImageUrls) => [...prevImageUrls, base64String])
                       }
                     />
                     {inputType === "audio" ? (
@@ -405,8 +405,7 @@ function DesktopPromptForm({
           </CardBody>
         </chakra.form>
       </Card>
-      {/* Modal for the larger image view */}
-      <ImageModal isOpen={imageModalOpen} onClose={closeModal} imageSrc={selectedImage} />
+      <ImageModal isOpen={imageModalOpen} onClose={closeModal} imageSrc={selectedImageUrl} />
     </Flex>
   );
 }

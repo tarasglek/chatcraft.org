@@ -37,7 +37,7 @@ export type SerializedChatCraftMessage = {
   user?: User;
   func?: FunctionCallParams | FunctionCallResult;
   text: string;
-  image?: string[];
+  imageUrls?: string[];
   versions?: { id: string; date: string; model: string; text: string }[];
 };
 
@@ -46,7 +46,7 @@ export class ChatCraftMessage {
   date: Date;
   type: MessageType;
   text: string;
-  image: string[];
+  imageUrls: string[];
   readonly: boolean;
 
   constructor({
@@ -54,21 +54,21 @@ export class ChatCraftMessage {
     date,
     type,
     text,
-    image,
+    imageUrls: imageUrls,
     readonly,
   }: {
     id?: string;
     date?: Date;
     type: MessageType;
     text: string;
-    image?: string[];
+    imageUrls?: string[];
     readonly?: boolean;
   }) {
     this.id = id ?? nanoid();
     this.date = date ?? new Date();
     this.type = type;
     this.text = text;
-    this.image = image ?? [];
+    this.imageUrls = imageUrls ?? [];
 
     // When we load a message outside the db (e.g., from shared chat via JSON) it is readonly
     this.readonly = readonly === true;
@@ -86,7 +86,7 @@ export class ChatCraftMessage {
     return new ChatCraftMessage({
       type: this.type,
       text: this.text,
-      image: this.image,
+      imageUrls: this.imageUrls,
     });
   }
 
@@ -96,7 +96,7 @@ export class ChatCraftMessage {
       date: this.date.toISOString(),
       type: this.type,
       text: this.text,
-      image: this.image,
+      imageUrls: this.imageUrls,
     };
   }
 
@@ -104,11 +104,11 @@ export class ChatCraftMessage {
     const text = this.text;
 
     const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [{ type: "text", text }];
-    if (model.supportsImages && this.image.length > 0) {
-      this.image.forEach((image) => {
+    if (model.supportsImages && this.imageUrls.length > 0) {
+      this.imageUrls.forEach((imageUrl) => {
         content.push({
           type: "image_url",
-          image_url: { url: image },
+          image_url: { url: imageUrl },
         });
       });
     }
@@ -137,7 +137,7 @@ export class ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
-      image: this.image,
+      imageUrls: this.imageUrls,
     };
   }
 
@@ -286,14 +286,14 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
-      image: this.image,
+      imageUrls: this.imageUrls,
       model: this.model.toString(),
       versions: this.versions.map((version) => ({
         id: version.id,
         date: version.date,
         model: version.model.toString(),
         text: version.text,
-        image: [], // Set to [] due to ChatCraftAiMessage not store image for now, has not the image property
+        imageUrls: [], // Set to [] due to ChatCraftAiMessage not store image for now, has not the image property
       })),
     };
   }
@@ -338,17 +338,17 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
     date,
     user,
     text,
-    image,
+    imageUrls,
     readonly,
   }: {
     id?: string;
     date?: Date;
     user?: User;
     text: string;
-    image?: string[];
+    imageUrls?: string[];
     readonly?: boolean;
   }) {
-    super({ id, date, type: "human", text, image, readonly });
+    super({ id, date, type: "human", text, imageUrls, readonly });
 
     this.user = user;
   }
@@ -357,7 +357,7 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
     return new ChatCraftHumanMessage({
       user: this.user,
       text: this.text,
-      image: this.image,
+      imageUrls: this.imageUrls,
     });
   }
 
@@ -375,7 +375,7 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
-      image: this.image,
+      imageUrls: this.imageUrls,
       user: this.user,
     };
   }
@@ -396,7 +396,7 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
       date: new Date(message.date),
       user: message.user,
       text: message.text,
-      image: message.image,
+      imageUrls: message.imageUrls,
       readonly: true,
     });
   }
@@ -407,7 +407,7 @@ export class ChatCraftHumanMessage extends ChatCraftMessage {
       date: message.date,
       user: message.user,
       text: message.text,
-      image: message.image,
+      imageUrls: message.imageUrls,
     });
   }
 }
@@ -581,7 +581,7 @@ export class ChatCraftFunctionCallMessage extends ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
-      image: this.image,
+      imageUrls: this.imageUrls,
       model: this.model.toString(),
       func: this.func,
     };
@@ -672,7 +672,7 @@ export class ChatCraftFunctionResultMessage extends ChatCraftMessage {
       chatId,
       type: this.type,
       text: this.text,
-      image: this.image,
+      imageUrls: this.imageUrls,
       func: this.func,
     };
   }

@@ -146,7 +146,7 @@ function ChatBase({ chat }: ChatBaseProps) {
 
   // Handle prompt form submission
   const onPrompt = useCallback(
-    async (prompt?: string, image?: string[]) => {
+    async (prompt?: string, imageUrls?: string[]) => {
       setLoading(true);
 
       // Special-case for "help", to invoke /help command
@@ -198,11 +198,11 @@ function ChatBase({ chat }: ChatBaseProps) {
         // If the prompt text exist, package it up as a human message and add to the chat
         if (prompt) {
           // Add this prompt message to the chat
-          promptMessage = new ChatCraftHumanMessage({ text: prompt, image, user });
+          promptMessage = new ChatCraftHumanMessage({ text: prompt, imageUrls, user });
           await chat.addMessage(promptMessage);
-        } else if (image && image.length) {
+        } else if (imageUrls && imageUrls.length) {
           // Add only image to the chat
-          promptMessage = new ChatCraftHumanMessage({ text: "", image, user });
+          promptMessage = new ChatCraftHumanMessage({ text: "", imageUrls, user });
           await chat.addMessage(promptMessage);
         } else {
           // If there isn't any prompt text, see if the final message in the chat was a human
