@@ -270,7 +270,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
      * In most cases, this is straight-forward, but for function messages,
      * we need to separate the call and result into two parts
      */
-    messages: messages.map((message) => message.toOpenAiMessage()),
+    messages: messages.map((message) => message.toOpenAiMessage(model)),
     stream: streaming,
 
     /**

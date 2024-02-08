@@ -53,7 +53,7 @@ export class ChatCraftModel {
   }
 
   get supportsImages() {
-    return this.name.startsWith("gpt-4-vision");
+    return this.name.includes("vision");
   }
 
   get prettyModel(): string {

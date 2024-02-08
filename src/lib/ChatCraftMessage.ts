@@ -98,12 +98,11 @@ export class ChatCraftMessage {
     };
   }
 
-  toOpenAiMessage(): OpenAI.Chat.Completions.ChatCompletionMessageParam {
+  toOpenAiMessage(model: ChatCraftModel): OpenAI.Chat.Completions.ChatCompletionMessageParam {
     const text = this.text;
 
-    const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [];
-    content.push({ type: "text", text });
-    if (this.image.length > 0) {
+    const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [{ type: "text", text }];
+    if (model.supportsImages && this.image.length > 0) {
       this.image.forEach((image) => {
         content.push({
           type: "image_url",
