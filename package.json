@@ -23,7 +23,7 @@
     "compromise": "^14.11.2",
     "cookie": "^0.6.0",
     "dexie": "^3.2.4",
-    "dexie-export-import": "^4.0.7",
+    "dexie-export-import": "^4.1.1",
     "dexie-react-hooks": "^1.1.7",
     "esbuild-wasm": "^0.20.0",
     "framer-motion": "^11.0.3",
