@@ -18,7 +18,7 @@ interface ImageModalProps {
 const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageSrc }) => (
   <Modal isOpen={isOpen} onClose={onClose} size="2xl" isCentered>
     <ModalOverlay />
-    <ModalContent maxW="90vw" height="90vh">
+    <ModalContent maxW="90vw" maxHeight="90vh">
       <ModalCloseButton />
       <ModalBody>
         <Flex height={"100%"} justifyContent={"center"} alignItems={"center"}>
