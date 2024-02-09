@@ -340,9 +340,9 @@ function MessageBase({
                 </ButtonGroup>
               )}
               <Menu isDisabled={isLoading}>
-                <MenuItem 
-                  label="Copy" 
-                  onClick={handleCopy}                   
+                <MenuItem
+                  label="Copy"
+                  onClick={handleCopy}
                   icon={
                     <IconButton
                       variant="ghost"
@@ -350,7 +350,7 @@ function MessageBase({
                       aria-label="Copy message to clipboard"
                       title="Copy message to clipboard"
                     />
-                  } 
+                  }
                 />
                 <SubMenu label="Download">
                   <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
