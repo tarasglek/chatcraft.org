@@ -136,14 +136,12 @@ function DesktopPromptForm({
   // Update model to the supported model when inputImages is not empty
   useEffect(() => {
     if (inputImageUrls?.length > 0) {
-      const modelSupportsImages = models.find((model) => model.supportsImages);
-      if (modelSupportsImages) {
-        setSettings({ ...settings, model: modelSupportsImages });
+      const visionModel = models.find((model) => model.supportsImages);
+      if (visionModel && visionModel.name != settings.model.name) {
+        setSettings({ ...settings, model: visionModel });
       }
     }
-    // Assuming models and setSettings are stable and don't need to be in the dependencies array
-    // eslint-disable-next-line
-  }, [inputImageUrls]);
+  }, [inputImageUrls, models, settings, setSettings]);
 
   // Attach paste event listener to the textarea
   useEffect(() => {
