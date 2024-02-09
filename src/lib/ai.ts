@@ -341,12 +341,6 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 };
 
-/**
- *
- * @param apiKey Api key for the provider
- * @param filterPredicate A function used to filter the array of returned models
- * @returns A list of ChatCraft models
- */
 export async function queryModels(apiKey: string) {
   const { apiUrl } = getSettings();
   const { openai } = createClient(apiKey, apiUrl);
@@ -445,6 +439,10 @@ export const openRouterPkceRedirect = () => {
   location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
 };
 
+/**
+ * Only meant to be used outside components or hooks
+ * where useModels cannot be used.
+ */
 export async function isTtsSupported() {
   const { apiKey } = getSettings();
   if (!apiKey) {
