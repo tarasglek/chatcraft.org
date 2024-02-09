@@ -117,6 +117,7 @@ function MessageBase({
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
   const isLongMessage = text.length > 5000;
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
+  const shouldShowDeleteMenu = Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick);
 
   // Wrap the onToggle function with startTransition, state update should be deferred due to long message
   // https://reactjs.org/docs/error-decoder.html?invariant=426
@@ -339,7 +340,18 @@ function MessageBase({
                 </ButtonGroup>
               )}
               <Menu isDisabled={isLoading}>
-                <MenuItem label="Copy" onClick={handleCopy} />
+                <MenuItem
+                  label="Copy"
+                  onClick={handleCopy}
+                  icon={
+                    <IconButton
+                      variant="ghost"
+                      icon={<MdContentCopy />}
+                      aria-label="Copy message to clipboard"
+                      title="Copy message to clipboard"
+                    />
+                  }
+                />
                 <SubMenu label="Download">
                   <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
                   <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
@@ -360,7 +372,6 @@ function MessageBase({
                     }
                   />
                 )}
-
                 {onRetryClick && (
                   <>
                     <MenuDivider />
@@ -375,34 +386,54 @@ function MessageBase({
                     </SubMenu>
                   </>
                 )}
-
                 {(!disableEdit || onDeleteClick) && <MenuDivider />}
                 {!disableEdit && (
                   <MenuItem
                     label={editing ? "Cancel Editing" : "Edit"}
                     onClick={() => onEditingChange(!editing)}
+                    icon={
+                      <IconButton
+                        variant="ghost"
+                        icon={<AiOutlineEdit />}
+                        aria-label="Edit message"
+                        title="Edit message"
+                      />
+                    }
                   />
                 )}
-                {onDeleteBeforeClick && (
-                  <MenuItem
-                    label="Delete Messages Before"
-                    onClick={onDeleteBeforeClick}
-                    className="delete-button"
-                  />
-                )}
-                {onDeleteClick && (
-                  <MenuItem
-                    label="Delete Message"
-                    onClick={onDeleteClick}
-                    className="delete-button"
-                  />
-                )}
-                {onDeleteAfterClick && (
-                  <MenuItem
-                    label="Delete Messages After"
-                    onClick={onDeleteAfterClick}
-                    className="delete-button"
-                  />
+
+                {shouldShowDeleteMenu && (
+                  <SubMenu label="Delete" className="delete-button">
+                    {onDeleteBeforeClick && (
+                      <MenuItem
+                        label="Delete Messages Before"
+                        onClick={onDeleteBeforeClick}
+                        className="delete-button"
+                      />
+                    )}
+                    {onDeleteClick && (
+                      <MenuItem
+                        label="Delete Message"
+                        onClick={onDeleteClick}
+                        className="delete-button"
+                        icon={
+                          <IconButton
+                            variant="ghost"
+                            icon={<TbTrash color="red" />}
+                            aria-label="Delete message"
+                            title="Delete message"
+                          />
+                        }
+                      />
+                    )}
+                    {onDeleteAfterClick && (
+                      <MenuItem
+                        label="Delete Messages After"
+                        onClick={onDeleteAfterClick}
+                        className="delete-button"
+                      />
+                    )}
+                  </SubMenu>
                 )}
               </Menu>
             </Flex>
