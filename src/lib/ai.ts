@@ -270,7 +270,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
      * In most cases, this is straight-forward, but for function messages,
      * we need to separate the call and result into two parts
      */
-    messages: messages.map((message) => message.toOpenAiMessage()),
+    messages: messages.map((message) => message.toOpenAiMessage(model)),
     stream: streaming,
 
     /**
@@ -293,6 +293,14 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
           ? { name: functionToCall.name }
           : "auto"
         : undefined,
+
+    /*
+     Got this value from error message of OpenAI's gpt-4-vision-preview max_tokens
+     by setting a very large number,
+     After setting this value, seems no cutoff
+     Tested on version openai@4.24.7, without max_tokens response still cutoff
+     */
+    max_tokens: model.supportsImages ? 4096 : undefined,
   };
 
   const chatCompletionReqOptions = {

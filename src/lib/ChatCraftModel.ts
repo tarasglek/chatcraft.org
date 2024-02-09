@@ -52,6 +52,10 @@ export class ChatCraftModel {
     return this.name.startsWith("gpt-3.5-turbo") || this.name.startsWith("gpt-4");
   }
 
+  get supportsImages() {
+    return this.name.includes("vision");
+  }
+
   get prettyModel(): string {
     if (this.name.startsWith("gpt-3.5-turbo")) {
       return this.name.replace("gpt-3.5-turbo", "chat-gpt");
