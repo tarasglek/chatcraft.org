@@ -16,6 +16,7 @@ import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
 import { usingOfficialOpenAI } from "../../lib/ai";
+import { useMemo } from "react";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -25,9 +26,9 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
 
-  function isTtsSupported() {
+  const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
-  }
+  }, [models]);
 
   return (
     <ButtonGroup variant="outline" isAttached>
@@ -41,7 +42,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           isLoading={isLoading}
           icon={<TbSend />}
         />
-        {isTtsSupported() && (
+        {isTtsSupported && (
           <Tooltip
             label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
           >
@@ -88,16 +89,16 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
 
-  function isTtsSupported() {
+  const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
-  }
+  }, [models]);
 
   return (
     <ButtonGroup isAttached>
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
         Ask {settings.model.prettyModel}
       </Button>
-      {isTtsSupported() && (
+      {isTtsSupported && (
         <Tooltip
           label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
         >
