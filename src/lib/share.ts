@@ -40,11 +40,7 @@ function generateSharingHTML(chat: ChatCraftChat, user: User) {
 
   mainElement.innerHTML = "";
   // Use html-escaped yaml for payload
-<<<<<<< HEAD
-  preElement = document.createElement("pre");
-=======
   const preElement = document.createElement("pre");
->>>>>>> 96a3626 (Fix typo with setText vs textContent, fix forEach statement)
   preElement.textContent = chat.toYAML();
   mainElement.append(preElement);
   [...mainElement.attributes].forEach((attr:Attr) => mainElement.attributes.removeNamedItem(attr.name));
