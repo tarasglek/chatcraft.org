@@ -43,7 +43,9 @@ function generateSharingHTML(chat: ChatCraftChat, user: User) {
   const preElement = document.createElement("pre");
   preElement.textContent = chat.toYAML();
   mainElement.append(preElement);
-  [...mainElement.attributes].forEach((attr:Attr) => mainElement.attributes.removeNamedItem(attr.name));
+  [...mainElement.attributes].forEach((attr: Attr) =>
+    mainElement.attributes.removeNamedItem(attr.name)
+  );
 
   const lastMessage = chat.messages().pop();
   const lastMessageText = lastMessage?.text;
