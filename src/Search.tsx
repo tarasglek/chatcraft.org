@@ -9,9 +9,18 @@ import {
   Center,
   Card,
   CardBody,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerHeader,
+  InputGroup,
+  Input,
+  IconButton,
+  DrawerCloseButton,
+  DrawerBody,
 } from "@chakra-ui/react";
-import { type LoaderFunctionArgs, redirect, useLoaderData } from "react-router-dom";
-import { TbListSearch } from "react-icons/tb";
+import { type LoaderFunctionArgs, redirect, useLoaderData, Form } from "react-router-dom";
+import { TbListSearch, TbSearch } from "react-icons/tb";
 
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
@@ -20,6 +29,7 @@ import Message from "./components/Message";
 import { ChatCraftMessage } from "./lib/ChatCraftMessage";
 import OptionsButton from "./components/OptionsButton";
 import { useSettings } from "./hooks/use-settings";
+import useMobileBreakpoint from "./hooks/use-mobile-breakpoint";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -73,6 +83,8 @@ export default function Search() {
     setSettings({ ...settings, sidebarVisible: newValue });
   }, [isSidebarVisible, settings, setSettings, toggleSidebarVisible]);
 
+  const isMobile = useMobileBreakpoint();
+
   return (
     <Grid
       w="100%"
@@ -95,7 +107,33 @@ export default function Search() {
       </GridItem>
 
       <GridItem rowSpan={3} overflowY="auto">
-        <Sidebar />
+        {isMobile ? (
+          <Drawer isOpen={isSidebarVisible} onClose={handleToggleSidebarVisible} placement="left">
+            <DrawerOverlay />
+            <DrawerContent>
+              <DrawerHeader mt={8}>
+                <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
+                  <InputGroup size="sm" variant="outline">
+                    <Input type="search" name="q" isRequired />
+                    <IconButton
+                      aria-label="Search"
+                      variant="ghost"
+                      icon={<TbSearch />}
+                      type="submit"
+                    />
+                  </InputGroup>
+                </Form>
+                <DrawerCloseButton />
+              </DrawerHeader>
+
+              <DrawerBody m={0} p={0}>
+                <Sidebar />
+              </DrawerBody>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <Sidebar />
+        )}
       </GridItem>
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">
