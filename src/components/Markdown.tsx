@@ -42,6 +42,8 @@ const fixLanguageName = (language: string | null) => {
     case "sh":
     case "shell":
       return "bash";
+    case "html":
+      return "xml";
     default:
       return language;
   }
