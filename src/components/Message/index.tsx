@@ -25,6 +25,7 @@ type MessageProps = {
   onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;
   onDeleteAfterClick?: () => void;
+  hasMessagesAfter?: boolean;
   disableFork?: boolean;
   disableEdit?: boolean;
 };
@@ -39,6 +40,7 @@ function Message({
   onDeleteClick,
   onDeleteAfterClick,
   onPrompt,
+  hasMessagesAfter,
   disableFork,
   disableEdit,
 }: MessageProps) {
@@ -64,6 +66,7 @@ function Message({
         onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
         onDeleteAfterClick={onDeleteAfterClick}
+        hasMessagesAfter={hasMessagesAfter}
         disableFork={disableFork}
         disableEdit={message.readonly && disableEdit}
       />
@@ -87,6 +90,7 @@ function Message({
         onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
         onDeleteAfterClick={onDeleteAfterClick}
+        hasMessagesAfter={hasMessagesAfter}
         disableFork={disableFork}
         disableEdit={message.readonly && disableEdit}
       />
@@ -106,6 +110,7 @@ function Message({
         onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
         onDeleteAfterClick={onDeleteAfterClick}
+        hasMessagesAfter={hasMessagesAfter}
         disableFork={true}
         disableEdit={message.readonly && disableEdit}
       />
@@ -125,6 +130,7 @@ function Message({
         /* We can't delete anything before the system message, since it's first */
         onDeleteClick={onDeleteClick}
         onDeleteAfterClick={onDeleteAfterClick}
+        hasMessagesAfter={hasMessagesAfter}
       />
     );
   }
@@ -142,6 +148,7 @@ function Message({
         onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
         onDeleteAfterClick={onDeleteAfterClick}
+        hasMessagesAfter={hasMessagesAfter}
       />
     );
   }
@@ -159,6 +166,7 @@ function Message({
         onDeleteBeforeClick={onDeleteBeforeClick}
         onDeleteClick={onDeleteClick}
         onDeleteAfterClick={onDeleteAfterClick}
+        hasMessagesAfter={hasMessagesAfter}
       />
     );
   }

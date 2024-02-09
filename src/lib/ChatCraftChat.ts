@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import * as yaml from "yaml";
 
 import {
   ChatCraftAiMessage,
@@ -11,7 +12,7 @@ import {
 import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
 import { createSystemMessage } from "./system-prompt";
-import { createShare, createShareUrl } from "./share";
+import { createDataShareUrl, createShare } from "./share";
 import { SharedChatCraftChat } from "./SharedChatCraftChat";
 import { countTokensInMessages } from "./ai";
 import { parseFunctionNames, loadFunctions } from "./ChatCraftFunction";
@@ -25,10 +26,14 @@ export type SerializedChatCraftChat = {
 
 function createSummary(chat: ChatCraftChat, maxLength = 200) {
   // We only want to consider human prompts and ai responses for our summary
-  const markdown = chat
+  const messages = chat
     .messages({ includeAppMessages: false, includeSystemMessages: false })
-    .map((message) => message.text)
-    .join("\n\n");
+    .map((message) => message.text);
+  if (messages.length > 1) {
+    // remove last message as it will get summarized in OG
+    messages.pop();
+  }
+  const markdown = messages.join("\n\n");
 
   const summary = summarize(markdown);
   return summary.length > maxLength ? summary.slice(0, maxLength) + "..." : summary;
@@ -309,6 +314,10 @@ export class ChatCraftChat {
     };
   }
 
+  toYAML(): string {
+    return yaml.stringify(this.toJSON());
+  }
+
   toDB(): ChatCraftChatTable {
     return {
       id: this.id,
@@ -329,7 +338,7 @@ export class ChatCraftChat {
     }
 
     // Generate a public share URL
-    const shareUrl = createShareUrl(cloned, user);
+    const shareUrl = createDataShareUrl(cloned, user);
     await createShare(cloned, user);
 
     const shared = new SharedChatCraftChat({
@@ -372,6 +381,10 @@ export class ChatCraftChat {
       // We can't modify a chat loaded outside the db
       readonly: true,
     });
+  }
+
+  static fromYAML(str: string): ChatCraftChat {
+    return ChatCraftChat.fromJSON(yaml.parse(str));
   }
 
   // Parse from db representation, where chat and messages are separate.

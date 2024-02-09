@@ -25,8 +25,8 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
 
   // We expect JSON
   const contentType = request.headers.get("Content-Type");
-  if (!contentType?.includes("application/json")) {
-    return errorResponse(400, "Expected JSON");
+  if (!contentType?.includes("application/json") && !contentType?.includes("text/html")) {
+    return errorResponse(400, "Expected JSON or HTML");
   }
 
   // We should receive [username, id] (i.e., `user/id` on path)
@@ -75,7 +75,11 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
   // Put the chat into R2
   try {
     const key = user_id.join("/");
-    await CHATCRAFT_ORG_BUCKET.put(key, request.body);
+    await CHATCRAFT_ORG_BUCKET.put(key, request.body, {
+      httpMetadata: {
+        contentType: contentType,
+      },
+    });
 
     return new Response(
       JSON.stringify({
@@ -85,7 +89,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
         status: 200,
         // Update cookies to further delay expiry
         headers: new Headers([
-          ["Content-Type", "application/json; charset=utf-8"],
+          ["Content-Type", contentType],
           ["Set-Cookie", tokenProvider.serializeToken("access_token", accessToken)],
           ["Set-Cookie", tokenProvider.serializeToken("id_token", idToken)],
         ]),
@@ -118,6 +122,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
     const headers = new Headers();
     object.writeHttpMetadata(headers);
     headers.set("etag", object.httpEtag);
+
+    // set to 'application/octet-stream' if content-type isn't set
+    const contentType = object.httpMetadata.contentType || "application/octet-stream";
+    headers.set("Content-Type", contentType);
 
     return new Response(object.body, {
       status: 200,

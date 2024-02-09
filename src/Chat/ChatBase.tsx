@@ -23,6 +23,7 @@ import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import { useAutoScroll } from "../hooks/use-autoscroll";
 import { useAlert } from "../hooks/use-alert";
 import { ChatCraftCommandRegistry } from "../lib/commands";
+import { ChatCraftCommand } from "../lib/ChatCraftCommand";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -168,14 +169,23 @@ function ChatBase({ chat }: ChatBaseProps) {
             });
           }
         } else {
-          error({
-            title: `Unknown Command`,
-            message: `Command not recognized. Use /help to get help on valid commands.`,
-          });
-
-          console.log("TODO: show help");
           // The input was a command, but not a recognized one.
           // Handle this case as appropriate for your application.
+
+          // We are sure that this won't return null
+          // since prompt is definitely a command
+          const { command } = ChatCraftCommand.parseCommand(prompt)!;
+          const commandFunction = ChatCraftCommandRegistry.getCommand(`/commands ${command}`)!;
+          setShouldAutoScroll(true);
+          try {
+            await commandFunction(chat, user);
+            forceScroll();
+          } catch (err: any) {
+            error({
+              title: `Error Running Command`,
+              message: `There was an error running the command: ${err.message}.`,
+            });
+          }
         }
 
         setLoading(false);
