@@ -3,7 +3,7 @@ import { Box, chakra, Flex } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import NewButton from "../NewButton";
+import CommandButton from "../CommandButton";
 import MicIcon from "./MicIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
 import PromptSendButton from "./PromptSendButton";
@@ -140,7 +140,7 @@ function MobilePromptForm({
     <Box flex={1} w="100%" h="100%" px={1} pt={2} pb={4}>
       <chakra.form onSubmit={handlePromptSubmit} h="100%">
         <Flex mt={2} pb={2} px={1} alignItems="end" gap={2}>
-          <NewButton forkUrl={forkUrl} variant="outline" iconOnly />
+          <CommandButton forkUrl={forkUrl} variant="outline" iconOnly />
 
           <Box flex={1}>
             {inputType === "audio" ? (

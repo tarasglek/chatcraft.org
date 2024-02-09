@@ -17,7 +17,7 @@ import AutoResizingTextarea from "../AutoResizingTextarea";
 import { useSettings } from "../../hooks/use-settings";
 import { getMetaKey } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
-import NewButton from "../NewButton";
+import CommandButton from "../CommandButton";
 import MicIcon from "./MicIcon";
 import AttachFileButton from "./AttachFileButton";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
@@ -392,7 +392,7 @@ function DesktopPromptForm({
               </InputGroup>
 
               <Flex w="100%" gap={1} justify={"space-between"} align="center">
-                <NewButton forkUrl={forkUrl} variant="outline" />
+                <CommandButton forkUrl={forkUrl} variant="outline" />
 
                 <Flex alignItems="center" gap={2}>
                   <KeyboardHint isVisible={!!prompt.length && !isLoading} />

@@ -15,7 +15,7 @@ import {
 } from "../lib/ChatCraftMessage";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
-import NewButton from "../components/NewButton";
+import CommandButton from "../components/CommandButton";
 import { useSettings } from "../hooks/use-settings";
 import { useModels } from "../hooks/use-models";
 import ChatHeader from "./ChatHeader";
@@ -362,7 +362,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         <Box maxW="900px" mx="auto" h="100%">
           {chat.readonly ? (
             <Flex w="100%" h="45px" justify="end" align="center" p={2}>
-              <NewButton forkUrl={`./fork`} variant="solid" />
+              <CommandButton forkUrl={`./fork`} variant="solid" />
             </Flex>
           ) : (
             <PromptForm
