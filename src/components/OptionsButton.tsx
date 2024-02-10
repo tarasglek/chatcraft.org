@@ -10,7 +10,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { Link as ReactRouterLink, useFetcher, useLoaderData } from "react-router-dom";
-import { TbPlus, TbShare2, TbTrash, TbCopy } from "react-icons/tb";
+import { TbPlus, TbShare2, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
 import { BsPaperclip } from "react-icons/bs";
 import { useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -191,7 +191,7 @@ function OptionsButton({
         <MenuItem isDisabled={!chat} icon={<TbCopy />} onClick={() => handleCopyClick()}>
           Copy
         </MenuItem>
-        <MenuItem isDisabled={!chat} onClick={() => handleDownloadClick()}>
+        <MenuItem icon={<TbDownload />} isDisabled={!chat} onClick={() => handleDownloadClick()}>
           Download
         </MenuItem>
         <ShareMenuItem chat={chat} />
