@@ -18,6 +18,9 @@ import {
   IconButton,
   DrawerCloseButton,
   DrawerBody,
+  useColorModeValue,
+  Text,
+  keyframes,
 } from "@chakra-ui/react";
 import { type LoaderFunctionArgs, redirect, useLoaderData, Form } from "react-router-dom";
 import { TbListSearch, TbSearch } from "react-icons/tb";
@@ -84,6 +87,30 @@ export default function Search() {
   }, [isSidebarVisible, settings, setSettings, toggleSidebarVisible]);
 
   const isMobile = useMobileBreakpoint();
+  const sidebarColor = useColorModeValue("blue.600", "blue.200");
+
+  const sidebarOpenAnimationKeyframes = keyframes`
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  `;
+
+  const sidebarCloseAnimationKeyframes = keyframes`
+    from {
+      transform: scaleX(1);
+    }
+
+    to {
+      transform: scaleX(0);
+    }
+  `;
+
+  const sidebarOpenAnimation = `${sidebarOpenAnimationKeyframes} 500ms ease-in-out forwards`;
+  const sidebarCloseAnimation = `${sidebarCloseAnimationKeyframes} 100ms ease-in-out forwards`;
 
   return (
     <Grid
@@ -91,10 +118,10 @@ export default function Search() {
       h="100%"
       gridTemplateRows="min-content 1fr min-content"
       gridTemplateColumns={{
-        base: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
+        base: "0 1fr",
+        sm: isSidebarVisible ? "300px 4fr" : "0: 1fr",
       }}
+      transition={"150ms"}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
@@ -111,7 +138,17 @@ export default function Search() {
           <Drawer isOpen={isSidebarVisible} onClose={handleToggleSidebarVisible} placement="left">
             <DrawerOverlay />
             <DrawerContent>
-              <DrawerHeader mt={8}>
+              <DrawerHeader>
+                <Text
+                  position={"relative"}
+                  top={-1}
+                  mb={2}
+                  fontSize="lg"
+                  fontWeight="bold"
+                  color={sidebarColor}
+                >
+                  &lt;ChatCraft /&gt;
+                </Text>
                 <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
                   <InputGroup size="sm" variant="outline">
                     <Input type="search" name="q" isRequired />
@@ -132,7 +169,12 @@ export default function Search() {
             </DrawerContent>
           </Drawer>
         ) : (
-          <Sidebar />
+          <Box
+            transformOrigin={"left"}
+            animation={isSidebarVisible ? sidebarOpenAnimation : sidebarCloseAnimation}
+          >
+            <Sidebar />
+          </Box>
         )}
       </GridItem>
 
