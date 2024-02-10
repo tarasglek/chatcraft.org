@@ -102,6 +102,8 @@ export async function handleDevLogin({
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
+  console.log("??????");
+  console.log(request);
   const { CLIENT_ID, CLIENT_SECRET, JWT_SECRET } = env;
   const reqUrl = new URL(request.url);
   const code = reqUrl.searchParams.get("code");
