@@ -36,8 +36,9 @@ import { download, isMac } from "../lib/utils";
 import db from "../lib/db";
 import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
+import { ChatCraftProvider } from "../lib/ChatCraftProvider";
 import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
-import { openRouterPkceRedirect, validateApiKey } from "../lib/ai";
+import { openRouterPkceRedirect, usingOfficialOpenAI, validateApiKey } from "../lib/ai";
 import { useAlert } from "../hooks/use-alert";
 
 // https://dexie.org/docs/StorageManager
@@ -152,6 +153,39 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     [inputRef]
   );
 
+  const handleProviderChange = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => {
+      const currentProvider = ChatCraftProvider.fromUrl(settings.apiUrl, settings.apiKey);
+      const selectedProvider = ChatCraftProvider.fromUrl(e.target.value);
+
+      // If new provider exists in settings.providers, parse it to ChatCraftProvider
+      const newProvider = settings.providers[selectedProvider.name]
+        ? ChatCraftProvider.fromJSON(settings.providers[selectedProvider.name])
+        : selectedProvider;
+
+      // Store old provider in settings.providers array if not already there
+      // Set current apiKey to value loaded from settings.providers or undefined
+      if (currentProvider.apiKey && !(currentProvider.name in settings.providers)) {
+        setSettings({
+          ...settings,
+          apiUrl: newProvider.apiUrl,
+          apiKey: newProvider.apiKey,
+          providers: {
+            ...settings.providers,
+            [currentProvider.name]: currentProvider,
+          },
+        });
+      } else {
+        setSettings({
+          ...settings,
+          apiUrl: newProvider.apiUrl,
+          apiKey: newProvider.apiKey,
+        });
+      }
+    },
+    [settings, setSettings]
+  );
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
       <ModalOverlay />
@@ -162,12 +196,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
           <VStack gap={4}>
             <FormControl>
               <FormLabel>API URL</FormLabel>
-              <Select
-                value={settings.apiUrl}
-                onChange={(e) =>
-                  setSettings({ ...settings, apiUrl: e.target.value, apiKey: undefined })
-                }
-              >
+              <Select value={settings.apiUrl} onChange={handleProviderChange}>
                 <option value={OPENAI_API_URL}>OpenAI ({OPENAI_API_URL})</option>
                 <option value={OPENROUTER_API_URL}>OpenRouter.ai ({OPENROUTER_API_URL})</option>
               </Select>
@@ -190,7 +219,23 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   <Button
                     size="xs"
                     colorScheme="red"
-                    onClick={() => setSettings({ ...settings, apiKey: undefined })}
+                    onClick={() => {
+                      const currentProvider = ChatCraftProvider.fromUrl(
+                        settings.apiUrl,
+                        settings.apiKey
+                      );
+                      const updatedProviders = { ...settings.providers };
+
+                      if (currentProvider.name in updatedProviders) {
+                        delete updatedProviders[currentProvider.name];
+                      }
+
+                      setSettings({
+                        ...settings,
+                        apiKey: undefined,
+                        providers: updatedProviders,
+                      });
+                    }}
                     isDisabled={!settings.apiKey}
                   >
                     Remove
@@ -200,7 +245,18 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               <RevealablePasswordInput
                 type="password"
                 value={settings.apiKey || ""}
-                onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
+                onChange={(e) => {
+                  const newProvider = ChatCraftProvider.fromUrl(settings.apiUrl, e.target.value);
+
+                  setSettings({
+                    ...settings,
+                    apiKey: newProvider.apiKey,
+                    providers: {
+                      ...settings.providers,
+                      [newProvider.name]: newProvider,
+                    },
+                  });
+                }}
               />
               {provider === "OpenRouter.ai" && !settings.apiKey && (
                 <Button mt="3" size="sm" onClick={openRouterPkceRedirect}>
@@ -268,11 +324,13 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   setSettings({ ...settings, model: new ChatCraftModel(e.target.value) })
                 }
               >
-                {models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.prettyModel}
-                  </option>
-                ))}
+                {models
+                  .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                  .map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.prettyModel}
+                    </option>
+                  ))}
               </Select>
               <FormHelperText>
                 See{" "}

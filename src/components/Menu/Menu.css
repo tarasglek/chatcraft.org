@@ -1,0 +1,53 @@
+/*
+  Colors from official Chakra docs
+  https://chakra-ui-git-fix-typescript-autocomplete.chakra-ui.vercel.app/docs/theming/theme#gray
+
+  Classes from official @szhsin/react-menu docs
+  https://szhsin.github.io/react-menu/style-guide
+*/
+.szh-menu-container {
+  /* Light Mode */
+  --chakra-gray-100: #edf2f7;
+  --chakra-gray-200: #e2e8f0;
+
+  /* Dark Mode */
+  --chakra-gray-500: #718096;
+  --chakra-gray-600: #4a5568;
+  --chakra-gray-700: #2d3748;
+
+  /* Chakra Red for delete buttons */
+  --chakra-red-400: #fc8181;
+}
+
+.szh-menu {
+  padding-block: 10px;
+}
+
+.szh-menu__item--hover {
+  background-color: var(--chakra-gray-100);
+}
+
+.szh-menu__item:active {
+  background-color: var(--chakra-gray-200);
+}
+
+.szh-menu__item a:hover {
+  text-decoration: none;
+}
+
+/* Dark Mode */
+.szh-menu-container--theme-dark .szh-menu {
+  background-color: var(--chakra-gray-700);
+}
+
+.szh-menu-container--theme-dark .szh-menu__item--hover {
+  background-color: var(--chakra-gray-600);
+}
+
+.szh-menu-container--theme-dark .szh-menu__item:active {
+  background-color: var(--chakra-gray-500);
+}
+
+.delete-button {
+  color: var(--chakra-red-400);
+}

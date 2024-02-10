@@ -1,5 +1,6 @@
 import {
   memo,
+  startTransition,
   useCallback,
   useState,
   useEffect,
@@ -20,12 +21,8 @@ import {
   Flex,
   Heading,
   IconButton,
+  Image,
   Link,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuItem,
-  MenuList,
   Tag,
   Text,
   Textarea,
@@ -33,14 +30,17 @@ import {
   useClipboard,
   Kbd,
   Spacer,
+  useDisclosure,
 } from "@chakra-ui/react";
+
+import { Menu, MenuItem, SubMenu, MenuDivider } from "../Menu";
 import ResizeTextarea from "react-textarea-autosize";
-import { TbDots, TbTrash } from "react-icons/tb";
+import { TbTrash } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink } from "react-router-dom";
 
-import { formatDate, download, formatNumber, getMetaKey } from "../../lib/utils";
+import { formatDate, download, formatNumber, getMetaKey, screenshotElement } from "../../lib/utils";
 import Markdown from "../Markdown";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import {
@@ -48,15 +48,18 @@ import {
   ChatCraftAiMessage,
   ChatCraftAiMessageVersion,
   ChatCraftMessage,
+  ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { useAlert } from "../../hooks/use-alert";
+import ImageModal from "../ImageModal";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
+import { usingOfficialOpenAI } from "../../lib/ai";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -76,6 +79,7 @@ export interface MessageBaseProps {
   onDeleteClick?: () => void;
   onDeleteAfterClick?: () => void;
   onRetryClick?: (model: ChatCraftModel) => void;
+  hasMessagesAfter?: boolean;
   disableFork?: boolean;
   disableEdit?: boolean;
 }
@@ -98,10 +102,11 @@ function MessageBase({
   onDeleteAfterClick,
   onPrompt,
   onRetryClick,
+  hasMessagesAfter,
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
-  const { id, date, text } = message;
+  const { id, date, text, imageUrls } = message;
   const { models } = useModels();
   const { onCopy } = useClipboard(text);
   const { info, error } = useAlert();
@@ -110,13 +115,39 @@ function MessageBase({
   const [tokens, setTokens] = useState<number | null>(null);
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
+  const messageContent = useRef<HTMLDivElement>(null);
   const meta = useMemo(getMetaKey, []);
+  const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
+  const [selectedImage, setSelectedImage] = useState<string>("");
+  const { isOpen, onToggle: originalOnToggle } = useDisclosure();
+  const isLongMessage = text.length > 5000;
+  const displaySummaryText = !isOpen && (summaryText || isLongMessage);
+  const shouldShowDeleteMenu = Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick);
+
+  // Wrap the onToggle function with startTransition, state update should be deferred due to long message
+  // https://reactjs.org/docs/error-decoder.html?invariant=426
+  const onToggle = () => {
+    startTransition(() => {
+      originalOnToggle();
+    });
+  };
 
   useEffect(() => {
     if (settings.countTokens) {
       message.tokens().then(setTokens).catch(console.warn);
     }
   }, [settings.countTokens, message]);
+
+  // If last message is collapsed, auto expand for better view
+  useEffect(() => {
+    if (!hasMessagesAfter && !isOpen && !(message instanceof ChatCraftSystemMessage)) {
+      onToggle();
+    }
+
+    // ignore isOpen as onToggle() will change isOpen status
+    // ignore message as each message has its corresponding hasMessagesAfter
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMessagesAfter]);
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -126,13 +157,49 @@ function MessageBase({
     });
   }, [onCopy, info]);
 
-  const handleDownload = useCallback(() => {
-    download(text, "message.md");
+  const handleDownloadMarkdown = useCallback(() => {
+    download(text, "message.md", "text/markdown");
     info({
       title: "Downloaded",
-      message: "Message was downloaded as a file",
+      message: "Message was downloaded as a Markdown file",
     });
   }, [info, text]);
+
+  const handleDownloadImage = useCallback(() => {
+    const elem = messageContent.current;
+    if (!elem) {
+      return;
+    }
+
+    try {
+      screenshotElement(elem).then((blob) => {
+        download(blob, "message.png", "image/png");
+        info({
+          title: "Downloaded",
+          message: "Message was downloaded as an image file",
+        });
+      });
+    } catch (err: any) {
+      console.warn("Unable to download image", err);
+      error({
+        title: `Error Saving Message as Image`,
+        message: err.message,
+      });
+    }
+  }, [messageContent, info, error]);
+
+  const handleDownloadPlainText = useCallback(() => {
+    if (messageContent.current) {
+      const text = messageContent.current.textContent;
+      if (text) {
+        download(text, "message.txt", "text/plain");
+        info({
+          title: "Downloaded",
+          message: "Message was downloaded as text file",
+        });
+      }
+    }
+  }, [messageContent, info]);
 
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     messageForm.current?.setAttribute("data-action", e.currentTarget.name);
@@ -208,6 +275,12 @@ function MessageBase({
     [message, onResubmitClick, chatId, error, onEditingChange]
   );
 
+  const openModalWithImage = (imageSrc: string) => {
+    setSelectedImage(imageSrc);
+    setImageModalOpen(true);
+  };
+  const closeModal = () => setImageModalOpen(false);
+
   return (
     <Box
       id={id}
@@ -277,63 +350,127 @@ function MessageBase({
                   )}
                 </ButtonGroup>
               )}
-              <Menu>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="Message Menu"
-                  icon={<TbDots />}
-                  variant="ghost"
-                  isDisabled={isLoading}
+              <Menu isDisabled={isLoading}>
+                <MenuItem
+                  label="Copy"
+                  onClick={handleCopy}
+                  icon={
+                    <IconButton
+                      variant="ghost"
+                      icon={<MdContentCopy />}
+                      aria-label="Copy message to clipboard"
+                      title="Copy message to clipboard"
+                    />
+                  }
                 />
-                <MenuList>
-                  <MenuItem onClick={() => handleCopy()}>Copy</MenuItem>
-                  <MenuItem onClick={() => handleDownload()}>Download</MenuItem>
-                  {!disableFork && (
-                    <MenuItem as={ReactRouterLink} to={`./fork/${id}`} target="_blank">
-                      Duplicate Chat until Message...
-                    </MenuItem>
-                  )}
+                <SubMenu label="Download">
+                  <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
+                  <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
+                  <MenuItem
+                    label="Download as Image"
+                    onClick={handleDownloadImage}
+                    // If we're editing, or showing only a summary, don't enable download as image
+                    // since we need the whole element to exist in order to render into the canvas.
+                    disabled={displaySummaryText !== false || editing}
+                  />
+                </SubMenu>
+                {!disableFork && (
+                  <MenuItem
+                    label={
+                      <Link as={ReactRouterLink} to={`./fork/${id}`} target="_blank">
+                        Duplicate Chat until Message...
+                      </Link>
+                    }
+                  />
+                )}
+                {onRetryClick && (
+                  <>
+                    <MenuDivider />
+                    <SubMenu label="Retry with...">
+                      {models
+                        .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                        .map((model) => (
+                          <MenuItem
+                            key={model.id}
+                            label={model.prettyModel}
+                            onClick={() => onRetryClick(model)}
+                          />
+                        ))}
+                    </SubMenu>
+                  </>
+                )}
+                {(!disableEdit || onDeleteClick) && <MenuDivider />}
+                {!disableEdit && (
+                  <MenuItem
+                    label={editing ? "Cancel Editing" : "Edit"}
+                    onClick={() => onEditingChange(!editing)}
+                    icon={
+                      <IconButton
+                        variant="ghost"
+                        icon={<AiOutlineEdit />}
+                        aria-label="Edit message"
+                        title="Edit message"
+                      />
+                    }
+                  />
+                )}
 
-                  {onRetryClick && (
-                    <>
-                      <MenuDivider />
-                      {models.map((model) => (
-                        <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
-                          Retry with {model.prettyModel}
-                        </MenuItem>
-                      ))}
-                    </>
-                  )}
-
-                  {(!disableEdit || onDeleteClick) && <MenuDivider />}
-                  {!disableEdit && (
-                    <MenuItem onClick={() => onEditingChange(!editing)}>
-                      {editing ? "Cancel Editing" : "Edit"}
-                    </MenuItem>
-                  )}
-                  {onDeleteBeforeClick && (
-                    <MenuItem onClick={() => onDeleteBeforeClick()} color="red.400">
-                      Delete Messages Before
-                    </MenuItem>
-                  )}
-                  {onDeleteClick && (
-                    <MenuItem onClick={() => onDeleteClick()} color="red.400">
-                      Delete Message
-                    </MenuItem>
-                  )}
-                  {onDeleteAfterClick && (
-                    <MenuItem onClick={() => onDeleteAfterClick()} color="red.400">
-                      Delete Messages After
-                    </MenuItem>
-                  )}
-                </MenuList>
+                {shouldShowDeleteMenu && (
+                  <SubMenu label="Delete" className="delete-button">
+                    {onDeleteBeforeClick && (
+                      <MenuItem
+                        label="Delete Messages Before"
+                        onClick={onDeleteBeforeClick}
+                        className="delete-button"
+                      />
+                    )}
+                    {onDeleteClick && (
+                      <MenuItem
+                        label="Delete Message"
+                        onClick={onDeleteClick}
+                        className="delete-button"
+                        icon={
+                          <IconButton
+                            variant="ghost"
+                            icon={<TbTrash color="red" />}
+                            aria-label="Delete message"
+                            title="Delete message"
+                          />
+                        }
+                      />
+                    )}
+                    {onDeleteAfterClick && (
+                      <MenuItem
+                        label="Delete Messages After"
+                        onClick={onDeleteAfterClick}
+                        className="delete-button"
+                      />
+                    )}
+                  </SubMenu>
+                )}
               </Menu>
             </Flex>
           </Flex>
         </CardHeader>
         <CardBody p={0}>
           <Flex direction="column" gap={3}>
-            <Box maxWidth="100%" minH="2em" overflow="hidden" px={6} pb={2}>
+            <Box
+              maxWidth="100%"
+              minH="2em"
+              overflow="hidden"
+              // Offset for the extra pixel of padding added to the messageContent box below
+              m={-1}
+              px={6}
+              pb={2}
+            >
+              {
+                // only display the button before message if the message is too long and toggled
+                !editing && isLongMessage && isOpen ? (
+                  <Button size="sm" variant="ghost" onClick={() => onToggle()}>
+                    {"Show Less"}
+                  </Button>
+                ) : undefined
+              }
               {editing ? (
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
                 <form onSubmit={handleSubmit} ref={messageForm} onKeyDown={handleKeyDown}>
@@ -383,11 +520,39 @@ function MessageBase({
                   </VStack>
                 </form>
               ) : (
-                <Markdown previewCode={!hidePreviews} isLoading={isLoading} onPrompt={onPrompt}>
-                  {summaryText || text}
-                </Markdown>
+                <Box
+                  ref={messageContent}
+                  // Add a single pixel of offset for rendering to canvas (offset handled above with m=-1)
+                  p={1}
+                >
+                  {imageUrls.map((imageUrl, index) => (
+                    <Box key={`${id}-${index}`}>
+                      <Image
+                        src={imageUrl}
+                        alt={`Images# ${index}`}
+                        margin={"auto"}
+                        maxWidth={"100%"}
+                        onClick={() => openModalWithImage(imageUrl)}
+                      />
+                    </Box>
+                  ))}
+                  <Markdown
+                    previewCode={!hidePreviews && !displaySummaryText}
+                    isLoading={isLoading}
+                    onPrompt={onPrompt}
+                    className={displaySummaryText ? "message-text message-text-blur" : undefined}
+                  >
+                    {displaySummaryText ? summaryText || text.slice(0, 500).trim() : text}
+                  </Markdown>
+                  {isLongMessage ? (
+                    <Button zIndex={10} size="sm" variant="ghost" onClick={() => onToggle()}>
+                      {isOpen ? "Show Less" : "Show More..."}
+                    </Button>
+                  ) : undefined}
+                </Box>
               )}
             </Box>
+            <ImageModal isOpen={imageModalOpen} onClose={closeModal} imageSrc={selectedImage} />
           </Flex>
         </CardBody>
         {footer && <CardFooter py={2}>{footer}</CardFooter>}

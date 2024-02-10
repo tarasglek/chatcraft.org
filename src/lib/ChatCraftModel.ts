@@ -49,7 +49,13 @@ export class ChatCraftModel {
    * https://platform.openai.com/docs/guides/gpt/function-calling
    */
   get supportsFunctionCalling() {
-    return this.name.startsWith("gpt-3.5-turbo") || this.name.startsWith("gpt-4");
+    const { name } = this;
+    // The OpenAI vision models can't do function calling
+    return !this.supportsImages && (name.startsWith("gpt-3.5-turbo") || name.startsWith("gpt-4"));
+  }
+
+  get supportsImages() {
+    return this.name.includes("vision");
   }
 
   get prettyModel(): string {

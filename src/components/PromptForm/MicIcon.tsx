@@ -1,11 +1,10 @@
-import { useState, useRef } from "react";
 import { IconButton } from "@chakra-ui/react";
+import { useRef, useState } from "react";
 import { TbMicrophone } from "react-icons/tb";
-import { motion, useMotionValue } from "framer-motion";
 
-import { SpeechRecognition } from "../../lib/speech-recognition";
 import { useAlert } from "../../hooks/use-alert";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
+import { SpeechRecognition } from "../../lib/speech-recognition";
 
 type MicIconProps = {
   onRecording: () => void;
@@ -23,13 +22,10 @@ export default function MicIcon({
   isDisabled = false,
 }: MicIconProps) {
   const isMobile = useMobileBreakpoint();
-  const [colorScheme, setColorScheme] = useState<"blue" | "red">("blue");
   const [isRecording, setIsRecording] = useState(false);
   const micIconRef = useRef<HTMLButtonElement | null>(null);
   const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
   const { error } = useAlert();
-  const x = useMotionValue(0);
-  const xCancelOffset = isMobile ? -50 : -100;
 
   const onRecordingStart = async () => {
     speechRecognitionRef.current = new SpeechRecognition();
@@ -103,42 +99,26 @@ export default function MicIcon({
     onCancel();
   };
 
+  const handleMicToggle = () => {
+    if (isRecording) {
+      onRecordingStop();
+    } else {
+      onRecordingStart();
+    }
+  };
+
   return (
-    <motion.div
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
-      dragTransition={{ bounceStiffness: 500, bounceDamping: 20 }}
-      dragElastic={1}
-      onDrag={(_event, info) => {
-        if (info.offset.x < xCancelOffset) {
-          setColorScheme("red");
-        } else {
-          setColorScheme("blue");
-        }
-      }}
-      onDragEnd={(_event, info) => {
-        if (info.offset.x < xCancelOffset) {
-          onRecordingCancel();
-        }
-        setColorScheme("blue");
-        x.set(0);
-      }}
-      style={{ x }}
-    >
-      <IconButton
-        isRound
-        isDisabled={isDisabled}
-        colorScheme={colorScheme}
-        icon={<TbMicrophone />}
-        variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
-        aria-label="Record speech"
-        size={isMobile ? "lg" : "md"}
-        fontSize="18px"
-        ref={micIconRef}
-        onPointerDown={() => onRecordingStart()}
-        onPointerUp={() => onRecordingStop()}
-        onBlur={() => onRecordingCancel()}
-      />
-    </motion.div>
+    <IconButton
+      isRound
+      isDisabled={isDisabled}
+      icon={<TbMicrophone />}
+      variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
+      aria-label="Record speech"
+      size={isMobile ? "lg" : "md"}
+      fontSize="18px"
+      ref={micIconRef}
+      onClick={handleMicToggle}
+      onBlur={() => onRecordingCancel()}
+    />
   );
 }

@@ -1,20 +1,9 @@
 import { errorResponse, createResourcesForEnv } from "../utils";
+import { fetchData } from "../lib/data-handler";
 
 interface Env {
   JWT_SECRET: string;
 }
-
-// Transform known HTML URLs to get raw content
-const fixUrl = (url: string) =>
-  url
-    // Deal with GitHub HTML URLs to code.  For example:
-    // https://github.com/<owner>/<repo>/blob/<branch>/<path> -> https://raw.githubusercontent.com
-    .replace(/^https:\/\/github\.com\/(.*)\/blob\/(.*)$/, "https://raw.githubusercontent.com/$1/$2")
-    // Fix gist URLs to get /raw data vs. HTML
-    .replace(
-      /^https:\/\/gist\.github\.com\/([a-zA-Z0-9_-]+)\/([a-f0-9]+)$/,
-      "https://gist.githubusercontent.com/$1/$2/raw"
-    );
 
 // GET https://chatcraft.org/api/proxy?url=<encoded url...>
 // Must include JWT in cookie, and user must match token owner
@@ -50,10 +39,14 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       return errorResponse(400, "Missing url query param");
     }
 
-    // Some URLs have better alternatives to get at the raw data
-    const url = fixUrl(urlParam);
+    let url: URL;
+    try {
+      url = new URL(urlParam);
+    } catch (_) {
+      return errorResponse(400, "Invalid url query param");
+    }
 
-    return fetch(url, { headers: { "User-Agent": "chatcraft.org" } });
+    return fetchData(url);
   } catch (err) {
     console.error(err);
     return errorResponse(500, `Unable to proxy url: ${err.message}`);

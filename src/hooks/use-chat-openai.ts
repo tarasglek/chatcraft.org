@@ -7,10 +7,18 @@ import {
   ChatCraftFunctionCallMessage,
 } from "../lib/ChatCraftMessage";
 import { useCost } from "./use-cost";
-import { calculateTokenCost, chatWithLLM, countTokensInMessages } from "../lib/ai";
+import {
+  calculateTokenCost,
+  chatWithLLM,
+  countTokensInMessages,
+  isTtsSupported,
+  textToSpeech,
+} from "../lib/ai";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import { useAutoScroll } from "./use-autoscroll";
+import useAudioPlayer from "./use-audio-player";
+import { getSettings } from "../lib/settings";
 
 const noop = () => {};
 
@@ -33,8 +41,10 @@ function useChatOpenAI() {
     pausedRef.current = paused;
   }, [paused]);
 
+  const { addToAudioQueue } = useAudioPlayer();
+
   const callChatApi = useCallback(
-    (
+    async (
       messages: ChatCraftMessage[],
       {
         model = settings.model,
@@ -53,6 +63,16 @@ function useChatOpenAI() {
       setShouldAutoScroll(true);
       resetScrollProgress();
 
+      const ttsSupported = await isTtsSupported();
+      // Set a maximum words in a sentence that we need to wait for.
+      // This reduces latency and number of TTS api calls
+      const TTS_BUFFER_THRESHOLD = 25;
+
+      // To calculate the current position in the AI generated text stream
+      let ttsCursor = 0;
+      let ttsWordsBuffer = "";
+      const sentenceEndRegex = new RegExp(/[.!?]+/g);
+
       const chat = chatWithLLM(messages, {
         model,
         functions,
@@ -65,6 +85,33 @@ function useChatOpenAI() {
         },
         onData({ currentText }) {
           if (!pausedRef.current) {
+            // Hook tts code here
+            ttsWordsBuffer = currentText.slice(ttsCursor);
+
+            if (ttsSupported && getSettings().announceMessages) {
+              if (
+                sentenceEndRegex.test(ttsWordsBuffer) // Has full sentence
+              ) {
+                // Reset lastIndex before calling exec
+                sentenceEndRegex.lastIndex = 0;
+                const sentenceEndIndex = sentenceEndRegex.exec(ttsWordsBuffer)!.index;
+
+                // Pass the sentence to tts api for processing
+                const textToBeProcessed = ttsWordsBuffer.slice(0, sentenceEndIndex + 1);
+                const audioClipUri = textToSpeech(textToBeProcessed);
+                addToAudioQueue(audioClipUri);
+
+                // Update the tts Cursor
+                ttsCursor += sentenceEndIndex + 1;
+              } else if (ttsWordsBuffer.split(" ").length >= TTS_BUFFER_THRESHOLD) {
+                // Flush the entire buffer into tts api
+                const audioClipUri = textToSpeech(ttsWordsBuffer);
+                addToAudioQueue(audioClipUri);
+
+                ttsCursor += ttsWordsBuffer.length;
+              }
+            }
+
             setStreamingMessage(
               new ChatCraftAiMessage({
                 id: message.id,
@@ -110,6 +157,16 @@ function useChatOpenAI() {
           setPaused(false);
           resetScrollProgress();
           setShouldAutoScroll(false);
+
+          if (
+            ttsSupported &&
+            getSettings().announceMessages &&
+            ttsWordsBuffer.slice(ttsCursor).length
+          ) {
+            // Call TTS for any remaining words
+            const audioClipUri = textToSpeech(ttsWordsBuffer);
+            addToAudioQueue(audioClipUri);
+          }
         });
     },
     [
@@ -120,6 +177,7 @@ function useChatOpenAI() {
       incrementScrollProgress,
       setStreamingMessage,
       incrementCost,
+      addToAudioQueue,
     ]
   );
 

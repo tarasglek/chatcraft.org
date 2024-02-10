@@ -6,12 +6,17 @@
  * when you only need to read something.
  */
 import { ChatCraftModel } from "../lib/ChatCraftModel";
+import { ChatCraftProvider } from "../lib/ChatCraftProvider";
 /**
  * We can use models from OpenAI or OpenRouter (https://openrouter.ai/docs).
  * If using the latter, we need to override the basePath to use the OpenRouter URL.
  */
 export const OPENAI_API_URL = "https://api.openai.com/v1";
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
+
+interface ProviderData {
+  [key: string]: ChatCraftProvider;
+}
 
 export type Settings = {
   apiKey?: string;
@@ -23,6 +28,8 @@ export type Settings = {
   sidebarVisible: boolean;
   alwaysSendFunctionResult: boolean;
   customSystemPrompt?: string;
+  announceMessages?: boolean;
+  providers: ProviderData;
 };
 
 export const defaults: Settings = {
@@ -35,6 +42,8 @@ export const defaults: Settings = {
   sidebarVisible: false,
   // Disabled by default, so we don't waste tokens
   alwaysSendFunctionResult: false,
+  announceMessages: false,
+  providers: {},
 };
 
 export const key = "settings";

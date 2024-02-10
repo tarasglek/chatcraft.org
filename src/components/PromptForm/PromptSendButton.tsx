@@ -6,6 +6,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Tooltip,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend } from "react-icons/tb";
 
@@ -13,6 +14,9 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
+import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
+import { usingOfficialOpenAI } from "../../lib/ai";
+import { useMemo } from "react";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -21,6 +25,10 @@ type PromptSendButtonProps = {
 function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
+
+  const isTtsSupported = useMemo(() => {
+    return !!models.filter((model) => model.id.includes("tts"))?.length;
+  }, [models]);
 
   return (
     <ButtonGroup variant="outline" isAttached>
@@ -34,6 +42,26 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           isLoading={isLoading}
           icon={<TbSend />}
         />
+        {isTtsSupported && (
+          <Tooltip
+            label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
+          >
+            <IconButton
+              type="button"
+              size="lg"
+              variant="solid"
+              aria-label={
+                settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"
+              }
+              icon={
+                settings.announceMessages ? <MdVolumeUp size={25} /> : <MdVolumeOff size={25} />
+              }
+              onClick={() =>
+                setSettings({ ...settings, announceMessages: !settings.announceMessages })
+              }
+            />
+          </Tooltip>
+        )}
         <MenuButton
           as={IconButton}
           size="lg"
@@ -44,11 +72,13 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models.map((model) => (
-            <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-              {model.prettyModel}
-            </MenuItem>
-          ))}
+          {models
+            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+            .map((model) => (
+              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                {model.prettyModel}
+              </MenuItem>
+            ))}
         </MenuList>
       </Menu>
     </ButtonGroup>
@@ -59,11 +89,30 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
 
+  const isTtsSupported = useMemo(() => {
+    return !!models.filter((model) => model.id.includes("tts"))?.length;
+  }, [models]);
+
   return (
     <ButtonGroup isAttached>
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
         Ask {settings.model.prettyModel}
       </Button>
+      {isTtsSupported && (
+        <Tooltip
+          label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
+        >
+          <Button
+            type="button"
+            size="sm"
+            onClick={() =>
+              setSettings({ ...settings, announceMessages: !settings.announceMessages })
+            }
+          >
+            {settings.announceMessages ? <MdVolumeUp size={18} /> : <MdVolumeOff size={18} />}
+          </Button>
+        </Tooltip>
+      )}
       <Menu placement="top" strategy="fixed">
         <MenuButton
           as={IconButton}
@@ -73,11 +122,13 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models.map((model) => (
-            <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-              {model.prettyModel}
-            </MenuItem>
-          ))}
+          {models
+            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+            .map((model) => (
+              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                {model.prettyModel}
+              </MenuItem>
+            ))}
         </MenuList>
       </Menu>
     </ButtonGroup>

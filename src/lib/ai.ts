@@ -270,7 +270,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
      * In most cases, this is straight-forward, but for function messages,
      * we need to separate the call and result into two parts
      */
-    messages: messages.map((message) => message.toOpenAiMessage()),
+    messages: messages.map((message) => message.toOpenAiMessage(model)),
     stream: streaming,
 
     /**
@@ -293,6 +293,14 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
           ? { name: functionToCall.name }
           : "auto"
         : undefined,
+
+    /*
+     Got this value from error message of OpenAI's gpt-4-vision-preview max_tokens
+     by setting a very large number,
+     After setting this value, seems no cutoff
+     Tested on version openai@4.24.7, without max_tokens response still cutoff
+     */
+    max_tokens: model.supportsImages ? 4096 : undefined,
   };
 
   const chatCompletionReqOptions = {
@@ -343,7 +351,6 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 
 export async function queryModels(apiKey: string) {
   const { apiUrl } = getSettings();
-  const usingOpenAI = usingOfficialOpenAI();
   const { openai } = createClient(apiKey, apiUrl);
 
   try {
@@ -352,9 +359,7 @@ export async function queryModels(apiKey: string) {
       models.push(page);
     }
 
-    return models
-      .filter((model: any) => !usingOpenAI || model.id.includes("gpt"))
-      .map((model: any) => model.id) as string[];
+    return models.map((model: any) => model.id) as string[];
   } catch (err: any) {
     throw new Error(err.message ?? `error querying models API`);
   }
@@ -440,4 +445,41 @@ export const openRouterPkceRedirect = () => {
   const callbackUrl = location.origin;
   // Redirect the user to the OpenRouter authentication page in the same tab
   location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
+};
+
+/**
+ * Only meant to be used outside components or hooks
+ * where useModels cannot be used.
+ */
+export async function isTtsSupported() {
+  const { apiKey } = getSettings();
+  if (!apiKey) {
+    throw new Error("Missing API Key");
+  }
+
+  return (await queryModels(apiKey)).filter((model: string) => model.includes("tts"))?.length > 0;
+}
+
+/**
+ *
+ * @param message The text for which speech needs to be generated
+ * @returns The URL of generated audio clip
+ */
+export const textToSpeech = async (message: string): Promise<string> => {
+  const { apiKey, apiUrl } = getSettings();
+  if (!apiKey) {
+    throw new Error("Missing API Key");
+  }
+  const { openai } = createClient(apiKey, apiUrl);
+
+  const mp3 = await openai.audio.speech.create({
+    model: "tts-1",
+    voice: "onyx",
+    input: message,
+  });
+
+  const blob = new Blob([await mp3.arrayBuffer()], { type: "audio/mp3" });
+  const objectUrl = URL.createObjectURL(blob);
+
+  return objectUrl;
 };
