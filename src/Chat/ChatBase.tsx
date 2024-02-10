@@ -368,10 +368,11 @@ function ChatBase({ chat }: ChatBaseProps) {
           <Drawer isOpen={isSidebarVisible} onClose={handleToggleSidebarVisible} placement="left">
             <DrawerOverlay />
             <DrawerContent>
-              <DrawerHeader>
+              <DrawerHeader mt={2} p={2}>
                 <Text
                   position={"relative"}
                   top={-1}
+                  ml={2}
                   mb={2}
                   fontSize="lg"
                   fontWeight="bold"
