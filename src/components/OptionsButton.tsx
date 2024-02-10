@@ -6,11 +6,13 @@ import {
   MenuItem,
   MenuDivider,
   IconButton,
+  Input,
   useDisclosure,
 } from "@chakra-ui/react";
 import { Link as ReactRouterLink, useFetcher, useLoaderData } from "react-router-dom";
-import { TbPlus } from "react-icons/tb";
-import { useCallback } from "react";
+import { TbPlus, TbShare2, TbTrash, TbCopy } from "react-icons/tb";
+import { BsPaperclip } from "react-icons/bs";
+import { useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useCopyToClipboard } from "react-use";
 
@@ -49,26 +51,38 @@ function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
     return (
       <>
         <MenuDivider />
-        <MenuItem isDisabled={true}>Share</MenuItem>
+        <MenuItem icon={<TbShare2 />} isDisabled={true}>
+          Share
+        </MenuItem>
       </>
     );
   }
 
   return (
     <>
-      <MenuItem onClick={supportsWebShare ? handleWebShare : onOpen}>Share</MenuItem>
+      <MenuItem icon={<TbShare2 />} onClick={supportsWebShare ? handleWebShare : onOpen}>
+        Share
+      </MenuItem>
       <ShareModal chat={chat} isOpen={isOpen} onClose={onClose} />
     </>
   );
 }
 
-type CommandButtonProps = {
+type OptionsButtonProps = {
   forkUrl?: string;
   variant?: "outline" | "solid" | "ghost";
   iconOnly?: boolean;
+  onFileSelected: (base64: string) => void;
+  isDisabled?: boolean;
 };
 
-function CommandButton({ forkUrl, variant = "outline", iconOnly = false }: CommandButtonProps) {
+function OptionsButton({
+  forkUrl,
+  variant = "outline",
+  onFileSelected,
+  iconOnly = false,
+  isDisabled = false,
+}: OptionsButtonProps) {
   const fetcher = useFetcher();
   const { info } = useAlert();
   const [, copyToClipboard] = useCopyToClipboard();
@@ -78,6 +92,29 @@ function CommandButton({ forkUrl, variant = "outline", iconOnly = false }: Comma
       return Promise.resolve(ChatCraftChat.find(chatId));
     }
   }, [chatId]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (files) {
+        for (let i = 0; i < files.length; i++) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            onFileSelected(e.target?.result as string);
+          };
+          reader.readAsDataURL(files[i]);
+        }
+        // Reset the input value after file read
+        event.target.value = "";
+      }
+    },
+    [onFileSelected]
+  );
+
+  const handleAttachFiles = useCallback(() => {
+    fileInputRef.current?.click();
+  }, [fileInputRef]);
 
   const handleCopyClick = useCallback(() => {
     if (!chat) {
@@ -114,19 +151,31 @@ function CommandButton({ forkUrl, variant = "outline", iconOnly = false }: Comma
   return (
     <Menu>
       {iconOnly ? (
-        <MenuButton as={IconButton} size="lg" variant="outline" icon={<TbPlus />} isRound />
+        <MenuButton
+          isDisabled={isDisabled}
+          as={IconButton}
+          size="lg"
+          variant="outline"
+          icon={<TbPlus />}
+          isRound
+        />
       ) : (
-        <MenuButton as={Button} size="sm" variant={variant} leftIcon={<TbPlus />}>
-          Command
+        <MenuButton
+          isDisabled={isDisabled}
+          as={Button}
+          size="sm"
+          variant={variant}
+          leftIcon={<TbPlus />}
+        >
+          Options
         </MenuButton>
       )}
       <MenuList>
         <MenuItem as={ReactRouterLink} to="/new">
           Clear
         </MenuItem>
-        <MenuDivider />
         <MenuItem as={ReactRouterLink} to="/new" target="_blank">
-          Open New...
+          New Window
         </MenuItem>
         {!!forkUrl && (
           <MenuItem as={ReactRouterLink} to={forkUrl} target="_blank">
@@ -134,7 +183,7 @@ function CommandButton({ forkUrl, variant = "outline", iconOnly = false }: Comma
           </MenuItem>
         )}
         <MenuDivider />
-        <MenuItem isDisabled={!chat} onClick={() => handleCopyClick()}>
+        <MenuItem isDisabled={!chat} icon={<TbCopy />} onClick={() => handleCopyClick()}>
           Copy
         </MenuItem>
         <MenuItem isDisabled={!chat} onClick={() => handleDownloadClick()}>
@@ -142,12 +191,29 @@ function CommandButton({ forkUrl, variant = "outline", iconOnly = false }: Comma
         </MenuItem>
         <ShareMenuItem chat={chat} />
         <MenuDivider />
-        <MenuItem color="red.400" isDisabled={!chat} onClick={() => handleDeleteClick()}>
-          Delete
+        <Input
+          multiple
+          type="file"
+          ref={fileInputRef}
+          hidden
+          onChange={handleFileChange}
+          accept="image/*"
+        />
+        <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
+          Attach Files...
+        </MenuItem>
+        <MenuDivider />
+        <MenuItem
+          color="red.400"
+          icon={<TbTrash />}
+          isDisabled={!chat}
+          onClick={() => handleDeleteClick()}
+        >
+          Delete Chat
         </MenuItem>
       </MenuList>
     </Menu>
   );
 }
 
-export default CommandButton;
+export default OptionsButton;
