@@ -17,6 +17,7 @@ import {
   Input,
   IconButton,
   useColorModeValue,
+  keyframes,
 } from "@chakra-ui/react";
 import { Form, ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
@@ -317,6 +318,29 @@ function ChatBase({ chat }: ChatBaseProps) {
   const isMobile = useMobileBreakpoint();
   const sidebarColor = useColorModeValue("blue.600", "blue.200");
 
+  const sidebarOpenAnimationKeyframes = keyframes`
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  `;
+
+  const sidebarCloseAnimationKeyframes = keyframes`
+    from {
+      transform: scaleX(1);
+    }
+
+    to {
+      transform: scaleX(0);
+    }
+  `;
+
+  const sidebarOpenAnimation = `${sidebarOpenAnimationKeyframes} 500ms ease-in-out forwards`;
+  const sidebarCloseAnimation = `${sidebarCloseAnimationKeyframes} 100ms ease-in-out forwards`;
+
   return (
     <Grid
       w="100%"
@@ -324,9 +348,9 @@ function ChatBase({ chat }: ChatBaseProps) {
       gridTemplateRows="min-content 1fr min-content"
       gridTemplateColumns={{
         base: "0 1fr",
-        sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
+        sm: isSidebarVisible ? "300px 4fr" : "0: 1fr",
       }}
+      transition={"150ms"}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
@@ -375,7 +399,12 @@ function ChatBase({ chat }: ChatBaseProps) {
             </DrawerContent>
           </Drawer>
         ) : (
-          <Sidebar selectedChat={chat} />
+          <Box
+            transformOrigin={"left"}
+            animation={isSidebarVisible ? sidebarOpenAnimation : sidebarCloseAnimation}
+          >
+            <Sidebar selectedChat={chat} />
+          </Box>
         )}
       </GridItem>
 
