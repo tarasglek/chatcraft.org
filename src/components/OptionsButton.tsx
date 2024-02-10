@@ -72,7 +72,8 @@ type OptionsButtonProps = {
   forkUrl?: string;
   variant?: "outline" | "solid" | "ghost";
   iconOnly?: boolean;
-  onFileSelected: (base64: string) => void;
+  // Optional until we support on mobile...
+  onFileSelected?: (base64: string) => void;
   isDisabled?: boolean;
 };
 
@@ -96,6 +97,10 @@ function OptionsButton({
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!onFileSelected) {
+        return;
+      }
+
       const files = event.target.files;
       if (files) {
         for (let i = 0; i < files.length; i++) {
@@ -191,18 +196,22 @@ function OptionsButton({
         </MenuItem>
         <ShareMenuItem chat={chat} />
         <MenuDivider />
-        <Input
-          multiple
-          type="file"
-          ref={fileInputRef}
-          hidden
-          onChange={handleFileChange}
-          accept="image/*"
-        />
-        <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
-          Attach Files...
-        </MenuItem>
-        <MenuDivider />
+        {!!onFileSelected && (
+          <>
+            <Input
+              multiple
+              type="file"
+              ref={fileInputRef}
+              hidden
+              onChange={handleFileChange}
+              accept="image/*"
+            />
+            <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
+              Attach Files...
+            </MenuItem>
+            <MenuDivider />
+          </>
+        )}
         <MenuItem
           color="red.400"
           icon={<TbTrash />}
