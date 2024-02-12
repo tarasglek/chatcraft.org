@@ -17,9 +17,8 @@ import AutoResizingTextarea from "../AutoResizingTextarea";
 import { useSettings } from "../../hooks/use-settings";
 import { getMetaKey } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
-import NewButton from "../NewButton";
+import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
-import AttachFileButton from "./AttachFileButton";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
 import { useModels } from "../../hooks/use-models";
 import PromptSendButton from "./PromptSendButton";
@@ -344,12 +343,6 @@ function DesktopPromptForm({
                     ))}
                   </Flex>
                   <Flex flexWrap="wrap">
-                    <AttachFileButton
-                      isDisabled={isLoading}
-                      onFileSelected={(base64String) =>
-                        setInputImageUrls((prevImageUrls) => [...prevImageUrls, base64String])
-                      }
-                    />
                     {inputType === "audio" ? (
                       <Box py={2} px={1} flex={1}>
                         <AudioStatus
@@ -392,7 +385,14 @@ function DesktopPromptForm({
               </InputGroup>
 
               <Flex w="100%" gap={1} justify={"space-between"} align="center">
-                <NewButton forkUrl={forkUrl} variant="outline" />
+                <OptionsButton
+                  forkUrl={forkUrl}
+                  variant="outline"
+                  isDisabled={isLoading}
+                  onFileSelected={(base64String) =>
+                    setInputImageUrls((prevImageUrls) => [...prevImageUrls, base64String])
+                  }
+                />
 
                 <Flex alignItems="center" gap={2}>
                   <KeyboardHint isVisible={!!prompt.length && !isLoading} />
