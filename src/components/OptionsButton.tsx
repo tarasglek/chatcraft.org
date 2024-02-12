@@ -10,7 +10,8 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { Link as ReactRouterLink, useFetcher, useLoaderData } from "react-router-dom";
-import { TbPlus, TbShare2, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
+import { TbShare2, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
+import { PiGearBold } from "react-icons/pi";
 import { BsPaperclip } from "react-icons/bs";
 import { useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -161,7 +162,7 @@ function OptionsButton({
           as={IconButton}
           size="lg"
           variant="outline"
-          icon={<TbPlus />}
+          icon={<PiGearBold />}
           isRound
         />
       ) : (
@@ -170,7 +171,7 @@ function OptionsButton({
           as={Button}
           size="sm"
           variant={variant}
-          leftIcon={<TbPlus />}
+          leftIcon={<PiGearBold />}
         >
           Options
         </MenuButton>
