@@ -155,7 +155,7 @@ function OptionsButton({
   }, [chat, fetcher]);
 
   return (
-    <Menu>
+    <Menu strategy="fixed">
       {iconOnly ? (
         <MenuButton
           isDisabled={isDisabled}
