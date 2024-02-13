@@ -6,17 +6,13 @@
  * when you only need to read something.
  */
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { ChatCraftProvider } from "../lib/ChatCraftProvider";
+import { ProviderData } from "../lib/ChatCraftProvider";
 /**
  * We can use models from OpenAI or OpenRouter (https://openrouter.ai/docs).
  * If using the latter, we need to override the basePath to use the OpenRouter URL.
  */
 export const OPENAI_API_URL = "https://api.openai.com/v1";
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
-
-interface ProviderData {
-  [key: string]: ChatCraftProvider;
-}
 
 export type Settings = {
   apiKey?: string;
