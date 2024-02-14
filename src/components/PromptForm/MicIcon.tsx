@@ -115,7 +115,8 @@ export default function MicIcon({
         icon={<TbMicrophone />}
         variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
         aria-label="Record speech"
-        size={isMobile ? "lg" : "md"}
+        size={isRecording ? "lg" : "md"}
+        transition={"all 150ms ease-in-out"}
         fontSize="18px"
         ref={micIconRef}
         onClick={handleMicToggle}
