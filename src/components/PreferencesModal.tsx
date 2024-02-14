@@ -36,8 +36,8 @@ import { download, isMac } from "../lib/utils";
 import db from "../lib/db";
 import { useModels } from "../hooks/use-models";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { ChatCraftProvider } from "../lib/ChatCraftProvider";
-import { OPENAI_API_URL, OPENROUTER_API_URL } from "../lib/settings";
+import { ChatCraftProvider, supportedProviders } from "../lib/ChatCraftProvider";
+import { OPENAI_API_URL } from "../lib/settings";
 import { openRouterPkceRedirect, usingOfficialOpenAI, validateApiKey } from "../lib/ai";
 import { useAlert } from "../hooks/use-alert";
 
@@ -197,8 +197,11 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
             <FormControl>
               <FormLabel>API URL</FormLabel>
               <Select value={settings.apiUrl} onChange={handleProviderChange}>
-                <option value={OPENAI_API_URL}>OpenAI ({OPENAI_API_URL})</option>
-                <option value={OPENROUTER_API_URL}>OpenRouter.ai ({OPENROUTER_API_URL})</option>
+                {Object.values(supportedProviders).map((provider) => (
+                  <option key={provider.apiUrl} value={provider.apiUrl}>
+                    {provider.name} ({provider.apiUrl})
+                  </option>
+                ))}
               </Select>
               <FormHelperText>
                 Advanced option for use with other OpenAI-compatible APIs
