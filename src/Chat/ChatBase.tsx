@@ -382,7 +382,7 @@ function ChatBase({ chat }: ChatBaseProps) {
                 </Text>
                 <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
                   <InputGroup size="sm" variant="outline">
-                    <Input type="search" name="q" isRequired />
+                    <Input type="search" name="q" isRequired placeholder="Search chat history" />
                     <IconButton
                       aria-label="Search"
                       variant="ghost"
