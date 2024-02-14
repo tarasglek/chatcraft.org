@@ -93,7 +93,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
               name="q"
               defaultValue={searchText}
               isRequired
-              placeholder="Search"
+              placeholder="Search chat history"
             />
             <IconButton aria-label="Search" variant="ghost" icon={<TbSearch />} type="submit" />
           </InputGroup>
