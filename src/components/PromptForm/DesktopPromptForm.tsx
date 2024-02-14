@@ -146,11 +146,11 @@ function DesktopPromptForm({
   useEffect(() => {
     const textAreaElement = inputPromptRef.current;
     if (textAreaElement) {
-      textAreaElement.addEventListener("paste", handlePasteImage);
+      textAreaElement.addEventListener("paste", handlePaste);
     }
     return () => {
       if (textAreaElement) {
-        textAreaElement.removeEventListener("paste", handlePasteImage);
+        textAreaElement.removeEventListener("paste", handlePaste);
       }
     };
     // eslint-disable-next-line
@@ -262,13 +262,36 @@ function DesktopPromptForm({
   };
   const closeModal = () => setImageModalOpen(false);
 
-  const handlePasteImage = (e: ClipboardEvent) => {
-    const clipboardData = e.clipboardData;
+  const handlePaste = (e: ClipboardEvent) => {
+    const { clipboardData } = e;
+    if (!clipboardData) {
+      return;
+    }
+
+    // See if we have meaningful text. Some apps will place multiple versions in
+    // the clipboard. For example, MS Word will include text/plain, text/html,
+    // text/rtf, and finally image/png. Each is a different version that tries to
+    // preserve formatting (the image is a bitmap of the formatted text). If we
+    // have a usable text version, but also an image, we should prefer the text
+    // over images. The most common are text, html, or uri-list.
+    if (
+      clipboardData.getData("text/plain") !== "" ||
+      clipboardData.getData("text/html") !== "" ||
+      clipboardData.getData("text/uri-list") !== ""
+    ) {
+      return;
+    }
+
+    // Maybe there is an image we can use
     const items = Array.from(clipboardData?.items || []);
     const imageFiles = items
+      .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
       .map((item) => item.getAsFile())
-      .filter((file): file is File => file != null && file.type.startsWith("image/"));
-    if (imageFiles.length > 0) {
+      .filter((file): file is File => file != null);
+
+    if (imageFiles.length) {
+      // Handle the clipboard contents here instead, creating image URLs
+      e.preventDefault();
       Promise.all(imageFiles.map((file) => getBase64FromFile(file)))
         .then((base64Strings) => {
           setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...base64Strings]);
@@ -281,6 +304,8 @@ function DesktopPromptForm({
           });
         });
     }
+
+    // Otherwise, let the default paste handling happen
   };
 
   return (
