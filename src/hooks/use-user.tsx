@@ -13,7 +13,7 @@ import { isProd } from "../lib/utils";
 
 type UserContextType = {
   user?: User;
-  login: (chatId?: string) => void;
+  login: (provider: string, chatId?: string) => void;
   logout: (chatId?: string) => Promise<void>;
 };
 
@@ -87,8 +87,10 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const value = {
     user,
-    login(chatId?: string) {
-      const loginUrl = chatId ? `/api/login?chat_id=${chatId}` : `/api/login`;
+    login(provider: string, chatId?: string) {
+      const loginUrl = chatId
+        ? `/api/login?provider=${provider}&chat_id=${chatId}`
+        : `/api/login?provider=${provider}`;
       window.location.href = loginUrl;
     },
     logout,

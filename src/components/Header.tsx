@@ -27,7 +27,6 @@ import { Form } from "react-router-dom";
 import PreferencesModal from "./PreferencesModal";
 import DefaultSystemPromptModal from "./DefaultSystemPromptModal";
 import { useUser } from "../hooks/use-user";
-import { oauthSignIn } from "../../functions/google";
 
 type HeaderProps = {
   chatId?: string;
@@ -50,13 +49,16 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
   } = useDisclosure();
   const { user, login, logout } = useUser();
 
-  const handleLoginLogout = useCallback(() => {
-    if (user) {
-      logout(chatId);
-    } else {
-      login(chatId);
-    }
-  }, [chatId, user, login, logout]);
+  const handleLoginLogout = useCallback(
+    (provider: string) => {
+      if (user) {
+        logout(chatId);
+      } else {
+        login(provider, chatId);
+      }
+    },
+    [chatId, user, login, logout]
+  );
 
   return (
     <Flex
@@ -129,26 +131,35 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
             <MenuList>
               <MenuItem onClick={onPrefModalOpen}>Settings...</MenuItem>
               <MenuItem onClick={onSysPromptModalOpen}>Default System Prompt...</MenuItem>
-              <MenuItem onClick={handleLoginLogout}>
-                {user ? (
-                  "Logout"
-                ) : (
-                  <>
-                    <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
-                  </>
-                )}
-              </MenuItem>
-              {/* Google login */}
-              <MenuItem
-                onClick={async () => {
-                  oauthSignIn();
-                  console.log("google");
-                }}
-              >
+              {user && (
+                <MenuItem
+                  onClick={() => {
+                    handleLoginLogout("");
+                  }}
+                >
+                  Logout
+                </MenuItem>
+              )}
+              {!user && (
                 <>
-                  <FcGoogle /> <Text ml={2}>Sign in with Google</Text>
+                  <MenuItem
+                    onClick={() => {
+                      handleLoginLogout("github");
+                    }}
+                  >
+                    <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
+                  </MenuItem>
+                  {/* Google login */}
+                  <MenuItem
+                    onClick={() => {
+                      handleLoginLogout("google");
+                    }}
+                  >
+                    <FcGoogle /> <Text ml={2}>Sign in with Google</Text>
+                  </MenuItem>
                 </>
-              </MenuItem>
+              )}
+
               <MenuDivider />
               <MenuItem
                 as="a"
