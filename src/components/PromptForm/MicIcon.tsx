@@ -1,4 +1,4 @@
-import { IconButton } from "@chakra-ui/react";
+import { IconButton, Tooltip } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { TbMicrophone } from "react-icons/tb";
 
@@ -108,17 +108,19 @@ export default function MicIcon({
   };
 
   return (
-    <IconButton
-      isRound
-      isDisabled={isDisabled}
-      icon={<TbMicrophone />}
-      variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
-      aria-label="Record speech"
-      size={isMobile ? "lg" : "md"}
-      fontSize="18px"
-      ref={micIconRef}
-      onClick={handleMicToggle}
-      onBlur={() => onRecordingCancel()}
-    />
+    <Tooltip label={isRecording ? "Stop Recording" : "Start Recording"}>
+      <IconButton
+        isRound
+        isDisabled={isDisabled}
+        icon={<TbMicrophone />}
+        variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
+        aria-label="Record speech"
+        size={isMobile ? "lg" : "md"}
+        fontSize="18px"
+        ref={micIconRef}
+        onClick={handleMicToggle}
+        onBlur={() => onRecordingCancel()}
+      />
+    </Tooltip>
   );
 }
