@@ -114,6 +114,7 @@ export default function MicIcon({
         isDisabled={isDisabled}
         icon={<TbMicrophone />}
         variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
+        colorScheme={isRecording ? "red" : "blue"}
         aria-label="Record speech"
         size={isRecording ? "lg" : "md"}
         transition={"all 150ms ease-in-out"}
