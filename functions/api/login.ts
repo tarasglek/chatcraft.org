@@ -37,8 +37,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
   if (provider === "google") {
     return handleGoogleLogin({
-      // isDev,
-      isDev: false,
+      isDev,
       code,
       chatId,
       GOOGLE_CLIENT_ID,
