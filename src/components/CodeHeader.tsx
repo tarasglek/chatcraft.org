@@ -7,6 +7,10 @@ import {
   useColorModeValue,
   Text,
   Box,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
 } from "@chakra-ui/react";
 import { TbCopy, TbDownload, TbRun, TbExternalLink } from "react-icons/tb";
 
@@ -32,7 +36,7 @@ function CodeHeader({
   codeDownloadFilename,
 }: PreHeaderProps) {
   const { onCopy } = useClipboard(code);
-  const { info } = useAlert();
+  const { info, error } = useAlert();
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
   const shouldShowRunButton = isRunnable(language) && onPrompt;
 
@@ -52,7 +56,61 @@ function CodeHeader({
     });
   }, [info, code, codeDownloadFilename]);
 
-  const handleRun = useCallback(async () => {
+  const handleRunRemote = useCallback(async () => {
+    if (!onPrompt) {
+      return;
+    }
+
+    // https://docs.val.town/api/eval/
+    const evalUrl = new URL("https://api.val.town/v1/eval");
+    const res = await fetch(evalUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: code.replaceAll("\n", " ").trim(),
+        args: [],
+      }),
+    });
+
+    if (!res.ok) {
+      error({ title: "Error Running Code", message: "Unable to run code remotely" });
+      return;
+    }
+
+    let result: string;
+    try {
+      // val.town returns an empty body when code doesn't return a value, which breaks res.json()
+      result = await res.json();
+    } catch (err) {
+      error({
+        title: "Server unable to parse code",
+        message: "Try rewriting the code as an async function returning a value.",
+      });
+      return;
+    }
+
+    try {
+      if (typeof result === "string") {
+        // catch corner cases with strings
+        if (!result.length || result[0] === "/") {
+          result = formatAsCodeBlock(JSON.stringify(result), "js");
+        } else if (result.startsWith("<")) {
+          result = formatAsCodeBlock(result, "html");
+        } else {
+          // result is good to include inline, might have formatting, etc
+        }
+      }
+    } catch (error: any) {
+      result = formatAsCodeBlock(
+        error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
+      );
+    }
+    if (result !== undefined) {
+      onPrompt(result);
+    }
+  }, [code, onPrompt, error]);
+
+  const handleRunBrowser = useCallback(async () => {
     if (!onPrompt) {
       return;
     }
@@ -135,17 +193,23 @@ function CodeHeader({
         </Box>
         <ButtonGroup isAttached pr={2}>
           {shouldShowRunButton && (
-            <IconButton
-              size="sm"
-              aria-label="Run code"
-              title="Run code"
-              icon={<TbRun />}
-              color="gray.600"
-              _dark={{ color: "gray.300" }}
-              variant="ghost"
-              onClick={handleRun}
-              isDisabled={isLoading}
-            />
+            <Menu strategy="fixed">
+              <MenuButton
+                as={IconButton}
+                size="sm"
+                aria-label="Run code"
+                title="Run code"
+                icon={<TbRun />}
+                color="gray.600"
+                _dark={{ color: "gray.300" }}
+                variant="ghost"
+                isDisabled={isLoading}
+              />
+              <MenuList>
+                <MenuItem onClick={handleRunBrowser}>Run in Browser</MenuItem>
+                <MenuItem onClick={handleRunRemote}>Run on Server</MenuItem>
+              </MenuList>
+            </Menu>
           )}
           <IconButton
             size="sm"
