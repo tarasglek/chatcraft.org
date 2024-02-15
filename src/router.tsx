@@ -25,6 +25,7 @@ export default createBrowserRouter([
       } catch (err) {
         console.warn("Error getting most recent chat", err);
       }
+
       return redirect("/new");
     },
     errorElement: <AppError />,

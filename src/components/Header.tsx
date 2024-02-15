@@ -131,7 +131,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
             <MenuList>
               <MenuItem onClick={onPrefModalOpen}>Settings...</MenuItem>
               <MenuItem onClick={onSysPromptModalOpen}>Default System Prompt...</MenuItem>
-              {user && (
+              {user ? (
                 <MenuItem
                   onClick={() => {
                     handleLoginLogout("");
@@ -139,8 +139,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
                 >
                   Logout
                 </MenuItem>
-              )}
-              {!user && (
+              ) : (
                 <>
                   <MenuItem
                     onClick={() => {
