@@ -106,7 +106,7 @@ function OptionsButton({
       const files = event.target.files;
 
       const imageCompressionOptions = {
-        maxSizeMB: 2,
+        maxSizeMB: 20,
         maxWidthOrHeight: 2048,
         useWebWorker: true,
       };
