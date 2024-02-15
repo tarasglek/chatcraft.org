@@ -223,7 +223,7 @@ function MobilePromptForm({
                 bg="white"
                 _dark={{ bg: "gray.700" }}
                 overflowY="auto"
-                placeholder="Ask a question"
+                placeholder="Ask about..."
                 mb={1}
               />
             )}
