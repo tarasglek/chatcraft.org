@@ -20,6 +20,7 @@
     "@emotion/styled": "^11.11.0",
     "@szhsin/react-menu": "^4.1.0",
     "@uiw/react-codemirror": "^4.21.21",
+    "browser-image-compression": "^2.0.2",
     "compromise": "^14.11.2",
     "cookie": "^0.6.0",
     "dexie": "^3.2.4",

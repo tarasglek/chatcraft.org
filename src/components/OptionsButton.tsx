@@ -16,6 +16,7 @@ import { BsPaperclip } from "react-icons/bs";
 import { useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useCopyToClipboard } from "react-use";
+import imageCompression from "browser-image-compression";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
@@ -86,7 +87,7 @@ function OptionsButton({
   isDisabled = false,
 }: OptionsButtonProps) {
   const fetcher = useFetcher();
-  const { info } = useAlert();
+  const { info, error } = useAlert();
   const [, copyToClipboard] = useCopyToClipboard();
   const chatId = useLoaderData() as string;
   const chat = useLiveQuery<ChatCraftChat | undefined>(() => {
@@ -103,19 +104,49 @@ function OptionsButton({
       }
 
       const files = event.target.files;
+
+      const imageCompressionOptions = {
+        maxSizeMB: 20,
+        maxWidthOrHeight: 2048,
+        useWebWorker: true,
+      };
+
+      // Helper function
+      const readFile = (file: File) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          onFileSelected(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      };
+
       if (files) {
         for (let i = 0; i < files.length; i++) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            onFileSelected(e.target?.result as string);
-          };
-          reader.readAsDataURL(files[i]);
+          const file = files[i];
+          if (file.type.startsWith("image/")) {
+            // Make sure image's size is within 20MB
+            // https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
+            if (file.size > imageCompressionOptions.maxSizeMB * 1024 * 1024) {
+              imageCompression(file, imageCompressionOptions)
+                .then((compressedFile) => {
+                  return readFile(compressedFile);
+                })
+                .catch((err) => {
+                  console.error(err);
+                  error({ title: "Unable to share chat", message: err.message });
+                });
+            } else {
+              readFile(file);
+            }
+          } else {
+            readFile(file);
+          }
         }
         // Reset the input value after file read
         event.target.value = "";
       }
     },
-    [onFileSelected]
+    [error, onFileSelected]
   );
 
   const handleAttachFiles = useCallback(() => {
