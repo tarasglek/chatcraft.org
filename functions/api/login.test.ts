@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import { decodeJwt } from "jose";
 
 import { githubMocks } from "../github.test";
-// import { handleProdLogin, handleDevLogin } from "./login";
+import { googleMocks } from "../google.test";
 import { handleGithubLogin } from "../github";
 import { handleGoogleLogin } from "../google";
 import { TokenProvider } from "../token-provider";
@@ -437,17 +437,20 @@ describe("Production Google /api/login", () => {
 
     expect(res.status).toBe(302);
     expect(res.headers.get("Location")).toEqual(
-      "https://accounts.google.com/o/oauth2/v2/auth?client_id=client_id_1234&https%3A%2F%2Fchatcraft.org%2Fapi%2Flogin%2F&response_type=code&scope=profile+email"
+      "https://accounts.google.com/o/oauth2/v2/auth?client_id=client_id_1234&redirect_uri=https%3A%2F%2Fchatcraft.org%2Fapi%2Flogin%2F&response_type=code&scope=profile+email"
     );
   });
 
   test("/api/login without code and with chatId should redirect to GitHub's OAuth login with state", async () => {
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: false,
       code: null,
       chatId: "123456",
-      CLIENT_ID: "client_id_1234",
-      CLIENT_SECRET: "client_secret",
+      GOOGLE_CLIENT_ID: "client_id_1234",
+      GOOGLE_CLIENT_SECRET: "client_secret",
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -463,16 +466,19 @@ describe("Production Google /api/login", () => {
   });
 
   test("/api/login with code should redirect to ChatCraft.org with cookies", async () => {
-    // Mock GitHub OAuth and /user flow
-    const mocks = githubMocks();
+    // Mock Google OAuth and /user flow
+    const mocks = googleMocks();
     mocks.all();
 
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: false,
-      code: "ghcode",
+      code: "gcode",
       chatId: null,
-      CLIENT_ID: "client_id_1234",
-      CLIENT_SECRET: "client_secret",
+      GOOGLE_CLIENT_ID: "client_id_1234",
+      GOOGLE_CLIENT_SECRET: "client_secret",
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -498,7 +504,7 @@ describe("Production Google /api/login", () => {
           expect.fail("missing access token");
         } else {
           const payload = decodeJwt(accessToken);
-          expect(payload.sub).toEqual("login");
+          expect(payload.sub).toEqual("email");
           expect(payload.role).toEqual("api");
         }
       } else {
@@ -513,10 +519,10 @@ describe("Production Google /api/login", () => {
           expect.fail("missing id token");
         } else {
           const payload = decodeJwt(idToken);
-          expect(payload.sub).toEqual("login");
-          expect(payload.username).toEqual("login");
+          expect(payload.sub).toEqual("email");
+          expect(payload.username).toEqual("email");
           expect(payload.name).toEqual("name");
-          expect(payload.avatarUrl).toEqual("avatar_url");
+          expect(payload.avatarUrl).toEqual("picture");
         }
       }
     });
@@ -524,15 +530,18 @@ describe("Production Google /api/login", () => {
 
   test("/api/login with code and state should redirect to ChatCraft.org/c/:chatId", async () => {
     // Mock GitHub OAuth and /user flow
-    const mocks = githubMocks();
+    const mocks = googleMocks();
     mocks.all();
 
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: false,
-      code: "ghcode",
+      code: "gcode",
       chatId: "123456",
-      CLIENT_ID: "client_id_1234",
-      CLIENT_SECRET: "client_secret",
+      GOOGLE_CLIENT_ID: "client_id_1234",
+      GOOGLE_CLIENT_SECRET: "client_secret",
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -548,16 +557,19 @@ describe("Development Google /api/login", () => {
   const appUrl = "http://localhost:9339/";
 
   test("/api/login with code should redirect to ChatCraft.org with cookies", async () => {
-    // Mock GitHub OAuth and /user flow
-    const mocks = githubMocks();
+    // Mock Google OAuth and /user flow
+    const mocks = googleMocks();
     mocks.all();
 
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: true,
       code: null,
       chatId: null,
-      CLIENT_ID: null,
-      CLIENT_SECRET: null,
+      GOOGLE_CLIENT_ID: null,
+      GOOGLE_CLIENT_SECRET: null,
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -583,7 +595,7 @@ describe("Development Google /api/login", () => {
           expect.fail("missing access token");
         } else {
           const payload = decodeJwt(accessToken);
-          expect(payload.sub).toEqual("chatcraft_dev");
+          expect(payload.sub).toEqual("chatcraft_dev_google");
           expect(payload.role).toEqual("api");
         }
       } else {
@@ -596,10 +608,12 @@ describe("Development Google /api/login", () => {
           expect.fail("missing id token");
         } else {
           const payload = decodeJwt(idToken);
-          expect(payload.sub).toEqual("chatcraft_dev");
-          expect(payload.username).toEqual("chatcraft_dev");
-          expect(payload.name).toEqual("ChatCraftDev");
-          expect(payload.avatarUrl).toEqual("https://github.com/github.png?size=402");
+          expect(payload.sub).toEqual("chatcraft_dev_google");
+          expect(payload.username).toEqual("chatcraft_dev_google");
+          expect(payload.name).toEqual("ChatCraftDevGoogle");
+          expect(payload.avatarUrl).toEqual(
+            "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg?size=402"
+          );
         }
       }
     });
@@ -607,15 +621,18 @@ describe("Development Google /api/login", () => {
 
   test("/api/login with code and state should redirect to ChatCraft.org/c/:chatId", async () => {
     // Mock GitHub OAuth and /user flow
-    const mocks = githubMocks();
+    const mocks = googleMocks();
     mocks.all();
 
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: true,
       code: null,
       chatId: "123456",
-      CLIENT_ID: null,
-      CLIENT_SECRET: null,
+      GOOGLE_CLIENT_ID: null,
+      GOOGLE_CLIENT_SECRET: null,
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -626,12 +643,15 @@ describe("Development Google /api/login", () => {
   });
 
   test("/api/login without code should redirect to GitHub's OAuth login", async () => {
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: false,
       code: null,
       chatId: null,
-      CLIENT_ID: "client_id_1234",
-      CLIENT_SECRET: "client_secret",
+      GOOGLE_CLIENT_ID: "client_id_1234",
+      GOOGLE_CLIENT_SECRET: "client_secret",
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -639,17 +659,20 @@ describe("Development Google /api/login", () => {
 
     expect(res.status).toBe(302);
     expect(res.headers.get("Location")).toEqual(
-      "https://github.com/login/oauth/authorize?client_id=client_id_1234"
+      "https://accounts.google.com/o/oauth2/v2/auth?client_id=client_id_1234&redirect_uri=https%3A%2F%2Fchatcraft.org%2Fapi%2Flogin%2F&response_type=code&scope=profile+email"
     );
   });
 
-  test("/api/login without code and with chatId should redirect to GitHub's OAuth login with state", async () => {
-    const res = await handleGithubLogin({
+  test("/api/login without code and with chatId should redirect to Google's OAuth login with state", async () => {
+    const res = await handleGoogleLogin({
       isDev: false,
       code: null,
       chatId: "123456",
-      CLIENT_ID: "client_id_1234",
-      CLIENT_SECRET: "client_secret",
+      GOOGLE_CLIENT_ID: "client_id_1234",
+      GOOGLE_CLIENT_SECRET: "client_secret",
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -666,15 +689,18 @@ describe("Development Google /api/login", () => {
 
   test("/api/login with code should redirect to ChatCraft.org with cookies", async () => {
     // Mock GitHub OAuth and /user flow
-    const mocks = githubMocks();
+    const mocks = googleMocks();
     mocks.all();
 
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: false,
-      code: "ghcode",
+      code: "gcode",
       chatId: null,
-      CLIENT_ID: "client_id_1234",
-      CLIENT_SECRET: "client_secret",
+      GOOGLE_CLIENT_ID: "client_id_1234",
+      GOOGLE_CLIENT_SECRET: "client_secret",
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -725,16 +751,19 @@ describe("Development Google /api/login", () => {
   });
 
   test("/api/login with code and state should redirect to ChatCraft.org/c/:chatId", async () => {
-    // Mock GitHub OAuth and /user flow
-    const mocks = githubMocks();
+    // Mock Google OAuth and /user flow
+    const mocks = googleMocks();
     mocks.all();
 
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: false,
       code: "ghcode",
       chatId: "123456",
-      CLIENT_ID: "client_id_1234",
-      CLIENT_SECRET: "client_secret",
+      GOOGLE_CLIENT_ID: "client_id_1234",
+      GOOGLE_CLIENT_SECRET: "client_secret",
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -750,16 +779,19 @@ describe("Development Google /api/login", () => {
   const appUrl = "http://localhost:9339/";
 
   test("/api/login with code should redirect to ChatCraft.org with cookies", async () => {
-    // Mock GitHub OAuth and /user flow
-    const mocks = githubMocks();
+    // Mock Google OAuth and /user flow
+    const mocks = googleMocks();
     mocks.all();
 
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: true,
       code: null,
       chatId: null,
-      CLIENT_ID: null,
-      CLIENT_SECRET: null,
+      GOOGLE_CLIENT_ID: null,
+      GOOGLE_CLIENT_SECRET: null,
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
@@ -785,7 +817,7 @@ describe("Development Google /api/login", () => {
           expect.fail("missing access token");
         } else {
           const payload = decodeJwt(accessToken);
-          expect(payload.sub).toEqual("chatcraft_dev");
+          expect(payload.sub).toEqual("chatcraft_dev_google");
           expect(payload.role).toEqual("api");
         }
       } else {
@@ -798,26 +830,31 @@ describe("Development Google /api/login", () => {
           expect.fail("missing id token");
         } else {
           const payload = decodeJwt(idToken);
-          expect(payload.sub).toEqual("chatcraft_dev");
-          expect(payload.username).toEqual("chatcraft_dev");
-          expect(payload.name).toEqual("ChatCraftDev");
-          expect(payload.avatarUrl).toEqual("https://github.com/github.png?size=402");
+          expect(payload.sub).toEqual("chatcraft_dev_google");
+          expect(payload.username).toEqual("chatcraft_dev_google");
+          expect(payload.name).toEqual("ChatCraftDevGoogle");
+          expect(payload.avatarUrl).toEqual(
+            "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg?size=402"
+          );
         }
       }
     });
   });
 
   test("/api/login with code and state should redirect to ChatCraft.org/c/:chatId", async () => {
-    // Mock GitHub OAuth and /user flow
-    const mocks = githubMocks();
+    // Mock Google OAuth and /user flow
+    const mocks = googleMocks();
     mocks.all();
 
-    const res = await handleGithubLogin({
+    const res = await handleGoogleLogin({
       isDev: true,
       code: null,
       chatId: "123456",
-      CLIENT_ID: null,
-      CLIENT_SECRET: null,
+      GOOGLE_CLIENT_ID: null,
+      GOOGLE_CLIENT_SECRET: null,
+      GOOGLE_REDIRECT_URI: "https://chatcraft.org/api/login/",
+      GOOGLE_RESPONSE_TYPE: "code",
+      GOOGLE_SCOPE: "profile email",
       JWT_SECRET: "jwt_secret",
       tokenProvider,
       appUrl,
