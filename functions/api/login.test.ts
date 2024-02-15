@@ -25,7 +25,7 @@ describe("Production Github /api/login", () => {
 
     expect(res.status).toBe(302);
     expect(res.headers.get("Location")).toEqual(
-      "https://github.com/login/oauth/authorize?client_id=client_id_1234"
+      "https://github.com/login/oauth/authorize?client_id=client_id_1234&state=provider%3Dgithub"
     );
   });
 
@@ -47,7 +47,7 @@ describe("Production Github /api/login", () => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const params = new URL(location!).searchParams;
     expect(params.get("client_id")).toEqual("client_id_1234");
-    expect(params.get("state")).toEqual("123456");
+    expect(params.get("state")).toEqual("provider=google&chat_id=123456");
   });
 
   test("/api/login with code should redirect to ChatCraft.org with cookies", async () => {
@@ -235,7 +235,7 @@ describe("Production Google /api/login", () => {
 
     expect(res.status).toBe(302);
     expect(res.headers.get("Location")).toEqual(
-      "https://accounts.google.com/o/oauth2/v2/auth?client_id=client_id_1234&redirect_uri=https%3A%2F%2Fchatcraft.org%2Fapi%2Flogin%2F&response_type=code&scope=profile+email"
+      "https://accounts.google.com/o/oauth2/v2/auth?client_id=client_id_1234&redirect_uri=https%3A%2F%2Fchatcraft.org%2Fapi%2Flogin%2F&response_type=code&scope=profile+email&state=provider%3Dgoogle"
     );
   });
 
@@ -260,7 +260,7 @@ describe("Production Google /api/login", () => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const params = new URL(location!).searchParams;
     expect(params.get("client_id")).toEqual("client_id_1234");
-    expect(params.get("state")).toEqual("123456");
+    expect(params.get("state")).toEqual("provider=google&chat_id=123456");
   });
 
   test("/api/login with code should redirect to ChatCraft.org with cookies", async () => {

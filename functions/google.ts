@@ -138,13 +138,14 @@ export async function handleGoogleProdLogin({
             redirect_uri: GOOGLE_REDIRECT_URI,
             response_type: GOOGLE_RESPONSE_TYPE,
             scope: GOOGLE_SCOPE,
-            state: chatId,
+            state: "provider=google&chat_id=" + chatId,
           }
         : {
             client_id: GOOGLE_CLIENT_ID,
             redirect_uri: GOOGLE_REDIRECT_URI,
             response_type: GOOGLE_RESPONSE_TYPE,
             scope: GOOGLE_SCOPE,
+            state: "provider=google",
           }
     );
     return Response.redirect(url, 302);

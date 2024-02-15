@@ -110,7 +110,9 @@ export async function handleGithubProdLogin({
     const url = buildUrl(
       "https://github.com/login/oauth/authorize",
       // If there's a chatId, piggy-back it on the request as state
-      chatId ? { client_id: CLIENT_ID, state: chatId } : { client_id: CLIENT_ID }
+      chatId
+        ? { client_id: CLIENT_ID, state: "provider=google&chat_id=" + chatId }
+        : { client_id: CLIENT_ID, state: "provider=github" }
     );
     return Response.redirect(url, 302);
   }
