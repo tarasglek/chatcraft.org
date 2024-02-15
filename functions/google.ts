@@ -60,7 +60,7 @@ export async function requestGoogleUserInfo(token: string): Promise<User> {
   return { username: email, name: name, avatarUrl: picture };
 }
 
-// In development environments, we automatically log the user in without involving GitHub
+// In development environments, we automatically log the user in without involving Google
 export function requestGoogleDevUserInfo() {
   return {
     username: "chatcraft_dev_google",
