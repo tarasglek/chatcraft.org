@@ -180,7 +180,7 @@ function CodeHeader({
         </Box>
         <ButtonGroup isAttached pr={2}>
           {shouldShowRunButton && (
-            <Menu>
+            <Menu strategy="fixed">
               <MenuButton
                 as={IconButton}
                 size="sm"
