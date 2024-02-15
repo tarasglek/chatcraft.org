@@ -88,7 +88,13 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       <Box flex={1} maxW="500px">
         <Form action="/s" method="get">
           <InputGroup size="sm" variant="outline">
-            <Input type="search" name="q" defaultValue={searchText} isRequired />
+            <Input
+              type="search"
+              name="q"
+              defaultValue={searchText}
+              isRequired
+              placeholder="Search chat history"
+            />
             <IconButton aria-label="Search" variant="ghost" icon={<TbSearch />} type="submit" />
           </InputGroup>
         </Form>
