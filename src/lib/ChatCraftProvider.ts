@@ -10,6 +10,10 @@ const urlToNameMap: { [key: string]: ProviderName } = {
   [OPENROUTER_API_URL]: "OpenRouter.ai",
 };
 
+export interface ProviderData {
+  [key: string]: ChatCraftProvider;
+}
+
 export type SerializedChatCraftProvider = {
   id: string;
   name: ProviderName;
@@ -43,3 +47,9 @@ export class ChatCraftProvider {
     return provider;
   }
 }
+
+// Currently supported providers
+export const supportedProviders: ProviderData = {
+  OpenAI: new ChatCraftProvider(OPENAI_API_URL),
+  "OpenRouter.ai": new ChatCraftProvider(OPENROUTER_API_URL),
+};

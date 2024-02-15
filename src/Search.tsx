@@ -18,7 +18,7 @@ import Sidebar from "./components/Sidebar";
 import db, { ChatCraftMessageTable } from "./lib/db";
 import Message from "./components/Message";
 import { ChatCraftMessage } from "./lib/ChatCraftMessage";
-import NewButton from "./components/NewButton";
+import OptionsButton from "./components/OptionsButton";
 import { useSettings } from "./hooks/use-settings";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -149,7 +149,7 @@ export default function Search() {
 
       <GridItem>
         <Flex w="100%" maxW="900px" mx="auto" h="45px" justify="end" align="center" p={2}>
-          <NewButton variant="solid" />
+          <OptionsButton variant="solid" />
         </Flex>
       </GridItem>
     </Grid>

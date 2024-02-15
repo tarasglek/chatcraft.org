@@ -1,18 +1,19 @@
 import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
-import { Box, chakra, Flex } from "@chakra-ui/react";
+import { Box, chakra, Flex, Image, CloseButton } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import NewButton from "../NewButton";
+import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
+import { useModels } from "../../hooks/use-models";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 
 type MobilePromptFormProps = {
   forkUrl: string;
-  onSendClick: (prompt: string) => void;
+  onSendClick: (prompt: string, imageUrls: string[]) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
@@ -28,11 +29,14 @@ function MobilePromptForm({
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
-  const { settings } = useSettings();
+  const { models } = useModels();
+  const { settings, setSettings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const inputType = isRecording || isTranscribing ? "audio" : "text";
+  // Base64 images
+  const [inputImageUrls, setInputImageUrls] = useState<string[]>([]);
 
   // If the user clears the prompt, allow up-arrow again
   useEffect(() => {
@@ -67,12 +71,23 @@ function MobilePromptForm({
     };
   }, [isRecording, recordingSeconds]);
 
+  // Update model to the supported model when inputImages is not empty
+  useEffect(() => {
+    if (inputImageUrls?.length > 0) {
+      const visionModel = models.find((model) => model.supportsImages);
+      if (visionModel && visionModel.name != settings.model.name) {
+        setSettings({ ...settings, model: visionModel });
+      }
+    }
+  }, [inputImageUrls, models, settings, setSettings]);
+
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const value = prompt.trim();
+    const textValue = prompt.trim();
     setPrompt("");
-    onSendClick(value);
+    setInputImageUrls([]);
+    onSendClick(textValue, inputImageUrls);
   };
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
@@ -133,16 +148,62 @@ function MobilePromptForm({
     setIsTranscribing(false);
 
     // Use this transcript as our prompt
-    onSendClick(transcription);
+    onSendClick(transcription, inputImageUrls);
+    setInputImageUrls([]);
+  };
+
+  const handleDeleteImage = (index: number) => {
+    const updatedImageUrls = [...inputImageUrls];
+    updatedImageUrls.splice(index, 1);
+    setInputImageUrls(updatedImageUrls);
   };
 
   return (
     <Box flex={1} w="100%" h="100%" px={1} pt={2} pb={4}>
       <chakra.form onSubmit={handlePromptSubmit} h="100%">
         <Flex mt={2} pb={2} px={1} alignItems="end" gap={2}>
-          <NewButton forkUrl={forkUrl} variant="outline" iconOnly />
+          <OptionsButton
+            forkUrl={forkUrl}
+            variant="outline"
+            iconOnly
+            onFileSelected={(base64String) =>
+              setInputImageUrls((prevImageUrls) => [...prevImageUrls, base64String])
+            }
+          />
 
           <Box flex={1}>
+            <Flex flexWrap="wrap">
+              {inputImageUrls.map((imageUrl, index) => (
+                <Box
+                  key={index}
+                  position="relative"
+                  height="70px"
+                  display="flex"
+                  alignItems="center"
+                  m={2}
+                >
+                  <Image
+                    src={imageUrl}
+                    alt={`Image# ${index}`}
+                    style={{ height: "70px", objectFit: "cover" }}
+                    cursor="pointer"
+                  />
+                  <Box
+                    key={`${index}-close`}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    top="0"
+                    right="0"
+                    backgroundColor="grey"
+                    color="white"
+                    height="70px"
+                  >
+                    <CloseButton onClick={() => handleDeleteImage(index)} />
+                  </Box>
+                </Box>
+              ))}
+            </Flex>
             {inputType === "audio" ? (
               <Box py={2} px={1}>
                 <AudioStatus
@@ -162,7 +223,7 @@ function MobilePromptForm({
                 bg="white"
                 _dark={{ bg: "gray.700" }}
                 overflowY="auto"
-                placeholder="Ask a question"
+                placeholder="Ask about..."
                 mb={1}
               />
             )}
