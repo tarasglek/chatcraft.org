@@ -13,7 +13,6 @@ interface Env {
   GOOGLE_SCOPE: string;
 }
 
-let provider: string | null = "";
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const {
     CLIENT_ID,
@@ -28,7 +27,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const reqUrl = new URL(request.url);
 
   // Determine the login provider
-  provider = reqUrl.searchParams.get("provider") ? reqUrl.searchParams.get("provider") : provider;
+  const provider = reqUrl.searchParams.get("provider")
+    ? reqUrl.searchParams.get("provider")
+    : reqUrl.origin.includes("github")
+      ? "github"
+      : "google";
   const code = reqUrl.searchParams.get("code");
   // Include ?chat_id=... to redirect back to a given chat in the client.  GitHub will
   // return it back to us via ?state=...
