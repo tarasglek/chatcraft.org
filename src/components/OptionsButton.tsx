@@ -106,7 +106,7 @@ function OptionsButton({
       const files = event.target.files;
 
       const imageCompressionOptions = {
-        maxSizeMB: 20,
+        maxSizeMB: 2,
         maxWidthOrHeight: 2048,
         useWebWorker: true,
       };
@@ -123,21 +123,18 @@ function OptionsButton({
       if (files) {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          if (file.type.startsWith("image/")) {
+          if (
+            file.type.startsWith("image/") &&
             // Make sure image's size is within 20MB
             // https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
-            if (file.size > imageCompressionOptions.maxSizeMB * 1024 * 1024) {
-              imageCompression(file, imageCompressionOptions)
-                .then((compressedFile) => {
-                  return readFile(compressedFile);
-                })
-                .catch((err) => {
-                  console.error(err);
-                  error({ title: "Unable to share chat", message: err.message });
-                });
-            } else {
-              readFile(file);
-            }
+            file.size > imageCompressionOptions.maxSizeMB * 1024 * 1024
+          ) {
+            imageCompression(file, imageCompressionOptions)
+              .then((compressedFile) => readFile(compressedFile))
+              .catch((err) => {
+                console.error(err);
+                error({ title: "Unable to share chat", message: err.message });
+              });
           } else {
             readFile(file);
           }
