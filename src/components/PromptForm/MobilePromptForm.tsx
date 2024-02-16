@@ -10,8 +10,10 @@ import { useModels } from "../../hooks/use-models";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
+import { ChatCraftChat } from "../../lib/ChatCraftChat";
 
 type MobilePromptFormProps = {
+  chat: ChatCraftChat;
   forkUrl: string;
   onSendClick: (prompt: string, imageUrls: string[]) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
@@ -20,6 +22,7 @@ type MobilePromptFormProps = {
 };
 
 function MobilePromptForm({
+  chat,
   forkUrl,
   onSendClick,
   inputPromptRef,
@@ -163,6 +166,7 @@ function MobilePromptForm({
       <chakra.form onSubmit={handlePromptSubmit} h="100%">
         <Flex mt={2} pb={2} px={1} alignItems="end" gap={2}>
           <OptionsButton
+            chat={chat}
             forkUrl={forkUrl}
             variant="outline"
             iconOnly

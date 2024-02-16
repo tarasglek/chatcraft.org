@@ -27,6 +27,7 @@ import { useLocation } from "react-router-dom";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import { useAlert } from "../../hooks/use-alert";
 import ImageModal from "../ImageModal";
+import { ChatCraftChat } from "../../lib/ChatCraftChat";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -59,6 +60,7 @@ function KeyboardHint({ isVisible }: KeyboardHintProps) {
 }
 
 type DesktopPromptFormProps = {
+  chat: ChatCraftChat;
   forkUrl: string;
   onSendClick: (prompt: string, imageUrls: string[]) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
@@ -67,6 +69,7 @@ type DesktopPromptFormProps = {
 };
 
 function DesktopPromptForm({
+  chat,
   forkUrl,
   onSendClick,
   inputPromptRef,
@@ -411,6 +414,7 @@ function DesktopPromptForm({
 
               <Flex w="100%" gap={1} justify={"space-between"} align="center">
                 <OptionsButton
+                  chat={chat}
                   forkUrl={forkUrl}
                   variant="outline"
                   isDisabled={isLoading}

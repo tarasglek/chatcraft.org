@@ -9,12 +9,11 @@ import {
   Input,
   useDisclosure,
 } from "@chakra-ui/react";
-import { Link as ReactRouterLink, useFetcher, useLoaderData } from "react-router-dom";
+import { Link as ReactRouterLink, useFetcher } from "react-router-dom";
 import { TbShare2, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
 import { PiGearBold } from "react-icons/pi";
 import { BsPaperclip } from "react-icons/bs";
 import { useCallback, useRef } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
 import { useCopyToClipboard } from "react-use";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
@@ -70,6 +69,7 @@ function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
 }
 
 type OptionsButtonProps = {
+  chat?: ChatCraftChat;
   forkUrl?: string;
   variant?: "outline" | "solid" | "ghost";
   iconOnly?: boolean;
@@ -79,6 +79,7 @@ type OptionsButtonProps = {
 };
 
 function OptionsButton({
+  chat,
   forkUrl,
   variant = "outline",
   onFileSelected,
@@ -88,12 +89,6 @@ function OptionsButton({
   const fetcher = useFetcher();
   const { info } = useAlert();
   const [, copyToClipboard] = useCopyToClipboard();
-  const chatId = useLoaderData() as string;
-  const chat = useLiveQuery<ChatCraftChat | undefined>(() => {
-    if (chatId) {
-      return Promise.resolve(ChatCraftChat.find(chatId));
-    }
-  }, [chatId]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = useCallback(
@@ -213,14 +208,16 @@ function OptionsButton({
             <MenuDivider />
           </>
         )}
-        <MenuItem
-          color="red.400"
-          icon={<TbTrash />}
-          isDisabled={!chat}
-          onClick={() => handleDeleteClick()}
-        >
-          Delete Chat
-        </MenuItem>
+        {!chat?.readonly && (
+          <MenuItem
+            color="red.400"
+            icon={<TbTrash />}
+            isDisabled={!chat}
+            onClick={() => handleDeleteClick()}
+          >
+            Delete Chat
+          </MenuItem>
+        )}
       </MenuList>
     </Menu>
   );
