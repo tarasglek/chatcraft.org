@@ -417,7 +417,7 @@ function MessageBase({
 
                 {shouldShowDeleteMenu && (
                   <>
-                    {onDeleteClick && !onDeleteBeforeClick && !onDeleteAfterClick && (
+                    {onDeleteClick && !onDeleteBeforeClick && !onDeleteAfterClick ? (
                       <MenuItem
                         label="Delete Message"
                         onClick={onDeleteClick}
@@ -431,10 +431,7 @@ function MessageBase({
                           />
                         }
                       />
-                    )}
-                    {(onDeleteBeforeClick ||
-                      onDeleteAfterClick ||
-                      (!onDeleteClick && (onDeleteBeforeClick || onDeleteAfterClick))) && (
+                    ) : (
                       <SubMenu label="Delete" className="delete-button">
                         {onDeleteBeforeClick && (
                           <MenuItem
