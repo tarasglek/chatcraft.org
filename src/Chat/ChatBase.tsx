@@ -452,10 +452,11 @@ function ChatBase({ chat }: ChatBaseProps) {
         <Box maxW="900px" mx="auto" h="100%">
           {chat.readonly ? (
             <Flex w="100%" h="45px" justify="end" align="center" p={2}>
-              <OptionsButton forkUrl={`./fork`} variant="solid" />
+              <OptionsButton chat={chat} forkUrl={`./fork`} variant="solid" />
             </Flex>
           ) : (
             <PromptForm
+              chat={chat}
               forkUrl={`./fork`}
               onSendClick={onPrompt}
               isLoading={loading}

@@ -142,7 +142,7 @@ class ChatCraftDatabase extends Dexie {
           });
         await tx.table("messages").where({ type: "system" }).modify({ starred: undefined });
       });
-    // Version 9 Migration - removes .starred index from messages table
+    // Version 9 Migration - add imageUrls
     this.version(9).stores({
       messages: "id, date, chatId, type, model, user, text, imageUrls, versions",
     });
