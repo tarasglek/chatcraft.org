@@ -26,6 +26,7 @@ import { Form } from "react-router-dom";
 import PreferencesModal from "./PreferencesModal";
 import DefaultSystemPromptModal from "./DefaultSystemPromptModal";
 import { useUser } from "../hooks/use-user";
+import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
 
 type HeaderProps = {
   chatId?: string;
@@ -55,6 +56,8 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       login(chatId);
     }
   }, [chatId, user, login, logout]);
+
+  const isMobile = useMobileBreakpoint();
 
   return (
     <Flex
@@ -86,18 +89,20 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       </Flex>
 
       <Box flex={1} maxW="500px">
-        <Form action="/s" method="get">
-          <InputGroup size="sm" variant="outline">
-            <Input
-              type="search"
-              name="q"
-              defaultValue={searchText}
-              isRequired
-              placeholder="Search chat history"
-            />
-            <IconButton aria-label="Search" variant="ghost" icon={<TbSearch />} type="submit" />
-          </InputGroup>
-        </Form>
+        {!isMobile && (
+          <Form action="/s" method="get">
+            <InputGroup size="sm" variant="outline">
+              <Input
+                type="search"
+                name="q"
+                defaultValue={searchText}
+                isRequired
+                placeholder="Search chat history"
+              />
+              <IconButton aria-label="Search" variant="ghost" icon={<TbSearch />} type="submit" />
+            </InputGroup>
+          </Form>
+        )}
       </Box>
 
       <ButtonGroup isAttached pr={2} alignItems="center">

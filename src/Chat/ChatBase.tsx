@@ -1,6 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Button, Flex, Text, useDisclosure, Grid, GridItem } from "@chakra-ui/react";
-import { ScrollRestoration } from "react-router-dom";
+import {
+  Box,
+  Button,
+  Flex,
+  Text,
+  useDisclosure,
+  Grid,
+  GridItem,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  DrawerHeader,
+  DrawerBody,
+  InputGroup,
+  Input,
+  IconButton,
+  useColorModeValue,
+  keyframes,
+} from "@chakra-ui/react";
+import { Form, ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
 
 import PromptForm from "../components/PromptForm";
@@ -24,6 +43,8 @@ import { useAutoScroll } from "../hooks/use-autoscroll";
 import { useAlert } from "../hooks/use-alert";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import { ChatCraftCommand } from "../lib/ChatCraftCommand";
+import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
+import { TbSearch } from "react-icons/tb";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -294,16 +315,42 @@ function ChatBase({ chat }: ChatBaseProps) {
     resume();
   }
 
+  const isMobile = useMobileBreakpoint();
+  const sidebarColor = useColorModeValue("blue.600", "blue.200");
+
+  const sidebarOpenAnimationKeyframes = keyframes`
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  `;
+
+  const sidebarCloseAnimationKeyframes = keyframes`
+    from {
+      transform: scaleX(1);
+    }
+
+    to {
+      transform: scaleX(0);
+    }
+  `;
+
+  const sidebarOpenAnimation = `${sidebarOpenAnimationKeyframes} 500ms ease-in-out forwards`;
+  const sidebarCloseAnimation = `${sidebarCloseAnimationKeyframes} 100ms ease-in-out forwards`;
+
   return (
     <Grid
       w="100%"
       h="100%"
       gridTemplateRows="min-content 1fr min-content"
       gridTemplateColumns={{
-        base: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
+        base: "0 1fr",
+        sm: isSidebarVisible ? "300px 4fr" : "0: 1fr",
       }}
+      transition={"150ms"}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
@@ -315,8 +362,51 @@ function ChatBase({ chat }: ChatBaseProps) {
         />
       </GridItem>
 
+      {/* Sidebar */}
       <GridItem rowSpan={2} overflowY="auto">
-        <Sidebar selectedChat={chat} />
+        {isMobile ? (
+          <Drawer isOpen={isSidebarVisible} onClose={handleToggleSidebarVisible} placement="left">
+            <DrawerOverlay />
+            <DrawerContent>
+              <DrawerHeader mt={2} p={2}>
+                <Text
+                  position={"relative"}
+                  top={-1}
+                  ml={2}
+                  mb={2}
+                  fontSize="lg"
+                  fontWeight="bold"
+                  color={sidebarColor}
+                >
+                  &lt;ChatCraft /&gt;
+                </Text>
+                <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
+                  <InputGroup size="sm" variant="outline">
+                    <Input type="search" name="q" isRequired placeholder="Search chat history" />
+                    <IconButton
+                      aria-label="Search"
+                      variant="ghost"
+                      icon={<TbSearch />}
+                      type="submit"
+                    />
+                  </InputGroup>
+                </Form>
+                <DrawerCloseButton />
+              </DrawerHeader>
+
+              <DrawerBody m={0} p={0}>
+                <Sidebar selectedChat={chat} />
+              </DrawerBody>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <Box
+            transformOrigin={"left"}
+            animation={isSidebarVisible ? sidebarOpenAnimation : sidebarCloseAnimation}
+          >
+            <Sidebar selectedChat={chat} />
+          </Box>
+        )}
       </GridItem>
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">

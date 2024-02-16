@@ -9,9 +9,21 @@ import {
   Center,
   Card,
   CardBody,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerHeader,
+  InputGroup,
+  Input,
+  IconButton,
+  DrawerCloseButton,
+  DrawerBody,
+  useColorModeValue,
+  Text,
+  keyframes,
 } from "@chakra-ui/react";
-import { type LoaderFunctionArgs, redirect, useLoaderData } from "react-router-dom";
-import { TbListSearch } from "react-icons/tb";
+import { type LoaderFunctionArgs, redirect, useLoaderData, Form } from "react-router-dom";
+import { TbListSearch, TbSearch } from "react-icons/tb";
 
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
@@ -20,6 +32,7 @@ import Message from "./components/Message";
 import { ChatCraftMessage } from "./lib/ChatCraftMessage";
 import OptionsButton from "./components/OptionsButton";
 import { useSettings } from "./hooks/use-settings";
+import useMobileBreakpoint from "./hooks/use-mobile-breakpoint";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -73,16 +86,42 @@ export default function Search() {
     setSettings({ ...settings, sidebarVisible: newValue });
   }, [isSidebarVisible, settings, setSettings, toggleSidebarVisible]);
 
+  const isMobile = useMobileBreakpoint();
+  const sidebarColor = useColorModeValue("blue.600", "blue.200");
+
+  const sidebarOpenAnimationKeyframes = keyframes`
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  `;
+
+  const sidebarCloseAnimationKeyframes = keyframes`
+    from {
+      transform: scaleX(1);
+    }
+
+    to {
+      transform: scaleX(0);
+    }
+  `;
+
+  const sidebarOpenAnimation = `${sidebarOpenAnimationKeyframes} 500ms ease-in-out forwards`;
+  const sidebarCloseAnimation = `${sidebarCloseAnimationKeyframes} 100ms ease-in-out forwards`;
+
   return (
     <Grid
       w="100%"
       h="100%"
       gridTemplateRows="min-content 1fr min-content"
       gridTemplateColumns={{
-        base: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
+        base: "0 1fr",
+        sm: isSidebarVisible ? "300px 4fr" : "0: 1fr",
       }}
+      transition={"150ms"}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
@@ -95,7 +134,55 @@ export default function Search() {
       </GridItem>
 
       <GridItem rowSpan={3} overflowY="auto">
-        <Sidebar />
+        {isMobile ? (
+          <Drawer isOpen={isSidebarVisible} onClose={handleToggleSidebarVisible} placement="left">
+            <DrawerOverlay />
+            <DrawerContent>
+              <DrawerHeader mt={2} p={2}>
+                <Text
+                  position={"relative"}
+                  top={-1}
+                  ml={2}
+                  mb={2}
+                  fontSize="lg"
+                  fontWeight="bold"
+                  color={sidebarColor}
+                >
+                  &lt;ChatCraft /&gt;
+                </Text>
+                <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
+                  <InputGroup size="sm" variant="outline">
+                    <Input
+                      type="search"
+                      defaultValue={searchText}
+                      name="q"
+                      isRequired
+                      placeholder="Search chat history"
+                    />
+                    <IconButton
+                      aria-label="Search"
+                      variant="ghost"
+                      icon={<TbSearch />}
+                      type="submit"
+                    />
+                  </InputGroup>
+                </Form>
+                <DrawerCloseButton />
+              </DrawerHeader>
+
+              <DrawerBody m={0} p={0}>
+                <Sidebar />
+              </DrawerBody>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <Box
+            transformOrigin={"left"}
+            animation={isSidebarVisible ? sidebarOpenAnimation : sidebarCloseAnimation}
+          >
+            <Sidebar />
+          </Box>
+        )}
       </GridItem>
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">

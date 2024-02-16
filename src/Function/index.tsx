@@ -1,36 +1,47 @@
-import { useCallback, useMemo, useRef } from "react";
 import {
   Box,
+  Card,
+  CardBody,
+  CardFooter,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
   Flex,
-  useDisclosure,
   Grid,
   GridItem,
   Heading,
-  Card,
-  CardBody,
-  Text,
+  IconButton,
+  Input,
+  InputGroup,
   Menu,
   MenuButton,
-  IconButton,
-  MenuList,
-  MenuItem,
   MenuDivider,
-  CardFooter,
+  MenuItem,
+  MenuList,
+  Text,
+  keyframes,
+  useColorModeValue,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { LuFunctionSquare } from "react-icons/lu";
-import { useFetcher, useLoaderData } from "react-router-dom";
-import { useCopyToClipboard } from "react-use";
 import debounce from "lodash-es/debounce";
+import { useCallback, useMemo, useRef } from "react";
+import { LuFunctionSquare } from "react-icons/lu";
+import { Form, useFetcher, useLoaderData } from "react-router-dom";
+import { useCopyToClipboard } from "react-use";
 
+import { useLiveQuery } from "dexie-react-hooks";
+import { TbDots, TbSearch } from "react-icons/tb";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import { useAlert } from "../hooks/use-alert";
+import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
 import { useSettings } from "../hooks/use-settings";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
-import FunctionEditor from "./FunctionEditor";
-import { TbDots } from "react-icons/tb";
 import { download, formatDate } from "../lib/utils";
-import { useLiveQuery } from "dexie-react-hooks";
-import { useAlert } from "../hooks/use-alert";
+import FunctionEditor from "./FunctionEditor";
 
 export default function Function() {
   const [, copyToClipboard] = useCopyToClipboard();
@@ -43,6 +54,31 @@ export default function Function() {
     defaultIsOpen: settings.sidebarVisible,
   });
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useMobileBreakpoint();
+  const sidebarColor = useColorModeValue("blue.600", "blue.200");
+
+  const sidebarOpenAnimationKeyframes = keyframes`
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  `;
+
+  const sidebarCloseAnimationKeyframes = keyframes`
+    from {
+      transform: scaleX(1);
+    }
+
+    to {
+      transform: scaleX(0);
+    }
+  `;
+
+  const sidebarOpenAnimation = `${sidebarOpenAnimationKeyframes} 500ms ease-in-out forwards`;
+  const sidebarCloseAnimation = `${sidebarCloseAnimationKeyframes} 100ms ease-in-out forwards`;
 
   const func = useLiveQuery<ChatCraftFunction | undefined>(() => {
     if (funcId) {
@@ -110,10 +146,10 @@ export default function Function() {
       h="100%"
       gridTemplateRows="min-content 1fr min-content"
       gridTemplateColumns={{
-        base: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        sm: isSidebarVisible ? "300px 1fr" : "0 1fr",
-        md: isSidebarVisible ? "minmax(300px, 1fr) 4fr" : "0: 1fr",
+        base: "0 1fr",
+        sm: isSidebarVisible ? "300px 4fr" : "0: 1fr",
       }}
+      transition={"150ms"}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
@@ -122,7 +158,49 @@ export default function Function() {
       </GridItem>
 
       <GridItem rowSpan={3} overflowY="auto">
-        <Sidebar selectedFunction={func} />
+        {isMobile ? (
+          <Drawer isOpen={isSidebarVisible} onClose={handleToggleSidebarVisible} placement="left">
+            <DrawerOverlay />
+            <DrawerContent>
+              <DrawerHeader mt={2} p={2}>
+                <Text
+                  position={"relative"}
+                  top={-1}
+                  ml={2}
+                  mb={2}
+                  fontSize="lg"
+                  fontWeight="bold"
+                  color={sidebarColor}
+                >
+                  &lt;ChatCraft /&gt;
+                </Text>
+                <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
+                  <InputGroup size="sm" variant="outline">
+                    <Input type="search" name="q" isRequired placeholder="Search chat history" />
+                    <IconButton
+                      aria-label="Search"
+                      variant="ghost"
+                      icon={<TbSearch />}
+                      type="submit"
+                    />
+                  </InputGroup>
+                </Form>
+                <DrawerCloseButton />
+              </DrawerHeader>
+
+              <DrawerBody m={0} p={0}>
+                <Sidebar selectedFunction={func} />
+              </DrawerBody>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <Box
+            transformOrigin={"left"}
+            animation={isSidebarVisible ? sidebarOpenAnimation : sidebarCloseAnimation}
+          >
+            <Sidebar selectedFunction={func} />
+          </Box>
+        )}
       </GridItem>
 
       <GridItem overflowY="auto" pos="relative">
