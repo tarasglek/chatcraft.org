@@ -16,7 +16,7 @@ import imageCompression from "browser-image-compression";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import { getMetaKey } from "../../lib/utils";
+import { getMetaKey, imageCompressionOptions } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
 import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
@@ -223,40 +223,23 @@ function DesktopPromptForm({
   };
 
   const getBase64FromFile = (file: File): Promise<string> => {
-    const imageCompressionOptions = {
-      maxSizeMB: 20,
-      maxWidthOrHeight: 2048,
-      useWebWorker: true,
-    };
-
     return new Promise((resolve) => {
-      // Make sure image's size is within 20MB
-      // https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
-      if (file.size > imageCompressionOptions.maxSizeMB * 1024 * 1024) {
-        imageCompression(file, imageCompressionOptions)
-          .then((compressedFile) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(compressedFile);
-            reader.onloadend = () => {
-              const base64data = reader.result as string;
-              resolve(base64data);
-            };
-          })
-          .catch((err) => {
-            console.error("Error processing images", err);
-            error({
-              title: "Error Processing Images",
-              message: err.message,
-            });
+      imageCompression(file, imageCompressionOptions)
+        .then((compressedFile) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(compressedFile);
+          reader.onloadend = () => {
+            const base64data = reader.result as string;
+            resolve(base64data);
+          };
+        })
+        .catch((err) => {
+          console.error("Error processing images", err);
+          error({
+            title: "Error Processing Images",
+            message: err.message,
           });
-      } else {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = () => {
-          const base64data = reader.result as string;
-          resolve(base64data);
-        };
-      }
+        });
     });
   };
 

@@ -22,7 +22,7 @@ import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import { useAlert } from "../hooks/use-alert";
 import ShareModal from "./ShareModal";
-import { download } from "../lib/utils";
+import { download, imageCompressionOptions } from "../lib/utils";
 
 function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
   const supportsWebShare = !!navigator.share;
@@ -105,13 +105,6 @@ function OptionsButton({
 
       const files = event.target.files;
 
-      const imageCompressionOptions = {
-        maxSizeMB: 20,
-        maxWidthOrHeight: 2048,
-        useWebWorker: true,
-      };
-
-      // Helper function
       const readFile = (file: File) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -123,12 +116,7 @@ function OptionsButton({
       if (files) {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          if (
-            file.type.startsWith("image/") &&
-            // Make sure image's size is within 20MB
-            // https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
-            file.size > imageCompressionOptions.maxSizeMB * 1024 * 1024
-          ) {
+          if (file.type.startsWith("image/")) {
             imageCompression(file, imageCompressionOptions)
               .then((compressedFile) => readFile(compressedFile))
               .catch((err) => {

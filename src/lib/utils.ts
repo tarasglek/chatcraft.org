@@ -83,3 +83,10 @@ export const screenshotElement = (element: HTMLElement): Promise<Blob> => {
         })
     );
 };
+
+// Make sure image's size is within 20MB and 2048x2048 resolution
+// https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
+export const imageCompressionOptions = {
+  maxSizeMB: 20,
+  maxWidthOrHeight: 2048,
+};
