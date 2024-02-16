@@ -4,7 +4,7 @@ import { ChatCraftFunction } from "../../lib/ChatCraftFunction";
 import SidebarDesktop from "./SidebarDesktop";
 import SidebarMobile from "./SidebarMobile";
 
-export type SidebarProps = {
+type SidebarProps = {
   searchText?: string; // For the search field in mobile sidebar
   selectedChat?: ChatCraftChat;
   selectedFunction?: ChatCraftFunction;
