@@ -20,6 +20,7 @@ import {
 } from "@chakra-ui/react";
 import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
+import { FcGoogle } from "react-icons/fc";
 import { TbSearch } from "react-icons/tb";
 import { Form } from "react-router-dom";
 
@@ -49,13 +50,16 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
   } = useDisclosure();
   const { user, login, logout } = useUser();
 
-  const handleLoginLogout = useCallback(() => {
-    if (user) {
-      logout(chatId);
-    } else {
-      login(chatId);
-    }
-  }, [chatId, user, login, logout]);
+  const handleLoginLogout = useCallback(
+    (provider: string) => {
+      if (user) {
+        logout(chatId);
+      } else {
+        login(provider, chatId);
+      }
+    },
+    [chatId, user, login, logout]
+  );
 
   const isMobile = useMobileBreakpoint();
 
@@ -138,15 +142,34 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
             <MenuList>
               <MenuItem onClick={onPrefModalOpen}>Settings...</MenuItem>
               <MenuItem onClick={onSysPromptModalOpen}>Default System Prompt...</MenuItem>
-              <MenuItem onClick={handleLoginLogout}>
-                {user ? (
-                  "Logout"
-                ) : (
-                  <>
+              {user ? (
+                <MenuItem
+                  onClick={() => {
+                    handleLoginLogout("");
+                  }}
+                >
+                  Logout
+                </MenuItem>
+              ) : (
+                <>
+                  <MenuItem
+                    onClick={() => {
+                      handleLoginLogout("github");
+                    }}
+                  >
                     <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
-                  </>
-                )}
-              </MenuItem>
+                  </MenuItem>
+                  {/* Google login */}
+                  <MenuItem
+                    onClick={() => {
+                      handleLoginLogout("google");
+                    }}
+                  >
+                    <FcGoogle /> <Text ml={2}>Sign in with Google</Text>
+                  </MenuItem>
+                </>
+              )}
+
               <MenuDivider />
               <MenuItem
                 as="a"
