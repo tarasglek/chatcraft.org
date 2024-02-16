@@ -232,7 +232,7 @@ describe("Production Google /api/login", () => {
 
     expect(res.status).toBe(302);
     expect(res.headers.get("Location")).toEqual(
-      "https://accounts.google.com/o/oauth2/v2/auth?client_id=client_id_1234&redirect_uri=https%3A%2F%2Fchatcraft.org%2Fapi%2Flogin%2F&response_type=code&scope=profile+email&state=provider%3Dgoogle"
+      "https://accounts.google.com/o/oauth2/v2/auth?client_id=client_id_1234&redirect_uri=https%3A%2F%2Fchatcraft.org%2Fapi%2Flogin&response_type=code&scope=profile+email&state=provider%3Dgoogle"
     );
   });
 
