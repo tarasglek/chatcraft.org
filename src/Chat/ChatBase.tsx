@@ -320,7 +320,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       </GridItem>
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">
-        <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
+        <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px="0.9%">
           {
             /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
             !!scrollProgress && !shouldAutoScroll && (
