@@ -47,7 +47,7 @@ describe("Production Github /api/login", () => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const params = new URL(location!).searchParams;
     expect(params.get("client_id")).toEqual("client_id_1234");
-    expect(params.get("state")).toEqual("provider=google&chat_id=123456");
+    expect(params.get("state")).toEqual("provider=github&chat_id=123456");
   });
 
   test("/api/login with code should redirect to ChatCraft.org with cookies", async () => {
