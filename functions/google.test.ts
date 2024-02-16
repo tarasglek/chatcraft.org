@@ -47,12 +47,7 @@ describe("google.ts", () => {
     const mocks = googleMocks();
     mocks["google.com"](mockAccessToken);
 
-    const accessToken = await requestGoogleAccessToken(
-      "code",
-      env.CLIENT_ID,
-      env.CLIENT_SECRET,
-      env.GOOGLE_REDIRECT_URI
-    );
+    const accessToken = await requestGoogleAccessToken("code", env.CLIENT_ID, env.CLIENT_SECRET);
     expect(accessToken).toEqual(mockAccessToken);
   });
 

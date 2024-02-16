@@ -4,15 +4,14 @@ import { buildUrl } from "./utils";
 // https://developers.google.com/identity/protocols/oauth2/web-server#exchange-authorization-code
 export async function requestGoogleAccessToken(
   code: string,
-  CLIENT_ID: string,
-  CLIENT_SECRET: string,
-  GOOGLE_REDIRECT_URI: string
+  GOOGLE_OAUTH_CLIENT_ID: string,
+  GOOGLE_OUATH_CLIENT_SECRET: string
 ) {
   const url = buildUrl("https://accounts.google.com/o/oauth2/token", {
     code: code,
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    redirect_uri: GOOGLE_REDIRECT_URI,
+    client_id: GOOGLE_OAUTH_CLIENT_ID,
+    client_secret: GOOGLE_OUATH_CLIENT_SECRET,
+    redirect_uri: "https://chatcraft.org/api/login/",
     grant_type: "authorization_code",
   });
 
@@ -74,11 +73,8 @@ export function handleGoogleLogin({
   isDev,
   code,
   chatId,
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI,
-  GOOGLE_RESPONSE_TYPE,
-  GOOGLE_SCOPE,
+  GOOGLE_OAUTH_CLIENT_ID,
+  GOOGLE_OUATH_CLIENT_SECRET,
   JWT_SECRET,
   tokenProvider,
   appUrl,
@@ -93,11 +89,8 @@ export function handleGoogleLogin({
     : handleGoogleProdLogin({
         code,
         chatId,
-        GOOGLE_CLIENT_ID,
-        GOOGLE_CLIENT_SECRET,
-        GOOGLE_REDIRECT_URI,
-        GOOGLE_RESPONSE_TYPE,
-        GOOGLE_SCOPE,
+        GOOGLE_OAUTH_CLIENT_ID,
+        GOOGLE_OUATH_CLIENT_SECRET,
         JWT_SECRET,
         tokenProvider,
         appUrl,
@@ -107,22 +100,16 @@ export function handleGoogleLogin({
 export async function handleGoogleProdLogin({
   code,
   chatId,
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI,
-  GOOGLE_RESPONSE_TYPE,
-  GOOGLE_SCOPE,
+  GOOGLE_OAUTH_CLIENT_ID,
+  GOOGLE_OUATH_CLIENT_SECRET,
   JWT_SECRET,
   tokenProvider,
   appUrl,
 }: {
   code: string | null;
   chatId: string | null;
-  GOOGLE_CLIENT_ID: string;
-  GOOGLE_CLIENT_SECRET: string;
-  GOOGLE_REDIRECT_URI: string;
-  GOOGLE_RESPONSE_TYPE: string;
-  GOOGLE_SCOPE: string;
+  GOOGLE_OAUTH_CLIENT_ID: string;
+  GOOGLE_OUATH_CLIENT_SECRET: string;
   JWT_SECRET: string;
   tokenProvider: TokenProvider;
   appUrl: string;
@@ -134,17 +121,17 @@ export async function handleGoogleProdLogin({
       // If there's a chatId, piggy-back it on the request as state
       chatId
         ? {
-            client_id: GOOGLE_CLIENT_ID,
-            redirect_uri: GOOGLE_REDIRECT_URI,
-            response_type: GOOGLE_RESPONSE_TYPE,
-            scope: GOOGLE_SCOPE,
+            client_id: GOOGLE_OAUTH_CLIENT_ID,
+            redirect_uri: "https://chatcraft.org/api/login/",
+            response_type: "code",
+            scope: "profile email",
             state: "provider=google&chat_id=" + chatId,
           }
         : {
-            client_id: GOOGLE_CLIENT_ID,
-            redirect_uri: GOOGLE_REDIRECT_URI,
-            response_type: GOOGLE_RESPONSE_TYPE,
-            scope: GOOGLE_SCOPE,
+            client_id: GOOGLE_OAUTH_CLIENT_ID,
+            redirect_uri: "https://chatcraft.org/api/login/",
+            response_type: "code",
+            scope: "profile email",
             state: "provider=google",
           }
     );
@@ -156,9 +143,8 @@ export async function handleGoogleProdLogin({
   try {
     const googleAccessToken = await requestGoogleAccessToken(
       code,
-      GOOGLE_CLIENT_ID,
-      GOOGLE_CLIENT_SECRET,
-      GOOGLE_REDIRECT_URI
+      GOOGLE_OAUTH_CLIENT_ID,
+      GOOGLE_OUATH_CLIENT_SECRET
     );
     const user = await requestGoogleUserInfo(googleAccessToken);
     // User info goes in a non HTTP-Only cookie that browser can read

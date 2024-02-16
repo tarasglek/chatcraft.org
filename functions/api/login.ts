@@ -4,25 +4,20 @@ import { handleGoogleLogin } from "../google";
 
 interface Env {
   ENVIRONMENT: string;
-  CLIENT_ID: string;
-  CLIENT_SECRET: string;
+  GITHUB_OAUTH_CLIENT_ID: string;
+  GITHUB_OAUTH_CLIENT_SECRET: string;
   JWT_SECRET: string;
-  GOOGLE_CLIENT_ID: string;
-  GOOGLE_REDIRECT_URI: string;
-  GOOGLE_RESPONSE_TYPE: string;
-  GOOGLE_SCOPE: string;
+  GOOGLE_OAUTH_CLIENT_ID: string;
+  GOOGLE_OUATH_CLIENT_SECRET: string;
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const {
-    CLIENT_ID,
-    CLIENT_SECRET,
+    GITHUB_OAUTH_CLIENT_ID,
+    GITHUB_OAUTH_CLIENT_SECRET,
     JWT_SECRET,
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
-    GOOGLE_REDIRECT_URI,
-    GOOGLE_RESPONSE_TYPE,
-    GOOGLE_SCOPE,
+    GOOGLE_OAUTH_CLIENT_ID,
+    GOOGLE_OUATH_CLIENT_SECRET,
   } = env;
   const reqUrl = new URL(request.url);
 
@@ -58,11 +53,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       isDev,
       code,
       chatId,
-      GOOGLE_CLIENT_ID,
-      GOOGLE_CLIENT_SECRET,
-      GOOGLE_REDIRECT_URI,
-      GOOGLE_RESPONSE_TYPE,
-      GOOGLE_SCOPE,
+      GOOGLE_OAUTH_CLIENT_ID,
+      GOOGLE_OUATH_CLIENT_SECRET,
       JWT_SECRET,
       tokenProvider,
       appUrl,
@@ -72,8 +64,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       isDev,
       code,
       chatId,
-      CLIENT_ID,
-      CLIENT_SECRET,
+      GITHUB_OAUTH_CLIENT_ID,
+      GITHUB_OAUTH_CLIENT_SECRET,
       JWT_SECRET,
       tokenProvider,
       appUrl,
