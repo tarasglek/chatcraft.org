@@ -11,7 +11,7 @@ export async function requestGoogleAccessToken(
     code: code,
     client_id: GOOGLE_OAUTH_CLIENT_ID,
     client_secret: GOOGLE_OUATH_CLIENT_SECRET,
-    redirect_uri: "https://chatcraft.org/api/login/",
+    redirect_uri: "https://chatcraft.org/api/login",
     grant_type: "authorization_code",
   });
 
@@ -122,14 +122,14 @@ export async function handleGoogleProdLogin({
       chatId
         ? {
             client_id: GOOGLE_OAUTH_CLIENT_ID,
-            redirect_uri: "https://chatcraft.org/api/login/",
+            redirect_uri: "https://chatcraft.org/api/login",
             response_type: "code",
             scope: "profile email",
             state: "provider=google&chat_id=" + chatId,
           }
         : {
             client_id: GOOGLE_OAUTH_CLIENT_ID,
-            redirect_uri: "https://chatcraft.org/api/login/",
+            redirect_uri: "https://chatcraft.org/api/login",
             response_type: "code",
             scope: "profile email",
             state: "provider=google",
