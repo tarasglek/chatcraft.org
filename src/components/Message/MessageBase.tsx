@@ -416,15 +416,8 @@ function MessageBase({
                 )}
 
                 {shouldShowDeleteMenu && (
-                  <SubMenu label="Delete" className="delete-button">
-                    {onDeleteBeforeClick && (
-                      <MenuItem
-                        label="Delete Messages Before"
-                        onClick={onDeleteBeforeClick}
-                        className="delete-button"
-                      />
-                    )}
-                    {onDeleteClick && (
+                  <>
+                    {onDeleteClick && !onDeleteBeforeClick && !onDeleteAfterClick && (
                       <MenuItem
                         label="Delete Message"
                         onClick={onDeleteClick}
@@ -439,14 +432,42 @@ function MessageBase({
                         }
                       />
                     )}
-                    {onDeleteAfterClick && (
-                      <MenuItem
-                        label="Delete Messages After"
-                        onClick={onDeleteAfterClick}
-                        className="delete-button"
-                      />
+                    {(onDeleteBeforeClick ||
+                      onDeleteAfterClick ||
+                      (!onDeleteClick && (onDeleteBeforeClick || onDeleteAfterClick))) && (
+                      <SubMenu label="Delete" className="delete-button">
+                        {onDeleteBeforeClick && (
+                          <MenuItem
+                            label="Delete Messages Before"
+                            onClick={onDeleteBeforeClick}
+                            className="delete-button"
+                          />
+                        )}
+                        {onDeleteClick && (
+                          <MenuItem
+                            label="Delete Message"
+                            onClick={onDeleteClick}
+                            className="delete-button"
+                            icon={
+                              <IconButton
+                                variant="ghost"
+                                icon={<TbTrash color="red" />}
+                                aria-label="Delete message"
+                                title="Delete message"
+                              />
+                            }
+                          />
+                        )}
+                        {onDeleteAfterClick && (
+                          <MenuItem
+                            label="Delete Messages After"
+                            onClick={onDeleteAfterClick}
+                            className="delete-button"
+                          />
+                        )}
+                      </SubMenu>
                     )}
-                  </SubMenu>
+                  </>
                 )}
               </Menu>
             </Flex>
