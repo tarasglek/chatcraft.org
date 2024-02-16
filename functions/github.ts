@@ -1,10 +1,14 @@
 import { TokenProvider } from "./token-provider";
 import { buildUrl } from "./utils";
 
-export async function requestAccessToken(code: string, CLIENT_ID: string, CLIENT_SECRET: string) {
+export async function requestAccessToken(
+  code: string,
+  GITHUB_OAUTH_CLIENT_ID: string,
+  GITHUB_OAUTH_CLIENT_SECRET: string
+) {
   const url = buildUrl("https://github.com/login/oauth/access_token", {
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
+    client_id: GITHUB_OAUTH_CLIENT_ID,
+    client_secret: GITHUB_OAUTH_CLIENT_SECRET,
     code,
   });
 
@@ -68,8 +72,8 @@ export function handleGithubLogin({
   isDev,
   code,
   chatId,
-  CLIENT_ID,
-  CLIENT_SECRET,
+  GITHUB_OAUTH_CLIENT_ID,
+  GITHUB_OAUTH_CLIENT_SECRET,
   JWT_SECRET,
   tokenProvider,
   appUrl,
@@ -79,8 +83,8 @@ export function handleGithubLogin({
     : handleGithubProdLogin({
         code,
         chatId,
-        CLIENT_ID,
-        CLIENT_SECRET,
+        GITHUB_OAUTH_CLIENT_ID,
+        GITHUB_OAUTH_CLIENT_SECRET,
         JWT_SECRET,
         tokenProvider,
         appUrl,
@@ -91,16 +95,16 @@ export function handleGithubLogin({
 export async function handleGithubProdLogin({
   code,
   chatId,
-  CLIENT_ID,
-  CLIENT_SECRET,
+  GITHUB_OAUTH_CLIENT_ID,
+  GITHUB_OAUTH_CLIENT_SECRET,
   JWT_SECRET,
   tokenProvider,
   appUrl,
 }: {
   code: string | null;
   chatId: string | null;
-  CLIENT_ID: string;
-  CLIENT_SECRET: string;
+  GITHUB_OAUTH_CLIENT_ID: string;
+  GITHUB_OAUTH_CLIENT_SECRET: string;
   JWT_SECRET: string;
   tokenProvider: TokenProvider;
   appUrl: string;
@@ -111,8 +115,8 @@ export async function handleGithubProdLogin({
       "https://github.com/login/oauth/authorize",
       // If there's a chatId, piggy-back it on the request as state
       chatId
-        ? { client_id: CLIENT_ID, state: "provider=github&chat_id=" + chatId }
-        : { client_id: CLIENT_ID, state: "provider=github" }
+        ? { client_id: GITHUB_OAUTH_CLIENT_ID, state: "provider=github&chat_id=" + chatId }
+        : { client_id: GITHUB_OAUTH_CLIENT_ID, state: "provider=github" }
     );
     return Response.redirect(url, 302);
   }
@@ -120,7 +124,11 @@ export async function handleGithubProdLogin({
   // Otherwise, exchange the code for an access_token, then get user info
   // and use that to create JWTs for ChatCraft.
   try {
-    const ghAccessToken = await requestAccessToken(code, CLIENT_ID, CLIENT_SECRET);
+    const ghAccessToken = await requestAccessToken(
+      code,
+      GITHUB_OAUTH_CLIENT_ID,
+      GITHUB_OAUTH_CLIENT_SECRET
+    );
     const user = await requestUserInfo(ghAccessToken);
     // User info goes in a non HTTP-Only cookie that browser can read
     const idToken = await tokenProvider.createToken(user.username, user, JWT_SECRET);
