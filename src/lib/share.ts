@@ -59,7 +59,18 @@ function generateSharingHTML(chat: ChatCraftChat, user: User) {
   // Set various types of titles/summaries
   setMetaContent(clonedDocument, "property", "og:title", chat.summary);
   setMetaContent(clonedDocument, "property", "og:url", createShareUrl(chat, user));
+  setMetaContent(clonedDocument, "property", "og:type", "website");
   setMetaContent(clonedDocument, "name", "description", chat.summary);
+  setMetaContent(clonedDocument, "name", "twitter:card", "summary_large_image");
+  setMetaContent(clonedDocument, "name", "twitter:title", "chatcraft.org");
+  setMetaContent(clonedDocument, "name", "twitter:description", chat.summary);
+  setMetaContent(
+    clonedDocument,
+    "name",
+    "twitter:image",
+    "https://chatcraft.org/favicon-32x32.png"
+  );
+
   setDocumentTitle(clonedDocument, chat.summary);
   // Set OG bulk text to be that of last message
   if (lastMessageText) {
