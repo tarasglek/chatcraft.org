@@ -117,6 +117,8 @@ function OptionsButton({
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           if (file.type.startsWith("image/")) {
+            // Make sure image's size is within 20MB and 2048x2048 resolution
+            // https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
             imageCompression(file, imageCompressionOptions)
               .then((compressedFile) => readFile(compressedFile))
               .catch((err) => {

@@ -224,6 +224,8 @@ function DesktopPromptForm({
 
   const getBase64FromFile = (file: File): Promise<string> => {
     return new Promise((resolve) => {
+      // Make sure image's size is within 20MB and 2048x2048 resolution
+      // https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
       imageCompression(file, imageCompressionOptions)
         .then((compressedFile) => {
           const reader = new FileReader();
