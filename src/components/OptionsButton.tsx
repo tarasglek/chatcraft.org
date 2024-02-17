@@ -16,13 +16,12 @@ import { BsPaperclip } from "react-icons/bs";
 import { useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useCopyToClipboard } from "react-use";
-import imageCompression from "browser-image-compression";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import { useAlert } from "../hooks/use-alert";
 import ShareModal from "./ShareModal";
-import { download, imageCompressionOptions } from "../lib/utils";
+import { download, compressImageToBase64 } from "../lib/utils";
 
 function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
   const supportsWebShare = !!navigator.share;
@@ -105,28 +104,22 @@ function OptionsButton({
 
       const files = event.target.files;
 
-      const readFile = (file: File) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          onFileSelected(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-      };
-
       if (files) {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           if (file.type.startsWith("image/")) {
-            // Make sure image's size is within 20MB and 2048x2048 resolution
-            // https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
-            imageCompression(file, imageCompressionOptions)
-              .then((compressedFile) => readFile(compressedFile))
+            compressImageToBase64(file)
+              .then((base64) => onFileSelected(base64))
               .catch((err) => {
                 console.error(err);
-                error({ title: "Unable to share chat", message: err.message });
+                error({ title: "Error processing images", message: err.message });
               });
           } else {
-            readFile(file);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              onFileSelected(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
           }
         }
         // Reset the input value after file read

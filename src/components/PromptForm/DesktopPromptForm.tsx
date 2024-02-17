@@ -12,11 +12,10 @@ import {
   Image,
   Square,
 } from "@chakra-ui/react";
-import imageCompression from "browser-image-compression";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import { getMetaKey, imageCompressionOptions } from "../../lib/utils";
+import { getMetaKey, compressImageToBase64 } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
 import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
@@ -222,34 +221,13 @@ function DesktopPromptForm({
     setInputImageUrls([]);
   };
 
-  const getBase64FromFile = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      // Make sure image's size is within 20MB and 2048x2048 resolution
-      // https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
-      imageCompression(file, imageCompressionOptions)
-        .then((compressedFile) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(compressedFile);
-          reader.onloadend = () => {
-            const base64data = reader.result as string;
-            resolve(base64data);
-          };
-        })
-        .catch((err) => {
-          console.error("Error processing images", err);
-          error({
-            title: "Error Processing Images",
-            message: err.message,
-          });
-        });
-    });
-  };
-
   const handleDropImage = (e: React.DragEvent) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     Promise.all(
-      files.filter((file) => file.type.startsWith("image/")).map((file) => getBase64FromFile(file))
+      files
+        .filter((file) => file.type.startsWith("image/"))
+        .map((file) => compressImageToBase64(file))
     )
       .then((base64Strings) => {
         setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...base64Strings]);
@@ -305,7 +283,7 @@ function DesktopPromptForm({
     if (imageFiles.length) {
       // Handle the clipboard contents here instead, creating image URLs
       e.preventDefault();
-      Promise.all(imageFiles.map((file) => getBase64FromFile(file)))
+      Promise.all(imageFiles.map((file) => compressImageToBase64(file)))
         .then((base64Strings) => {
           setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...base64Strings]);
         })
