@@ -2,7 +2,6 @@ import { memo } from "react";
 import { Box, useColorModeValue } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
 import rehypeExternalLinks from "rehype-external-links";
 import "katex/dist/katex.min.css";
 
@@ -17,8 +16,9 @@ import CodeHeader from "./CodeHeader";
 import HtmlPreview from "./HtmlPreview";
 import MermaidPreview from "./MermaidPreview";
 
-// Load rehypeKatex dynamically at runtime if needed due to size
+// Load these math rendering libraries dynamically at runtime if needed due to size
 const rehypeKatex = await import("rehype-katex");
+const remarkMath = await import("rehype-external-links");
 
 const fixLanguageName = (language: string | null) => {
   if (!language) {
@@ -72,7 +72,7 @@ function Markdown({
     <ReactMarkdown
       className={className}
       children={children}
-      remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
+      remarkPlugins={[remarkGfm, [remarkMath.default, { singleDollarTextMath: false }]]}
       rehypePlugins={[
         // Open links in new tab
         [rehypeExternalLinks, { target: "_blank" }],
