@@ -18,7 +18,7 @@ import MermaidPreview from "./MermaidPreview";
 
 // Load these math rendering libraries dynamically at runtime if needed due to size
 const rehypeKatex = await import("rehype-katex");
-const remarkMath = await import("rehype-external-links");
+const remarkMath = await import("remark-math");
 
 const fixLanguageName = (language: string | null) => {
   if (!language) {
