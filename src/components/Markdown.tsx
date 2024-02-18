@@ -72,12 +72,20 @@ function Markdown({
     <ReactMarkdown
       className={className}
       children={children}
-      remarkPlugins={[remarkGfm, [remarkMath.default, { singleDollarTextMath: false }]]}
-      rehypePlugins={[
-        // Open links in new tab
-        [rehypeExternalLinks, { target: "_blank" }],
-        rehypeKatex.default,
-      ]}
+      remarkPlugins={
+        remarkMath
+          ? [remarkGfm, [remarkMath.default, { singleDollarTextMath: false }]]
+          : [remarkGfm]
+      }
+      rehypePlugins={
+        rehypeKatex
+          ? [
+              // Open links in new tab
+              [rehypeExternalLinks, { target: "_blank" }],
+              rehypeKatex.default,
+            ]
+          : []
+      }
       components={{
         code({ className, children, ...props }) {
           // Look for named code blocks (e.g., `language-html`) allowing for
