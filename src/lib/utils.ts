@@ -83,3 +83,35 @@ export const screenshotElement = (element: HTMLElement): Promise<Blob> => {
         })
     );
 };
+
+// Make sure image's size is within 20MB and 2048x2048 resolution
+// https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
+export const compressImageToBase64 = (file: File): Promise<string> => {
+  const imageCompressionOptions = {
+    maxSizeMB: 20,
+    maxWidthOrHeight: 2048,
+  };
+
+  return import("browser-image-compression")
+    .then((imageCompressionModule) => {
+      const imageCompression = imageCompressionModule.default;
+      return imageCompression(file, imageCompressionOptions);
+    })
+    .then((compressedFile: File) => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(compressedFile);
+        reader.onloadend = () => {
+          const base64data = reader.result as string;
+          resolve(base64data);
+        };
+        reader.onerror = (error) => {
+          reject(error);
+        };
+      });
+    })
+    .catch((err) => {
+      console.error("Error processing images", err);
+      throw err;
+    });
+};

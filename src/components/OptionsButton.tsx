@@ -20,7 +20,7 @@ import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import { useAlert } from "../hooks/use-alert";
 import ShareModal from "./ShareModal";
-import { download } from "../lib/utils";
+import { download, compressImageToBase64 } from "../lib/utils";
 
 function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
   const supportsWebShare = !!navigator.share;
@@ -87,7 +87,7 @@ function OptionsButton({
   isDisabled = false,
 }: OptionsButtonProps) {
   const fetcher = useFetcher();
-  const { info } = useAlert();
+  const { info, error } = useAlert();
   const [, copyToClipboard] = useCopyToClipboard();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -98,19 +98,30 @@ function OptionsButton({
       }
 
       const files = event.target.files;
+
       if (files) {
         for (let i = 0; i < files.length; i++) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            onFileSelected(e.target?.result as string);
-          };
-          reader.readAsDataURL(files[i]);
+          const file = files[i];
+          if (file.type.startsWith("image/")) {
+            compressImageToBase64(file)
+              .then((base64) => onFileSelected(base64))
+              .catch((err) => {
+                console.error(err);
+                error({ title: "Error processing images", message: err.message });
+              });
+          } else {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              onFileSelected(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+          }
         }
         // Reset the input value after file read
         event.target.value = "";
       }
     },
-    [onFileSelected]
+    [error, onFileSelected]
   );
 
   const handleAttachFiles = useCallback(() => {

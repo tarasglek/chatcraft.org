@@ -15,7 +15,7 @@ import {
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import { getMetaKey } from "../../lib/utils";
+import { getMetaKey, compressImageToBase64 } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
 import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
@@ -224,22 +224,13 @@ function DesktopPromptForm({
     setInputImageUrls([]);
   };
 
-  const getBase64FromFile = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => {
-        const base64data = reader.result as string;
-        resolve(base64data);
-      };
-    });
-  };
-
   const handleDropImage = (e: React.DragEvent) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     Promise.all(
-      files.filter((file) => file.type.startsWith("image/")).map((file) => getBase64FromFile(file))
+      files
+        .filter((file) => file.type.startsWith("image/"))
+        .map((file) => compressImageToBase64(file))
     )
       .then((base64Strings) => {
         setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...base64Strings]);
@@ -295,7 +286,7 @@ function DesktopPromptForm({
     if (imageFiles.length) {
       // Handle the clipboard contents here instead, creating image URLs
       e.preventDefault();
-      Promise.all(imageFiles.map((file) => getBase64FromFile(file)))
+      Promise.all(imageFiles.map((file) => compressImageToBase64(file)))
         .then((base64Strings) => {
           setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...base64Strings]);
         })
