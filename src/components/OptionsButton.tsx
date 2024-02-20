@@ -182,7 +182,7 @@ function OptionsButton({
           Options
         </MenuButton>
       )}
-      <MenuList>
+      <MenuList zIndex={11}>
         <MenuItem as={ReactRouterLink} to="/new">
           Clear
         </MenuItem>
