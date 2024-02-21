@@ -21,6 +21,7 @@ import { useUser } from "../hooks/use-user";
 import { useAlert } from "../hooks/use-alert";
 import ShareModal from "./ShareModal";
 import { download, compressImageToBase64 } from "../lib/utils";
+import theme from "../theme";
 
 function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
   const supportsWebShare = !!navigator.share;
@@ -182,7 +183,7 @@ function OptionsButton({
           Options
         </MenuButton>
       )}
-      <MenuList zIndex={11}>
+      <MenuList zIndex={theme.zIndices.dropdown}>
         <MenuItem as={ReactRouterLink} to="/new">
           Clear
         </MenuItem>
