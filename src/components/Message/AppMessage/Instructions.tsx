@@ -1,6 +1,7 @@
-import { FormEvent, memo, useState } from "react";
+import { FormEvent, memo, useState, useCallback, ChangeEvent } from "react";
 import {
   Button,
+  Box,
   Container,
   Flex,
   FormControl,
@@ -12,11 +13,11 @@ import {
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
-import { ChatCraftProvider } from "../../../lib/ChatCraftProvider";
+import { providerFromUrl, providerFromJSON, getSupportedProviders } from "../../../lib/providers";
+import { OpenRouterProvider } from "../../../lib/providers/OpenRouterProvider";
 import RevealablePasswordInput from "../../RevealablePasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
-import { openRouterPkceRedirect, validateApiKey } from "../../../lib/ai";
-import { OPENAI_API_URL, OPENROUTER_API_URL } from "../../../lib/settings";
+import { validateApiKey } from "../../../lib/ai";
 
 const ApiKeyInstructionsText = `## Getting Started with ChatCraft
 
@@ -55,6 +56,7 @@ function Instructions(props: MessageBaseProps) {
   const { settings, setSettings } = useSettings();
   const [isValidating, setIsValidating] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
+  const supportedProviders = getSupportedProviders();
 
   // Override the text of the message
   const message = new ChatCraftAppMessage({ ...props.message, text: ApiKeyInstructionsText });
@@ -74,13 +76,14 @@ function Instructions(props: MessageBaseProps) {
         if (valid) {
           setIsInvalid(false);
 
-          const newProvider = ChatCraftProvider.fromUrl(settings.apiUrl, apiKey.trim());
+          const newProvider = providerFromUrl(settings.currentProvider?.apiUrl, apiKey.trim());
 
           setSettings({
             ...settings,
-            apiKey: apiKey.trim(),
+            currentProvider: newProvider,
             providers: {
-              [newProvider.name]: newProvider,
+              ...settings.providers,
+              [newProvider.apiUrl]: newProvider,
             },
           });
         } else {
@@ -94,47 +97,68 @@ function Instructions(props: MessageBaseProps) {
       .finally(() => setIsValidating(false));
   };
 
-  const provider = settings.apiUrl === OPENAI_API_URL ? "OpenAI" : "OpenRouter.ai";
+  const handleProviderChange = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => {
+      // Get stored data from settings.providers array if exists
+      const newProvider = settings.providers[e.target.value]
+        ? providerFromJSON(settings.providers[e.target.value])
+        : providerFromUrl(e.target.value);
+
+      setSettings({
+        ...settings,
+        currentProvider: newProvider,
+      });
+    },
+    [setSettings, settings]
+  );
+
   // Provide a form to enter and process the api key when entered
   const apiKeyForm = (
     <Container pb={6}>
-      <form onSubmit={handleApiKeySubmit}>
-        <VStack gap={4}>
-          <FormControl>
-            <FormLabel>Provider API URL</FormLabel>
-            <Select
-              value={settings.apiUrl}
-              onChange={(e) => setSettings({ ...settings, apiUrl: e.target.value })}
-            >
-              <option value={OPENAI_API_URL}>OpenAI ({OPENAI_API_URL})</option>
-              <option value={OPENROUTER_API_URL}>OpenRouter.ai ({OPENROUTER_API_URL})</option>
-            </Select>
-          </FormControl>
+      {!supportedProviders ? (
+        <Box>Loading providers...</Box>
+      ) : (
+        <form onSubmit={handleApiKeySubmit}>
+          <VStack gap={4}>
+            <FormControl>
+              <FormLabel>Provider API URL</FormLabel>
 
-          <FormControl isInvalid={isInvalid}>
-            <FormLabel>{provider} API Key </FormLabel>
-            <Flex gap={4} align="center">
-              <RevealablePasswordInput
-                flex="1"
-                type="password"
-                name="openai-api-key"
-                bg="white"
-                _dark={{ bg: "gray.700" }}
-                required
-              />
-              <Button type="submit" size="sm" isLoading={isValidating}>
-                Save
-              </Button>
-            </Flex>
-            {provider === "OpenRouter.ai" && (
-              <Button mt="3" size="sm" onClick={openRouterPkceRedirect}>
-                Get API key from OpenRouter{" "}
-              </Button>
-            )}
-            <FormErrorMessage>Unable to verify API Key with {provider}.</FormErrorMessage>
-          </FormControl>
-        </VStack>
-      </form>
+              <Select value={settings.currentProvider?.apiUrl} onChange={handleProviderChange}>
+                {Object.values(supportedProviders).map((provider) => (
+                  <option key={provider.apiUrl} value={provider.apiUrl}>
+                    {provider.name} ({provider.apiUrl})
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl isInvalid={isInvalid}>
+              <FormLabel>{settings.currentProvider?.name} API Key </FormLabel>
+              <Flex gap={4} align="center">
+                <RevealablePasswordInput
+                  flex="1"
+                  type="password"
+                  name="openai-api-key"
+                  bg="white"
+                  _dark={{ bg: "gray.700" }}
+                  required
+                />
+                <Button type="submit" size="sm" isLoading={isValidating}>
+                  Save
+                </Button>
+              </Flex>
+              {settings.currentProvider instanceof OpenRouterProvider && (
+                <Button mt="3" size="sm" onClick={OpenRouterProvider.openRouterPkceRedirect}>
+                  Get API key from OpenRouter{" "}
+                </Button>
+              )}
+              <FormErrorMessage>
+                Unable to verify API Key with {settings.currentProvider?.name}.
+              </FormErrorMessage>
+            </FormControl>
+          </VStack>
+        </form>
+      )}
     </Container>
   );
 

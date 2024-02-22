@@ -10,6 +10,8 @@ import {
 import { useLocalStorage } from "react-use";
 
 import { serializer, deserializer, key, defaults, type Settings } from "../lib/settings";
+import { OpenRouterProvider } from "../lib/providers/OpenRouterProvider";
+// import { providerFromUrl } from "../lib/providers";
 
 type SettingsContextType = {
   settings: Settings;
@@ -52,7 +54,15 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         .then((data) => {
           const apiKey = data.key;
           if (apiKey !== undefined) {
-            setSettings({ ...state, apiKey: apiKey });
+            const newProvider = new OpenRouterProvider(apiKey);
+            setSettings({
+              ...state,
+              currentProvider: newProvider,
+              providers: {
+                ...state.providers,
+                [newProvider.apiUrl]: newProvider,
+              },
+            });
             // Strip out openRouter's code from the URL
             searchParams.delete("code");
             const { origin, pathname, hash } = window.location;
@@ -74,8 +84,33 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, [openRouterCode]);
 
   useEffect(() => {
-    setState(settings || defaults);
-  }, [settings]);
+    if (!settings) {
+      setState(defaults);
+      return;
+    }
+
+    // No current provider, check if we need to handle migration of deprecated apiKey, apiUrl
+    // const { apiUrl, apiKey, ...restSettings } = settings as any;
+    // if (apiKey && apiUrl) {
+    //   const newProvider = providerFromUrl(apiUrl, apiKey);
+    //   setState({
+    //     ...restSettings,
+    //     currentProvider: newProvider,
+    //     providers: {
+    //       ...restSettings.providers,
+    //       [newProvider.apiUrl]: newProvider,
+    //     },
+    //   });
+
+    //   console.warn("Migrated deprecated apiKey, apiUrl");
+    //   return;
+    // }
+
+    setState(settings);
+
+    // switching providers glitches if settings is set as dependency
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateSettings = useCallback(
     (newSettings: Settings) => {

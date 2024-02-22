@@ -6,18 +6,16 @@
  * when you only need to read something.
  */
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { ProviderData } from "../lib/ChatCraftProvider";
+import { ProviderData, ChatCraftProvider } from "../lib/ChatCraftProvider";
+import { providerFromJSON, providerFromUrl } from "./providers";
+import { OpenAiProvider } from "./providers/OpenAiProvider";
 /**
  * We can use models from OpenAI or OpenRouter (https://openrouter.ai/docs).
  * If using the latter, we need to override the basePath to use the OpenRouter URL.
  */
-export const OPENAI_API_URL = "https://api.openai.com/v1";
-export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
 
 export type Settings = {
-  apiKey?: string;
   model: ChatCraftModel;
-  apiUrl: string;
   temperature: number;
   enterBehaviour: EnterBehaviour;
   countTokens: boolean;
@@ -26,11 +24,11 @@ export type Settings = {
   customSystemPrompt?: string;
   announceMessages?: boolean;
   providers: ProviderData;
+  currentProvider: ChatCraftProvider;
 };
 
 export const defaults: Settings = {
   model: new ChatCraftModel("gpt-3.5-turbo"),
-  apiUrl: OPENAI_API_URL,
   temperature: 0,
   enterBehaviour: "send",
   // Disabled by default, since token parsing requires downloading larger deps
@@ -40,6 +38,7 @@ export const defaults: Settings = {
   alwaysSendFunctionResult: false,
   announceMessages: false,
   providers: {},
+  currentProvider: new OpenAiProvider(),
 };
 
 export const key = "settings";
@@ -54,6 +53,21 @@ export const deserializer = (value: string): Settings => {
 
   if (typeof settings.model === "string") {
     settings.model = new ChatCraftModel(settings.model);
+  }
+
+  if (settings.currentProvider) {
+    // Handle deserialization of currentProvider
+    settings.currentProvider = providerFromJSON(settings.currentProvider);
+  } else {
+    // No current provider, check if we need to handle migration of deprecated apiKey, apiUrl
+    if (settings.apiKey && settings.apiUrl) {
+      const newProvider = providerFromUrl(settings.apiUrl, settings.apiKey);
+      settings.currentProvider = newProvider;
+      settings.providers = { ...settings.providers, [newProvider.apiUrl]: newProvider };
+      delete settings.apiKey;
+      delete settings.apiUrl;
+      console.warn("Migrated deprecated apiKey, apiUrl");
+    }
   }
 
   return { ...defaults, ...settings };
