@@ -355,6 +355,38 @@ export class ChatCraftChat {
     return shared;
   }
 
+  //function to share single message
+  async shareSingleMessage(user: User, messageId: string) {
+    // Find the message to be shared
+    const messageToShare = this._messages.find((message) => message.id === messageId);
+    if (!messageToShare) {
+      throw new Error("Message not found");
+    }
+
+    // Clone the chat but only include the specified message
+    const clonedChatWithSingleMessage = new ChatCraftChat({
+      messages: [messageToShare.clone()],
+      summary: this.summary, // You might want to adjust the summary for the shared content
+    });
+
+    // Use the existing sharing logic to share the cloned chat
+    const shareUrl = createDataShareUrl(clonedChatWithSingleMessage, user);
+    await createShare(clonedChatWithSingleMessage, user);
+
+    const shared = new SharedChatCraftChat({
+      id: clonedChatWithSingleMessage.id,
+      url: shareUrl,
+      date: clonedChatWithSingleMessage.date,
+      summary: clonedChatWithSingleMessage.summary,
+      chat: clonedChatWithSingleMessage,
+    });
+
+    // Cache this locally in your db as well
+    await db.shared.add(shared.toDB());
+
+    return shared;
+  }
+
   static async delete(id: string) {
     const chat = await ChatCraftChat.find(id);
     if (chat) {
