@@ -7,14 +7,17 @@ import {
 import { ChatCraftModel } from "./ChatCraftModel";
 import { ChatCraftFunction } from "./ChatCraftFunction";
 import { getReferer } from "./utils";
-import { getSettings, OPENAI_API_URL, OPENROUTER_API_URL } from "./settings";
+import { getSettings } from "./settings";
+import { OPENAI_API_URL, OPENROUTER_API_URL } from "./ChatCraftProvider";
+import { OpenAiProvider } from "./providers/OpenAiProvider";
+import { OpenRouterProvider } from "./providers/OpenRouterProvider";
 import { Stream } from "openai/streaming";
-
 import type { Tiktoken } from "tiktoken/lite";
 import type { ChatCompletionChunk } from "openai/resources";
 
-export const usingOfficialOpenAI = () => getSettings().apiUrl === OPENAI_API_URL;
-export const usingOfficialOpenRouter = () => getSettings().apiUrl === OPENROUTER_API_URL;
+export const usingOfficialOpenAI = () => getSettings().currentProvider?.apiUrl === OPENAI_API_URL;
+export const usingOfficialOpenRouter = () =>
+  getSettings().currentProvider?.apiUrl === OPENROUTER_API_URL;
 
 const createClient = (apiKey: string, apiUrl?: string) => {
   // If we're using OpenRouter, add extra headers
@@ -41,11 +44,11 @@ const createClient = (apiKey: string, apiUrl?: string) => {
 export const defaultModelForProvider = () => {
   // OpenAI
   if (usingOfficialOpenAI()) {
-    return new ChatCraftModel("gpt-3.5-turbo");
+    return new ChatCraftModel(OpenAiProvider.defaultModel());
   }
 
   // OpenRouter.ai
-  return new ChatCraftModel("openai/gpt-3.5-turbo");
+  return new ChatCraftModel(OpenRouterProvider.defaultModel());
 };
 
 export type ChatOptions = {
@@ -111,12 +114,12 @@ function parseOpenAIResponse(response: OpenAI.Chat.ChatCompletion) {
 }
 
 export const transcribe = async (audio: File) => {
-  const { apiKey, apiUrl } = getSettings();
-  if (!apiKey) {
+  const { currentProvider } = getSettings();
+  if (!currentProvider?.apiKey) {
     throw new Error("Missing OpenAI API Key");
   }
 
-  const { openai } = createClient(apiKey, apiUrl);
+  const { openai } = createClient(currentProvider?.apiKey, currentProvider?.apiUrl);
   const transcriptions = new OpenAI.Audio.Transcriptions(openai);
   const transcription = await transcriptions.create({
     file: audio,
@@ -255,11 +258,12 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     throw new Error(`OpenAI API Returned Error: ${error.message}`);
   };
 
-  const { apiKey, apiUrl } = getSettings();
-  if (!apiKey) {
+  const { currentProvider } = getSettings();
+  if (!currentProvider?.apiKey) {
     throw new Error("Missing API Key");
   }
-  const { openai, headers } = createClient(apiKey, apiUrl);
+
+  const { openai, headers } = createClient(currentProvider?.apiKey, currentProvider?.apiUrl);
 
   const chatCompletionParams: OpenAI.Chat.ChatCompletionCreateParams = {
     model: model ? model.id : getSettings().model.id,
@@ -350,8 +354,12 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 };
 
 export async function queryModels(apiKey: string) {
-  const { apiUrl } = getSettings();
-  const { openai } = createClient(apiKey, apiUrl);
+  const { currentProvider } = getSettings();
+  if (!currentProvider?.apiUrl) {
+    throw new Error("Missing API Url");
+  }
+
+  const { openai } = createClient(apiKey, currentProvider?.apiUrl);
 
   try {
     const models = [];
@@ -365,33 +373,13 @@ export async function queryModels(apiKey: string) {
   }
 }
 
-export async function validateOpenAiApiKey(apiKey: string) {
-  return !!(await queryModels(apiKey));
-}
-
-export async function validateOpenRouterApiKey(apiKey: string) {
-  // Use response from https://openrouter.ai/docs#limits to check if API key is valid
-  const res = await fetch(`https://openrouter.ai/api/v1/auth/key`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error(`${res.status} ${await res.text()}`);
-  }
-
-  return true;
-}
-
 export async function validateApiKey(apiKey: string) {
   if (usingOfficialOpenAI()) {
-    return validateOpenAiApiKey(apiKey);
+    return OpenAiProvider.validateApiKey(apiKey);
   }
 
   if (usingOfficialOpenRouter()) {
-    return validateOpenRouterApiKey(apiKey);
+    return OpenRouterProvider.validateApiKey(apiKey);
   }
 
   // If not either of those providers, something is wrong
@@ -441,23 +429,20 @@ export const calculateTokenCost = (tokens: number, model: ChatCraftModel) => {
   return 0;
 };
 
-export const openRouterPkceRedirect = () => {
-  const callbackUrl = location.origin;
-  // Redirect the user to the OpenRouter authentication page in the same tab
-  location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
-};
-
 /**
  * Only meant to be used outside components or hooks
  * where useModels cannot be used.
  */
 export async function isTtsSupported() {
-  const { apiKey } = getSettings();
-  if (!apiKey) {
+  const { currentProvider } = getSettings();
+  if (!currentProvider?.apiKey) {
     throw new Error("Missing API Key");
   }
 
-  return (await queryModels(apiKey)).filter((model: string) => model.includes("tts"))?.length > 0;
+  return (
+    (await queryModels(currentProvider?.apiKey)).filter((model: string) => model.includes("tts"))
+      ?.length > 0
+  );
 }
 
 /**
@@ -466,11 +451,11 @@ export async function isTtsSupported() {
  * @returns A Promise that resolves to the URL of generated audio clip
  */
 export const textToSpeech = async (message: string): Promise<string> => {
-  const { apiKey, apiUrl } = getSettings();
-  if (!apiKey) {
+  const { currentProvider } = getSettings();
+  if (!currentProvider?.apiKey) {
     throw new Error("Missing API Key");
   }
-  const { openai } = createClient(apiKey, apiUrl);
+  const { openai } = createClient(currentProvider?.apiKey, currentProvider?.apiUrl);
 
   const mp3 = await openai.audio.speech.create({
     model: "tts-1",
