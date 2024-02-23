@@ -1,5 +1,5 @@
 import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
-import { Box, chakra, Flex, Image, CloseButton } from "@chakra-ui/react";
+import { Box, chakra, Flex, Image, CloseButton, Spinner } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
@@ -187,12 +187,24 @@ function MobilePromptForm({
                   alignItems="center"
                   m={2}
                 >
-                  <Image
-                    src={imageUrl}
-                    alt={`Image# ${index}`}
-                    style={{ height: "70px", objectFit: "cover" }}
-                    cursor="pointer"
-                  />
+                  {imageUrl === "" ? (
+                    <Box
+                      width={70}
+                      height={70}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Spinner size="xl" />
+                    </Box>
+                  ) : (
+                    <Image
+                      src={imageUrl}
+                      alt={`Image# ${index}`}
+                      style={{ height: "70px", objectFit: "cover" }}
+                      cursor="pointer"
+                    />
+                  )}
                   <Box
                     key={`${index}-close`}
                     display="flex"
