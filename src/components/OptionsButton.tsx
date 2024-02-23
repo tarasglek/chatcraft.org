@@ -75,7 +75,7 @@ type OptionsButtonProps = {
   variant?: "outline" | "solid" | "ghost";
   iconOnly?: boolean;
   // Optional until we support on mobile...
-  onFileSelected?: (base64: string, index: number) => void;
+  onFileSelected?: (base64: string) => void;
   isDisabled?: boolean;
 };
 
@@ -103,10 +103,10 @@ function OptionsButton({
       if (files) {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          onFileSelected("", i);
           if (file.type.startsWith("image/")) {
+            onFileSelected("");
             compressImageToBase64(file)
-              .then((base64) => onFileSelected(base64, i))
+              .then((base64) => onFileSelected(base64))
               .catch((err) => {
                 console.error(err);
                 error({ title: "Error processing images", message: err.message });
@@ -114,7 +114,7 @@ function OptionsButton({
           } else {
             const reader = new FileReader();
             reader.onload = (e) => {
-              onFileSelected(e.target?.result as string, i);
+              onFileSelected(e.target?.result as string);
             };
             reader.readAsDataURL(file);
           }

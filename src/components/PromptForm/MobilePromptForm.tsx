@@ -11,7 +11,7 @@ import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import { updateImageUrlsAtIndex } from "../../lib/utils";
+import { updateImageUrls } from "../../lib/utils";
 
 type MobilePromptFormProps = {
   chat: ChatCraftChat;
@@ -171,8 +171,8 @@ function MobilePromptForm({
             forkUrl={forkUrl}
             variant="outline"
             iconOnly
-            onFileSelected={(base64String, index) => {
-              updateImageUrlsAtIndex(base64String, index, setInputImageUrls);
+            onFileSelected={(base64String) => {
+              updateImageUrls(base64String, setInputImageUrls);
             }}
           />
 

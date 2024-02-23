@@ -16,7 +16,7 @@ import {
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import { getMetaKey, compressImageToBase64, updateImageUrlsAtIndex } from "../../lib/utils";
+import { getMetaKey, compressImageToBase64, updateImageUrls } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
 import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
@@ -424,8 +424,8 @@ function DesktopPromptForm({
                   forkUrl={forkUrl}
                   variant="outline"
                   isDisabled={isLoading}
-                  onFileSelected={(base64String, index) => {
-                    updateImageUrlsAtIndex(base64String, index, setInputImageUrls);
+                  onFileSelected={(base64String) => {
+                    updateImageUrls(base64String, setInputImageUrls);
                   }}
                 />
 
