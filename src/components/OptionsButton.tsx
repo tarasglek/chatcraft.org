@@ -106,9 +106,7 @@ function OptionsButton({
           onFileSelected("", i);
           if (file.type.startsWith("image/")) {
             compressImageToBase64(file)
-              .then((base64) => {
-                onFileSelected(base64, i);
-              })
+              .then((base64) => onFileSelected(base64, i))
               .catch((err) => {
                 console.error(err);
                 error({ title: "Error processing images", message: err.message });
