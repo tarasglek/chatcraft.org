@@ -225,21 +225,18 @@ function DesktopPromptForm({
     setInputImageUrls([]);
   };
 
-  const handleDropImage = (e: React.DragEvent) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
-    setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...files.map(() => "")]);
-    Promise.all(
-      files
-        .filter((file) => file.type.startsWith("image/"))
-        .map((file) => compressImageToBase64(file))
-    )
+  const processImages = (imageFiles: File[]) => {
+    setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...imageFiles.map(() => "")]);
+
+    Promise.all(imageFiles.map((file) => compressImageToBase64(file)))
       .then((base64Strings) => {
         setInputImageUrls((prevImageUrls) => {
           const newImageUrls = [...prevImageUrls];
-          base64Strings.forEach((base64) => {
-            const imageIndex = newImageUrls.findIndex((imageUrl) => imageUrl === "");
-            newImageUrls[imageIndex] = base64;
+          base64Strings.forEach((base64, idx) => {
+            const placeholderIndex = newImageUrls.indexOf("", idx);
+            if (placeholderIndex !== -1) {
+              newImageUrls[placeholderIndex] = base64;
+            }
           });
           return newImageUrls;
         });
@@ -251,6 +248,13 @@ function DesktopPromptForm({
           message: err.message,
         });
       });
+  };
+
+  const handleDropImage = (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    processImages(imageFiles);
   };
 
   const handleDeleteImage = (index: number) => {
@@ -295,25 +299,7 @@ function DesktopPromptForm({
     if (imageFiles.length) {
       // Handle the clipboard contents here instead, creating image URLs
       e.preventDefault();
-      setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...imageFiles.map(() => "")]);
-      Promise.all(imageFiles.map((file) => compressImageToBase64(file)))
-        .then((base64Strings) => {
-          setInputImageUrls((prevImageUrls) => {
-            const newImageUrls = [...prevImageUrls];
-            base64Strings.forEach((base64) => {
-              const imageIndex = newImageUrls.findIndex((imageUrl) => imageUrl === "");
-              newImageUrls[imageIndex] = base64;
-            });
-            return newImageUrls;
-          });
-        })
-        .catch((err) => {
-          console.warn("Error processing images", err);
-          error({
-            title: "Error Processing Images",
-            message: err.message,
-          });
-        });
+      processImages(imageFiles);
     }
 
     // Otherwise, let the default paste handling happen
