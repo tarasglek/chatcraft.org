@@ -142,10 +142,10 @@ function MessageBase({
     }
     try {
       // Use the shareSingleMessage method from the chat instance
-      await chat.shareSingleMessage(user, message.id);
+      const { url } = await chat.shareSingleMessage(user, message.id);
       info({
-        title: "Message Shared",
-        message: "The message has been successfully shared.",
+        title: "Message Shared Successfully",
+        message: `${url}`,
       });
     } catch (err) {
       console.error(err);
