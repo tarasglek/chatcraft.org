@@ -19,7 +19,7 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
   // https://github.com/tarasglek/chatcraft.org/pull/357#discussion_r1473470003
   const [queue, setQueue] = useState<Promise<string>[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>();
+  const [currentAudioClip, setCurrentAudioClip] = useState<AudioClip | null>();
 
   useEffect(() => {
     if (!isPlaying && queue.length > 0) {
@@ -31,14 +31,19 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
     setIsPlaying(true);
     const audioUrl: string = await audioClipUri;
     const audio = new Audio(audioUrl);
+    audio.preload = "auto";
     audio.onended = () => {
-      setCurrentAudioUrl(null);
       URL.revokeObjectURL(audioUrl);
       setQueue((oldQueue) => oldQueue.slice(1));
       setIsPlaying(false);
+
+      setCurrentAudioClip(null);
     };
     audio.play();
-    setCurrentAudioUrl(audioUrl);
+    setCurrentAudioClip({
+      audioElement: audio,
+      audioUrl: audioUrl,
+    });
   };
 
   const addToAudioQueue = (audioClipUri: Promise<string>) => {
@@ -46,12 +51,17 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const clearAudioQueue = () => {
-    if (currentAudioUrl) {
-      URL.revokeObjectURL(currentAudioUrl);
-      setCurrentAudioUrl(null);
+    if (currentAudioClip) {
+      // Stop currently playing audio
+      currentAudioClip.audioElement.pause();
+      URL.revokeObjectURL(currentAudioClip.audioUrl);
+
+      setCurrentAudioClip(null);
+      setIsPlaying(false);
     }
 
-    setQueue((oldQueue) => oldQueue.splice(0));
+    // Flush all the remaining audio clips
+    setQueue([]);
   };
 
   const value = { addToAudioQueue, clearAudioQueue };
@@ -60,3 +70,8 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
 };
 
 export default useAudioPlayer;
+
+type AudioClip = {
+  audioUrl: string;
+  audioElement: HTMLAudioElement;
+};
