@@ -10,6 +10,7 @@ import {
   Card,
   CardBody,
   Image,
+  Spinner,
   Square,
 } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
@@ -227,13 +228,21 @@ function DesktopPromptForm({
   const handleDropImage = (e: React.DragEvent) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
+    setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...files.map(() => "")]);
     Promise.all(
       files
         .filter((file) => file.type.startsWith("image/"))
         .map((file) => compressImageToBase64(file))
     )
       .then((base64Strings) => {
-        setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...base64Strings]);
+        setInputImageUrls((prevImageUrls) => {
+          const newImageUrls = [...prevImageUrls];
+          base64Strings.forEach((base64) => {
+            const imageIndex = newImageUrls.findIndex((imageUrl) => imageUrl === "");
+            newImageUrls[imageIndex] = base64;
+          });
+          return newImageUrls;
+        });
       })
       .catch((err) => {
         console.warn("Error processing images", err);
@@ -286,9 +295,17 @@ function DesktopPromptForm({
     if (imageFiles.length) {
       // Handle the clipboard contents here instead, creating image URLs
       e.preventDefault();
+      setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...imageFiles.map(() => "")]);
       Promise.all(imageFiles.map((file) => compressImageToBase64(file)))
         .then((base64Strings) => {
-          setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...base64Strings]);
+          setInputImageUrls((prevImageUrls) => {
+            const newImageUrls = [...prevImageUrls];
+            base64Strings.forEach((base64) => {
+              const imageIndex = newImageUrls.findIndex((imageUrl) => imageUrl === "");
+              newImageUrls[imageIndex] = base64;
+            });
+            return newImageUrls;
+          });
         })
         .catch((err) => {
           console.warn("Error processing images", err);
@@ -319,13 +336,25 @@ function DesktopPromptForm({
                   <Flex flexWrap="wrap">
                     {inputImageUrls.map((imageUrl, index) => (
                       <Box key={index} position="relative" height="100px" m={2}>
-                        <Image
-                          src={imageUrl}
-                          alt={`Image# ${index}`}
-                          style={{ height: "100px", objectFit: "cover" }}
-                          cursor="pointer"
-                          onClick={() => handleClickImage(imageUrl)}
-                        />
+                        {imageUrl === "" ? (
+                          <Box
+                            width={100}
+                            height={100}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            <Spinner size="xl" />
+                          </Box>
+                        ) : (
+                          <Image
+                            src={imageUrl}
+                            alt={`Image# ${index}`}
+                            style={{ height: "100px", objectFit: "cover" }}
+                            cursor="pointer"
+                            onClick={() => handleClickImage(imageUrl)}
+                          />
+                        )}
                         <Box
                           position="absolute"
                           top="2px"
@@ -409,9 +438,13 @@ function DesktopPromptForm({
                   forkUrl={forkUrl}
                   variant="outline"
                   isDisabled={isLoading}
-                  onFileSelected={(base64String) =>
-                    setInputImageUrls((prevImageUrls) => [...prevImageUrls, base64String])
-                  }
+                  onFileSelected={(base64String, index) => {
+                    setInputImageUrls((prevImageUrls) => {
+                      const newImageUrls = prevImageUrls.length === 0 ? [""] : [...prevImageUrls];
+                      newImageUrls[index] = base64String;
+                      return newImageUrls;
+                    });
+                  }}
                 />
 
                 <Flex alignItems="center" gap={2}>
