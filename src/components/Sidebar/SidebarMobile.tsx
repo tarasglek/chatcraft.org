@@ -31,7 +31,12 @@ function SidebarMobile({
   const brandColor = useColorModeValue("blue.600", "blue.200");
 
   return (
-    <Drawer isOpen={isSidebarVisible} onClose={handleToggleSidebarVisible} placement="left">
+    <Drawer
+      autoFocus={false}
+      isOpen={isSidebarVisible}
+      onClose={handleToggleSidebarVisible}
+      placement="left"
+    >
       <DrawerOverlay />
       <DrawerContent>
         <DrawerHeader mt={2} p={2}>
