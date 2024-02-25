@@ -10,7 +10,10 @@ const AudioPlayerContext = createContext<AudioPlayerContextType>({
   clearAudioQueue: () => {},
 });
 
-const useAudioPlayer = () => useContext(AudioPlayerContext);
+type AudioClip = {
+  audioUrl: string;
+  audioElement: HTMLAudioElement;
+};
 
 export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) => {
   // We are managing promises of audio urls instead of directly storing strings
@@ -69,9 +72,6 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
   return <AudioPlayerContext.Provider value={value}>{children}</AudioPlayerContext.Provider>;
 };
 
-export default useAudioPlayer;
+const useAudioPlayer = () => useContext(AudioPlayerContext);
 
-type AudioClip = {
-  audioUrl: string;
-  audioElement: HTMLAudioElement;
-};
+export default useAudioPlayer;
