@@ -9,20 +9,23 @@ import { SettingsProvider } from "./hooks/use-settings";
 import { UserProvider } from "./hooks/use-user";
 import { ModelsProvider } from "./hooks/use-models";
 import { CostProvider } from "./hooks/use-cost";
+import { AudioPlayerProvider } from "./hooks/use-audio-player";
 
 ReactDOM.createRoot(document.querySelector("main") as HTMLElement).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      <SettingsProvider>
-        <CostProvider>
-          <ModelsProvider>
-            <UserProvider>
-              <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-              <RouterProvider router={router} />
-            </UserProvider>
-          </ModelsProvider>
-        </CostProvider>
-      </SettingsProvider>
+      <AudioPlayerProvider>
+        <SettingsProvider>
+          <CostProvider>
+            <ModelsProvider>
+              <UserProvider>
+                <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+                <RouterProvider router={router} />
+              </UserProvider>
+            </ModelsProvider>
+          </CostProvider>
+        </SettingsProvider>
+      </AudioPlayerProvider>
     </ChakraProvider>
   </React.StrictMode>
 );

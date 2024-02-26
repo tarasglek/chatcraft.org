@@ -45,6 +45,7 @@ import { ChatCraftCommandRegistry } from "../lib/commands";
 import { ChatCraftCommand } from "../lib/ChatCraftCommand";
 import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
 import { TbSearch } from "react-icons/tb";
+import useAudioPlayer from "../hooks/use-audio-player";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -65,6 +66,7 @@ function ChatBase({ chat }: ChatBaseProps) {
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const { error } = useAlert();
   const { user } = useUser();
+  const { clearAudioQueue } = useAudioPlayer();
 
   // If we can't load models, it's a bad sign for API connectivity.
   // Show an error so the user is aware.
@@ -264,6 +266,8 @@ function ChatBase({ chat }: ChatBaseProps) {
 
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
         const messages = chat.messages({ includeAppMessages: false });
+        // Clear any previous audio clips
+        clearAudioQueue();
         const response = await callChatApi(messages, {
           functions,
           functionToCall,
