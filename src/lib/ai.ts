@@ -463,7 +463,7 @@ export async function isTtsSupported() {
 /**
  *
  * @param message The text for which speech needs to be generated
- * @returns The URL of generated audio clip
+ * @returns A Promise that resolves to the URL of generated audio clip
  */
 export const textToSpeech = async (message: string): Promise<string> => {
   const { apiKey, apiUrl } = getSettings();

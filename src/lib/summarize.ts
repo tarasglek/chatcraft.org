@@ -48,7 +48,7 @@ function markdownToPlainText(markdown: string) {
   return removeMarkdown(markdown).replace(/\r?\n/g, " ").replace(/ {2,}/g, " ");
 }
 
-function tokenize(text: string) {
+export function tokenize(text: string) {
   const sentences: string[] = nlp(text)
     .json()
     .map((s: { text: string }) => s.text);
