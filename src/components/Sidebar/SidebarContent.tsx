@@ -27,13 +27,13 @@ import { LuFunctionSquare } from "react-icons/lu";
 import { useKey } from "react-use";
 import { Link, useNavigate } from "react-router-dom";
 
-import db from "../lib/db";
-import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { formatDate, formatNumber } from "../lib/utils";
-import { SharedChatCraftChat } from "../lib/SharedChatCraftChat";
-import { useUser } from "../hooks/use-user";
-import { ChatCraftFunction } from "../lib/ChatCraftFunction";
-import { useAlert } from "../hooks/use-alert";
+import db from "../../lib/db";
+import { ChatCraftChat } from "../../lib/ChatCraftChat";
+import { formatDate, formatNumber } from "../../lib/utils";
+import { SharedChatCraftChat } from "../../lib/SharedChatCraftChat";
+import { useUser } from "../../hooks/use-user";
+import { ChatCraftFunction } from "../../lib/ChatCraftFunction";
+import { useAlert } from "../../hooks/use-alert";
 
 /**
  * Chat Sidebar Items
@@ -266,12 +266,12 @@ function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSideba
  * Sidebar
  */
 
-type SidebarProps = {
+export type SidebarContentProps = {
   selectedChat?: ChatCraftChat;
   selectedFunction?: ChatCraftFunction;
 };
 
-function Sidebar({ selectedChat, selectedFunction }: SidebarProps) {
+function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps) {
   const { user } = useUser();
   const navigate = useNavigate();
   const [recentCount, setRecentCount] = useState(10);
@@ -474,4 +474,4 @@ function Sidebar({ selectedChat, selectedFunction }: SidebarProps) {
   );
 }
 
-export default Sidebar;
+export default SidebarContent;
