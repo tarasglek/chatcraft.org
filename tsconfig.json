@@ -15,9 +15,10 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vitest-environment-miniflare/globals", "vitest/importMeta"]
+    "types": ["vitest-environment-miniflare/globals", "vitest/importMeta"],
+    "typeRoots": ["./node_modules/@types", "./types"]
   },
-  "include": ["src"],
+  "include": ["src", "types/**/*"],
   "exclude": ["functions/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

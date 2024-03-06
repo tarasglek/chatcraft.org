@@ -16,7 +16,7 @@ import { TbCopy, TbDownload, TbRun, TbExternalLink } from "react-icons/tb";
 
 import { download, formatAsCodeBlock } from "../lib/utils";
 import { useAlert } from "../hooks/use-alert";
-import { isRunnable, runCode } from "../lib/run-code";
+import { isRunnable, isRunnableOnServer, runCode } from "../lib/run-code";
 
 type PreHeaderProps = {
   language: string;
@@ -39,6 +39,7 @@ function CodeHeader({
   const { info, error } = useAlert();
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
   const shouldShowRunButton = isRunnable(language) && onPrompt;
+  const shouldShowRunOnServer = isRunnableOnServer(language) && onPrompt;
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -207,7 +208,9 @@ function CodeHeader({
               />
               <MenuList>
                 <MenuItem onClick={handleRunBrowser}>Run in Browser</MenuItem>
-                <MenuItem onClick={handleRunRemote}>Run on Server</MenuItem>
+                {shouldShowRunOnServer && (
+                  <MenuItem onClick={handleRunRemote}>Run on Server</MenuItem>
+                )}
               </MenuList>
             </Menu>
           )}
