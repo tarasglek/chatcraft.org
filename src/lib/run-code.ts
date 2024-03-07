@@ -1,4 +1,6 @@
 import esbuildWasmUrl from "esbuild-wasm/esbuild.wasm?url";
+// Import the WASM file URL using Vite's asset handling
+import pythonWasmUrl from "@antonz/python-wasi/dist/python.wasm?url";
 
 // By default, we haven't loaded the esbuild wasm module, and
 // the esbuild module doesn't have a concept of checking if it's
@@ -12,8 +14,8 @@ globalThis.__esbuildWasmLoaded = false;
 const supportedJS = ["js", "javascript"];
 const supportedTS = ["ts", "typescript"];
 const supportedPY = ["py", "python"];
-const supportedLanguages = [...supportedJS, ...supportedTS, ...supportedPY];
-const supportedLanguagesOnServer = [...supportedJS, ...supportedTS];
+const SupportedBrowserLanguages = [...supportedJS, ...supportedTS, ...supportedPY];
+const supportedServerLanguages = [...supportedJS, ...supportedTS];
 
 function isJavaScript(language: string) {
   return supportedJS.includes(language);
@@ -27,12 +29,12 @@ function isPython(language: string) {
   return supportedPY.includes(language);
 }
 
-export function isRunnable(language: string) {
-  return supportedLanguages.includes(language);
+export function isRunnableInBrowser(language: string) {
+  return SupportedBrowserLanguages.includes(language);
 }
 
 export function isRunnableOnServer(language: string) {
-  return supportedLanguagesOnServer.includes(language);
+  return supportedServerLanguages.includes(language);
 }
 
 async function captureConsole<T>(
@@ -117,12 +119,11 @@ async function runJavaScript(code: string) {
 
 async function runPython(code: string) {
   const { WASI } = await import("@antonz/runno");
-  const url = "https://unpkg.com/@antonz/python-wasi/dist/python.wasm";
 
   // Use captureConsole to capture console output
   const executionResult = await captureConsole(async () => {
     const executionPromise = new Promise<void>((resolve, reject) => {
-      WASI.start(fetch(url), {
+      WASI.start(fetch(pythonWasmUrl), {
         args: ["python", "-c", code],
         stdout: (out) => {
           console.log(out);

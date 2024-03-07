@@ -16,7 +16,7 @@ import { TbCopy, TbDownload, TbRun, TbExternalLink } from "react-icons/tb";
 
 import { download, formatAsCodeBlock } from "../lib/utils";
 import { useAlert } from "../hooks/use-alert";
-import { isRunnable, isRunnableOnServer, runCode } from "../lib/run-code";
+import { isRunnableInBrowser, isRunnableOnServer, runCode } from "../lib/run-code";
 
 type PreHeaderProps = {
   language: string;
@@ -38,8 +38,9 @@ function CodeHeader({
   const { onCopy } = useClipboard(code);
   const { info, error } = useAlert();
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
-  const shouldShowRunButton = isRunnable(language) && onPrompt;
-  const shouldShowRunOnServer = isRunnableOnServer(language) && onPrompt;
+  const shouldShowRunButton =
+    (isRunnableInBrowser(language) || isRunnableOnServer(language)) && onPrompt;
+  const shouldShowRunMenuList = isRunnableOnServer(language) && onPrompt;
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -205,13 +206,14 @@ function CodeHeader({
                 _dark={{ color: "gray.300" }}
                 variant="ghost"
                 isDisabled={isLoading}
+                onClick={shouldShowRunMenuList ? undefined : handleRunBrowser}
               />
-              <MenuList>
-                <MenuItem onClick={handleRunBrowser}>Run in Browser</MenuItem>
-                {shouldShowRunOnServer && (
+              {shouldShowRunMenuList && (
+                <MenuList>
+                  <MenuItem onClick={handleRunBrowser}>Run in Browser</MenuItem>
                   <MenuItem onClick={handleRunRemote}>Run on Server</MenuItem>
-                )}
-              </MenuList>
+                </MenuList>
+              )}
             </Menu>
           )}
           <IconButton

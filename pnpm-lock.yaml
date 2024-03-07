@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@antonz/python-wasi':
+    specifier: ^3.12.0
+    version: 3.12.0
   '@antonz/runno':
     specifier: ^0.6.1
     version: 0.6.1
@@ -232,6 +235,10 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.20
     dev: true
+
+  /@antonz/python-wasi@3.12.0:
+    resolution: {integrity: sha512-HPAJPGMGRU2eBcXbOfyCnqiTUBrXNGJv0hkXaFXk6TQSRYEP2OVrdHE/JKbR2aTXe+A7uI1n42gVFOVHLGJolw==}
+    dev: false
 
   /@antonz/runno@0.6.1:
     resolution: {integrity: sha512-ioM0x0ZI42avZqKdaY2ETJnI30kQPNL/UbuFxNdW9guFepHSQU5NkOKorqIR7tG7KSln3lgZRwhJj2BC7WjhIg==}
