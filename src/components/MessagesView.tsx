@@ -1,6 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo } from "react";
 import { Box, useColorMode } from "@chakra-ui/react";
-import mermaid from "mermaid";
 
 import Message from "./Message";
 import NewMessage from "./Message/NewMessage";
@@ -44,11 +43,15 @@ function MessagesView({
   // Make sure that any Mermaid diagrams use the same light/dark theme as rest of app.
   // Use a layout effect vs. regular effect so it happens after DOM is ready.
   useLayoutEffect(() => {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: colorMode === "dark" ? "dark" : "default",
-      securityLevel: "loose",
-    });
+    const initializeMermaid = async () => {
+      const mermaid = await import("mermaid");
+      mermaid.default.initialize({
+        startOnLoad: false,
+        theme: colorMode === "dark" ? "dark" : "default",
+        securityLevel: "loose",
+      });
+    };
+    initializeMermaid();
   }, [colorMode]);
 
   // Memoize the onRemoveMessage callback to reduce re-renders
