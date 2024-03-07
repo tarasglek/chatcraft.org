@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, type ReactNode } from "react";
+import { memo, useCallback, useMemo, type ReactNode, useState } from "react";
 import {
   Flex,
   ButtonGroup,
@@ -11,6 +11,7 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  Spinner,
 } from "@chakra-ui/react";
 import { TbCopy, TbDownload, TbRun, TbExternalLink } from "react-icons/tb";
 
@@ -37,6 +38,7 @@ function CodeHeader({
 }: PreHeaderProps) {
   const { onCopy } = useClipboard(code);
   const { info, error } = useAlert();
+  const [isRunning, setIsRunning] = useState(false);
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
   const shouldShowRunButton =
     (isRunnableInBrowser(language) || isRunnableOnServer(language)) && onPrompt;
@@ -116,6 +118,7 @@ function CodeHeader({
     if (!onPrompt) {
       return;
     }
+    setIsRunning(true);
 
     try {
       let { logs, ret } = await runCode(code, language);
@@ -162,6 +165,8 @@ function CodeHeader({
           error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : `${error}`
         )
       );
+    } finally {
+      setIsRunning(false);
     }
   }, [onPrompt, code, language]);
 
@@ -201,7 +206,7 @@ function CodeHeader({
                 size="sm"
                 aria-label="Run code"
                 title="Run code"
-                icon={<TbRun />}
+                icon={isRunning ? <Spinner size="xs" /> : <TbRun />}
                 color="gray.600"
                 _dark={{ color: "gray.300" }}
                 variant="ghost"

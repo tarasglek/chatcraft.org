@@ -1,6 +1,4 @@
 import esbuildWasmUrl from "esbuild-wasm/esbuild.wasm?url";
-// Import the WASM file URL using Vite's asset handling
-import pythonWasmUrl from "@antonz/python-wasi/dist/python.wasm?url";
 
 // By default, we haven't loaded the esbuild wasm module, and
 // the esbuild module doesn't have a concept of checking if it's
@@ -119,11 +117,12 @@ async function runJavaScript(code: string) {
 
 async function runPython(code: string) {
   const { WASI } = await import("@antonz/runno");
+  const url = "https://unpkg.com/@antonz/python-wasi/dist/python.wasm";
 
   // Use captureConsole to capture console output
   const executionResult = await captureConsole(async () => {
     const executionPromise = new Promise<void>((resolve, reject) => {
-      WASI.start(fetch(pythonWasmUrl), {
+      WASI.start(fetch(url), {
         args: ["python", "-c", code],
         stdout: (out) => {
           console.log(out);
