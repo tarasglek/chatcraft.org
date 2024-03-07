@@ -133,8 +133,6 @@ async function runPython(code: string) {
         },
       })
         .then((result) => {
-          // resolve(result); // Resolve with the result of the Python execution
-          // Resolve the promise without passing any value
           if (result.exitCode === 0) {
             resolve(); // Resolves the promise with no value
           } else {
