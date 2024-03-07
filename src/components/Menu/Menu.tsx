@@ -20,6 +20,7 @@ const Menu: React.FC<MenuProps> = (props) => {
   return (
     <Box>
       <ReactMenu
+        align={"end"}
         theming={colorMode === "dark" ? "dark" : undefined}
         menuButton={
           <IconButton

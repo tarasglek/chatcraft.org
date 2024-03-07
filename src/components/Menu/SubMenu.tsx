@@ -5,7 +5,13 @@ import React from "react";
 const SubMenu: React.FC<SubMenuProps> = (props) => {
   return (
     <Box>
-      <ReactMenuSubMenu {...props}>{props.children}</ReactMenuSubMenu>
+      <ReactMenuSubMenu
+        menuStyle={{ maxHeight: "50vw", overflow: "auto" }}
+        align="center"
+        {...props}
+      >
+        {props.children}
+      </ReactMenuSubMenu>
     </Box>
   );
 };
