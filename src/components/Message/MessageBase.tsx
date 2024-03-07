@@ -55,6 +55,7 @@ import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { useAlert } from "../../hooks/use-alert";
 import ImageModal from "../ImageModal";
+import { useCopyToClipboard } from "react-use";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
@@ -109,6 +110,7 @@ function MessageBase({
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
+  const [, copyToClipboard] = useCopyToClipboard();
   const { id, date, text, imageUrls } = message;
   const { models } = useModels();
   const { onCopy } = useClipboard(text);
@@ -145,8 +147,9 @@ function MessageBase({
       const { url } = await chat.shareSingleMessage(user, message.id);
       info({
         title: "Message Shared Successfully",
-        message: `${url}`,
+        message: `URL has been copied to clipboard`,
       });
+      copyToClipboard(url);
     } catch (err) {
       console.error(err);
       error({
