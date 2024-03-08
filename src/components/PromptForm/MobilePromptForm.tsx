@@ -1,5 +1,5 @@
 import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
-import { Box, chakra, Flex, Image, CloseButton } from "@chakra-ui/react";
+import { Box, chakra, Flex, Image, CloseButton, Spinner } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
@@ -11,6 +11,7 @@ import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
+import { updateImageUrls } from "../../lib/utils";
 
 type MobilePromptFormProps = {
   chat: ChatCraftChat;
@@ -170,9 +171,9 @@ function MobilePromptForm({
             forkUrl={forkUrl}
             variant="outline"
             iconOnly
-            onFileSelected={(base64String) =>
-              setInputImageUrls((prevImageUrls) => [...prevImageUrls, base64String])
-            }
+            onFileSelected={(base64String) => {
+              updateImageUrls(base64String, setInputImageUrls);
+            }}
           />
 
           <Box flex={1}>
@@ -186,12 +187,24 @@ function MobilePromptForm({
                   alignItems="center"
                   m={2}
                 >
-                  <Image
-                    src={imageUrl}
-                    alt={`Image# ${index}`}
-                    style={{ height: "70px", objectFit: "cover" }}
-                    cursor="pointer"
-                  />
+                  {imageUrl === "" ? (
+                    <Box
+                      width={70}
+                      height={70}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Spinner size="xl" />
+                    </Box>
+                  ) : (
+                    <Image
+                      src={imageUrl}
+                      alt={`Image# ${index}`}
+                      style={{ height: "70px", objectFit: "cover" }}
+                      cursor="pointer"
+                    />
+                  )}
                   <Box
                     key={`${index}-close`}
                     display="flex"

@@ -115,3 +115,25 @@ export const compressImageToBase64 = (file: File): Promise<string> => {
       throw err;
     });
 };
+
+export const updateImageUrls = (
+  base64String: string,
+  setInputImageUrls: React.Dispatch<React.SetStateAction<string[]>>
+): void => {
+  setInputImageUrls((prevImageUrls) => {
+    if (base64String) {
+      const newImageUrls = [...prevImageUrls];
+      const placeholderIndex = prevImageUrls.indexOf("");
+      if (placeholderIndex !== -1) {
+        // Replace the first placeholder with the actual base64 string
+        newImageUrls[placeholderIndex] = base64String;
+      } else {
+        return [...prevImageUrls, base64String];
+      }
+      return newImageUrls;
+    } else {
+      //set imageUrl "" as placeholder
+      return [...prevImageUrls, ""];
+    }
+  });
+};
