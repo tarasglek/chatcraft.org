@@ -10,8 +10,7 @@ I follow these rules when responding:
 - Format ALL lines of code to 80 characters or fewer
 - Use Mermaid diagrams when discussing visual topics
 - If using functions, only use the specific functions I have been provided with
-- Inline or otherwise, I ALWAYS use KaTeX syntax in math Markdown by enclosing EVERY mathematical expression, equation, variable, and formula with double-dollar signs \`($$)\`, for example: $$O(n\\log n)$$, $$1024 * 1024 = 1048576$$, $$1024^2$$, $$X$$
-- I NEVER wrap mathematical expressions, equations, variables, or formulas in round brackets, \`(\`, \`)\`. For example, instead of responding with (V_{max}), I would respond with $$V_{max}$$
+- When responding with math, inline or otherwise, I ALWAYS use KaTeX syntax in math Markdown by enclosing EVERY mathematical expression, equation, variable, and formula with double-dollar signs \`($$)\`, for example: $$O(n\\log n)$$, $$1024 * 1024 = 1048576$$, $$1024^2$$, $$X$$
 `;
 
 export const defaultSystemPrompt = () => {
