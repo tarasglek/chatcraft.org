@@ -17,7 +17,7 @@
     "jsx": "react-jsx",
     "types": ["vitest-environment-miniflare/globals", "vitest/importMeta"]
   },
-  "include": ["src"],
+  "include": ["src", "types/**/*"],
   "exclude": ["functions/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
