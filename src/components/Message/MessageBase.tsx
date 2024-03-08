@@ -55,11 +55,15 @@ import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { useAlert } from "../../hooks/use-alert";
 import ImageModal from "../ImageModal";
+import { useCopyToClipboard } from "react-use";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { usingOfficialOpenAI } from "../../lib/ai";
+import { ChatCraftChat } from "../../lib/ChatCraftChat";
+import { useLiveQuery } from "dexie-react-hooks";
+import { useUser } from "../../hooks/use-user";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -106,6 +110,7 @@ function MessageBase({
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
+  const [, copyToClipboard] = useCopyToClipboard();
   const { id, date, text, imageUrls } = message;
   const { models } = useModels();
   const { onCopy } = useClipboard(text);
@@ -123,6 +128,36 @@ function MessageBase({
   const isLongMessage = text.length > 5000;
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
   const shouldShowDeleteMenu = Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick);
+  const chat = useLiveQuery(() => ChatCraftChat.find(chatId), [chatId]);
+  const { user } = useUser();
+  const handleShareMessage = useCallback(async () => {
+    if (!user) {
+      error({
+        title: "Failed to Share Message",
+        message: "Can't share message because user is not logged in",
+      });
+      return;
+    }
+    if (!chat) {
+      console.error("Chat not found");
+      return;
+    }
+    try {
+      // Use the shareSingleMessage method from the chat instance
+      const { url } = await chat.shareSingleMessage(user, message.id);
+      info({
+        title: "Message Shared Successfully",
+        message: `URL has been copied to clipboard`,
+      });
+      copyToClipboard(url);
+    } catch (err) {
+      console.error(err);
+      error({
+        title: "Failed to Share Message",
+        message: "An error occurred while trying to share the message.",
+      });
+    }
+  }, [message.id, user, chat, info, error, copyToClipboard]);
 
   // Wrap the onToggle function with startTransition, state update should be deferred due to long message
   // https://reactjs.org/docs/error-decoder.html?invariant=426
@@ -399,6 +434,19 @@ function MessageBase({
                     </SubMenu>
                   </>
                 )}
+                <MenuDivider />
+                <MenuItem
+                  label="Share Message"
+                  onClick={() => handleShareMessage()}
+                  icon={
+                    <IconButton
+                      variant="ghost"
+                      // icon={<YourShareIcon />} // Replace YourShareIcon with the actual icon you want to use for sharing
+                      aria-label="Share message"
+                      title="Share message"
+                    />
+                  }
+                />
                 {(!disableEdit || onDeleteClick) && <MenuDivider />}
                 {!disableEdit && (
                   <MenuItem
