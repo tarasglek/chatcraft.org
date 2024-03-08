@@ -4,7 +4,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeExternalLinks from "rehype-external-links";
-import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 
 // Use highlight.js (via lowlight) vs. prism.js (via refractor) due to
@@ -17,6 +16,9 @@ import oneLight from "react-syntax-highlighter/dist/esm/styles/hljs/atom-one-lig
 import CodeHeader from "./CodeHeader";
 import HtmlPreview from "./HtmlPreview";
 import MermaidPreview from "./MermaidPreview";
+
+// Load rehypeKatex dynamically at runtime if needed due to size
+const rehypeKatex = await import("rehype-katex");
 
 const fixLanguageName = (language: string | null) => {
   if (!language) {
@@ -65,7 +67,6 @@ function Markdown({
   className = "message-text",
 }: MarkdownProps) {
   const style = useColorModeValue(oneLight, oneDark);
-
   return (
     <ReactMarkdown
       className={className}
@@ -74,7 +75,7 @@ function Markdown({
       rehypePlugins={[
         // Open links in new tab
         [rehypeExternalLinks, { target: "_blank" }],
-        rehypeKatex,
+        rehypeKatex.default,
       ]}
       components={{
         code({ className, children, ...props }) {
