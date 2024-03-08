@@ -157,7 +157,7 @@ function MessageBase({
         message: "An error occurred while trying to share the message.",
       });
     }
-  }, [message.id, user, chat, info, error]);
+  }, [message.id, user, chat, info, error, copyToClipboard]);
 
   // Wrap the onToggle function with startTransition, state update should be deferred due to long message
   // https://reactjs.org/docs/error-decoder.html?invariant=426
