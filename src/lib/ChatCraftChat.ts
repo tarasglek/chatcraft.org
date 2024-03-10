@@ -365,7 +365,7 @@ export class ChatCraftChat {
 
     // Clone the chat but only include the specified message
     const clonedChatWithSingleMessage = new ChatCraftChat({
-      messages: [messageToShare.clone()],
+      messages: [messageToShare],
       summary: this.summary, // You might want to adjust the summary for the shared content
     });
 
