@@ -104,6 +104,7 @@ function OptionsButton({
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           if (file.type.startsWith("image/")) {
+            onFileSelected("");
             compressImageToBase64(file)
               .then((base64) => onFileSelected(base64))
               .catch((err) => {

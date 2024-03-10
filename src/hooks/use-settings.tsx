@@ -10,6 +10,7 @@ import {
 import { useLocalStorage } from "react-use";
 
 import { serializer, deserializer, key, defaults, type Settings } from "../lib/settings";
+import { OpenRouterProvider } from "../lib/providers/OpenRouterProvider";
 
 type SettingsContextType = {
   settings: Settings;
@@ -52,7 +53,15 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         .then((data) => {
           const apiKey = data.key;
           if (apiKey !== undefined) {
-            setSettings({ ...state, apiKey: apiKey });
+            const newProvider = new OpenRouterProvider(apiKey);
+            setSettings({
+              ...state,
+              currentProvider: newProvider,
+              providers: {
+                ...state.providers,
+                [newProvider.apiUrl]: newProvider,
+              },
+            });
             // Strip out openRouter's code from the URL
             searchParams.delete("code");
             const { origin, pathname, hash } = window.location;
@@ -75,7 +84,8 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     setState(settings || defaults);
-  }, [settings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateSettings = useCallback(
     (newSettings: Settings) => {

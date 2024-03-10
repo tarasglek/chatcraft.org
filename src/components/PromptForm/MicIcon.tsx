@@ -5,6 +5,7 @@ import { TbMicrophone } from "react-icons/tb";
 import { useAlert } from "../../hooks/use-alert";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { SpeechRecognition } from "../../lib/speech-recognition";
+import useAudioPlayer from "../../hooks/use-audio-player";
 
 type MicIconProps = {
   onRecording: () => void;
@@ -26,8 +27,10 @@ export default function MicIcon({
   const micIconRef = useRef<HTMLButtonElement | null>(null);
   const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
   const { error } = useAlert();
+  const { clearAudioQueue } = useAudioPlayer();
 
   const onRecordingStart = async () => {
+    clearAudioQueue();
     speechRecognitionRef.current = new SpeechRecognition();
 
     // Try to get access to the user's microphone. This may or may not work...

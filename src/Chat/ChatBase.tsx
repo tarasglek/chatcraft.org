@@ -1,50 +1,30 @@
+import { Box, Button, Flex, Grid, GridItem, Text, useDisclosure } from "@chakra-ui/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Box,
-  Button,
-  Flex,
-  Text,
-  useDisclosure,
-  Grid,
-  GridItem,
-  Drawer,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-  DrawerHeader,
-  DrawerBody,
-  InputGroup,
-  Input,
-  IconButton,
-  useColorModeValue,
-  keyframes,
-} from "@chakra-ui/react";
-import { Form, ScrollRestoration } from "react-router-dom";
 import { CgArrowDownO } from "react-icons/cg";
+import { ScrollRestoration } from "react-router-dom";
 
-import PromptForm from "../components/PromptForm";
-import MessagesView from "../components/MessagesView";
 import Header from "../components/Header";
+import MessagesView from "../components/MessagesView";
+import OptionsButton from "../components/OptionsButton";
+import PromptForm from "../components/PromptForm";
 import Sidebar from "../components/Sidebar";
+import { useAlert } from "../hooks/use-alert";
+import useAudioPlayer from "../hooks/use-audio-player";
+import { useAutoScroll } from "../hooks/use-autoscroll";
 import useChatOpenAI from "../hooks/use-chat-openai";
+import { useModels } from "../hooks/use-models";
+import { useSettings } from "../hooks/use-settings";
+import { useUser } from "../hooks/use-user";
+import { ChatCraftChat } from "../lib/ChatCraftChat";
+import { ChatCraftCommand } from "../lib/ChatCraftCommand";
+import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import {
   ChatCraftFunctionCallMessage,
   ChatCraftFunctionResultMessage,
   ChatCraftHumanMessage,
 } from "../lib/ChatCraftMessage";
-import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { useUser } from "../hooks/use-user";
-import OptionsButton from "../components/OptionsButton";
-import { useSettings } from "../hooks/use-settings";
-import { useModels } from "../hooks/use-models";
-import ChatHeader from "./ChatHeader";
-import { ChatCraftFunction } from "../lib/ChatCraftFunction";
-import { useAutoScroll } from "../hooks/use-autoscroll";
-import { useAlert } from "../hooks/use-alert";
 import { ChatCraftCommandRegistry } from "../lib/commands";
-import { ChatCraftCommand } from "../lib/ChatCraftCommand";
-import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
-import { TbSearch } from "react-icons/tb";
+import ChatHeader from "./ChatHeader";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -65,6 +45,7 @@ function ChatBase({ chat }: ChatBaseProps) {
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const { error } = useAlert();
   const { user } = useUser();
+  const { clearAudioQueue } = useAudioPlayer();
 
   // If we can't load models, it's a bad sign for API connectivity.
   // Show an error so the user is aware.
@@ -264,6 +245,8 @@ function ChatBase({ chat }: ChatBaseProps) {
 
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
         const messages = chat.messages({ includeAppMessages: false });
+        // Clear any previous audio clips
+        clearAudioQueue();
         const response = await callChatApi(messages, {
           functions,
           functionToCall,
@@ -315,32 +298,6 @@ function ChatBase({ chat }: ChatBaseProps) {
     resume();
   }
 
-  const isMobile = useMobileBreakpoint();
-  const sidebarColor = useColorModeValue("blue.600", "blue.200");
-
-  const sidebarOpenAnimationKeyframes = keyframes`
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  `;
-
-  const sidebarCloseAnimationKeyframes = keyframes`
-    from {
-      transform: scaleX(1);
-    }
-
-    to {
-      transform: scaleX(0);
-    }
-  `;
-
-  const sidebarOpenAnimation = `${sidebarOpenAnimationKeyframes} 500ms ease-in-out forwards`;
-  const sidebarCloseAnimation = `${sidebarCloseAnimationKeyframes} 100ms ease-in-out forwards`;
-
   return (
     <Grid
       w="100%"
@@ -364,49 +321,11 @@ function ChatBase({ chat }: ChatBaseProps) {
 
       {/* Sidebar */}
       <GridItem rowSpan={2} overflowY="auto">
-        {isMobile ? (
-          <Drawer isOpen={isSidebarVisible} onClose={handleToggleSidebarVisible} placement="left">
-            <DrawerOverlay />
-            <DrawerContent>
-              <DrawerHeader mt={2} p={2}>
-                <Text
-                  position={"relative"}
-                  top={-1}
-                  ml={2}
-                  mb={2}
-                  fontSize="lg"
-                  fontWeight="bold"
-                  color={sidebarColor}
-                >
-                  &lt;ChatCraft /&gt;
-                </Text>
-                <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
-                  <InputGroup size="sm" variant="outline">
-                    <Input type="search" name="q" isRequired placeholder="Search chat history" />
-                    <IconButton
-                      aria-label="Search"
-                      variant="ghost"
-                      icon={<TbSearch />}
-                      type="submit"
-                    />
-                  </InputGroup>
-                </Form>
-                <DrawerCloseButton />
-              </DrawerHeader>
-
-              <DrawerBody m={0} p={0}>
-                <Sidebar selectedChat={chat} />
-              </DrawerBody>
-            </DrawerContent>
-          </Drawer>
-        ) : (
-          <Box
-            transformOrigin={"left"}
-            animation={isSidebarVisible ? sidebarOpenAnimation : sidebarCloseAnimation}
-          >
-            <Sidebar selectedChat={chat} />
-          </Box>
-        )}
+        <Sidebar
+          selectedChat={chat}
+          isSidebarVisible={isSidebarVisible}
+          handleToggleSidebarVisible={handleToggleSidebarVisible}
+        ></Sidebar>
       </GridItem>
 
       <GridItem overflowY="auto" ref={messageListRef} pos="relative">

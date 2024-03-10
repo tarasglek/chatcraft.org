@@ -19,6 +19,8 @@ import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import { useAutoScroll } from "./use-autoscroll";
 import useAudioPlayer from "./use-audio-player";
 import { getSettings } from "../lib/settings";
+import nlp from "compromise";
+import { tokenize } from "../lib/summarize";
 
 const noop = () => {};
 
@@ -71,7 +73,6 @@ function useChatOpenAI() {
       // To calculate the current position in the AI generated text stream
       let ttsCursor = 0;
       let ttsWordsBuffer = "";
-      const sentenceEndRegex = new RegExp(/[.!?]+/g);
 
       const chat = chatWithLLM(messages, {
         model,
@@ -88,27 +89,26 @@ function useChatOpenAI() {
             // Hook tts code here
             ttsWordsBuffer = currentText.slice(ttsCursor);
 
+            const { sentences } = tokenize(ttsWordsBuffer);
+
             if (ttsSupported && getSettings().announceMessages) {
               if (
-                sentenceEndRegex.test(ttsWordsBuffer) // Has full sentence
+                sentences.length > 1 // Has one full sentence
               ) {
-                // Reset lastIndex before calling exec
-                sentenceEndRegex.lastIndex = 0;
-                const sentenceEndIndex = sentenceEndRegex.exec(ttsWordsBuffer)!.index;
-
                 // Pass the sentence to tts api for processing
-                const textToBeProcessed = ttsWordsBuffer.slice(0, sentenceEndIndex + 1);
+                const textToBeProcessed = sentences[0];
                 const audioClipUri = textToSpeech(textToBeProcessed);
                 addToAudioQueue(audioClipUri);
 
                 // Update the tts Cursor
-                ttsCursor += sentenceEndIndex + 1;
-              } else if (ttsWordsBuffer.split(" ").length >= TTS_BUFFER_THRESHOLD) {
-                // Flush the entire buffer into tts api
-                const audioClipUri = textToSpeech(ttsWordsBuffer);
+                ttsCursor += sentences[0].length;
+              } else if (nlp(ttsWordsBuffer).terms().out("array").length >= TTS_BUFFER_THRESHOLD) {
+                // Try to break the large sentence into clauses
+                const clauseToProcess = nlp(ttsWordsBuffer).clauses().out("array")[0];
+                const audioClipUri = textToSpeech(clauseToProcess);
                 addToAudioQueue(audioClipUri);
 
-                ttsCursor += ttsWordsBuffer.length;
+                ttsCursor += clauseToProcess.length;
               }
             }
 
@@ -158,11 +158,7 @@ function useChatOpenAI() {
           resetScrollProgress();
           setShouldAutoScroll(false);
 
-          if (
-            ttsSupported &&
-            getSettings().announceMessages &&
-            ttsWordsBuffer.slice(ttsCursor).length
-          ) {
+          if (ttsSupported && getSettings().announceMessages && ttsWordsBuffer.length) {
             // Call TTS for any remaining words
             const audioClipUri = textToSpeech(ttsWordsBuffer);
             addToAudioQueue(audioClipUri);

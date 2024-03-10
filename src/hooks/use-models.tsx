@@ -45,7 +45,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { settings, setSettings } = useSettings();
 
   useEffect(() => {
-    const apiKey = settings.apiKey;
+    const apiKey = settings.currentProvider?.apiKey;
     if (!apiKey || isFetching.current) {
       return;
     }
@@ -70,7 +70,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     fetchModels();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.apiUrl, settings.apiKey]);
+  }, [settings.currentProvider]);
 
   const value = {
     models: models || defaultModels,

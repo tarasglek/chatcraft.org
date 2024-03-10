@@ -11,7 +11,9 @@ globalThis.__esbuildWasmLoaded = false;
 
 const supportedJS = ["js", "javascript"];
 const supportedTS = ["ts", "typescript"];
-const supportedLanguages = [...supportedJS, ...supportedTS];
+const supportedPY = ["py", "python"];
+const SupportedBrowserLanguages = [...supportedJS, ...supportedTS, ...supportedPY];
+const supportedServerLanguages = [...supportedJS, ...supportedTS];
 
 function isJavaScript(language: string) {
   return supportedJS.includes(language);
@@ -21,8 +23,16 @@ function isTypeScript(language: string) {
   return supportedTS.includes(language);
 }
 
-export function isRunnable(language: string) {
-  return supportedLanguages.includes(language);
+function isPython(language: string) {
+  return supportedPY.includes(language);
+}
+
+export function isRunnableInBrowser(language: string) {
+  return SupportedBrowserLanguages.includes(language);
+}
+
+export function isRunnableOnServer(language: string) {
+  return supportedServerLanguages.includes(language);
 }
 
 async function captureConsole<T>(
@@ -105,6 +115,39 @@ async function runJavaScript(code: string) {
   }
 }
 
+async function runPython(code: string) {
+  const { WASI } = await import("@antonz/runno");
+  const url = "https://unpkg.com/@antonz/python-wasi/dist/python.wasm";
+
+  // Use captureConsole to capture console output
+  const executionResult = await captureConsole(async () => {
+    const executionPromise = new Promise<void>((resolve, reject) => {
+      WASI.start(fetch(url), {
+        args: ["python", "-c", code],
+        stdout: (out) => {
+          console.log(out);
+        },
+        stderr: (err) => {
+          console.error(err);
+        },
+      })
+        .then((result) => {
+          if (result.exitCode === 0) {
+            resolve(); // Resolves the promise with no value
+          } else {
+            reject(new Error("Script execution failed")); // Rejects the promise if execution failed
+          }
+        })
+        .catch((error) => {
+          reject(error); // Reject on error
+        });
+    });
+    return executionPromise;
+  });
+
+  return executionResult;
+}
+
 // Load esbuild lazily, only on demand, for size savings
 async function loadEsBuild() {
   try {
@@ -143,6 +186,9 @@ export async function runCode(code: string, language: string) {
   }
   if (isJavaScript(language)) {
     return runJavaScript(code);
+  }
+  if (isPython(language)) {
+    return runPython(code);
   }
   throw new Error(`Unsupported language: ${language}`);
 }

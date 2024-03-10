@@ -17,6 +17,7 @@ import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
 import { usingOfficialOpenAI } from "../../lib/ai";
 import { useMemo } from "react";
+import useAudioPlayer from "../../hooks/use-audio-player";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -29,6 +30,8 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
+
+  const { clearAudioQueue } = useAudioPlayer();
 
   return (
     <ButtonGroup variant="outline" isAttached>
@@ -56,9 +59,13 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
               icon={
                 settings.announceMessages ? <MdVolumeUp size={25} /> : <MdVolumeOff size={25} />
               }
-              onClick={() =>
-                setSettings({ ...settings, announceMessages: !settings.announceMessages })
-              }
+              onClick={() => {
+                if (settings.announceMessages) {
+                  // Flush any remaining audio clips being announced
+                  clearAudioQueue();
+                }
+                setSettings({ ...settings, announceMessages: !settings.announceMessages });
+              }}
             />
           </Tooltip>
         )}
@@ -93,6 +100,8 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
 
+  const { clearAudioQueue } = useAudioPlayer();
+
   return (
     <ButtonGroup isAttached>
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
@@ -105,9 +114,13 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           <Button
             type="button"
             size="sm"
-            onClick={() =>
-              setSettings({ ...settings, announceMessages: !settings.announceMessages })
-            }
+            onClick={() => {
+              if (settings.announceMessages) {
+                // Flush any remaining audio clips being announced
+                clearAudioQueue();
+              }
+              setSettings({ ...settings, announceMessages: !settings.announceMessages });
+            }}
           >
             {settings.announceMessages ? <MdVolumeUp size={18} /> : <MdVolumeOff size={18} />}
           </Button>
