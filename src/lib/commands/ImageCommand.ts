@@ -3,9 +3,9 @@ import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
 import { generateImage } from "../../lib/ai";
 
-export class DALLE3Command extends ChatCraftCommand {
+export class ImageCommand extends ChatCraftCommand {
   constructor() {
-    super("DALLE3");
+    super("image");
   }
 
   async execute(chat: ChatCraftChat, user: User | undefined, args?: string[]) {
