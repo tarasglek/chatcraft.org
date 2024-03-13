@@ -71,6 +71,7 @@ export default defineConfig({
           "**/assets/cl100k_base*.js",
         ],
         globPatterns: [
+          //
           "*.{ico,png}",
           "**/assets/*.{js,json,css,ico,png,svg}",
           ...buildLanguageGlobPatterns("**/assets/"),
