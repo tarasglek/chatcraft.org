@@ -396,3 +396,33 @@ export const textToSpeech = async (message: string): Promise<string> => {
 
   return objectUrl;
 };
+
+type dalle3ImageSize = "1024x1024" | "1792x1024" | "1024x1792";
+
+export const generateImage = async (
+  prompt: string,
+  n: number = 1,
+  size: dalle3ImageSize = "1024x1024"
+): Promise<string[]> => {
+  const { currentProvider } = getSettings();
+  if (!currentProvider?.apiKey) {
+    throw new Error("Missing OpenAI API Key");
+  }
+
+  const { openai } = createClient(currentProvider?.apiKey, currentProvider?.apiUrl);
+
+  try {
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: prompt,
+      n: n,
+      size: size,
+    });
+
+    // Assuming the response structure has an array of generated images
+    const imageUrls = response.data.map((img: any) => img.url);
+    return imageUrls;
+  } catch (error: any) {
+    throw new Error(`Failed to generate image: ${error.message}`);
+  }
+};

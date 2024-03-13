@@ -7,6 +7,7 @@ import { SummaryCommand } from "./SummaryCommand";
 import { HelpCommand } from "./HelpCommand";
 import { ImportCommand } from "./ImportCommand";
 import { CommandsHelpCommand } from "./CommandsHelpCommand";
+import { DALLE3Command } from "./DALLE3Command";
 
 // Register all our commands
 ChatCraftCommandRegistry.registerCommand(new NewCommand());
@@ -15,3 +16,4 @@ ChatCraftCommandRegistry.registerCommand(new SummaryCommand());
 ChatCraftCommandRegistry.registerCommand(new HelpCommand());
 ChatCraftCommandRegistry.registerCommand(new CommandsHelpCommand());
 ChatCraftCommandRegistry.registerCommand(new ImportCommand());
+ChatCraftCommandRegistry.registerCommand(new DALLE3Command());
