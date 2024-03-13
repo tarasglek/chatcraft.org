@@ -3,7 +3,7 @@ import React from "react";
 
 const SubMenu: React.FC<SubMenuProps> = (props) => {
   return (
-    <ReactMenuSubMenu menuStyle={{ maxHeight: "50vh", overflow: "auto" }} align="center" {...props}>
+    <ReactMenuSubMenu align="center" {...props}>
       {props.children}
     </ReactMenuSubMenu>
   );

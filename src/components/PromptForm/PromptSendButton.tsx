@@ -47,24 +47,40 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
         />
         {isTtsSupported && (
           <Tooltip
-            label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
+            label={
+              settings.textToSpeech.announceMessages
+                ? "Text-to-Speech Enabled"
+                : "Text-to-Speech Disabled"
+            }
           >
             <IconButton
               type="button"
               size="lg"
               variant="solid"
               aria-label={
-                settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"
+                settings.textToSpeech.announceMessages
+                  ? "Text-to-Speech Enabled"
+                  : "Text-to-Speech Disabled"
               }
               icon={
-                settings.announceMessages ? <MdVolumeUp size={25} /> : <MdVolumeOff size={25} />
+                settings.textToSpeech.announceMessages ? (
+                  <MdVolumeUp size={25} />
+                ) : (
+                  <MdVolumeOff size={25} />
+                )
               }
               onClick={() => {
-                if (settings.announceMessages) {
+                if (settings.textToSpeech.announceMessages) {
                   // Flush any remaining audio clips being announced
                   clearAudioQueue();
                 }
-                setSettings({ ...settings, announceMessages: !settings.announceMessages });
+                setSettings({
+                  ...settings,
+                  textToSpeech: {
+                    ...settings.textToSpeech,
+                    announceMessages: !settings.textToSpeech.announceMessages,
+                  },
+                });
               }}
             />
           </Tooltip>
@@ -109,20 +125,34 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       </Button>
       {isTtsSupported && (
         <Tooltip
-          label={settings.announceMessages ? "Text-to-Speech Enabled" : "Text-to-Speech Disabled"}
+          label={
+            settings.textToSpeech.announceMessages
+              ? "Text-to-Speech Enabled"
+              : "Text-to-Speech Disabled"
+          }
         >
           <Button
             type="button"
             size="sm"
             onClick={() => {
-              if (settings.announceMessages) {
+              if (settings.textToSpeech.announceMessages) {
                 // Flush any remaining audio clips being announced
                 clearAudioQueue();
               }
-              setSettings({ ...settings, announceMessages: !settings.announceMessages });
+              setSettings({
+                ...settings,
+                textToSpeech: {
+                  ...settings.textToSpeech,
+                  announceMessages: !settings.textToSpeech.announceMessages,
+                },
+              });
             }}
           >
-            {settings.announceMessages ? <MdVolumeUp size={18} /> : <MdVolumeOff size={18} />}
+            {settings.textToSpeech.announceMessages ? (
+              <MdVolumeUp size={18} />
+            ) : (
+              <MdVolumeOff size={18} />
+            )}
           </Button>
         </Tooltip>
       )}

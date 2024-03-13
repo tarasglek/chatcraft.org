@@ -1,16 +1,4 @@
 import {
-  memo,
-  startTransition,
-  useCallback,
-  useState,
-  useEffect,
-  useRef,
-  type ReactNode,
-  type MouseEvent,
-  type FormEvent,
-  useMemo,
-} from "react";
-import {
   Box,
   Button,
   ButtonGroup,
@@ -22,48 +10,64 @@ import {
   Heading,
   IconButton,
   Image,
+  Kbd,
   Link,
+  Spacer,
   Tag,
   Text,
   Textarea,
   VStack,
   useClipboard,
-  Kbd,
-  Spacer,
   useDisclosure,
 } from "@chakra-ui/react";
+import {
+  memo,
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 
-import { Menu, MenuItem, SubMenu, MenuDivider } from "../Menu";
-import ResizeTextarea from "react-textarea-autosize";
-import { TbTrash } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
+import { TbTrash } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
+import ResizeTextarea from "react-textarea-autosize";
+import { Menu, MenuDivider, MenuItem, SubMenu } from "../Menu";
 
-import { formatDate, download, formatNumber, getMetaKey, screenshotElement } from "../../lib/utils";
-import Markdown from "../Markdown";
+import { useCopyToClipboard } from "react-use";
+import { useAlert } from "../../hooks/use-alert";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
+import { useModels } from "../../hooks/use-models";
+import { useSettings } from "../../hooks/use-settings";
 import {
-  ChatCraftHumanMessage,
   ChatCraftAiMessage,
   ChatCraftAiMessageVersion,
+  ChatCraftHumanMessage,
   ChatCraftMessage,
   ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
-import { useModels } from "../../hooks/use-models";
-import { useSettings } from "../../hooks/use-settings";
-import { useAlert } from "../../hooks/use-alert";
+import { download, formatDate, formatNumber, getMetaKey, screenshotElement } from "../../lib/utils";
 import ImageModal from "../ImageModal";
-import { useCopyToClipboard } from "react-use";
+import Markdown from "../Markdown";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
-import "./Message.css";
-import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
-import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useLiveQuery } from "dexie-react-hooks";
+import { capitalize } from "lodash-es";
+import useAudioPlayer from "../../hooks/use-audio-player";
+import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
+import { ChatCraftChat } from "../../lib/ChatCraftChat";
+import { textToSpeech } from "../../lib/ai";
 import { usingOfficialOpenAI } from "../../lib/providers";
+import { TextToSpeechVoices } from "../../lib/settings";
+import "./Message.css";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -116,7 +120,7 @@ function MessageBase({
   const { onCopy } = useClipboard(text);
   const { info, error } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
-  const { settings } = useSettings();
+  const { settings, setSettings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
@@ -236,6 +240,20 @@ function MessageBase({
     }
   }, [messageContent, info]);
 
+  const handleDownloadAudio = useCallback(() => {
+    if (messageContent.current) {
+      const text = messageContent.current.textContent;
+      if (text) {
+        // TODO: Implement Download Logic
+
+        info({
+          title: "Downloaded",
+          message: "Message was downloaded as Audio",
+        });
+      }
+    }
+  }, [messageContent, info]);
+
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     messageForm.current?.setAttribute("data-action", e.currentTarget.name);
   }, []);
@@ -315,6 +333,32 @@ function MessageBase({
     setImageModalOpen(true);
   };
   const closeModal = () => setImageModalOpen(false);
+
+  const handleVoiceSelection = useCallback(
+    (voice: TextToSpeechVoices) => {
+      setSettings({
+        ...settings,
+        textToSpeech: {
+          ...settings.textToSpeech,
+          voice,
+        },
+      });
+    },
+    [setSettings, settings]
+  );
+
+  const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
+
+  const handleSpeakMessage = useCallback(
+    async (messageContent: string) => {
+      // Stop any currently playing audio before starting new
+      clearAudioQueue();
+
+      const { voice } = settings.textToSpeech;
+      addToAudioQueue(textToSpeech(messageContent, voice, "tts-1-hd"));
+    },
+    [clearAudioQueue, settings.textToSpeech, addToAudioQueue]
+  );
 
   return (
     <Box
@@ -401,12 +445,28 @@ function MessageBase({
                 <SubMenu label="Download">
                   <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
                   <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
+                  <MenuItem label="Download as Audio" onClick={handleDownloadAudio} />
                   <MenuItem
                     label="Download as Image"
                     onClick={handleDownloadImage}
                     // If we're editing, or showing only a summary, don't enable download as image
                     // since we need the whole element to exist in order to render into the canvas.
                     disabled={displaySummaryText !== false || editing}
+                  />
+                </SubMenu>
+                <SubMenu label="Audio">
+                  <SubMenu label="Select Voice">
+                    {Object.values(TextToSpeechVoices).map((voice) => (
+                      <MenuItem
+                        key={voice}
+                        label={capitalize(voice)}
+                        onClick={() => handleVoiceSelection(voice)}
+                      />
+                    ))}
+                  </SubMenu>
+                  <MenuItem
+                    label="Speak"
+                    onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
                   />
                 </SubMenu>
                 {!disableFork && (
