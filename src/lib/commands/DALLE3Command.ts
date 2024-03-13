@@ -9,8 +9,6 @@ export class DALLE3Command extends ChatCraftCommand {
   }
 
   async execute(chat: ChatCraftChat, user: User | undefined, args?: string[]) {
-    // return chat.resetMessages();
-
     if (!(args && args[0])) {
       throw new Error("must include a prompt");
     }

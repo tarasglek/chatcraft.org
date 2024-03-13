@@ -419,7 +419,6 @@ export const generateImage = async (
       size: size,
     });
 
-    // Assuming the response structure has an array of generated images
     const imageUrls = response.data.map((img: any) => img.url);
     return imageUrls;
   } catch (error: any) {
