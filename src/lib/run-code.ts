@@ -125,15 +125,24 @@ async function runJavaScript(code: string) {
   }
 }
 
-async function runPython(code: string) {
+async function runPythonOrRuby(code: string, language: string) {
   const { WASI } = await import("@antonz/runno");
-  const url = "https://unpkg.com/@antonz/python-wasi/dist/python.wasm";
 
-  // Use captureConsole to capture console output
+  let url, args;
+  if (language === "python") {
+    url = "https://unpkg.com/@antonz/python-wasi/dist/python.wasm";
+    args = ["python", "-c", code];
+  } else if (language === "ruby") {
+    url = "https://unpkg.com/@antonz/ruby-wasi/dist/ruby.wasm";
+    args = ["ruby", "-e", code];
+  } else {
+    throw new Error("Unsupported language");
+  }
+
   const executionResult = await captureConsole(async () => {
     const executionPromise = new Promise<void>((resolve, reject) => {
       WASI.start(fetch(url), {
-        args: ["python", "-c", code],
+        args: args,
         stdout: (out) => {
           console.log(out);
         },
@@ -143,46 +152,13 @@ async function runPython(code: string) {
       })
         .then((result) => {
           if (result.exitCode === 0) {
-            resolve(); // Resolves the promise with no value
+            resolve();
           } else {
-            reject(new Error("Script execution failed")); // Rejects the promise if execution failed
+            reject(new Error("Script execution failed"));
           }
         })
         .catch((error) => {
-          reject(error); // Reject on error
-        });
-    });
-    return executionPromise;
-  });
-
-  return executionResult;
-}
-
-async function runRuby(code: string) {
-  const { WASI } = await import("@antonz/runno");
-  const url = "https://unpkg.com/@antonz/ruby-wasi/dist/ruby.wasm";
-
-  // Use captureConsole to capture console output
-  const executionResult = await captureConsole(async () => {
-    const executionPromise = new Promise<void>((resolve, reject) => {
-      WASI.start(fetch(url), {
-        args: ["ruby", "-e", code],
-        stdout: (out) => {
-          console.log(out);
-        },
-        stderr: (err) => {
-          console.error(err);
-        },
-      })
-        .then((result) => {
-          if (result.exitCode === 0) {
-            resolve(); // Resolves the promise with no value
-          } else {
-            reject(new Error("Script execution failed")); // Rejects the promise if execution failed
-          }
-        })
-        .catch((error) => {
-          reject(error); // Reject on error
+          reject(error);
         });
     });
     return executionPromise;
@@ -231,10 +207,10 @@ export async function runCode(code: string, language: string) {
     return runJavaScript(code);
   }
   if (isPython(language)) {
-    return runPython(code);
+    return runPythonOrRuby(code, "python");
   }
   if (isRuby(language)) {
-    return runRuby(code);
+    return runPythonOrRuby(code, "ruby");
   }
   throw new Error(`Unsupported language: ${language}`);
 }
