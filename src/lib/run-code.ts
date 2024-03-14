@@ -128,7 +128,8 @@ async function runJavaScript(code: string) {
 async function runPythonOrRuby(code: string, language: string) {
   const { WASI } = await import("@antonz/runno");
 
-  let url, args;
+  let url: string;
+  let args: string[];
   if (language === "python") {
     url = "https://unpkg.com/@antonz/python-wasi/dist/python.wasm";
     args = ["python", "-c", code];
