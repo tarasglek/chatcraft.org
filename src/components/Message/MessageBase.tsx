@@ -240,19 +240,34 @@ function MessageBase({
     }
   }, [messageContent, info]);
 
-  const handleDownloadAudio = useCallback(() => {
-    if (messageContent.current) {
-      const text = messageContent.current.textContent;
-      if (text) {
-        // TODO: Implement Download Logic
+  const handleDownloadAudio = useCallback(
+    async (voice: TextToSpeechVoices) => {
+      if (messageContent.current) {
+        const text = messageContent.current.textContent;
+        if (text) {
+          info({
+            title: "Downloading...",
+            message: "Please wait while we prepare your audio download.",
+          });
 
-        info({
-          title: "Downloaded",
-          message: "Message was downloaded as Audio",
-        });
+          const audioClipUrl = await textToSpeech(text, voice, "tts-1-hd");
+          const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
+
+          download(
+            audioClip,
+            `${settings.currentProvider.name}_message.${audioClip.type.split("/")[1]}`,
+            audioClip.type
+          );
+
+          info({
+            title: "Downloaded",
+            message: "Message was downloaded as Audio",
+          });
+        }
       }
-    }
-  }, [messageContent, info]);
+    },
+    [info, settings.currentProvider.name]
+  );
 
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     messageForm.current?.setAttribute("data-action", e.currentTarget.name);
@@ -445,7 +460,15 @@ function MessageBase({
                 <SubMenu label="Download">
                   <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
                   <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
-                  <MenuItem label="Download as Audio" onClick={handleDownloadAudio} />
+                  <SubMenu label="Download as Audio">
+                    {Object.values(TextToSpeechVoices).map((voice) => (
+                      <MenuItem
+                        key={voice}
+                        label={capitalize(voice)}
+                        onClick={() => handleDownloadAudio(voice)}
+                      />
+                    ))}
+                  </SubMenu>
                   <MenuItem
                     label="Download as Image"
                     onClick={handleDownloadImage}
