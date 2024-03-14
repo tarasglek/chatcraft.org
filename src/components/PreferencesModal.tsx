@@ -39,8 +39,8 @@ import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { providerFromUrl, providerFromJSON, getSupportedProviders } from "../lib/providers";
 import { OpenAiProvider } from "../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../lib/providers/OpenRouterProvider";
-import { validateApiKey } from "../lib/ai";
 import { useAlert } from "../hooks/use-alert";
+import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -72,10 +72,11 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   // Check the API Key, but debounce requests if user is typing
   useDebounce(
     () => {
-      if (!settings.currentProvider?.apiKey) {
+      if (!settings.currentProvider.apiKey) {
         setIsApiKeyInvalid(true);
       } else {
-        validateApiKey(settings.currentProvider?.apiKey)
+        settings.currentProvider
+          .validateApiKey(settings.currentProvider.apiKey)
           .then((result: boolean) => setIsApiKeyInvalid(!result))
           .catch((err) => {
             console.warn("Error validating API key", err);
@@ -84,7 +85,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       }
     },
     500,
-    [settings.currentProvider?.apiKey]
+    [settings.currentProvider.apiKey]
   );
 
   useEffect(() => {
@@ -161,10 +162,18 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         ? providerFromJSON(settings.providers[e.target.value])
         : providerFromUrl(e.target.value);
 
-      setSettings({
-        ...settings,
-        currentProvider: newProvider,
-      });
+      if (newProvider instanceof FreeModelProvider) {
+        // If user chooses the free provider, set the key automatically
+        setSettings({
+          ...settings,
+          currentProvider: new FreeModelProvider(),
+        });
+      } else {
+        setSettings({
+          ...settings,
+          currentProvider: newProvider,
+        });
+      }
     },
     [setSettings, settings]
   );
@@ -182,7 +191,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
             <VStack gap={4}>
               <FormControl>
                 <FormLabel>API URL</FormLabel>
-                <Select value={settings.currentProvider?.apiUrl} onChange={handleProviderChange}>
+                <Select value={settings.currentProvider.apiUrl} onChange={handleProviderChange}>
                   {Object.values(supportedProviders).map((provider) => (
                     <option key={provider.apiUrl} value={provider.apiUrl}>
                       {provider.name} ({provider.apiUrl})
@@ -196,12 +205,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
               <FormControl isInvalid={isApiKeyInvalid}>
                 <FormLabel>
-                  {settings.currentProvider?.name} API Key{" "}
+                  {settings.currentProvider.name} API Key{" "}
                   <ButtonGroup ml={2}>
                     <Button
                       size="xs"
-                      onClick={() => copyToClipboard(settings.currentProvider?.apiKey || "")}
-                      isDisabled={!settings.currentProvider?.apiKey}
+                      onClick={() => copyToClipboard(settings.currentProvider.apiKey || "")}
+                      isDisabled={!settings.currentProvider.apiKey}
                     >
                       Copy
                     </Button>
@@ -210,12 +219,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                       colorScheme="red"
                       onClick={async () => {
                         // Create provider that has no key
-                        const newProvider = providerFromUrl(settings.currentProvider?.apiUrl);
+                        const newProvider = providerFromUrl(settings.currentProvider.apiUrl);
 
                         // Get array with provider removed
                         const updatedProviders = { ...settings.providers };
-                        if (updatedProviders[settings.currentProvider?.apiUrl]) {
-                          delete updatedProviders[settings.currentProvider?.apiUrl];
+                        if (updatedProviders[settings.currentProvider.apiUrl]) {
+                          delete updatedProviders[settings.currentProvider.apiUrl];
                         }
 
                         setSettings({
@@ -224,7 +233,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                           currentProvider: newProvider,
                         });
                       }}
-                      isDisabled={!settings.currentProvider?.apiKey}
+                      isDisabled={!settings.currentProvider.apiKey}
                     >
                       Remove
                     </Button>
@@ -232,10 +241,10 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 </FormLabel>
                 <RevealablePasswordInput
                   type="password"
-                  value={settings.currentProvider?.apiKey || ""}
+                  value={settings.currentProvider.apiKey || ""}
                   onChange={async (e) => {
                     const newProvider = providerFromUrl(
-                      settings.currentProvider?.apiUrl,
+                      settings.currentProvider.apiUrl,
                       e.target.value
                     );
 
@@ -250,14 +259,18 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   }}
                 />
                 {settings.currentProvider instanceof OpenRouterProvider &&
-                  !settings.currentProvider?.apiKey && (
-                    <Button mt="3" size="sm" onClick={OpenRouterProvider.openRouterPkceRedirect}>
+                  !settings.currentProvider.apiKey && (
+                    <Button
+                      mt="3"
+                      size="sm"
+                      onClick={settings.currentProvider.openRouterPkceRedirect}
+                    >
                       Get API key from OpenRouter{" "}
                     </Button>
                   )}
 
                 <FormErrorMessage>
-                  Unable to verify API Key with {settings.currentProvider?.name}.
+                  Unable to verify API Key with {settings.currentProvider.name}.
                 </FormErrorMessage>
                 <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
               </FormControl>

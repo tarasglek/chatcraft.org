@@ -96,7 +96,7 @@ function AiMessage(props: AiMessageProps) {
 
   const handleRetryClick = useCallback(
     async (model: ChatCraftModel) => {
-      if (!settings.currentProvider?.apiKey) {
+      if (!settings.currentProvider.apiKey) {
         return;
       }
 
@@ -130,7 +130,7 @@ function AiMessage(props: AiMessageProps) {
         setRetrying(false);
       }
     },
-    [props.chatId, settings.currentProvider?.apiKey, message, callChatApi]
+    [props.chatId, settings.currentProvider.apiKey, message, callChatApi]
   );
 
   // While we're streaming in a new version, use a different display

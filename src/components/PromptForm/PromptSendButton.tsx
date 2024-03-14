@@ -15,9 +15,9 @@ import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
-import { usingOfficialOpenAI } from "../../lib/ai";
 import { useMemo } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
+import { usingOfficialOpenAI } from "../../lib/providers";
 
 type PromptSendButtonProps = {
   isLoading: boolean;

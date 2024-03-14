@@ -17,7 +17,7 @@ import { providerFromUrl, providerFromJSON, getSupportedProviders } from "../../
 import { OpenRouterProvider } from "../../../lib/providers/OpenRouterProvider";
 import RevealablePasswordInput from "../../RevealablePasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
-import { validateApiKey } from "../../../lib/ai";
+import { FreeModelProvider } from "../../../lib/providers/DefaultProvider/FreeModelProvider";
 
 const ApiKeyInstructionsText = `## Getting Started with ChatCraft
 
@@ -71,12 +71,13 @@ function Instructions(props: MessageBaseProps) {
 
     // See if this API Key is valid
     setIsValidating(true);
-    validateApiKey(apiKey)
+    settings.currentProvider
+      .validateApiKey(apiKey)
       .then((valid) => {
         if (valid) {
           setIsInvalid(false);
 
-          const newProvider = providerFromUrl(settings.currentProvider?.apiUrl, apiKey.trim());
+          const newProvider = providerFromUrl(settings.currentProvider.apiUrl, apiKey.trim());
 
           setSettings({
             ...settings,
@@ -104,10 +105,18 @@ function Instructions(props: MessageBaseProps) {
         ? providerFromJSON(settings.providers[e.target.value])
         : providerFromUrl(e.target.value);
 
-      setSettings({
-        ...settings,
-        currentProvider: newProvider,
-      });
+      if (newProvider instanceof FreeModelProvider) {
+        // If user chooses the free provider, set the key automatically
+        setSettings({
+          ...settings,
+          currentProvider: new FreeModelProvider(),
+        });
+      } else {
+        setSettings({
+          ...settings,
+          currentProvider: newProvider,
+        });
+      }
     },
     [setSettings, settings]
   );
@@ -123,7 +132,7 @@ function Instructions(props: MessageBaseProps) {
             <FormControl>
               <FormLabel>Provider API URL</FormLabel>
 
-              <Select value={settings.currentProvider?.apiUrl} onChange={handleProviderChange}>
+              <Select value={settings.currentProvider.apiUrl} onChange={handleProviderChange}>
                 {Object.values(supportedProviders).map((provider) => (
                   <option key={provider.apiUrl} value={provider.apiUrl}>
                     {provider.name} ({provider.apiUrl})
@@ -133,7 +142,7 @@ function Instructions(props: MessageBaseProps) {
             </FormControl>
 
             <FormControl isInvalid={isInvalid}>
-              <FormLabel>{settings.currentProvider?.name} API Key </FormLabel>
+              <FormLabel>{settings.currentProvider.name} API Key </FormLabel>
               <Flex gap={4} align="center">
                 <RevealablePasswordInput
                   flex="1"
@@ -148,12 +157,12 @@ function Instructions(props: MessageBaseProps) {
                 </Button>
               </Flex>
               {settings.currentProvider instanceof OpenRouterProvider && (
-                <Button mt="3" size="sm" onClick={OpenRouterProvider.openRouterPkceRedirect}>
+                <Button mt="3" size="sm" onClick={settings.currentProvider.openRouterPkceRedirect}>
                   Get API key from OpenRouter{" "}
                 </Button>
               )}
               <FormErrorMessage>
-                Unable to verify API Key with {settings.currentProvider?.name}.
+                Unable to verify API Key with {settings.currentProvider.name}.
               </FormErrorMessage>
             </FormControl>
           </VStack>

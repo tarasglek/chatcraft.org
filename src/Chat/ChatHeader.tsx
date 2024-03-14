@@ -154,7 +154,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                       {title}
                     </Link>
                   </Text>
-                  {settings.currentProvider?.apiKey && (
+                  {settings.currentProvider.apiKey && (
                     <IconButton
                       variant="ghost"
                       size="sm"
@@ -179,7 +179,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                 <MenuItem onClick={() => handleCopyChatClick()}>Copy</MenuItem>
                 <MenuItem onClick={() => handleDownloadClick()}>Download</MenuItem>
 
-                {!chat.readonly && settings.currentProvider?.apiKey && (
+                {!chat.readonly && settings.currentProvider.apiKey && (
                   <>
                     <MenuDivider />
                     <MenuItem onClick={onOpen}>Share Chat...</MenuItem>

@@ -1,4 +1,4 @@
-import { queryModels } from "../ai";
+import { ChatCraftModel } from "../ChatCraftModel";
 import {
   ChatCraftProvider,
   SerializedChatCraftProvider,
@@ -18,20 +18,20 @@ export class OpenAiProvider extends ChatCraftProvider {
     super(OPENAI_API_URL, key);
   }
 
+  get logoUrl() {
+    return "/openai-logo.png";
+  }
+
   // Parse from serialized JSON
   static fromJSON({ apiKey }: SerializedChatCraftProvider): OpenAiProvider {
     return new OpenAiProvider(apiKey);
   }
 
-  static async validateApiKey(apiKey: string) {
-    return !!(await queryModels(apiKey));
+  async validateApiKey(key: string) {
+    return !!(await this.queryModels(key));
   }
 
-  static logoUrl() {
-    return "/openai-logo.png";
-  }
-
-  static defaultModel() {
-    return "gpt-3.5-turbo";
+  defaultModelForProvider() {
+    return new ChatCraftModel("gpt-3.5-turbo");
   }
 }

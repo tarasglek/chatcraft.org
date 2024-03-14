@@ -85,7 +85,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
   );
 
   const handleSummarizeClick = useCallback(async () => {
-    if (!settings.currentProvider?.apiKey) {
+    if (!settings.currentProvider.apiKey) {
       return;
     }
     try {
@@ -98,7 +98,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
     } finally {
       setIsSummarizing(false);
     }
-  }, [settings.currentProvider?.apiKey, chat, setIsSummarizing, summarizeChat]);
+  }, [settings.currentProvider.apiKey, chat, setIsSummarizing, summarizeChat]);
 
   const handleCopyClick = useCallback(() => {
     copyToClipboard(url);
@@ -120,7 +120,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
           <Button
             variant="outline"
             onClick={() => handleSummarizeClick()}
-            isDisabled={!settings.currentProvider?.apiKey}
+            isDisabled={!settings.currentProvider.apiKey}
             isLoading={isSummarizing}
             loadingText="Summarizing..."
           >

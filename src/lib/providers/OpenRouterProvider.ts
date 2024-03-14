@@ -1,9 +1,11 @@
+import { ChatCraftModel } from "../ChatCraftModel";
 import {
   ChatCraftProvider,
   SerializedChatCraftProvider,
   OPENROUTER_API_URL,
   ProviderName,
 } from "../ChatCraftProvider";
+import { getReferer } from "../utils";
 
 export type SerializedOpenRouterProvider = {
   id: string;
@@ -17,17 +19,24 @@ export class OpenRouterProvider extends ChatCraftProvider {
     super(OPENROUTER_API_URL, key);
   }
 
+  get clientHeaders() {
+    return {
+      "HTTP-Referer": getReferer(),
+      "X-Title": "chatcraft.org",
+    };
+  }
+
   // Parse from serialized JSON
   static fromJSON({ apiKey }: SerializedChatCraftProvider): OpenRouterProvider {
     return new OpenRouterProvider(apiKey);
   }
 
-  static async validateApiKey(apiKey: string) {
+  async validateApiKey(key: string) {
     // Use response from https://openrouter.ai/docs#limits to check if API key is valid
-    const res = await fetch(`https://openrouter.ai/api/v1/auth/key`, {
+    const res = await fetch(`${OPENROUTER_API_URL}/auth/key`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${key}`,
       },
     });
 
@@ -38,18 +47,13 @@ export class OpenRouterProvider extends ChatCraftProvider {
     return true;
   }
 
-  static openRouterPkceRedirect = () => {
+  openRouterPkceRedirect = () => {
     const callbackUrl = location.origin;
     // Redirect the user to the OpenRouter authentication page in the same tab
     location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
   };
 
-  static logoUrl() {
-    // If we don't know, use the OpenAI logo as a fallback
-    return "/openai-logo.png";
-  }
-
-  static defaultModel() {
-    return "openai/gpt-3.5-turbo";
+  defaultModelForProvider() {
+    return new ChatCraftModel("openai/gpt-3.5-turbo");
   }
 }
