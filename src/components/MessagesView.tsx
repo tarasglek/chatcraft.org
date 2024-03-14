@@ -80,7 +80,7 @@ function MessagesView({
     if (
       messages.length === 1 &&
       messages[0] instanceof ChatCraftSystemMessage &&
-      !settings.currentProvider?.apiKey
+      !settings.currentProvider.apiKey
     ) {
       return;
     }
@@ -115,7 +115,7 @@ function MessagesView({
     });
   }, [
     messages,
-    settings.currentProvider?.apiKey,
+    settings.currentProvider.apiKey,
     chatId,
     onPrompt,
     isLoading,
@@ -125,7 +125,7 @@ function MessagesView({
 
   const instructions = useMemo(() => {
     // If there's no API key in storage, show instructions so we get one
-    if (!settings.currentProvider?.apiKey) {
+    if (!settings.currentProvider.apiKey) {
       const message = ChatCraftAppMessage.instructions();
       return (
         <Message
@@ -138,7 +138,7 @@ function MessagesView({
         />
       );
     }
-  }, [settings.currentProvider?.apiKey, chatId, onPrompt, isLoading]);
+  }, [settings.currentProvider.apiKey, chatId, onPrompt, isLoading]);
 
   return (
     <Box minHeight="100%" scrollBehavior="smooth">

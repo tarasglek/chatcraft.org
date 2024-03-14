@@ -8,10 +8,10 @@ import {
   type FC,
 } from "react";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { queryModels, defaultModelForProvider } from "../lib/ai";
+import { getSettings } from "../lib/settings";
 import { useSettings } from "./use-settings";
 
-const defaultModels = [defaultModelForProvider()];
+const defaultModels = [getSettings().currentProvider.defaultModelForProvider()];
 
 type ModelsContextType = {
   models: ChatCraftModel[];
@@ -35,7 +35,7 @@ const pickDefaultModel = (currentModel: ChatCraftModel, models: ChatCraftModel[]
     return currentModel;
   }
 
-  return defaultModelForProvider();
+  return getSettings().currentProvider.defaultModelForProvider();
 };
 
 export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
@@ -45,7 +45,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { settings, setSettings } = useSettings();
 
   useEffect(() => {
-    const apiKey = settings.currentProvider?.apiKey;
+    const apiKey = settings.currentProvider.apiKey;
     if (!apiKey || isFetching.current) {
       return;
     }
@@ -53,7 +53,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const fetchModels = async () => {
       isFetching.current = true;
       try {
-        const models = await queryModels(apiKey).then((models) => {
+        const models = await settings.currentProvider.queryModels(apiKey).then((models) => {
           return models.map((modelName) => new ChatCraftModel(modelName));
         });
         models.sort((a, b) => a.prettyModel.localeCompare(b.prettyModel));

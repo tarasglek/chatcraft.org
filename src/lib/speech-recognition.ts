@@ -1,4 +1,5 @@
-import { transcribe, usingOfficialOpenAI } from "./ai";
+import { transcribe } from "./ai";
+import { usingOfficialOpenAI } from "./providers";
 
 // Audio Recording and Transcribing depends on a bunch of technologies
 export function isTranscriptionSupported() {

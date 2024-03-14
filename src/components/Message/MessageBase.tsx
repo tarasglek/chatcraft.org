@@ -60,10 +60,10 @@ import { useCopyToClipboard } from "react-use";
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import "./Message.css";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
-import { usingOfficialOpenAI } from "../../lib/ai";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useUser } from "../../hooks/use-user";
+import { usingOfficialOpenAI } from "../../lib/providers";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;

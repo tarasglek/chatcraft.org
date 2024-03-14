@@ -6,50 +6,10 @@ import {
 } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { ChatCraftFunction } from "./ChatCraftFunction";
-import { getReferer } from "./utils";
 import { getSettings } from "./settings";
-import { OPENAI_API_URL, OPENROUTER_API_URL } from "./ChatCraftProvider";
-import { OpenAiProvider } from "./providers/OpenAiProvider";
-import { OpenRouterProvider } from "./providers/OpenRouterProvider";
 import { Stream } from "openai/streaming";
 import type { Tiktoken } from "tiktoken/lite";
 import type { ChatCompletionChunk } from "openai/resources";
-
-export const usingOfficialOpenAI = () => getSettings().currentProvider?.apiUrl === OPENAI_API_URL;
-export const usingOfficialOpenRouter = () =>
-  getSettings().currentProvider?.apiUrl === OPENROUTER_API_URL;
-
-const createClient = (apiKey: string, apiUrl?: string) => {
-  // If we're using OpenRouter, add extra headers
-  let headers = undefined;
-  if (!usingOfficialOpenAI()) {
-    headers = {
-      "HTTP-Referer": getReferer(),
-      "X-Title": "chatcraft.org",
-    };
-  }
-
-  return {
-    openai: new OpenAI({
-      apiKey: apiKey,
-      baseURL: apiUrl,
-      defaultHeaders: headers,
-      dangerouslyAllowBrowser: true,
-    }),
-    headers,
-  };
-};
-
-// Each provider does their model naming differently, pick the right one
-export const defaultModelForProvider = () => {
-  // OpenAI
-  if (usingOfficialOpenAI()) {
-    return new ChatCraftModel(OpenAiProvider.defaultModel());
-  }
-
-  // OpenRouter.ai
-  return new ChatCraftModel(OpenRouterProvider.defaultModel());
-};
 
 export type ChatOptions = {
   model?: ChatCraftModel;
@@ -115,11 +75,11 @@ function parseOpenAIResponse(response: OpenAI.Chat.ChatCompletion) {
 
 export const transcribe = async (audio: File) => {
   const { currentProvider } = getSettings();
-  if (!currentProvider?.apiKey) {
+  if (!currentProvider.apiKey) {
     throw new Error("Missing OpenAI API Key");
   }
 
-  const { openai } = createClient(currentProvider?.apiKey, currentProvider?.apiUrl);
+  const { openai } = currentProvider.createClient(currentProvider.apiKey);
   const transcriptions = new OpenAI.Audio.Transcriptions(openai);
   const transcription = await transcriptions.create({
     file: audio,
@@ -259,11 +219,11 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const { currentProvider } = getSettings();
-  if (!currentProvider?.apiKey) {
+  if (!currentProvider.apiKey) {
     throw new Error("Missing API Key");
   }
 
-  const { openai, headers } = createClient(currentProvider?.apiKey, currentProvider?.apiUrl);
+  const { openai, headers } = currentProvider.createClient(currentProvider.apiKey);
 
   const chatCompletionParams: OpenAI.Chat.ChatCompletionCreateParams = {
     model: model ? model.id : getSettings().model.id,
@@ -353,39 +313,6 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 };
 
-export async function queryModels(apiKey: string) {
-  const { currentProvider } = getSettings();
-  if (!currentProvider?.apiUrl) {
-    throw new Error("Missing API Url");
-  }
-
-  const { openai } = createClient(apiKey, currentProvider?.apiUrl);
-
-  try {
-    const models = [];
-    for await (const page of openai.models.list()) {
-      models.push(page);
-    }
-
-    return models.map((model: any) => model.id) as string[];
-  } catch (err: any) {
-    throw new Error(err.message ?? `error querying models API`);
-  }
-}
-
-export async function validateApiKey(apiKey: string) {
-  if (usingOfficialOpenAI()) {
-    return OpenAiProvider.validateApiKey(apiKey);
-  }
-
-  if (usingOfficialOpenRouter()) {
-    return OpenRouterProvider.validateApiKey(apiKey);
-  }
-
-  // If not either of those providers, something is wrong
-  throw new Error("unexpected provider, not able to validate api key");
-}
-
 // Cache this instance on first use
 let encoding: Tiktoken;
 
@@ -435,13 +362,14 @@ export const calculateTokenCost = (tokens: number, model: ChatCraftModel) => {
  */
 export async function isTtsSupported() {
   const { currentProvider } = getSettings();
-  if (!currentProvider?.apiKey) {
+  if (!currentProvider.apiKey) {
     throw new Error("Missing API Key");
   }
 
   return (
-    (await queryModels(currentProvider?.apiKey)).filter((model: string) => model.includes("tts"))
-      ?.length > 0
+    (await currentProvider.queryModels(currentProvider.apiKey)).filter((model: string) =>
+      model.includes("tts")
+    )?.length > 0
   );
 }
 
@@ -452,10 +380,10 @@ export async function isTtsSupported() {
  */
 export const textToSpeech = async (message: string): Promise<string> => {
   const { currentProvider } = getSettings();
-  if (!currentProvider?.apiKey) {
+  if (!currentProvider.apiKey) {
     throw new Error("Missing API Key");
   }
-  const { openai } = createClient(currentProvider?.apiKey, currentProvider?.apiUrl);
+  const { openai } = currentProvider.createClient(currentProvider.apiKey);
 
   const mp3 = await openai.audio.speech.create({
     model: "tts-1",

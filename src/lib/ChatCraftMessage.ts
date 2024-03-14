@@ -1,9 +1,10 @@
 import { nanoid } from "nanoid";
 import db, { type ChatCraftMessageTable } from "./db";
 import { ChatCraftModel } from "./ChatCraftModel";
-import { countTokens, defaultModelForProvider } from "./ai";
+import { countTokens } from "./ai";
 import { loadFunctions, parseFunctionNames } from "./ChatCraftFunction";
 import OpenAI from "openai";
+import { getSettings } from "./settings";
 
 export class ChatCraftAiMessageVersion {
   id: string;
@@ -302,7 +303,9 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     return new ChatCraftAiMessage({
       id: message.id,
       date: new Date(message.date),
-      model: message.model ? new ChatCraftModel(message.model) : defaultModelForProvider(),
+      model: message.model
+        ? new ChatCraftModel(message.model)
+        : getSettings().currentProvider.defaultModelForProvider(),
       text: message.text,
       versions: message.versions?.map(
         (version) =>
@@ -320,7 +323,9 @@ export class ChatCraftAiMessage extends ChatCraftMessage {
     return new ChatCraftAiMessage({
       id: message.id,
       date: message.date,
-      model: message.model ? new ChatCraftModel(message.model) : defaultModelForProvider(),
+      model: message.model
+        ? new ChatCraftModel(message.model)
+        : getSettings().currentProvider.defaultModelForProvider(),
       text: message.text,
       versions: message.versions?.map(
         (version) =>
@@ -600,7 +605,9 @@ export class ChatCraftFunctionCallMessage extends ChatCraftMessage {
       id: message.id,
       date: new Date(message.date),
       func: message.func,
-      model: message.model ? new ChatCraftModel(message.model) : defaultModelForProvider(),
+      model: message.model
+        ? new ChatCraftModel(message.model)
+        : getSettings().currentProvider.defaultModelForProvider(),
       text: message.text,
       readonly: true,
     });
@@ -619,7 +626,9 @@ export class ChatCraftFunctionCallMessage extends ChatCraftMessage {
       id: message.id,
       date: message.date,
       func: message.func,
-      model: message.model ? new ChatCraftModel(message.model) : defaultModelForProvider(),
+      model: message.model
+        ? new ChatCraftModel(message.model)
+        : getSettings().currentProvider.defaultModelForProvider(),
       text: message.text,
     });
   }

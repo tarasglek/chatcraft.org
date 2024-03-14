@@ -20,7 +20,7 @@ export default function PromptForm(props: PromptFormProps) {
   const isMobile = useMobileBreakpoint();
 
   // Skip showing anything if we don't have an API Key to use
-  if (!settings.currentProvider?.apiKey) {
+  if (!settings.currentProvider.apiKey) {
     return null;
   }
 
