@@ -433,9 +433,9 @@ export const generateImage = async (
   try {
     const response = await openai.images.generate({
       model: "dall-e-3",
-      prompt: prompt,
-      n: n,
-      size: size,
+      prompt,
+      n,
+      size,
     });
 
     const imageUrls = response.data.map((img: any) => img.url);
