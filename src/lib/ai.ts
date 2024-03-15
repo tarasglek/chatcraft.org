@@ -397,6 +397,23 @@ export const textToSpeech = async (message: string): Promise<string> => {
   return objectUrl;
 };
 
+/**
+ * Only meant to be used outside components or hooks
+ * where useModels cannot be used.
+ */
+export async function isGenerateImageSupported() {
+  const { currentProvider } = getSettings();
+  if (!currentProvider.apiKey) {
+    throw new Error("Missing API Key");
+  }
+
+  return (
+    (await currentProvider.queryModels(currentProvider.apiKey)).filter((model: string) =>
+      model.includes("dall-e-3")
+    )?.length > 0
+  );
+}
+
 type dalle3ImageSize = "1024x1024" | "1792x1024" | "1024x1792";
 
 export const generateImage = async (
@@ -407,7 +424,7 @@ export const generateImage = async (
   size: dalle3ImageSize = "1024x1024"
 ): Promise<string[]> => {
   const { currentProvider } = getSettings();
-  if (!currentProvider?.apiKey) {
+  if (!currentProvider.apiKey) {
     throw new Error("Missing OpenAI API Key");
   }
 
@@ -424,6 +441,6 @@ export const generateImage = async (
     const imageUrls = response.data.map((img: any) => img.url);
     return imageUrls;
   } catch (error: any) {
-    throw new Error(`Failed to generate image: ${error.message}`);
+    throw new Error(error);
   }
 };
