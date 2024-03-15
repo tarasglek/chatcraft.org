@@ -12,7 +12,13 @@ globalThis.__esbuildWasmLoaded = false;
 const supportedJS = ["js", "javascript"];
 const supportedTS = ["ts", "typescript"];
 const supportedPY = ["py", "python"];
-const SupportedBrowserLanguages = [...supportedJS, ...supportedTS, ...supportedPY];
+const supportedRuby = ["rb", "ruby"];
+const SupportedBrowserLanguages = [
+  ...supportedJS,
+  ...supportedTS,
+  ...supportedPY,
+  ...supportedRuby,
+];
 const supportedServerLanguages = [...supportedJS, ...supportedTS];
 
 function isJavaScript(language: string) {
@@ -25,6 +31,10 @@ function isTypeScript(language: string) {
 
 function isPython(language: string) {
   return supportedPY.includes(language);
+}
+
+function isRuby(language: string) {
+  return supportedRuby.includes(language);
 }
 
 export function isRunnableInBrowser(language: string) {
@@ -115,15 +125,25 @@ async function runJavaScript(code: string) {
   }
 }
 
-async function runPython(code: string) {
+async function runInWasi(code: string, language: string) {
   const { WASI } = await import("@antonz/runno");
-  const url = "https://unpkg.com/@antonz/python-wasi/dist/python.wasm";
 
-  // Use captureConsole to capture console output
+  let url: string;
+  let args: string[];
+  if (language === "python") {
+    url = "https://unpkg.com/@antonz/python-wasi/dist/python.wasm";
+    args = ["python", "-c", code];
+  } else if (language === "ruby") {
+    url = "https://unpkg.com/@antonz/ruby-wasi/dist/ruby.wasm";
+    args = ["ruby", "-e", code];
+  } else {
+    throw new Error("Unsupported language");
+  }
+
   const executionResult = await captureConsole(async () => {
     const executionPromise = new Promise<void>((resolve, reject) => {
       WASI.start(fetch(url), {
-        args: ["python", "-c", code],
+        args: args,
         stdout: (out) => {
           console.log(out);
         },
@@ -133,13 +153,13 @@ async function runPython(code: string) {
       })
         .then((result) => {
           if (result.exitCode === 0) {
-            resolve(); // Resolves the promise with no value
+            resolve();
           } else {
-            reject(new Error("Script execution failed")); // Rejects the promise if execution failed
+            reject(new Error("Script execution failed"));
           }
         })
         .catch((error) => {
-          reject(error); // Reject on error
+          reject(error);
         });
     });
     return executionPromise;
@@ -188,7 +208,10 @@ export async function runCode(code: string, language: string) {
     return runJavaScript(code);
   }
   if (isPython(language)) {
-    return runPython(code);
+    return runInWasi(code, "python");
+  }
+  if (isRuby(language)) {
+    return runInWasi(code, "ruby");
   }
   throw new Error(`Unsupported language: ${language}`);
 }
