@@ -21,6 +21,7 @@ import useAudioPlayer from "./use-audio-player";
 import { useAutoScroll } from "./use-autoscroll";
 import { useCost } from "./use-cost";
 import { useSettings } from "./use-settings";
+import { useAlert } from "./use-alert";
 
 const noop = () => {};
 
@@ -44,6 +45,7 @@ function useChatOpenAI() {
   }, [paused]);
 
   const { addToAudioQueue } = useAudioPlayer();
+  const { error } = useAlert();
 
   const callChatApi = useCallback(
     async (
@@ -86,31 +88,41 @@ function useChatOpenAI() {
         },
         onData({ currentText }) {
           if (!pausedRef.current) {
-            // Hook tts code here
-            ttsWordsBuffer = currentText.slice(ttsCursor);
+            //#region Text to Speech
 
-            const { sentences } = tokenize(ttsWordsBuffer);
+            try {
+              ttsWordsBuffer = currentText.slice(ttsCursor);
 
-            if (ttsSupported && getSettings().textToSpeech.announceMessages) {
-              if (
-                sentences.length > 1 // Has one full sentence
-              ) {
-                // Pass the sentence to tts api for processing
-                const textToBeProcessed = sentences[0];
-                const audioClipUri = textToSpeech(textToBeProcessed, settings.textToSpeech.voice);
-                addToAudioQueue(audioClipUri);
+              const { sentences } = tokenize(ttsWordsBuffer);
 
-                // Update the tts Cursor
-                ttsCursor += sentences[0].length;
-              } else if (nlp(ttsWordsBuffer).terms().out("array").length >= TTS_BUFFER_THRESHOLD) {
-                // Try to break the large sentence into clauses
-                const clauseToProcess = nlp(ttsWordsBuffer).clauses().out("array")[0];
-                const audioClipUri = textToSpeech(clauseToProcess, settings.textToSpeech.voice);
-                addToAudioQueue(audioClipUri);
+              if (ttsSupported && getSettings().textToSpeech.announceMessages) {
+                if (
+                  sentences.length > 1 // Has one full sentence
+                ) {
+                  // Pass the sentence to tts api for processing
+                  const textToBeProcessed = sentences[0];
+                  const audioClipUri = textToSpeech(textToBeProcessed, settings.textToSpeech.voice);
+                  addToAudioQueue(audioClipUri);
 
-                ttsCursor += clauseToProcess.length;
+                  // Update the tts Cursor
+                  ttsCursor += sentences[0].length;
+                } else if (
+                  nlp(ttsWordsBuffer).terms().out("array").length >= TTS_BUFFER_THRESHOLD
+                ) {
+                  // Try to break the large sentence into clauses
+                  const clauseToProcess = nlp(ttsWordsBuffer).clauses().out("array")[0];
+                  const audioClipUri = textToSpeech(clauseToProcess, settings.textToSpeech.voice);
+                  addToAudioQueue(audioClipUri);
+
+                  ttsCursor += clauseToProcess.length;
+                }
               }
+            } catch (err: any) {
+              console.error(err);
+              error({ title: "Error generating audio", message: err.message });
             }
+
+            //#endregion
 
             setStreamingMessage(
               new ChatCraftAiMessage({
@@ -163,21 +175,27 @@ function useChatOpenAI() {
             getSettings().textToSpeech.announceMessages &&
             ttsWordsBuffer.length
           ) {
-            // Call TTS for any remaining words
-            const audioClipUri = textToSpeech(ttsWordsBuffer, settings.textToSpeech.voice);
-            addToAudioQueue(audioClipUri);
+            try {
+              // Call TTS for any remaining words
+              const audioClipUri = textToSpeech(ttsWordsBuffer, settings.textToSpeech.voice);
+              addToAudioQueue(audioClipUri);
+            } catch (err: any) {
+              console.error(err);
+              error({ title: "Error generating audio", message: err.message });
+            }
           }
         });
     },
     [
-      settings,
-      pausedRef,
+      settings.model,
+      settings.textToSpeech.voice,
+      settings.countTokens,
       setShouldAutoScroll,
       resetScrollProgress,
       incrementScrollProgress,
-      setStreamingMessage,
-      incrementCost,
       addToAudioQueue,
+      error,
+      incrementCost,
     ]
   );
 

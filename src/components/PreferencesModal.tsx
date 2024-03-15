@@ -202,12 +202,17 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
 
   const handlePlayAudioPreview = useCallback(async () => {
-    const { voice } = settings.textToSpeech;
-    const previewText = `Hi there, this is ${voice}!`;
+    try {
+      const { voice } = settings.textToSpeech;
+      const previewText = `Hi there, this is ${voice}!`;
 
-    clearAudioQueue();
-    addToAudioQueue(textToSpeech(previewText, voice));
-  }, [addToAudioQueue, clearAudioQueue, settings.textToSpeech]);
+      clearAudioQueue();
+      addToAudioQueue(textToSpeech(previewText, voice));
+    } catch (err: any) {
+      console.error(err);
+      error({ title: "Error while generating Audio", message: err.message });
+    }
+  }, [addToAudioQueue, clearAudioQueue, error, settings.textToSpeech]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>

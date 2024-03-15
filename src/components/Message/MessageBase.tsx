@@ -245,28 +245,33 @@ function MessageBase({
       if (messageContent.current) {
         const text = messageContent.current.textContent;
         if (text) {
-          info({
-            title: "Downloading...",
-            message: "Please wait while we prepare your audio download.",
-          });
+          try {
+            info({
+              title: "Downloading...",
+              message: "Please wait while we prepare your audio download.",
+            });
 
-          const audioClipUrl = await textToSpeech(text, voice, "tts-1-hd");
-          const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
+            const audioClipUrl = await textToSpeech(text, voice, "tts-1-hd");
+            const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
 
-          download(
-            audioClip,
-            `${settings.currentProvider.name}_message.${audioClip.type.split("/")[1]}`,
-            audioClip.type
-          );
+            download(
+              audioClip,
+              `${settings.currentProvider.name}_message.${audioClip.type.split("/")[1]}`,
+              audioClip.type
+            );
 
-          info({
-            title: "Downloaded",
-            message: "Message was downloaded as Audio",
-          });
+            info({
+              title: "Downloaded",
+              message: "Message was downloaded as Audio",
+            });
+          } catch (err: any) {
+            console.error(err);
+            error({ title: "Error while downloading audio", message: err.message });
+          }
         }
       }
     },
-    [info, settings.currentProvider.name]
+    [error, info, settings.currentProvider.name]
   );
 
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
@@ -353,15 +358,20 @@ function MessageBase({
 
   const handleSpeakMessage = useCallback(
     async (messageContent: string) => {
-      // Stop any currently playing audio before starting new
-      clearAudioQueue();
+      try {
+        // Stop any currently playing audio before starting new
+        clearAudioQueue();
 
-      const { voice } = settings.textToSpeech;
+        const { voice } = settings.textToSpeech;
 
-      // Use lighter tts-1 model to minimize latency
-      addToAudioQueue(textToSpeech(messageContent, voice, "tts-1"));
+        // Use lighter tts-1 model to minimize latency
+        addToAudioQueue(textToSpeech(messageContent, voice, "tts-1"));
+      } catch (err: any) {
+        console.error(err);
+        error({ title: "Error while generating Audio", message: err.message });
+      }
     },
-    [clearAudioQueue, settings.textToSpeech, addToAudioQueue]
+    [clearAudioQueue, settings.textToSpeech, addToAudioQueue, error]
   );
 
   return (
