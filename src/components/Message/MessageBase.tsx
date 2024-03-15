@@ -59,14 +59,12 @@ import Markdown from "../Markdown";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
 import { useLiveQuery } from "dexie-react-hooks";
-import { capitalize } from "lodash-es";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { textToSpeech } from "../../lib/ai";
 import { usingOfficialOpenAI } from "../../lib/providers";
-import { TextToSpeechVoices } from "../../lib/settings";
 import "./Message.css";
 
 export interface MessageBaseProps {
@@ -240,39 +238,36 @@ function MessageBase({
     }
   }, [messageContent, info]);
 
-  const handleDownloadAudio = useCallback(
-    async (voice: TextToSpeechVoices) => {
-      if (messageContent.current) {
-        const text = messageContent.current.textContent;
-        if (text) {
-          try {
-            info({
-              title: "Downloading...",
-              message: "Please wait while we prepare your audio download.",
-            });
+  const handleDownloadAudio = useCallback(async () => {
+    if (messageContent.current) {
+      const text = messageContent.current.textContent;
+      if (text) {
+        try {
+          info({
+            title: "Downloading...",
+            message: "Please wait while we prepare your audio download.",
+          });
 
-            const audioClipUrl = await textToSpeech(text, voice, "tts-1-hd");
-            const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
+          const audioClipUrl = await textToSpeech(text, settings.textToSpeech.voice, "tts-1-hd");
+          const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
 
-            download(
-              audioClip,
-              `${settings.currentProvider.name}_message.${audioClip.type.split("/")[1]}`,
-              audioClip.type
-            );
+          download(
+            audioClip,
+            `${settings.currentProvider.name}_message.${audioClip.type.split("/")[1]}`,
+            audioClip.type
+          );
 
-            info({
-              title: "Downloaded",
-              message: "Message was downloaded as Audio",
-            });
-          } catch (err: any) {
-            console.error(err);
-            error({ title: "Error while downloading audio", message: err.message });
-          }
+          info({
+            title: "Downloaded",
+            message: "Message was downloaded as Audio",
+          });
+        } catch (err: any) {
+          console.error(err);
+          error({ title: "Error while downloading audio", message: err.message });
         }
       }
-    },
-    [error, info, settings.currentProvider.name]
-  );
+    }
+  }, [error, info, settings.currentProvider.name, settings.textToSpeech.voice]);
 
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     messageForm.current?.setAttribute("data-action", e.currentTarget.name);
@@ -459,15 +454,7 @@ function MessageBase({
                 <SubMenu label="Download">
                   <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
                   <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
-                  <SubMenu label="Download as Audio">
-                    {Object.values(TextToSpeechVoices).map((voice) => (
-                      <MenuItem
-                        key={voice}
-                        label={capitalize(voice)}
-                        onClick={() => handleDownloadAudio(voice)}
-                      />
-                    ))}
-                  </SubMenu>
+                  <MenuItem label="Download as Audio" onClick={handleDownloadAudio}></MenuItem>
                   <MenuItem
                     label="Download as Image"
                     onClick={handleDownloadImage}
