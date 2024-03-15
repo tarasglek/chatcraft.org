@@ -17,7 +17,9 @@ Some commands accept arguments as well.
 | /new          | Creates a new chat. |
 | /clear        | Erases all messages in the current chat. |
 | /summary&nbsp;[max-length] | Uses ChatGPT to create a summary of the current chat. Optionally takes a maximum word length (defaults to 500). |
-| /import&nbsp;<url> | Loads the provided URL and imports the text. Where possible, ChatCraft will try to get raw text vs. HTML from sites like GitHub. NOTE: to prevent abuse, you must be logged into use the import command. |`;
+| /import&nbsp;<url> | Loads the provided URL and imports the text. Where possible, ChatCraft will try to get raw text vs. HTML from sites like GitHub. NOTE: to prevent abuse, you must be logged into use the import command. |
+| /image&nbsp;<prompt> | Creates an image using the provided prompt.|
+`;
 
 const helpText = `## ChatCraft.org Help
 

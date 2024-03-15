@@ -396,3 +396,51 @@ export const textToSpeech = async (message: string): Promise<string> => {
 
   return objectUrl;
 };
+
+/**
+ * Only meant to be used outside components or hooks
+ * where useModels cannot be used.
+ */
+export async function isGenerateImageSupported() {
+  const { currentProvider } = getSettings();
+  if (!currentProvider.apiKey) {
+    throw new Error("Missing API Key");
+  }
+
+  return (
+    (await currentProvider.queryModels(currentProvider.apiKey)).filter((model: string) =>
+      model.includes("dall-e-3")
+    )?.length > 0
+  );
+}
+
+type dalle3ImageSize = "1024x1024" | "1792x1024" | "1024x1792";
+
+export const generateImage = async (
+  prompt: string,
+  //You can request 1 image at a time with DALL·E 3 (request more by making parallel requests) or up to 10 images at a time using DALL·E 2 with the n parameter.
+  //https://platform.openai.com/docs/guides/images/generations
+  n: number = 1,
+  size: dalle3ImageSize = "1024x1024"
+): Promise<string[]> => {
+  const { currentProvider } = getSettings();
+  if (!currentProvider.apiKey) {
+    throw new Error("Missing OpenAI API Key");
+  }
+
+  const { openai } = currentProvider.createClient(currentProvider.apiKey);
+
+  try {
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt,
+      n,
+      size,
+    });
+
+    const imageUrls = response.data.map((img: any) => img.url);
+    return imageUrls;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
