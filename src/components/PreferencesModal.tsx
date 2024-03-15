@@ -1,46 +1,54 @@
-import { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
-import { useCopyToClipboard, useDebounce } from "react-use";
 import {
-  Button,
   Box,
+  Button,
+  ButtonGroup,
+  Checkbox,
+  Flex,
   FormControl,
-  FormLabel,
+  FormErrorMessage,
   FormHelperText,
+  FormLabel,
+  IconButton,
   Input,
+  Kbd,
+  Link,
   Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
-  RadioGroup,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Radio,
-  VStack,
-  Stack,
+  RadioGroup,
   Select,
   Slider,
-  SliderTrack,
   SliderFilledTrack,
   SliderThumb,
-  Kbd,
-  Checkbox,
-  Link,
-  ButtonGroup,
-  FormErrorMessage,
+  SliderTrack,
+  Stack,
+  Tooltip,
+  VStack,
 } from "@chakra-ui/react";
+import { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { useCopyToClipboard, useDebounce } from "react-use";
 
-import RevealablePasswordInput from "./RevealablePasswordInput";
-import { useSettings } from "../hooks/use-settings";
-import { download, isMac } from "../lib/utils";
-import db from "../lib/db";
+import { capitalize } from "lodash-es";
+import { MdVolumeUp } from "react-icons/md";
+import { useAlert } from "../hooks/use-alert";
+import useAudioPlayer from "../hooks/use-audio-player";
 import { useModels } from "../hooks/use-models";
+import { useSettings } from "../hooks/use-settings";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { providerFromUrl, providerFromJSON, getSupportedProviders } from "../lib/providers";
+import { textToSpeech } from "../lib/ai";
+import db from "../lib/db";
+import { getSupportedProviders, providerFromJSON, providerFromUrl } from "../lib/providers";
+import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
 import { OpenAiProvider } from "../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../lib/providers/OpenRouterProvider";
-import { useAlert } from "../hooks/use-alert";
-import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
+import { TextToSpeechVoices } from "../lib/settings";
+import { download, isMac } from "../lib/utils";
+import RevealablePasswordInput from "./RevealablePasswordInput";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -177,6 +185,28 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     },
     [setSettings, settings]
   );
+
+  const handleVoiceSelection = useCallback(
+    (voice: TextToSpeechVoices) => {
+      setSettings({
+        ...settings,
+        textToSpeech: {
+          ...settings.textToSpeech,
+          voice,
+        },
+      });
+    },
+    [setSettings, settings]
+  );
+
+  const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
+
+  const handlePlayAudioPreview = useCallback(async () => {
+    const previewText = "Hi there, this is ChatCraft!";
+
+    clearAudioQueue();
+    addToAudioQueue(textToSpeech(previewText, settings.textToSpeech.voice));
+  }, [addToAudioQueue, clearAudioQueue, settings.textToSpeech.voice]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
@@ -386,6 +416,36 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 <FormErrorMessage>Temperature must be a number between 0 and 2.</FormErrorMessage>
                 <FormHelperText>
                   The temperature increases the randomness of the response (0.0 - 2.0).
+                </FormHelperText>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Select Voice</FormLabel>
+
+                <Flex gap={3} alignItems={"center"}>
+                  <Select
+                    value={settings.textToSpeech.voice}
+                    onChange={(evt) => handleVoiceSelection(evt.target.value as TextToSpeechVoices)}
+                  >
+                    {Object.values(TextToSpeechVoices).map((voice) => (
+                      <option key={voice} value={voice}>
+                        {capitalize(voice)}
+                      </option>
+                    ))}
+                  </Select>
+                  <Tooltip label="Audio Preview">
+                    <IconButton
+                      variant="outline"
+                      type="button"
+                      aria-label={"Audio Preview for " + capitalize(settings.textToSpeech.voice)}
+                      icon={<MdVolumeUp />}
+                      onClick={handlePlayAudioPreview}
+                    />
+                  </Tooltip>
+                </Flex>
+
+                <FormHelperText>
+                  Used when announcing messages in real-time or with the &lsquo;Speak&rsquo; option
                 </FormHelperText>
               </FormControl>
 

@@ -120,7 +120,7 @@ function MessageBase({
   const { onCopy } = useClipboard(text);
   const { info, error } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
-  const { settings, setSettings } = useSettings();
+  const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
@@ -349,19 +349,6 @@ function MessageBase({
   };
   const closeModal = () => setImageModalOpen(false);
 
-  const handleVoiceSelection = useCallback(
-    (voice: TextToSpeechVoices) => {
-      setSettings({
-        ...settings,
-        textToSpeech: {
-          ...settings.textToSpeech,
-          voice,
-        },
-      });
-    },
-    [setSettings, settings]
-  );
-
   const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
 
   const handleSpeakMessage = useCallback(
@@ -370,7 +357,9 @@ function MessageBase({
       clearAudioQueue();
 
       const { voice } = settings.textToSpeech;
-      addToAudioQueue(textToSpeech(messageContent, voice, "tts-1-hd"));
+
+      // Use lighter tts-1 model when not to minimize latency
+      addToAudioQueue(textToSpeech(messageContent, voice, "tts-1"));
     },
     [clearAudioQueue, settings.textToSpeech, addToAudioQueue]
   );
@@ -477,21 +466,10 @@ function MessageBase({
                     disabled={displaySummaryText !== false || editing}
                   />
                 </SubMenu>
-                <SubMenu label="Audio">
-                  <SubMenu label="Select Voice">
-                    {Object.values(TextToSpeechVoices).map((voice) => (
-                      <MenuItem
-                        key={voice}
-                        label={capitalize(voice)}
-                        onClick={() => handleVoiceSelection(voice)}
-                      />
-                    ))}
-                  </SubMenu>
-                  <MenuItem
-                    label="Speak"
-                    onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
-                  />
-                </SubMenu>
+                <MenuItem
+                  label="Speak"
+                  onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
+                />
                 {!disableFork && (
                   <MenuItem
                     label={

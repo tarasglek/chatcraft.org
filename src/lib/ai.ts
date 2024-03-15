@@ -391,16 +391,15 @@ export const textToSpeech = async (
   }
   const { openai } = currentProvider.createClient(currentProvider.apiKey);
 
-  const mp3 = await openai.audio.speech.create({
+  const response = await openai.audio.speech.create({
     model,
     voice,
     input: message,
   });
 
-  const blob = new Blob([await mp3.arrayBuffer()], { type: "audio/mp3" });
-  const objectUrl = URL.createObjectURL(blob);
+  const audioUrl = URL.createObjectURL(await response.blob());
 
-  return objectUrl;
+  return audioUrl;
 };
 
 /**
