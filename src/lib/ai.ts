@@ -411,7 +411,7 @@ export const generateImage = async (
     throw new Error("Missing OpenAI API Key");
   }
 
-  const { openai } = createClient(currentProvider?.apiKey, currentProvider?.apiUrl);
+  const { openai } = currentProvider.createClient(currentProvider.apiKey);
 
   try {
     const response = await openai.images.generate({
