@@ -125,7 +125,7 @@ async function runJavaScript(code: string) {
   }
 }
 
-async function runPythonOrRuby(code: string, language: string) {
+async function runInWasi(code: string, language: string) {
   const { WASI } = await import("@antonz/runno");
 
   let url: string;
@@ -208,10 +208,10 @@ export async function runCode(code: string, language: string) {
     return runJavaScript(code);
   }
   if (isPython(language)) {
-    return runPythonOrRuby(code, "python");
+    return runInWasi(code, "python");
   }
   if (isRuby(language)) {
-    return runPythonOrRuby(code, "ruby");
+    return runInWasi(code, "ruby");
   }
   throw new Error(`Unsupported language: ${language}`);
 }
