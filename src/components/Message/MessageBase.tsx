@@ -358,7 +358,7 @@ function MessageBase({
 
       const { voice } = settings.textToSpeech;
 
-      // Use lighter tts-1 model when not to minimize latency
+      // Use lighter tts-1 model to minimize latency
       addToAudioQueue(textToSpeech(messageContent, voice, "tts-1"));
     },
     [clearAudioQueue, settings.textToSpeech, addToAudioQueue]
