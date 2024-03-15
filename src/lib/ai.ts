@@ -401,6 +401,8 @@ type dalle3ImageSize = "1024x1024" | "1792x1024" | "1024x1792";
 
 export const generateImage = async (
   prompt: string,
+  //You can request 1 image at a time with DALL·E 3 (request more by making parallel requests) or up to 10 images at a time using DALL·E 2 with the n parameter.
+  //https://platform.openai.com/docs/guides/images/generations
   n: number = 1,
   size: dalle3ImageSize = "1024x1024"
 ): Promise<string[]> => {
