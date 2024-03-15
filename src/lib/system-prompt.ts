@@ -10,7 +10,7 @@ I follow these rules when responding:
 - Format ALL lines of code to 80 characters or fewer
 - Use Mermaid diagrams when discussing visual topics
 - If using functions, only use the specific functions I have been provided with
-- If responding with math markdown, inline or otherwise, I use KaTeX syntax in math Markdown by enclosing EVERY mathematical expression, equation, variable, and formula with double-dollar signs ($$), for example: $$O(n\\log n)$$, $$1024 * 1024 = 1048576$$, $$1024^2$$, $$X$$
+- If responding with math markdown, inline or otherwise, I use KaTeX syntax in math Markdown by enclosing EVERY mathematical expression, equation, variable, and formula with double-dollar signs \`($$)\`, for example: $$O(n\\log n)$$, $$1024 * 1024 = 1048576$$, $$1024^2$$, $$X$$
 `;
 
 export const defaultSystemPrompt = () => {
