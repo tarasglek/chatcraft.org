@@ -202,11 +202,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
 
   const handlePlayAudioPreview = useCallback(async () => {
-    const previewText = "Hi there, this is ChatCraft!";
+    const { voice } = settings.textToSpeech;
+    const previewText = `Hi there, this is ${voice}!`;
 
     clearAudioQueue();
-    addToAudioQueue(textToSpeech(previewText, settings.textToSpeech.voice));
-  }, [addToAudioQueue, clearAudioQueue, settings.textToSpeech.voice]);
+    addToAudioQueue(textToSpeech(previewText, voice));
+  }, [addToAudioQueue, clearAudioQueue, settings.textToSpeech]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
