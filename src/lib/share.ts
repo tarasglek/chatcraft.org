@@ -19,7 +19,8 @@ export function createDataShareUrl(chat: ChatCraftChat, user: User) {
 export function createShareUrl(chat: ChatCraftChat, user: User, prefix = "/c") {
   const { origin } = new URL(location.href);
   const shareUrl = new URL(`${prefix}/${user.username}/${chat.id}`, origin);
-
+  console.log("created share url:", shareUrl);
+  console.log("href", shareUrl.href);
   return shareUrl.href;
 }
 
@@ -145,8 +146,8 @@ export async function createShare(chat: ChatCraftChat, user: User) {
   }
 }
 
-export async function loadShare(user: string, id: string) {
-  const res = await fetch(`/api/share/${user}/${id}`);
+export async function loadShare(user: User, chatId: string) {
+  const res = await fetch(`/api/share/${user.username}/${chatId}`);
   if (!res.ok) {
     throw new Error("Unable to load shared chat" + (await res.text()));
   }
