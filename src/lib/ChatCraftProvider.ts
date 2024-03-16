@@ -6,7 +6,7 @@ export type ProviderName = "OpenAI" | "OpenRouter.ai" | "Free AI Models";
 
 export const OPENAI_API_URL = "https://api.openai.com/v1";
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
-export const FREEMODELPROVIDER_API_URL = "https://taras-free_open_router.web.val.run/api/v1";
+export const FREEMODELPROVIDER_API_URL = "https://free-chatcraft-ai.deno.dev/api/v1";
 
 const urlToNameMap: { [key: string]: ProviderName } = {
   [OPENAI_API_URL]: "OpenAI",
