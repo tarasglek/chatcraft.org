@@ -12,7 +12,7 @@ import {
 import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
 import { createSystemMessage } from "./system-prompt";
-import { createDataShareUrl, createShare, createShareUrl } from "./share";
+import { createShare, createShareUrl } from "./share";
 import { SharedChatCraftChat } from "./SharedChatCraftChat";
 import { countTokensInMessages } from "./ai";
 import { parseFunctionNames, loadFunctions } from "./ChatCraftFunction";
