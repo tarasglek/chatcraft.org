@@ -35,7 +35,7 @@ import {
 
 import { Menu, MenuItem, SubMenu, MenuDivider } from "../Menu";
 import ResizeTextarea from "react-textarea-autosize";
-import { TbTrash } from "react-icons/tb";
+import { TbTrash, TbShare2 } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink } from "react-router-dom";
@@ -427,14 +427,7 @@ function MessageBase({
                 <MenuItem
                   label="Share Message"
                   onClick={() => handleShareMessage()}
-                  icon={
-                    <IconButton
-                      variant="ghost"
-                      // icon={<YourShareIcon />} // Replace YourShareIcon with the actual icon you want to use for sharing
-                      aria-label="Share message"
-                      title="Share message"
-                    />
-                  }
+                  icon={<TbShare2 />}
                 />
                 {(!disableEdit || onDeleteClick) && <MenuDivider />}
                 {!disableEdit && (

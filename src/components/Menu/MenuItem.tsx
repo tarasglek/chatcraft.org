@@ -6,11 +6,13 @@ import {
 
 export type MenuItemProps = ReactMenuItemProps & { label: ReactNode; icon?: ReactNode };
 
-const MenuItem: React.FC<MenuItemProps> = (props) => {
+const MenuItem: React.FC<MenuItemProps> = ({ label, icon, ...props }) => {
   return (
     <ReactMenuItem {...props}>
-      {props.label}
-      {props.icon}
+      <div style={{ display: "flex", alignItems: "center" }}>
+        {icon && <span style={{ marginRight: "8px" }}>{icon}</span>}
+        {label}
+      </div>
     </ReactMenuItem>
   );
 };
