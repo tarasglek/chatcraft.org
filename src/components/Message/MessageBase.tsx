@@ -386,18 +386,7 @@ function MessageBase({
                 </ButtonGroup>
               )}
               <Menu isDisabled={isLoading}>
-                <MenuItem
-                  label="Copy"
-                  onClick={handleCopy}
-                  icon={
-                    <IconButton
-                      variant="ghost"
-                      icon={<MdContentCopy />}
-                      aria-label="Copy message to clipboard"
-                      title="Copy message to clipboard"
-                    />
-                  }
-                />
+                <MenuItem label="Copy" onClick={handleCopy} icon={<MdContentCopy />} />
                 <SubMenu label="Download">
                   <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
                   <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
@@ -452,14 +441,7 @@ function MessageBase({
                   <MenuItem
                     label={editing ? "Cancel Editing" : "Edit"}
                     onClick={() => onEditingChange(!editing)}
-                    icon={
-                      <IconButton
-                        variant="ghost"
-                        icon={<AiOutlineEdit />}
-                        aria-label="Edit message"
-                        title="Edit message"
-                      />
-                    }
+                    icon={<AiOutlineEdit />}
                   />
                 )}
 
@@ -470,14 +452,7 @@ function MessageBase({
                         label="Delete Message"
                         onClick={onDeleteClick}
                         className="delete-button"
-                        icon={
-                          <IconButton
-                            variant="ghost"
-                            icon={<TbTrash color="red" />}
-                            aria-label="Delete message"
-                            title="Delete message"
-                          />
-                        }
+                        icon={<TbTrash color="red" />}
                       />
                     ) : (
                       <SubMenu label="Delete" className="delete-button">
@@ -493,14 +468,7 @@ function MessageBase({
                             label="Delete Message"
                             onClick={onDeleteClick}
                             className="delete-button"
-                            icon={
-                              <IconButton
-                                variant="ghost"
-                                icon={<TbTrash color="red" />}
-                                aria-label="Delete message"
-                                title="Delete message"
-                              />
-                            }
+                            icon={<TbTrash color="red" />}
                           />
                         )}
                         {onDeleteAfterClick && (
