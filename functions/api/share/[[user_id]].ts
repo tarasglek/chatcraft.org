@@ -8,6 +8,64 @@ interface Env {
   JWT_SECRET: string;
 }
 
+async function generateAndSaveUserFeed(env: Env, user: string): Promise<string> {
+  const { CHATCRAFT_ORG_BUCKET } = env;
+  const prefix: string = `${user}/`;
+  const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix });
+
+  let feed = `<?xml version="1.0" encoding="utf-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+    <title>User Feed for ${user}</title>
+    <link href="https://chatcraft.org/api/feed/${user}/feed.atom" rel="self"/>
+    <updated>${new Date().toISOString()}</updated>
+    <author>
+      <name>${user}</name>
+    </author>`;
+
+  for (const object of objects) {
+    const chatData = await CHATCRAFT_ORG_BUCKET.get(object.key);
+    if (chatData) {
+      const chatContent: string = await chatData.text();
+      const doc = new DOMParser().parseFromString(chatContent, "text/html");
+
+      const title = doc.querySelector("title")?.textContent || "No Title";
+      const summary =
+        doc.querySelector("meta[name='description']")?.getAttribute("content") || "No Summary";
+      const metaRefresh = doc.querySelector("meta[http-equiv='refresh']")?.getAttribute("content");
+      const urlMatch = metaRefresh?.match(/url=(.+)/i);
+      const url = urlMatch ? urlMatch[1] : "No URL";
+      const idMatch = url.match(/\/c\/[^/]+\/([^/]+)/);
+      const id = idMatch ? idMatch[1] : "No ID";
+      const preContent = doc.querySelector("pre")?.textContent || "";
+      const dateMatch = preContent.match(/date:\s*(.+)/i);
+      const date = dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString();
+
+      feed += `
+        <entry>
+          <title>${title}</title>
+          <link href="${url}"/>
+          <id>${id}</id>
+          <updated>${date}</updated>
+          <summary>${summary}</summary>
+        </entry>`;
+    }
+  }
+
+  // Close the feed
+  feed += `
+    </feed>`;
+
+  // Save the feed to R2
+  const feedKey = `${user}/feed/feed.atom`;
+  await CHATCRAFT_ORG_BUCKET.put(feedKey, new TextEncoder().encode(feed), {
+    httpMetadata: {
+      contentType: "application/atom+xml",
+    },
+  });
+
+  return `Feed generated and saved for user ${user}`;
+}
+
 // POST https://chatcraft.org/api/share/:user/:id
 // Must include JWT in cookie, and user must match token owner
 export const onRequestPut: PagesFunction<Env> = async ({ request, env, params }) => {
@@ -80,6 +138,9 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
         contentType: contentType,
       },
     });
+
+    const [user] = user_id;
+    await generateAndSaveUserFeed(env, user);
 
     return new Response(
       JSON.stringify({
