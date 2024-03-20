@@ -86,12 +86,17 @@ export const screenshotElement = (element: HTMLElement): Promise<Blob> => {
 
 // Make sure image's size is within 20MB and 2048x2048 resolution
 // https://platform.openai.com/docs/guides/vision/is-there-a-limit-to-the-size-of-the-image-i-can-upload
-export const compressImageToBase64 = (file: File): Promise<string> => {
+export const compressImageToBase64 = (
+  file: File,
+  compressionFactor: number = 1,
+  maxCompressedFileSizeMb: number = 20
+): Promise<string> => {
   const imageCompressionOptions = {
-    maxSizeMB: 20,
+    maxSizeMB: Math.min((file.size / 1024 / 1024) * compressionFactor, maxCompressedFileSizeMb, 20),
     maxWidthOrHeight: 2048,
   };
 
+  console.log(imageCompressionOptions);
   return import("browser-image-compression")
     .then((imageCompressionModule) => {
       const imageCompression = imageCompressionModule.default;

@@ -227,8 +227,11 @@ function DesktopPromptForm({
 
   const processImages = (imageFiles: File[]) => {
     setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...imageFiles.map(() => "")]);
-
-    Promise.all(imageFiles.map((file) => compressImageToBase64(file)))
+    Promise.all(
+      imageFiles.map((file) =>
+        compressImageToBase64(file, settings.compressionFactor, settings.maxCompressedFileSizeMb)
+      )
+    )
       .then((base64Strings) => {
         setInputImageUrls((prevImageUrls) => {
           const newImageUrls = [...prevImageUrls];
