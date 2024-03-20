@@ -16,16 +16,21 @@ export function createDataShareUrl(chat: ChatCraftChat, user: User) {
  * @param prefix
  * @returns url
  */
-
-export function convertToShareUrl(url: string) {
-  return url.includes("/api/share") ? url.replace("/api/share", "/c") : url;
-}
-
 export function createShareUrl(chat: ChatCraftChat, user: User, prefix = "/c") {
   const { origin } = new URL(location.href);
   const shareUrl = new URL(`${prefix}/${user.username}/${chat.id}`, origin);
 
   return shareUrl.href;
+}
+
+/**
+ * Converts "/api/share"-style URLs before passing it to UI
+ * This is done to avoid react-router-dom issue involving "/api/share"-style URLs
+ * @param url
+ * @returns url
+ */
+export function convertToShareUrl(url: string) {
+  return url.includes("/api/share") ? url.replace("/api/share", "/c") : url;
 }
 
 /**
