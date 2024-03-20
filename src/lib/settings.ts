@@ -14,6 +14,20 @@ import { OpenAiProvider } from "./providers/OpenAiProvider";
  * If using the latter, we need to override the basePath to use the OpenRouter URL.
  */
 
+type TextToSpeechSettings = {
+  announceMessages?: boolean;
+  voice: TextToSpeechVoices;
+};
+
+export enum TextToSpeechVoices {
+  ALLOY = "alloy",
+  ECHO = "echo",
+  FABLE = "fable",
+  ONYX = "onyx",
+  NOVA = "nova",
+  SHIMMER = "shimmer",
+}
+
 export type Settings = {
   model: ChatCraftModel;
   temperature: number;
@@ -22,7 +36,7 @@ export type Settings = {
   sidebarVisible: boolean;
   alwaysSendFunctionResult: boolean;
   customSystemPrompt?: string;
-  announceMessages?: boolean;
+  textToSpeech: TextToSpeechSettings;
   providers: ProviderData;
   currentProvider: ChatCraftProvider;
 };
@@ -36,7 +50,10 @@ export const defaults: Settings = {
   sidebarVisible: false,
   // Disabled by default, so we don't waste tokens
   alwaysSendFunctionResult: false,
-  announceMessages: false,
+  textToSpeech: {
+    announceMessages: false,
+    voice: TextToSpeechVoices.ALLOY,
+  },
   providers: {},
   currentProvider: new OpenAiProvider(),
 };

@@ -30,6 +30,6 @@ export class FreeModelProvider extends ChatCraftProvider {
   }
 
   defaultModelForProvider() {
-    return new ChatCraftModel("openchat/openchat-7b:free");
+    return new ChatCraftModel("undi95/toppy-m-7b:free");
   }
 }

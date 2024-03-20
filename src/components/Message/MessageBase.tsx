@@ -1,16 +1,4 @@
 import {
-  memo,
-  startTransition,
-  useCallback,
-  useState,
-  useEffect,
-  useRef,
-  type ReactNode,
-  type MouseEvent,
-  type FormEvent,
-  useMemo,
-} from "react";
-import {
   Box,
   Button,
   ButtonGroup,
@@ -22,48 +10,65 @@ import {
   Heading,
   IconButton,
   Image,
+  Kbd,
   Link,
+  Spacer,
   Tag,
   Text,
   Textarea,
   VStack,
   useClipboard,
-  Kbd,
-  Spacer,
   useDisclosure,
 } from "@chakra-ui/react";
+import {
+  memo,
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 
 import { Menu, MenuItem, SubMenu, MenuDivider } from "../Menu";
 import ResizeTextarea from "react-textarea-autosize";
 import { TbTrash, TbShare2 } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
+import { TbTrash } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
+import ResizeTextarea from "react-textarea-autosize";
+import { Menu, MenuDivider, MenuItem, SubMenu } from "../Menu";
 
-import { formatDate, download, formatNumber, getMetaKey, screenshotElement } from "../../lib/utils";
-import Markdown from "../Markdown";
+import { useCopyToClipboard } from "react-use";
+import { useAlert } from "../../hooks/use-alert";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
+import { useModels } from "../../hooks/use-models";
+import { useSettings } from "../../hooks/use-settings";
 import {
-  ChatCraftHumanMessage,
   ChatCraftAiMessage,
   ChatCraftAiMessageVersion,
+  ChatCraftHumanMessage,
   ChatCraftMessage,
   ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
-import { useModels } from "../../hooks/use-models";
-import { useSettings } from "../../hooks/use-settings";
-import { useAlert } from "../../hooks/use-alert";
+import { download, formatDate, formatNumber, getMetaKey, screenshotElement } from "../../lib/utils";
 import ImageModal from "../ImageModal";
-import { useCopyToClipboard } from "react-use";
+import Markdown from "../Markdown";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
-import "./Message.css";
-import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
-import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useLiveQuery } from "dexie-react-hooks";
+import useAudioPlayer from "../../hooks/use-audio-player";
+import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
+import { ChatCraftChat } from "../../lib/ChatCraftChat";
+import { textToSpeech } from "../../lib/ai";
 import { usingOfficialOpenAI } from "../../lib/providers";
+import "./Message.css";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -236,6 +241,37 @@ function MessageBase({
     }
   }, [messageContent, info]);
 
+  const handleDownloadAudio = useCallback(async () => {
+    if (messageContent.current) {
+      const text = messageContent.current.textContent;
+      if (text) {
+        try {
+          info({
+            title: "Downloading...",
+            message: "Please wait while we prepare your audio download.",
+          });
+
+          const audioClipUrl = await textToSpeech(text, settings.textToSpeech.voice, "tts-1-hd");
+          const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
+
+          download(
+            audioClip,
+            `${settings.currentProvider.name}_message.${audioClip.type.split("/")[1]}`,
+            audioClip.type
+          );
+
+          info({
+            title: "Downloaded",
+            message: "Message was downloaded as Audio",
+          });
+        } catch (err: any) {
+          console.error(err);
+          error({ title: "Error while downloading audio", message: err.message });
+        }
+      }
+    }
+  }, [error, info, settings.currentProvider.name, settings.textToSpeech.voice]);
+
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     messageForm.current?.setAttribute("data-action", e.currentTarget.name);
   }, []);
@@ -316,6 +352,26 @@ function MessageBase({
   };
   const closeModal = () => setImageModalOpen(false);
 
+  const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
+
+  const handleSpeakMessage = useCallback(
+    async (messageContent: string) => {
+      try {
+        // Stop any currently playing audio before starting new
+        clearAudioQueue();
+
+        const { voice } = settings.textToSpeech;
+
+        // Use lighter tts-1 model to minimize latency
+        addToAudioQueue(textToSpeech(messageContent, voice, "tts-1"));
+      } catch (err: any) {
+        console.error(err);
+        error({ title: "Error while generating Audio", message: err.message });
+      }
+    },
+    [clearAudioQueue, settings.textToSpeech, addToAudioQueue, error]
+  );
+
   return (
     <Box
       id={id}
@@ -390,6 +446,7 @@ function MessageBase({
                 <SubMenu label="Download">
                   <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
                   <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
+                  <MenuItem label="Download as Audio" onClick={handleDownloadAudio}></MenuItem>
                   <MenuItem
                     label="Download as Image"
                     onClick={handleDownloadImage}
@@ -398,6 +455,10 @@ function MessageBase({
                     disabled={displaySummaryText !== false || editing}
                   />
                 </SubMenu>
+                <MenuItem
+                  label="Speak"
+                  onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
+                />
                 {!disableFork && (
                   <MenuItem
                     label={

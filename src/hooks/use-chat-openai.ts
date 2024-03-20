@@ -1,12 +1,13 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useSettings } from "./use-settings";
+import nlp from "compromise";
+import { ChatCraftFunction } from "../lib/ChatCraftFunction";
 import {
-  ChatCraftMessage,
   ChatCraftAiMessage,
   ChatCraftFunctionCallMessage,
+  ChatCraftMessage,
 } from "../lib/ChatCraftMessage";
-import { useCost } from "./use-cost";
+import { ChatCraftModel } from "../lib/ChatCraftModel";
 import {
   calculateTokenCost,
   chatWithLLM,
@@ -14,13 +15,13 @@ import {
   isTtsSupported,
   textToSpeech,
 } from "../lib/ai";
-import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { ChatCraftFunction } from "../lib/ChatCraftFunction";
-import { useAutoScroll } from "./use-autoscroll";
-import useAudioPlayer from "./use-audio-player";
 import { getSettings } from "../lib/settings";
-import nlp from "compromise";
 import { tokenize } from "../lib/summarize";
+import useAudioPlayer from "./use-audio-player";
+import { useAutoScroll } from "./use-autoscroll";
+import { useCost } from "./use-cost";
+import { useSettings } from "./use-settings";
+import { useAlert } from "./use-alert";
 
 const noop = () => {};
 
@@ -44,6 +45,7 @@ function useChatOpenAI() {
   }, [paused]);
 
   const { addToAudioQueue } = useAudioPlayer();
+  const { error } = useAlert();
 
   const callChatApi = useCallback(
     async (
@@ -86,31 +88,41 @@ function useChatOpenAI() {
         },
         onData({ currentText }) {
           if (!pausedRef.current) {
-            // Hook tts code here
-            ttsWordsBuffer = currentText.slice(ttsCursor);
+            //#region Text to Speech
 
-            const { sentences } = tokenize(ttsWordsBuffer);
+            try {
+              ttsWordsBuffer = currentText.slice(ttsCursor);
 
-            if (ttsSupported && getSettings().announceMessages) {
-              if (
-                sentences.length > 1 // Has one full sentence
-              ) {
-                // Pass the sentence to tts api for processing
-                const textToBeProcessed = sentences[0];
-                const audioClipUri = textToSpeech(textToBeProcessed);
-                addToAudioQueue(audioClipUri);
+              const { sentences } = tokenize(ttsWordsBuffer);
 
-                // Update the tts Cursor
-                ttsCursor += sentences[0].length;
-              } else if (nlp(ttsWordsBuffer).terms().out("array").length >= TTS_BUFFER_THRESHOLD) {
-                // Try to break the large sentence into clauses
-                const clauseToProcess = nlp(ttsWordsBuffer).clauses().out("array")[0];
-                const audioClipUri = textToSpeech(clauseToProcess);
-                addToAudioQueue(audioClipUri);
+              if (ttsSupported && getSettings().textToSpeech.announceMessages) {
+                if (
+                  sentences.length > 1 // Has one full sentence
+                ) {
+                  // Pass the sentence to tts api for processing
+                  const textToBeProcessed = sentences[0];
+                  const audioClipUri = textToSpeech(textToBeProcessed, settings.textToSpeech.voice);
+                  addToAudioQueue(audioClipUri);
 
-                ttsCursor += clauseToProcess.length;
+                  // Update the tts Cursor
+                  ttsCursor += sentences[0].length;
+                } else if (
+                  nlp(ttsWordsBuffer).terms().out("array").length >= TTS_BUFFER_THRESHOLD
+                ) {
+                  // Try to break the large sentence into clauses
+                  const clauseToProcess = nlp(ttsWordsBuffer).clauses().out("array")[0];
+                  const audioClipUri = textToSpeech(clauseToProcess, settings.textToSpeech.voice);
+                  addToAudioQueue(audioClipUri);
+
+                  ttsCursor += clauseToProcess.length;
+                }
               }
+            } catch (err: any) {
+              console.error(err);
+              error({ title: "Error generating audio", message: err.message });
             }
+
+            //#endregion
 
             setStreamingMessage(
               new ChatCraftAiMessage({
@@ -158,22 +170,32 @@ function useChatOpenAI() {
           resetScrollProgress();
           setShouldAutoScroll(false);
 
-          if (ttsSupported && getSettings().announceMessages && ttsWordsBuffer.length) {
-            // Call TTS for any remaining words
-            const audioClipUri = textToSpeech(ttsWordsBuffer);
-            addToAudioQueue(audioClipUri);
+          if (
+            ttsSupported &&
+            getSettings().textToSpeech.announceMessages &&
+            ttsWordsBuffer.length
+          ) {
+            try {
+              // Call TTS for any remaining words
+              const audioClipUri = textToSpeech(ttsWordsBuffer, settings.textToSpeech.voice);
+              addToAudioQueue(audioClipUri);
+            } catch (err: any) {
+              console.error(err);
+              error({ title: "Error generating audio", message: err.message });
+            }
           }
         });
     },
     [
-      settings,
-      pausedRef,
+      settings.model,
+      settings.textToSpeech.voice,
+      settings.countTokens,
       setShouldAutoScroll,
       resetScrollProgress,
       incrementScrollProgress,
-      setStreamingMessage,
-      incrementCost,
       addToAudioQueue,
+      error,
+      incrementCost,
     ]
   );
 

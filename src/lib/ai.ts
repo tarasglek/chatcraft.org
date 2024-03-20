@@ -1,15 +1,15 @@
 import OpenAI from "openai";
+import type { ChatCompletionChunk } from "openai/resources";
+import { Stream } from "openai/streaming";
+import type { Tiktoken } from "tiktoken/lite";
+import { ChatCraftFunction } from "./ChatCraftFunction";
 import {
   ChatCraftAiMessage,
   ChatCraftFunctionCallMessage,
   ChatCraftMessage,
 } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
-import { ChatCraftFunction } from "./ChatCraftFunction";
-import { getSettings } from "./settings";
-import { Stream } from "openai/streaming";
-import type { Tiktoken } from "tiktoken/lite";
-import type { ChatCompletionChunk } from "openai/resources";
+import { TextToSpeechVoices, getSettings } from "./settings";
 
 export type ChatOptions = {
   model?: ChatCraftModel;
@@ -373,28 +373,33 @@ export async function isTtsSupported() {
   );
 }
 
+type TextToSpeechModel = "tts-1" | "tts-1-hd";
+
 /**
  *
  * @param message The text for which speech needs to be generated
  * @returns A Promise that resolves to the URL of generated audio clip
  */
-export const textToSpeech = async (message: string): Promise<string> => {
+export const textToSpeech = async (
+  message: string,
+  voice: TextToSpeechVoices = TextToSpeechVoices.ALLOY,
+  model: TextToSpeechModel = "tts-1"
+): Promise<string> => {
   const { currentProvider } = getSettings();
   if (!currentProvider.apiKey) {
     throw new Error("Missing API Key");
   }
   const { openai } = currentProvider.createClient(currentProvider.apiKey);
 
-  const mp3 = await openai.audio.speech.create({
-    model: "tts-1",
-    voice: "onyx",
+  const response = await openai.audio.speech.create({
+    model,
+    voice,
     input: message,
   });
 
-  const blob = new Blob([await mp3.arrayBuffer()], { type: "audio/mp3" });
-  const objectUrl = URL.createObjectURL(blob);
+  const audioUrl = URL.createObjectURL(await response.blob());
 
-  return objectUrl;
+  return audioUrl;
 };
 
 /**
