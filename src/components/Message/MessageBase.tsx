@@ -503,7 +503,7 @@ function MessageBase({
                         label="Delete Message"
                         onClick={onDeleteClick}
                         className="delete-button"
-                        icon={<TbTrash color="red" />}
+                        icon={<TbTrash color="red.400" />}
                       />
                     ) : (
                       <SubMenu label="Delete" className="delete-button">
