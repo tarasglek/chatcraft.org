@@ -39,8 +39,6 @@ import { TbTrash, TbShare2 } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { Link as ReactRouterLink } from "react-router-dom";
-import ResizeTextarea from "react-textarea-autosize";
-import { Menu, MenuDivider, MenuItem, SubMenu } from "../Menu";
 
 import { useCopyToClipboard } from "react-use";
 import { useAlert } from "../../hooks/use-alert";
