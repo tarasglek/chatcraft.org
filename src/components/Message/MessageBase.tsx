@@ -38,7 +38,6 @@ import ResizeTextarea from "react-textarea-autosize";
 import { TbTrash, TbShare2 } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
-import { TbTrash } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
 import ResizeTextarea from "react-textarea-autosize";
 import { Menu, MenuDivider, MenuItem, SubMenu } from "../Menu";
