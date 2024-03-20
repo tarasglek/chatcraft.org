@@ -12,7 +12,7 @@ import {
 import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
 import { createSystemMessage } from "./system-prompt";
-import { createShare, createShareUrl } from "./share";
+import { createDataShareUrl, createShare } from "./share";
 import { SharedChatCraftChat } from "./SharedChatCraftChat";
 import { countTokensInMessages } from "./ai";
 import { parseFunctionNames, loadFunctions } from "./ChatCraftFunction";
@@ -338,7 +338,7 @@ export class ChatCraftChat {
     }
 
     // Generate a public share URL
-    const shareUrl = createShareUrl(cloned, user);
+    const shareUrl = createDataShareUrl(cloned, user);
     await createShare(cloned, user);
 
     const shared = new SharedChatCraftChat({
@@ -370,7 +370,7 @@ export class ChatCraftChat {
     });
 
     // Use the existing sharing logic to share the cloned chat
-    const shareUrl = createShareUrl(clonedChatWithSingleMessage, user);
+    const shareUrl = createDataShareUrl(clonedChatWithSingleMessage, user);
     await createShare(clonedChatWithSingleMessage, user);
 
     const shared = new SharedChatCraftChat({
