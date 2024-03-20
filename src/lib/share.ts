@@ -16,6 +16,19 @@ export function createDataShareUrl(chat: ChatCraftChat, user: User) {
  * @param prefix
  * @returns url
  */
+
+export function convertToShareUrl(url: string) {
+  console.log("url is here", url);
+  if (url.includes("/api/share")) {
+    console.log("using old URL link");
+    const newUrl = url.replace("/api/share", "/c");
+    return newUrl;
+  } else {
+    console.log("using same URL link");
+    return url;
+  }
+}
+
 export function createShareUrl(chat: ChatCraftChat, user: User, prefix = "/c") {
   const { origin } = new URL(location.href);
   const shareUrl = new URL(`${prefix}/${user.username}/${chat.id}`, origin);
