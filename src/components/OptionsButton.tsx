@@ -130,7 +130,13 @@ function OptionsButton({
         event.target.value = "";
       }
     },
-    [error, onFileSelected]
+    [
+      error,
+      onFileSelected,
+      settings.compressionFactor,
+      settings.maxCompressedFileSizeMB,
+      settings.maxImageDimension,
+    ]
   );
 
   const handleAttachFiles = useCallback(() => {
