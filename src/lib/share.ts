@@ -24,6 +24,16 @@ export function createShareUrl(chat: ChatCraftChat, user: User, prefix = "/c") {
 }
 
 /**
+ * Converts "/api/share"-style URLs before passing it to UI
+ * This is done to avoid react-router-dom issue involving "/api/share"-style URLs
+ * @param url
+ * @returns url
+ */
+export function convertToShareUrl(url: string) {
+  return url.includes("/api/share") ? url.replace("/api/share", "/c") : url;
+}
+
+/**
  * Generate static html with our messages in yaml form so they can both be parsed by us and by scrapers/browsers/etc
  * Uses our index.html as a base
  * @param chat Chatcraft chat
