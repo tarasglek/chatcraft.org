@@ -65,37 +65,46 @@ function Instructions(props: MessageBaseProps) {
     e.preventDefault();
     const data = new FormData(e.target as HTMLFormElement);
     const apiKey = data.get("openai-api-key");
+
     if (typeof apiKey !== "string") {
       return;
     }
 
-    // See if this API Key is valid
-    setIsValidating(true);
-    settings.currentProvider
-      .validateApiKey(apiKey)
-      .then((valid) => {
-        if (valid) {
-          setIsInvalid(false);
+    if (settings.currentProvider instanceof FreeModelProvider) {
+      // If user chooses the free provider, no need for validation
+      setSettings({
+        ...settings,
+        currentProvider: new FreeModelProvider(),
+      });
+    } else {
+      // See if this API Key is valid
+      setIsValidating(true);
+      settings.currentProvider
+        .validateApiKey(apiKey)
+        .then((valid) => {
+          if (valid) {
+            setIsInvalid(false);
 
-          const newProvider = providerFromUrl(settings.currentProvider.apiUrl, apiKey.trim());
+            const newProvider = providerFromUrl(settings.currentProvider.apiUrl, apiKey.trim());
 
-          setSettings({
-            ...settings,
-            currentProvider: newProvider,
-            providers: {
-              ...settings.providers,
-              [newProvider.apiUrl]: newProvider,
-            },
-          });
-        } else {
+            setSettings({
+              ...settings,
+              currentProvider: newProvider,
+              providers: {
+                ...settings.providers,
+                [newProvider.apiUrl]: newProvider,
+              },
+            });
+          } else {
+            setIsInvalid(true);
+          }
+        })
+        .catch((err) => {
+          console.warn("Error validating API Key", err);
           setIsInvalid(true);
-        }
-      })
-      .catch((err) => {
-        console.warn("Error validating API Key", err);
-        setIsInvalid(true);
-      })
-      .finally(() => setIsValidating(false));
+        })
+        .finally(() => setIsValidating(false));
+    }
   };
 
   const handleProviderChange = useCallback(
@@ -150,7 +159,7 @@ function Instructions(props: MessageBaseProps) {
                   name="openai-api-key"
                   bg="white"
                   _dark={{ bg: "gray.700" }}
-                  required
+                  required={!(settings.currentProvider instanceof FreeModelProvider)}
                 />
                 <Button type="submit" size="sm" isLoading={isValidating}>
                   Save
