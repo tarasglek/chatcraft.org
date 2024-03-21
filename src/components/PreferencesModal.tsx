@@ -460,13 +460,13 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 <Stack>
                   <Box px="5">
                     <FormLabel>
-                      Maximum file size after compression: {settings.maxCompressedFileSizeMb} (MB)
+                      Maximum file size after compression: {settings.maxCompressedFileSizeMB} (MB)
                     </FormLabel>
                     <Slider
                       id="max-compressed-file-size"
-                      value={settings.maxCompressedFileSizeMb}
+                      value={settings.maxCompressedFileSizeMB}
                       onChange={(value) =>
-                        setSettings({ ...settings, maxCompressedFileSizeMb: value })
+                        setSettings({ ...settings, maxCompressedFileSizeMB: value })
                       }
                       min={1}
                       max={20}
@@ -480,6 +480,27 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                     <FormErrorMessage>
                       Maximum file size must be between 1 and 20 MB.
                     </FormErrorMessage>
+                  </Box>
+                  <Box px="5">
+                    <FormLabel>
+                      Maximum image dimension: {settings.maxImageDimension} (px)
+                    </FormLabel>
+                    <Slider
+                      id="max-image-dimension"
+                      value={settings.maxImageDimension}
+                      onChange={(value) => setSettings({ ...settings, maxImageDimension: value })}
+                      min={16}
+                      max={2048}
+                      step={16}
+                    >
+                      <SliderTrack>
+                        <SliderFilledTrack />
+                      </SliderTrack>
+                      <SliderThumb />
+                      <FormErrorMessage>
+                        Maximum Image dimension must be between 16 and 2048
+                      </FormErrorMessage>
+                    </Slider>
                   </Box>
                   <Box px="5">
                     <FormLabel>Compression factor: {settings.compressionFactor}</FormLabel>
@@ -503,9 +524,9 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 </Stack>
                 <FormHelperText>
                   Choose the best compression option for each attached image file based on your
-                  needs. You can either compress the image based on a maximum file size or a
-                  compression factor (i.e. original size x factor). The smaller the size or factor,
-                  the longer the compression time may be.
+                  needs. You can choose from: maximum file size, maximum image dimension (width or
+                  height) or compression factor (i.e. original size x factor). The smaller the size,
+                  dimension or factor, the longer the compression time may be.
                 </FormHelperText>
               </FormControl>
 

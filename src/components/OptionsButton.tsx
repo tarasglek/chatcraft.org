@@ -110,7 +110,8 @@ function OptionsButton({
             compressImageToBase64(
               file,
               settings.compressionFactor,
-              settings.maxCompressedFileSizeMb
+              settings.maxCompressedFileSizeMB,
+              settings.maxImageDimension
             )
               .then((base64) => onFileSelected(base64))
               .catch((err) => {

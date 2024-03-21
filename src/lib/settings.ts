@@ -40,7 +40,8 @@ export type Settings = {
   providers: ProviderData;
   currentProvider: ChatCraftProvider;
   compressionFactor: number;
-  maxCompressedFileSizeMb: number;
+  maxCompressedFileSizeMB: number;
+  maxImageDimension: number;
 };
 
 export const defaults: Settings = {
@@ -59,7 +60,8 @@ export const defaults: Settings = {
   providers: {},
   currentProvider: new FreeModelProvider(),
   compressionFactor: 1,
-  maxCompressedFileSizeMb: 20,
+  maxCompressedFileSizeMB: 20,
+  maxImageDimension: 2048,
 };
 
 export const key = "settings";

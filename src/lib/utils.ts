@@ -89,14 +89,14 @@ export const screenshotElement = (element: HTMLElement): Promise<Blob> => {
 export const compressImageToBase64 = (
   file: File,
   compressionFactor: number = 1,
-  maxCompressedFileSizeMb: number = 20
+  maxSizeMB: number = 20,
+  maxWidthOrHeight: number = 2048
 ): Promise<string> => {
   const imageCompressionOptions = {
-    maxSizeMB: Math.min((file.size / 1024 / 1024) * compressionFactor, maxCompressedFileSizeMb, 20),
-    maxWidthOrHeight: 2048,
+    maxSizeMB: Math.min((file.size / 1024 / 1024) * compressionFactor, maxSizeMB, 20),
+    maxWidthOrHeight: Math.min(maxWidthOrHeight, 2048),
   };
 
-  console.log(imageCompressionOptions);
   return import("browser-image-compression")
     .then((imageCompressionModule) => {
       const imageCompression = imageCompressionModule.default;
