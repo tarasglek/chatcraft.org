@@ -1,3 +1,4 @@
+import { Feed } from "feed";
 import { errorResponse, createResourcesForEnv } from "../../utils";
 
 interface Env {
@@ -8,19 +9,27 @@ interface Env {
   JWT_SECRET: string;
 }
 
-async function generateAndSaveUserFeed(env: Env, user: string): Promise<string> {
+async function generateUserFeed(env: Env, user: string): Promise<void> {
   const { CHATCRAFT_ORG_BUCKET } = env;
   const prefix: string = `${user}/`;
   const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix });
+  const xsltUrl = "../../rss-style.xsl";
 
-  let feed = `<?xml version="1.0" encoding="utf-8"?>
-    <feed xmlns="http://www.w3.org/2005/Atom">
-    <title>User Feed for ${user}</title>
-    <link href="https://chatcraft.org/api/feed/${user}/feed.atom" rel="self"/>
-    <updated>${new Date().toISOString()}</updated>
-    <author>
-      <name>${user}</name>
-    </author>`;
+  const feed = new Feed({
+    title: `User Feed for ${user}`,
+    description: `This is ${user}'s share chats`,
+    id: `https://chatcraft.org/api/feed/${user}/feed.atom`,
+    link: `https://chatcraft.org/api/feed/${user}/feed.atom`,
+    language: "en",
+    updated: new Date(),
+    feedLinks: {
+      atom: `https://chatcraft.org/api/feed/${user}/feed.atom`,
+    },
+    author: {
+      name: user,
+    },
+    copyright: `Copyright © ${new Date().getFullYear()} by ${user}`,
+  });
 
   for (const object of objects) {
     const chatData = await CHATCRAFT_ORG_BUCKET.get(object.key);
@@ -38,32 +47,35 @@ async function generateAndSaveUserFeed(env: Env, user: string): Promise<string> 
       const id = idMatch ? idMatch[1] : "No ID";
       const preContent = doc.querySelector("pre")?.textContent || "";
       const dateMatch = preContent.match(/date:\s*(.+)/i);
-      const date = dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString();
+      const date = dateMatch ? new Date(dateMatch[1]) : new Date();
 
-      feed += `
-        <entry>
-          <title>${title}</title>
-          <link href="${url}"/>
-          <id>${id}</id>
-          <updated>${date}</updated>
-          <summary>${summary}</summary>
-        </entry>`;
+      feed.addItem({
+        title: title,
+        id: id,
+        link: url,
+        description: summary,
+        date: date,
+        author: [{ name: user }],
+      });
     }
   }
 
-  // Close the feed
-  feed += `
-    </feed>`;
+  let feedXml = feed.atom1();
+  feedXml =
+    `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="${xsltUrl}"?>\n` +
+    feedXml;
 
-  // Save the feed to R2
-  const feedKey = `${user}/feed/feed.atom`;
-  await CHATCRAFT_ORG_BUCKET.put(feedKey, new TextEncoder().encode(feed), {
-    httpMetadata: {
-      contentType: "application/atom+xml",
-    },
-  });
-
-  return `Feed generated and saved for user ${user}`;
+  try {
+    const feedKey = `${user}/feed/feed.atom`;
+    await CHATCRAFT_ORG_BUCKET.put(feedKey, new TextEncoder().encode(feedXml), {
+      httpMetadata: {
+        contentType: "application/atom+xml",
+      },
+    });
+    console.log(`Feed generated successfully for user: ${user}`);
+  } catch (err) {
+    console.error(`Unable to generate feed for ${user}: ${err.message}`);
+  }
 }
 
 // POST https://chatcraft.org/api/share/:user/:id
@@ -140,7 +152,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
     });
 
     const [user] = user_id;
-    await generateAndSaveUserFeed(env, user);
+    await generateUserFeed(env, user);
 
     return new Response(
       JSON.stringify({

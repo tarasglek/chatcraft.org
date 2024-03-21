@@ -28,6 +28,7 @@
     "dexie-export-import": "^4.1.1",
     "dexie-react-hooks": "^1.1.7",
     "esbuild-wasm": "^0.20.0",
+    "feed": "^4.2.2",
     "framer-motion": "^11.0.3",
     "get-video-id": "^3.6.5",
     "html2canvas": "^1.4.1",
