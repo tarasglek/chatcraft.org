@@ -1,8 +1,9 @@
-import { useRef, type ReactNode, useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect, useRef, type ReactNode } from "react";
+import { Card, CardBody, IconButton, useClipboard } from "@chakra-ui/react";
 import nomnoml from "nomnoml";
-import { useClipboard } from "@chakra-ui/react";
-import { useAlert } from "../hooks/use-alert";
+import { TbCopy } from "react-icons/tb";
 import { nanoid } from "nanoid";
+import { useAlert } from "../hooks/use-alert";
 
 type NomnomlPreviewProps = {
   children: ReactNode & ReactNode[];
