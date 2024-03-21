@@ -28,11 +28,11 @@
             </p>
             <a href="{/atom:feed/atom:link[@rel='alternate']/@href}">Visit Website &#x2192;</a>
 
-            <h2>Recent Posts</h2>
+            <h2>Recent Shared Chats</h2>
             <xsl:for-each select="/atom:feed/atom:entry">
               <div class="pb-7">
                 <div class="text-2 text-offset">
-                  Published on
+                  Shared on
                   <xsl:value-of select="substring(atom:date, 1, 10)" />
                 </div>
 

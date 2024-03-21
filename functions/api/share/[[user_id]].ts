@@ -17,10 +17,9 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
 
   const feed = new Feed({
     title: `User Feed for ${user}`,
-    description: `This is ${user}'s share chats`,
+    description: `This is ${user}'s shared chats`,
     id: `https://chatcraft.org/api/feed/${user}/feed.atom`,
     link: `https://chatcraft.org/api/feed/${user}/feed.atom`,
-    language: "en",
     updated: new Date(),
     feedLinks: {
       atom: `https://chatcraft.org/api/feed/${user}/feed.atom`,
