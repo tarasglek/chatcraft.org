@@ -1,4 +1,5 @@
 import { Feed } from "feed";
+import { load } from "cheerio";
 import { errorResponse, createResourcesForEnv } from "../../utils";
 
 interface Env {
@@ -34,17 +35,13 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
     const chatData = await CHATCRAFT_ORG_BUCKET.get(object.key);
     if (chatData) {
       const chatContent: string = await chatData.text();
-      const doc = new DOMParser().parseFromString(chatContent, "text/html");
+      const $ = load(chatContent);
 
-      const title = doc.querySelector("title")?.textContent || "No Title";
-      const summary =
-        doc.querySelector("meta[name='description']")?.getAttribute("content") || "No Summary";
-      const metaRefresh = doc.querySelector("meta[http-equiv='refresh']")?.getAttribute("content");
-      const urlMatch = metaRefresh?.match(/url=(.+)/i);
-      const url = urlMatch ? urlMatch[1] : "No URL";
-      const idMatch = url.match(/\/c\/[^/]+\/([^/]+)/);
-      const id = idMatch ? idMatch[1] : "No ID";
-      const preContent = doc.querySelector("pre")?.textContent || "";
+      const title = $('meta[property="og:title"]').text() || "No Title";
+      const summary = $('meta[name="description"]').attr("content") || "No Summary";
+      const url = $('meta[property="og:url"]').attr("content") || "No URL";
+      const id = url.split("/").pop() || "No ID";
+      const preContent = $("pre").text();
       const dateMatch = preContent.match(/date:\s*(.+)/i);
       const date = dateMatch ? new Date(dateMatch[1]) : new Date();
 
