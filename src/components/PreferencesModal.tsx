@@ -459,75 +459,86 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 <FormLabel as="legend">Image Compression</FormLabel>
                 <Stack>
                   <Box px="5">
-                    <FormLabel>
-                      Maximum file size after compression: {settings.maxCompressedFileSizeMB} (MB)
-                    </FormLabel>
-                    <Slider
-                      id="max-compressed-file-size"
-                      value={settings.maxCompressedFileSizeMB}
-                      onChange={(value) =>
-                        setSettings({ ...settings, maxCompressedFileSizeMB: value })
-                      }
-                      min={1}
-                      max={20}
-                      step={1}
-                    >
-                      <SliderTrack>
-                        <SliderFilledTrack />
-                      </SliderTrack>
-                      <SliderThumb />
-                    </Slider>
-                    <FormErrorMessage>
-                      Maximum file size must be between 1 and 20 MB.
-                    </FormErrorMessage>
+                    <FormControl>
+                      <FormLabel>
+                        Maximum file size after compression: {settings.maxCompressedFileSizeMB} (MB)
+                      </FormLabel>
+                      <Slider
+                        id="max-compressed-file-size"
+                        value={settings.maxCompressedFileSizeMB}
+                        onChange={(value) =>
+                          setSettings({ ...settings, maxCompressedFileSizeMB: value })
+                        }
+                        min={1}
+                        max={20}
+                        step={1}
+                      >
+                        <SliderTrack>
+                          <SliderFilledTrack />
+                        </SliderTrack>
+                        <SliderThumb />
+                      </Slider>
+                      <FormErrorMessage>
+                        Maximum file size must be between 1 and 20 MB.
+                      </FormErrorMessage>
+                      <FormHelperText>
+                        The maximum file size for your compressed image (1 MB - 20 MB)
+                      </FormHelperText>
+                    </FormControl>
                   </Box>
                   <Box px="5">
-                    <FormLabel>
-                      Maximum image dimension: {settings.maxImageDimension} (px)
-                    </FormLabel>
-                    <Slider
-                      id="max-image-dimension"
-                      value={settings.maxImageDimension}
-                      onChange={(value) => setSettings({ ...settings, maxImageDimension: value })}
-                      min={16}
-                      max={2048}
-                      step={16}
-                    >
-                      <SliderTrack>
-                        <SliderFilledTrack />
-                      </SliderTrack>
-                      <SliderThumb />
+                    <FormControl>
+                      <FormLabel>
+                        Maximum image dimension: {settings.maxImageDimension} (px)
+                      </FormLabel>
+                      <Slider
+                        id="max-image-dimension"
+                        value={settings.maxImageDimension}
+                        onChange={(value) => setSettings({ ...settings, maxImageDimension: value })}
+                        min={16}
+                        max={2048}
+                        step={16}
+                      >
+                        <SliderTrack>
+                          <SliderFilledTrack />
+                        </SliderTrack>
+                        <SliderThumb />
+                      </Slider>
                       <FormErrorMessage>
                         Maximum Image dimension must be between 16 and 2048
                       </FormErrorMessage>
-                    </Slider>
+                      <FormHelperText>
+                        The maximum image width or height for your compressed image (16 px - 2048
+                        px)
+                      </FormHelperText>
+                    </FormControl>
                   </Box>
                   <Box px="5">
-                    <FormLabel>Compression factor: {settings.compressionFactor}</FormLabel>
-                    <Slider
-                      id="compression-factor"
-                      value={settings.compressionFactor}
-                      onChange={(value) => setSettings({ ...settings, compressionFactor: value })}
-                      min={0.1}
-                      max={1}
-                      step={0.1}
-                    >
-                      <SliderTrack>
-                        <SliderFilledTrack />
-                      </SliderTrack>
-                      <SliderThumb />
+                    <FormControl>
+                      <FormLabel>Compression factor: {settings.compressionFactor}</FormLabel>
+                      <Slider
+                        id="compression-factor"
+                        value={settings.compressionFactor}
+                        onChange={(value) => setSettings({ ...settings, compressionFactor: value })}
+                        min={0.1}
+                        max={1}
+                        step={0.1}
+                      >
+                        <SliderTrack>
+                          <SliderFilledTrack />
+                        </SliderTrack>
+                        <SliderThumb />
+                      </Slider>
                       <FormErrorMessage>
                         Compression factor must be between 0.1 and 1.0
                       </FormErrorMessage>
-                    </Slider>
+                      <FormHelperText>
+                        The compression factor for your compressed image: the maximum compressed
+                        file size is set to original size x factor (0.1 - 1.0).
+                      </FormHelperText>
+                    </FormControl>
                   </Box>
                 </Stack>
-                <FormHelperText>
-                  Choose the best compression option for each attached image file based on your
-                  needs. You can choose from: maximum file size, maximum image dimension (width or
-                  height) or compression factor (i.e. original size x factor). The smaller the size,
-                  dimension or factor, the longer the compression time may be.
-                </FormHelperText>
               </FormControl>
 
               <FormControl>
