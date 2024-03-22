@@ -482,7 +482,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                         Maximum file size must be between 1 and 20 MB.
                       </FormErrorMessage>
                       <FormHelperText>
-                        The maximum file size for your compressed image (1 MB - 20 MB)
+                        After compression, each attached image will be under your chosen maximum
+                        file size (1-20 MB).
                       </FormHelperText>
                     </FormControl>
                   </Box>
@@ -508,8 +509,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                         Maximum Image dimension must be between 16 and 2048
                       </FormErrorMessage>
                       <FormHelperText>
-                        The maximum image width or height for your compressed image (16 px - 2048
-                        px)
+                        Your compressed image&apos;s maximum width or height will be within the
+                        dimension you choose (16-2048 pixels).
                       </FormHelperText>
                     </FormControl>
                   </Box>
@@ -533,8 +534,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                         Compression factor must be between 0.1 and 1.0
                       </FormErrorMessage>
                       <FormHelperText>
-                        The compression factor for your compressed image: the maximum compressed
-                        file size is set to original size x factor (0.1 - 1.0).
+                        Set the maximum file size based on the original size multiplied by the
+                        factor you choose (0.1-1.0).
                       </FormHelperText>
                     </FormControl>
                   </Box>
