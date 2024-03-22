@@ -455,8 +455,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 </FormHelperText>
               </FormControl>
 
-              <FormControl>
-                <FormLabel>Image Compression</FormLabel>
+              <FormControl as="fieldset">
+                <FormLabel as="legend">Image Compression</FormLabel>
                 <Stack>
                   <Box px="5">
                     <FormLabel>
