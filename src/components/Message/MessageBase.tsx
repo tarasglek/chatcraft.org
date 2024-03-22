@@ -115,6 +115,9 @@ function MessageBase({
   const [, copyToClipboard] = useCopyToClipboard();
   const { id, date, text, imageUrls } = message;
   const { models } = useModels();
+  const isTtsSupported = useMemo(() => {
+    return !!models.filter((model) => model.id.includes("tts"))?.length;
+  }, [models]);
   const { onCopy } = useClipboard(text);
   const { info, error } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
@@ -454,7 +457,9 @@ function MessageBase({
                 <SubMenu label="Download">
                   <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
                   <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
-                  <MenuItem label="Download as Audio" onClick={handleDownloadAudio}></MenuItem>
+                  {isTtsSupported && (
+                    <MenuItem label="Download as Audio" onClick={handleDownloadAudio}></MenuItem>
+                  )}
                   <MenuItem
                     label="Download as Image"
                     onClick={handleDownloadImage}
@@ -463,10 +468,12 @@ function MessageBase({
                     disabled={displaySummaryText !== false || editing}
                   />
                 </SubMenu>
-                <MenuItem
-                  label="Speak"
-                  onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
-                />
+                {isTtsSupported && (
+                  <MenuItem
+                    label="Speak"
+                    onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
+                  />
+                )}
                 {!disableFork && (
                   <MenuItem
                     label={
