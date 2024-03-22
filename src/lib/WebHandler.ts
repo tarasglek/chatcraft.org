@@ -17,15 +17,15 @@ export class WebHandler {
     this.matchPattern = matchPattern;
   }
 
-  isMatchingHandler(url: string) {
-    return this.matchPattern.test(url);
+  isMatchingHandler(message: string) {
+    return this.matchPattern.test(message);
   }
 
-  async executeHandler(url: string): Promise<string> {
+  async executeHandler(message: string): Promise<string> {
     const requestUrl = new URL(this.handlerUrl);
 
     const params = new URLSearchParams();
-    params.append("url", url);
+    params.append("url", message);
 
     requestUrl.search = params.toString();
 
@@ -36,14 +36,16 @@ export class WebHandler {
     // const type = guessType(response.headers.get("Content-Type"));
     const content = (await response.text()).trim();
 
-    const messageHeader = `**Web Handler**: [${this.handlerUrl}](${this.handlerUrl})?url=[${url}](${url})`;
-    const text = `${messageHeader}\n\n` + content;
+    const resultHeader = `**Web Handler**: [${this.handlerUrl}](${this.handlerUrl})?url=[${message}](${message})`;
+    const text = `${resultHeader}\n\n` + content;
 
     return text;
   }
 
-  static getMatchingHandler(url: string): WebHandler | null {
-    return this.getRegisteredHandlers().find((handler) => handler.isMatchingHandler(url)) ?? null;
+  static getMatchingHandler(message: string): WebHandler | null {
+    return (
+      this.getRegisteredHandlers().find((handler) => handler.isMatchingHandler(message)) ?? null
+    );
   }
 
   static getRegisteredHandlers(): WebHandler[] {
