@@ -448,7 +448,9 @@ function MessageBase({
                 <SubMenu label="Download">
                   <MenuItem onClick={handleDownloadMarkdown}>Download as Markdown</MenuItem>
                   <MenuItem onClick={handleDownloadPlainText}>Download as Text</MenuItem>
-                  {isTtsSupported && (<MenuItem onClick={handleDownloadAudio}>Download as Audio</MenuItem>)}
+                  {isTtsSupported && (
+                    <MenuItem onClick={handleDownloadAudio}>Download as Audio</MenuItem>
+                  )}
                   <MenuItem
                     onClick={handleDownloadImage}
                     disabled={displaySummaryText !== false || editing}
@@ -457,11 +459,11 @@ function MessageBase({
                   </MenuItem>
                 </SubMenu>
                 {isTtsSupported && (
-                <MenuItem
-                  onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
-                >
-                  Speak
-                </MenuItem>
+                  <MenuItem
+                    onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
+                  >
+                    Speak
+                  </MenuItem>
                 )}
                 {!disableFork && (
                   <MenuItem>
