@@ -182,7 +182,7 @@ function ChatBase({ chat }: ChatBaseProps) {
 
       if (prompt && handler) {
         try {
-          const result = await handler!.executeHandler(prompt); // We know handler is always there
+          const result = await handler.executeHandler(prompt);
 
           chat.addMessage(new ChatCraftHumanMessage({ user, text: result }));
           forceScroll();
