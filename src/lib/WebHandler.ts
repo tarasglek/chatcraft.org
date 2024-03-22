@@ -64,14 +64,9 @@ export class WebHandler {
 
     const supportedHandlers = [
       new WebHandler({
-        handlerUrl: "/api/proxy",
-        method: HttpMethod.GET,
-        matchPattern: /^\/import https?:\/\/\S+/,
-      }),
-      new WebHandler({
         handlerUrl: "https://taras-scrape2md.web.val.run/",
         method: HttpMethod.GET,
-        matchPattern: /^https:\/\/\S+/,
+        matchPattern: /^https:\/\/\S+$/,
       }),
     ];
 

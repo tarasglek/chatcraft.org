@@ -211,9 +211,9 @@ function ChatBase({ chat }: ChatBaseProps) {
       }
 
       // If we have a web handler registered for this url
-      if (prompt && WebHandler.getMatchingHandler(prompt)) {
-        const handler = WebHandler.getMatchingHandler(prompt);
+      const handler = WebHandler.getMatchingHandler(prompt ?? "");
 
+      if (prompt && handler) {
         try {
           const result = await handler!.executeHandler(prompt); // We know handler is always there
 
