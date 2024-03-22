@@ -1,5 +1,17 @@
-import { Box, Button, Flex, Grid, GridItem, Text, useDisclosure } from "@chakra-ui/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  Box,
+  Button,
+  CloseButton,
+  Flex,
+  Grid,
+  GridItem,
+  Text,
+  useDisclosure,
+} from "@chakra-ui/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CgArrowDownO } from "react-icons/cg";
 import { ScrollRestoration } from "react-router-dom";
 
@@ -25,6 +37,8 @@ import {
 } from "../lib/ChatCraftMessage";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
+import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
+import PreferencesModal from "../components/PreferencesModal";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -46,6 +60,12 @@ function ChatBase({ chat }: ChatBaseProps) {
   const { error } = useAlert();
   const { user } = useUser();
   const { clearAudioQueue } = useAudioPlayer();
+  const [showAlert, setShowAlert] = useState(true);
+  const {
+    isOpen: isPrefModalOpen,
+    onOpen: onPrefModalOpen,
+    onClose: onPrefModalClose,
+  } = useDisclosure();
 
   // If we can't load models, it's a bad sign for API connectivity.
   // Show an error so the user is aware.
@@ -298,6 +318,37 @@ function ChatBase({ chat }: ChatBaseProps) {
     resume();
   }
 
+  const defaultProviderAlert = useMemo(() => {
+    // If we are using default provider, show alert banner to notify user
+    if (showAlert && settings.currentProvider instanceof FreeModelProvider) {
+      return (
+        <Alert status="info" variant="solid" sx={{ py: 1 }}>
+          <AlertIcon boxSize="4" />
+          <AlertDescription fontSize="sm">
+            You are using the default free AI Provider, which has limited features.{" "}
+            <Text
+              as="span"
+              cursor="pointer"
+              fontSize="sm"
+              textDecoration="underline"
+              onClick={onPrefModalOpen}
+            >
+              Click here
+            </Text>{" "}
+            to add other AI providers.
+          </AlertDescription>
+          <CloseButton
+            position="absolute"
+            right="8px"
+            top="4px"
+            size="sm"
+            onClick={() => setShowAlert(false)}
+          />
+        </Alert>
+      );
+    }
+  }, [onPrefModalOpen, settings.currentProvider, showAlert]);
+
   return (
     <Grid
       w="100%"
@@ -312,6 +363,8 @@ function ChatBase({ chat }: ChatBaseProps) {
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
       <GridItem colSpan={2}>
+        {/* Default Provider Alert Banner*/}
+        {defaultProviderAlert}
         <Header
           chatId={chat.id}
           inputPromptRef={inputPromptRef}
@@ -385,6 +438,12 @@ function ChatBase({ chat }: ChatBaseProps) {
           )}
         </Box>
       </GridItem>
+
+      <PreferencesModal
+        isOpen={isPrefModalOpen}
+        onClose={onPrefModalClose}
+        finalFocusRef={inputPromptRef}
+      />
     </Grid>
   );
 }
