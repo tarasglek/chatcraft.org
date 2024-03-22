@@ -439,31 +439,32 @@ function MessageBase({
                 </ButtonGroup>
               )}
               <Menu isDisabled={isLoading}>
-                <MenuItem label="Copy" onClick={handleCopy} icon={<MdContentCopy />} />
+                <MenuItem onClick={handleCopy} icon={<MdContentCopy />}>
+                  Copy
+                </MenuItem>
                 <SubMenu label="Download">
-                  <MenuItem label="Download as Markdown" onClick={handleDownloadMarkdown} />
-                  <MenuItem label="Download as Text" onClick={handleDownloadPlainText} />
-                  <MenuItem label="Download as Audio" onClick={handleDownloadAudio}></MenuItem>
+                  <MenuItem onClick={handleDownloadMarkdown}>Download as Markdown</MenuItem>
+                  <MenuItem onClick={handleDownloadPlainText}>Download as Text</MenuItem>
+                  <MenuItem onClick={handleDownloadAudio}>Download as Audio</MenuItem>
                   <MenuItem
-                    label="Download as Image"
                     onClick={handleDownloadImage}
-                    // If we're editing, or showing only a summary, don't enable download as image
-                    // since we need the whole element to exist in order to render into the canvas.
                     disabled={displaySummaryText !== false || editing}
-                  />
+                  >
+                    Download as Image
+                  </MenuItem>
                 </SubMenu>
                 <MenuItem
-                  label="Speak"
                   onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
-                />
+                >
+                  Speak
+                </MenuItem>
+
                 {!disableFork && (
-                  <MenuItem
-                    label={
-                      <Link as={ReactRouterLink} to={`./fork/${id}`} target="_blank">
-                        Duplicate Chat until Message...
-                      </Link>
-                    }
-                  />
+                  <MenuItem>
+                    <Link as={ReactRouterLink} to={`./fork/${id}`} target="_blank">
+                      Duplicate Chat until Message...
+                    </Link>
+                  </MenuItem>
                 )}
                 {onRetryClick && (
                   <>
@@ -472,62 +473,54 @@ function MessageBase({
                       {models
                         .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
                         .map((model) => (
-                          <MenuItem
-                            key={model.id}
-                            label={model.prettyModel}
-                            onClick={() => onRetryClick(model)}
-                          />
+                          <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
+                            {model.prettyModel}
+                          </MenuItem>
                         ))}
                     </SubMenu>
                   </>
                 )}
                 <MenuDivider />
-                <MenuItem
-                  label="Share Message"
-                  onClick={() => handleShareMessage()}
-                  icon={<TbShare2 />}
-                />
+                <MenuItem onClick={() => handleShareMessage()} icon={<TbShare2 />}>
+                  Share Message
+                </MenuItem>
                 {(!disableEdit || onDeleteClick) && <MenuDivider />}
                 {!disableEdit && (
-                  <MenuItem
-                    label={editing ? "Cancel Editing" : "Edit"}
-                    onClick={() => onEditingChange(!editing)}
-                    icon={<AiOutlineEdit />}
-                  />
+                  <MenuItem onClick={() => onEditingChange(!editing)} icon={<AiOutlineEdit />}>
+                    {editing ? "Cancel Editing" : "Edit"}
+                  </MenuItem>
                 )}
 
                 {shouldShowDeleteMenu && (
                   <>
                     {onDeleteClick && !onDeleteBeforeClick && !onDeleteAfterClick ? (
                       <MenuItem
-                        label="Delete Message"
                         onClick={onDeleteClick}
                         className="delete-button"
                         icon={<TbTrash color="red.400" />}
-                      />
+                      >
+                        Delete Message
+                      </MenuItem>
                     ) : (
                       <SubMenu label="Delete" className="delete-button">
                         {onDeleteBeforeClick && (
-                          <MenuItem
-                            label="Delete Messages Before"
-                            onClick={onDeleteBeforeClick}
-                            className="delete-button"
-                          />
+                          <MenuItem onClick={onDeleteBeforeClick} className="delete-button">
+                            Delete Messages Before
+                          </MenuItem>
                         )}
                         {onDeleteClick && (
                           <MenuItem
-                            label="Delete Message"
                             onClick={onDeleteClick}
                             className="delete-button"
                             icon={<TbTrash color="red.400" />}
-                          />
+                          >
+                            Delete Message
+                          </MenuItem>
                         )}
                         {onDeleteAfterClick && (
-                          <MenuItem
-                            label="Delete Messages After"
-                            onClick={onDeleteAfterClick}
-                            className="delete-button"
-                          />
+                          <MenuItem onClick={onDeleteAfterClick} className="delete-button">
+                            Delete Messages After
+                          </MenuItem>
                         )}
                       </SubMenu>
                     )}
