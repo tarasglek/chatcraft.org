@@ -107,12 +107,11 @@ function OptionsButton({
           const file = files[i];
           if (file.type.startsWith("image/")) {
             onFileSelected("");
-            compressImageToBase64(
-              file,
-              settings.compressionFactor,
-              settings.maxCompressedFileSizeMB,
-              settings.maxImageDimension
-            )
+            compressImageToBase64(file, {
+              compressionFactor: settings.compressionFactor,
+              maxSizeMB: settings.maxCompressedFileSizeMB,
+              maxWidthOrHeight: settings.maxImageDimension,
+            })
               .then((base64) => onFileSelected(base64))
               .catch((err) => {
                 console.error(err);

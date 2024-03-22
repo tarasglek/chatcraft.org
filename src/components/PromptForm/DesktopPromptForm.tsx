@@ -229,12 +229,11 @@ function DesktopPromptForm({
     setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...imageFiles.map(() => "")]);
     Promise.all(
       imageFiles.map((file) =>
-        compressImageToBase64(
-          file,
-          settings.compressionFactor,
-          settings.maxCompressedFileSizeMB,
-          settings.maxImageDimension
-        )
+        compressImageToBase64(file, {
+          compressionFactor: settings.compressionFactor,
+          maxSizeMB: settings.maxCompressedFileSizeMB,
+          maxWidthOrHeight: settings.maxImageDimension,
+        })
       )
     )
       .then((base64Strings) => {
