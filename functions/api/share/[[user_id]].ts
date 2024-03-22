@@ -31,7 +31,7 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
     copyright: `Copyright © ${new Date().getFullYear()} by ${user}`,
   });
 
-  const recentObjects = objects.slice(0, 10);
+  const recentObjects = objects.slice(0, 50);
   for (const object of recentObjects) {
     const chatData = await CHATCRAFT_ORG_BUCKET.get(object.key);
     if (chatData) {
