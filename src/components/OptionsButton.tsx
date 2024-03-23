@@ -19,6 +19,7 @@ import { useCopyToClipboard } from "react-use";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
 import { useAlert } from "../hooks/use-alert";
+import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
 import { download, compressImageToBase64 } from "../lib/utils";
 import theme from "../theme";
@@ -91,6 +92,7 @@ function OptionsButton({
   const { info, error } = useAlert();
   const [, copyToClipboard] = useCopyToClipboard();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { settings } = useSettings();
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,7 +107,11 @@ function OptionsButton({
           const file = files[i];
           if (file.type.startsWith("image/")) {
             onFileSelected("");
-            compressImageToBase64(file)
+            compressImageToBase64(file, {
+              compressionFactor: settings.compressionFactor,
+              maxSizeMB: settings.maxCompressedFileSizeMB,
+              maxWidthOrHeight: settings.maxImageDimension,
+            })
               .then((base64) => onFileSelected(base64))
               .catch((err) => {
                 console.error(err);
@@ -123,7 +129,13 @@ function OptionsButton({
         event.target.value = "";
       }
     },
-    [error, onFileSelected]
+    [
+      error,
+      onFileSelected,
+      settings.compressionFactor,
+      settings.maxCompressedFileSizeMB,
+      settings.maxImageDimension,
+    ]
   );
 
   const handleAttachFiles = useCallback(() => {

@@ -39,6 +39,9 @@ export type Settings = {
   textToSpeech: TextToSpeechSettings;
   providers: ProviderData;
   currentProvider: ChatCraftProvider;
+  compressionFactor: number;
+  maxCompressedFileSizeMB: number;
+  maxImageDimension: number;
 };
 
 export const defaults: Settings = {
@@ -56,6 +59,9 @@ export const defaults: Settings = {
   },
   providers: {},
   currentProvider: new FreeModelProvider(),
+  compressionFactor: 1,
+  maxCompressedFileSizeMB: 20,
+  maxImageDimension: 2048,
 };
 
 export const key = "settings";
