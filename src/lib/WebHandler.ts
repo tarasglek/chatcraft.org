@@ -33,7 +33,6 @@ export class WebHandler {
       method: this.method,
     });
 
-    // const type = guessType(response.headers.get("Content-Type"));
     const content = (await response.text()).trim();
 
     const resultHeader = `**Web Handler**: [${this.handlerUrl}](${this.handlerUrl})?url=[${message}](${message})`;

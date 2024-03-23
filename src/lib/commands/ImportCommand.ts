@@ -3,7 +3,7 @@ import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
 
 // To keep this small, just deal with some common cases vs doing proper parser/list
-export const guessType = (contentType: string | null) => {
+const guessType = (contentType: string | null) => {
   if (!contentType) {
     return "text";
   }
