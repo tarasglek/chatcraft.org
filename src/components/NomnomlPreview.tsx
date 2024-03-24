@@ -45,8 +45,8 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
         diagramDiv.innerHTML = svg;
       };
       fetchNomnoml();
-    } catch (err) {
-      // setValue(err);
+    } catch (err: any) {
+      setValue(err);
       console.warn(`Error rendering nomnoml diagram`, err);
     }
   }, [diagramRef, code, setValue]);
