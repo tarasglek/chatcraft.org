@@ -47,14 +47,15 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
       const dateMatch = preContent.match(/date:\s*(.+)/i);
       const date = dateMatch ? new Date(dateMatch[1]) : new Date();
 
-      feed.addItem({
-        title: title,
-        id: id,
-        link: url,
-        description: summary,
-        date: date,
-        author: [{ name: user }],
-      });
+      if (title !== "No Title" && url !== "No URL")
+        feed.addItem({
+          title: title,
+          id: id,
+          link: url,
+          description: summary,
+          date: date,
+          author: [{ name: user }],
+        });
     }
   }
 
