@@ -28,7 +28,7 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
     author: {
       name: user,
     },
-    copyright: `Copyright©${new Date().getFullYear()} by ${user}`,
+    copyright: `Copyright © ${new Date().getFullYear()} by ${user}`,
   });
 
   const sortedObjects = objects.sort((a, b) => b.uploaded.getTime() - a.uploaded.getTime());
