@@ -10,116 +10,60 @@ interface Env {
   JWT_SECRET: string;
 }
 
-interface ChatItem {
-  title: string;
-  id: string;
-  link: string;
-  description: string;
-  date: Date;
-  author: { name: string }[];
-}
-
-async function getNewItem(env: Env, newObject, user: string): Promise<ChatItem | null> {
+async function generateUserFeed(env: Env, user: string): Promise<void> {
   const { CHATCRAFT_ORG_BUCKET } = env;
-  try {
-    const chatData = await CHATCRAFT_ORG_BUCKET.get(newObject.key);
-    if (!chatData) {
-      console.error(`No chat data found for key: ${newObject.key}`);
-      return null;
-    }
-    const chatContent: string = await chatData.text();
-    const $ = load(chatContent);
-
-    const title = $('meta[property="og:title"]').text() || "No Title";
-    const summary = $('meta[name="description"]').attr("content") || "No Summary";
-    const url = $('meta[property="og:url"]').attr("content") || "No URL";
-    const id = url.split("/").pop() || "No ID";
-    const preContent = $("pre").text();
-    const dateMatch = preContent.match(/date:\s*(.+)/i);
-    const date = dateMatch ? new Date(dateMatch[1]) : new Date();
-
-    return {
-      title: title,
-      id: id,
-      link: url,
-      description: summary,
-      date: date,
-      author: [{ name: user }],
-    };
-  } catch (err) {
-    console.error(`Error processing new item: ${err}`);
-    return null;
-  }
-}
-
-function chatItemToXml(item: ChatItem): string {
-  return `
-    <entry>
-      <title>${item.title}</title>
-      <id>${item.id}</id>
-      <link href="${item.link}" />
-      <updated>${item.date.toISOString()}</updated>
-      <summary>${item.description}</summary>
-      <author>
-        <name>${item.author[0].name}</name>
-      </author>
-    </entry>
-  `.trim();
-}
-
-async function generateUserFeed(env: Env, user_id: any[]): Promise<void> {
-  const { CHATCRAFT_ORG_BUCKET } = env;
-  const [user, id] = user_id;
-  const newPrefix: string = `${user}/${id}`;
-  const { objects } = await CHATCRAFT_ORG_BUCKET.list({ newPrefix });
-  const newObject = objects.length > 0 ? objects[0] : null;
+  const prefix: string = `${user}/`;
+  const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix });
   const xsltUrl = "../../rss-style.xsl";
-  const feedKey = `${user}/feed.atom`;
 
-  let existingFeedXml: string | null = null;
-  try {
-    const existingFeedData = await CHATCRAFT_ORG_BUCKET.get(feedKey);
-    if (existingFeedData) {
-      existingFeedXml = await existingFeedData.text();
-    }
-  } catch (err) {
-    console.error(`Error fetching existing feed: ${err.message}`);
-  }
+  const feed = new Feed({
+    title: `User Feed for ${user}`,
+    description: `This is ${user}'s shared chats`,
+    id: `https://chatcraft.org/api/feed/${user}/feed.atom`,
+    link: `https://chatcraft.org/api/feed/${user}/feed.atom`,
+    updated: new Date(),
+    feedLinks: {
+      atom: `https://chatcraft.org/api/feed/${user}/feed.atom`,
+    },
+    author: {
+      name: user,
+    },
+    copyright: `Copyright © ${new Date().getFullYear()} by ${user}`,
+  });
 
-  let feedXml: string = "";
-  const newEntry: ChatItem | null = await getNewItem(env, newObject, user);
-  if (newEntry !== null) {
-    let feed: Feed;
-    if (existingFeedXml) {
-      const $ = load(existingFeedXml, { xmlMode: true });
-      const newEntryXml = chatItemToXml(newEntry);
-      $("feed").prepend(newEntryXml);
-      feedXml = $.xml();
-    } else {
-      feed = new Feed({
-        title: `User Feed for ${user}`,
-        description: `This is ${user}'s shared chats`,
-        id: `https://chatcraft.org/api/feed/${user}/feed.atom`,
-        link: `https://chatcraft.org/api/feed/${user}/feed.atom`,
-        updated: new Date(),
-        feedLinks: {
-          atom: `https://chatcraft.org/api/feed/${user}/feed.atom`,
-        },
-        author: {
-          name: user,
-        },
-        copyright: `Copyright © ${new Date().getFullYear()} by ${user}`,
+  const recentObjects = objects.slice(0, 20);
+  for (const object of recentObjects) {
+    const chatData = await CHATCRAFT_ORG_BUCKET.get(object.key);
+    if (chatData) {
+      const chatContent: string = await chatData.text();
+      const $ = load(chatContent);
+
+      const title = $('meta[property="og:title"]').text() || "No Title";
+      const summary = $('meta[name="description"]').attr("content") || "No Summary";
+      const url = $('meta[property="og:url"]').attr("content") || "No URL";
+      const id = url.split("/").pop() || "No ID";
+      const preContent = $("pre").text();
+      const dateMatch = preContent.match(/date:\s*(.+)/i);
+      const date = dateMatch ? new Date(dateMatch[1]) : new Date();
+
+      feed.addItem({
+        title: title,
+        id: id,
+        link: url,
+        description: summary,
+        date: date,
+        author: [{ name: user }],
       });
-
-      feed.addItem(newEntry);
-      feedXml = feed.atom1();
-      feedXml =
-        `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="${xsltUrl}"?>\n` +
-        feedXml;
     }
   }
 
+  let feedXml = feed.atom1();
+  feedXml =
+    `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="${xsltUrl}"?>\n` +
+    feedXml;
+
   try {
+    const feedKey = `${user}/feed/feed.atom`;
     await CHATCRAFT_ORG_BUCKET.put(feedKey, new TextEncoder().encode(feedXml), {
       httpMetadata: {
         contentType: "application/atom+xml",
@@ -204,7 +148,8 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
       },
     });
 
-    await generateUserFeed(env, user_id);
+    const [user] = user_id;
+    await generateUserFeed(env, user);
 
     return new Response(
       JSON.stringify({
