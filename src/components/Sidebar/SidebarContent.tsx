@@ -34,6 +34,7 @@ import { SharedChatCraftChat } from "../../lib/SharedChatCraftChat";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftFunction } from "../../lib/ChatCraftFunction";
 import { useAlert } from "../../hooks/use-alert";
+import { convertToShareUrl } from "../../lib/share";
 
 /**
  * Chat Sidebar Items
@@ -411,7 +412,7 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
                 <ChatSidebarItem
                   key={shared.id}
                   chat={shared.chat}
-                  url={shared.url}
+                  url={convertToShareUrl(shared.url)}
                   isSelected={selectedChat?.id === shared.id}
                   onDelete={() => handleDeleteSharedChat(shared.id)}
                 />

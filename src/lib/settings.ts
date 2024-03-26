@@ -8,7 +8,7 @@
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { ProviderData, ChatCraftProvider } from "../lib/ChatCraftProvider";
 import { providerFromJSON, providerFromUrl } from "./providers";
-import { OpenAiProvider } from "./providers/OpenAiProvider";
+import { FreeModelProvider } from "./providers/DefaultProvider/FreeModelProvider";
 /**
  * We can use models from OpenAI or OpenRouter (https://openrouter.ai/docs).
  * If using the latter, we need to override the basePath to use the OpenRouter URL.
@@ -39,10 +39,13 @@ export type Settings = {
   textToSpeech: TextToSpeechSettings;
   providers: ProviderData;
   currentProvider: ChatCraftProvider;
+  compressionFactor: number;
+  maxCompressedFileSizeMB: number;
+  maxImageDimension: number;
 };
 
 export const defaults: Settings = {
-  model: new ChatCraftModel("gpt-3.5-turbo"),
+  model: new ChatCraftModel("undi95/toppy-m-7b:free"),
   temperature: 0,
   enterBehaviour: "send",
   // Disabled by default, since token parsing requires downloading larger deps
@@ -55,7 +58,10 @@ export const defaults: Settings = {
     voice: TextToSpeechVoices.ALLOY,
   },
   providers: {},
-  currentProvider: new OpenAiProvider(),
+  currentProvider: new FreeModelProvider(),
+  compressionFactor: 1,
+  maxCompressedFileSizeMB: 20,
+  maxImageDimension: 2048,
 };
 
 export const key = "settings";
