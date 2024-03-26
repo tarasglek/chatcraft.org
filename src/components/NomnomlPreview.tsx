@@ -42,7 +42,7 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
           svgElement.style.width = "100%";
         }
       } catch (err: any) {
-        // If diagram fails, use error vs. diagram for copying (to debug)
+        // When the diagram fails, use the error vs. diagram for copying (to debug)
         setValue(err);
         console.warn(`Error rendering nomnoml diagram`, err);
       }
