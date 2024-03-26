@@ -4,9 +4,14 @@ import { isMac, isWindows } from "../lib/utils";
 type KeyboardEventHandlers<T> = {
   onMetaEnter?: (e: KeyboardEvent<T>) => void;
   onEscape?: (e: KeyboardEvent<T>) => void;
+  onForwardSlash?: (e: KeyboardEvent<T>) => void;
 };
 
-export function useKeyDownHandler<T>({ onMetaEnter, onEscape }: KeyboardEventHandlers<T>) {
+export function useKeyDownHandler<T>({
+  onMetaEnter,
+  onEscape,
+  onForwardSlash,
+}: KeyboardEventHandlers<T>) {
   return useCallback(
     (e: KeyboardEvent<T>) => {
       if (
@@ -19,7 +24,10 @@ export function useKeyDownHandler<T>({ onMetaEnter, onEscape }: KeyboardEventHan
       if (onEscape && e.key === "Escape") {
         onEscape(e);
       }
+      if (onForwardSlash && e.key === "/") {
+        onForwardSlash(e);
+      }
     },
-    [onMetaEnter, onEscape]
+    [onMetaEnter, onEscape, onForwardSlash]
   );
 }
