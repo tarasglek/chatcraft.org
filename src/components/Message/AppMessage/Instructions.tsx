@@ -29,7 +29,7 @@ We think ChatCraft is the best platform for learning, experimenting, and getting
 | ------------------------------------- |:---------:|:-------:|:-------:|
 | Optimized for conversations about code | ✅        | ❌      | ❌      |
 | Work with models from multiple AI vendors | ✅         |❌       | ❌      |
-| Previews for Mermaid Diagrams, HTML   | ✅        | ❌      | ❌      |
+| Previews for Mermaid/Nomnoml Diagrams, HTML   | ✅        | ❌      | ❌      |
 | Edit Generated AI Replies             | ✅        | ❌      | ✅      |
 | Use Custom System Prompts             | ✅        | ✅      | ❌      |
 | Easy to retry with different AI models| ✅        | ❌      | ❌      |
