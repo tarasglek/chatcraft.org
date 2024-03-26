@@ -11,7 +11,7 @@ import {
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CgArrowDownO } from "react-icons/cg";
 import { ScrollRestoration } from "react-router-dom";
 
@@ -39,6 +39,7 @@ import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
 import PreferencesModal from "../components/PreferencesModal";
+import { useKeyDownHandler } from "../hooks/use-key-down-handler";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -66,6 +67,26 @@ function ChatBase({ chat }: ChatBaseProps) {
     onOpen: onPrefModalOpen,
     onClose: onPrefModalClose,
   } = useDisclosure();
+
+  // Handle prompt form submission
+  const handleChatInputFocus = (e: FormEvent) => {
+    e.preventDefault();
+  };
+  const handleForwardSlash = useKeyDownHandler<HTMLDivElement>({
+    onForwardSlash: handleChatInputFocus,
+  });
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    switch (e.key) {
+      // Allow the user to cursor-up to repeat last prompt
+      case "/":
+        console.log(e.key);
+        handleForwardSlash(e);
+        break;
+      default:
+        return;
+    }
+  };
 
   // If we can't load models, it's a bad sign for API connectivity.
   // Show an error so the user is aware.
@@ -361,6 +382,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       transition={"150ms"}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
+      onKeyDown={handleKeyDown}
     >
       <GridItem colSpan={2}>
         {/* Default Provider Alert Banner*/}
