@@ -19,11 +19,11 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
   const feed = new Feed({
     title: `User Feed for ${user}`,
     description: `This is ${user}'s shared chats`,
-    id: `https://chatcraft.org/api/feed/${user}/feed.atom`,
-    link: `https://chatcraft.org/api/feed/${user}/feed.atom`,
+    id: `https://chatcraft.org/api/share/${user}/feed.atom`,
+    link: `https://chatcraft.org/api/share/${user}/feed.atom`,
     updated: new Date(),
     feedLinks: {
-      atom: `https://chatcraft.org/api/feed/${user}/feed.atom`,
+      atom: `https://chatcraft.org/api/share/feed/${user}/feed.atom`,
     },
     author: {
       name: user,
@@ -31,7 +31,8 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
     copyright: `Copyright © ${new Date().getFullYear()} by ${user}`,
   });
 
-  const recentObjects = objects.slice(0, 20);
+  const sortedObjects = objects.sort((a, b) => b.uploaded.getTime() - a.uploaded.getTime());
+  const recentObjects = sortedObjects.slice(0, 20);
   for (const object of recentObjects) {
     const chatData = await CHATCRAFT_ORG_BUCKET.get(object.key);
     if (chatData) {
@@ -63,7 +64,7 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
     feedXml;
 
   try {
-    const feedKey = `${user}/feed/feed.atom`;
+    const feedKey = `${user}/feed.atom`;
     await CHATCRAFT_ORG_BUCKET.put(feedKey, new TextEncoder().encode(feedXml), {
       httpMetadata: {
         contentType: "application/atom+xml",
