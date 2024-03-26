@@ -30,13 +30,14 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
 
     const fetchNomnoml = async () => {
       try {
+        // Load nomnoml dynamically at runtime if needed
         const nomnoml = await import("nomnoml");
         const svg = await nomnoml.renderSvg(code);
 
         setValue(svg);
         diagramDiv.innerHTML = svg;
 
-        // Adjust the width of the SVG to fit the content
+        // Adjust the width of the SVG to fit the content inside the CardBody
         const svgElement = diagramDiv.querySelector("svg");
         if (svgElement) {
           svgElement.style.width = "100%";
