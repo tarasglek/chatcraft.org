@@ -1,7 +1,6 @@
 import { memo, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { Card, CardBody, IconButton, useClipboard } from "@chakra-ui/react";
 import { TbCopy } from "react-icons/tb";
-import { nanoid } from "nanoid";
 import { useAlert } from "../hooks/use-alert";
 
 type NomnomlPreviewProps = {
@@ -29,17 +28,10 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
       return;
     }
 
-    // console.log(code);
-    // const nomnomlDiagramId = `nomnoml-diagram-${nanoid().toLowerCase()}`;
-    // console.log(nomnoml.renderSvg(code));
     try {
       const fetchNomnoml = async () => {
         const nomnoml = await import("nomnoml");
-        console.log("code", code);
-        console.log("type of code", typeof code);
         const svg = await nomnoml.renderSvg(code);
-        console.log(svg);
-        console.log("type of svg", typeof svg);
 
         setValue(svg);
         diagramDiv.innerHTML = svg;
