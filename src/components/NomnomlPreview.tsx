@@ -28,8 +28,8 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
       return;
     }
 
-    try {
-      const fetchNomnoml = async () => {
+    const fetchNomnoml = async () => {
+      try {
         const nomnoml = await import("nomnoml");
         const svg = await nomnoml.renderSvg(code);
 
@@ -41,12 +41,13 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
         if (svgElement) {
           svgElement.style.width = "100%";
         }
-      };
-      fetchNomnoml();
-    } catch (err: any) {
-      setValue(err);
-      console.warn(`Error rendering nomnoml diagram`, err);
-    }
+      } catch (err: any) {
+        // If diagram fails, use error vs. diagram for copying (to debug)
+        setValue(err);
+        console.warn(`Error rendering nomnoml diagram`, err);
+      }
+    };
+    fetchNomnoml();
   }, [diagramRef, code, setValue]);
 
   return (
