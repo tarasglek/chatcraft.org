@@ -15,39 +15,72 @@
       </head>
       <body>
         <main class="layout-content">
-          <div class="alert-box">
-            <strong>This is an Atom feed</strong>. Subscribe by copying
-            the URL from the address bar into your feed reader. Visit <a
-            href="https://aboutfeeds.com">About Feeds</a> to learn more and get started. It’s free.
-          </div>
+          <dk-alert-box type="info">
+            <strong>This is an RSS feed</strong>. Subscribe by copying
+            the URL from the address bar into your newsreader. Visit <a
+            href="https://aboutfeeds.com">About Feeds
+          </a> to learn more and get started. It’s free.
+          </dk-alert-box>
           <div class="py-7">
-            <h1>Atom Feed Preview</h1>
-            <h2><xsl:value-of select="/atom:feed/atom:link[@rel='alternate']/@href"/></h2>
-            <p>
-              <xsl:value-of select="/atom:feed/atom:subtitle"/>
-            </p>
-            <a href="{/atom:feed/atom:link[@rel='alternate']/@href}">Visit Website &#x2192;</a>
+                        <h1 class="flex items-start">
+              <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+                   class="mr-5"
+                   style="flex-shrink: 0; width: 1em; height: 1em;"
+                   viewBox="0 0 256 256">
+                <defs>
+                  <linearGradient x1="0.085" y1="0.085" x2="0.915" y2="0.915"
+                                  id="RSSg">
+                    <stop offset="0.0" stop-color="#E3702D"/>
+                    <stop offset="0.1071" stop-color="#EA7D31"/>
+                    <stop offset="0.3503" stop-color="#F69537"/>
+                    <stop offset="0.5" stop-color="#FB9E3A"/>
+                    <stop offset="0.7016" stop-color="#EA7C31"/>
+                    <stop offset="0.8866" stop-color="#DE642B"/>
+                    <stop offset="1.0" stop-color="#D95B29"/>
+                  </linearGradient>
+                </defs>
+                <rect width="256" height="256" rx="55" ry="55" x="0" y="0"
+                      fill="#CC5D15"/>
+                <rect width="246" height="246" rx="50" ry="50" x="5" y="5"
+                      fill="#F49C52"/>
+                <rect width="236" height="236" rx="47" ry="47" x="10" y="10"
+                      fill="url(#RSSg)"/>
+                <circle cx="68" cy="189" r="24" fill="#FFF"/>
+                <path
+                  d="M160 213h-34a82 82 0 0 0 -82 -82v-34a116 116 0 0 1 116 116z"
+                  fill="#FFF"/>
+                <path
+                  d="M184 213A140 140 0 0 0 44 73 V 38a175 175 0 0 1 175 175z"
+                  fill="#FFF"/>
+              </svg>
+              RSS Feed Preview
+            </h1>
+            <h2>ChatCraft</h2>
+            <a>
+              <xsl:attribute name="href">
+                <xsl:value-of select="/atom:feed/atom:link[@rel='alternate']/@href"/>
+              </xsl:attribute>
+              Visit Website &#x2192;
+            </a>
 
             <h2>Recent Shared Chats</h2>
             <xsl:for-each select="/atom:feed/atom:entry">
               <div class="pb-7">
                 <div class="text-2 text-offset">
                   Shared on
-                  <xsl:value-of select="substring(atom:date, 1, 10)" />
+                  <xsl:value-of select="substring(atom:updated, 0 11)"/>
                 </div>
 
                 <div class="text-4 font-bold">
                   <a>
                     <xsl:attribute name="href">
-                      <xsl:value-of select="atom:title"/>
+                      <xsl:value-of select="atom:link/@href"/>
                     </xsl:attribute>
                     <xsl:value-of select="atom:title"/>
                   </a>
                 </div>
 
-                <div class="text-3">
-                  <xsl:value-of select="atom:description"/>
-                </div>
+                <div class="text-3"><xsl:value-of select="atom:summary"/></div>
               </div>
             </xsl:for-each>
           </div>

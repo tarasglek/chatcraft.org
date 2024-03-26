@@ -14,7 +14,7 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
   const { CHATCRAFT_ORG_BUCKET } = env;
   const prefix: string = `${user}/`;
   const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix });
-  // const xsltUrl = "../../rss-style.xsl";
+  const xsltUrl = "/rss-style.xsl";
 
   const feed = new Feed({
     title: `User Feed for ${user}`,
@@ -58,10 +58,17 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
     }
   }
 
-  const xsltUrl = "https://daverupert.com/pretty-feed-v3.xsl";
   let feedXml = feed.atom1();
+
+  // Remove the first line (second XML declaration) if it exists
+  const lines = feedXml.split("\n");
+  if (lines[0].startsWith("<?xml")) {
+    lines.shift();
+    feedXml = lines.join("\n");
+  }
+
   feedXml =
-    `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="${xsltUrl}"?>\n` +
+    `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="${xsltUrl}?">\n` +
     feedXml;
 
   try {
