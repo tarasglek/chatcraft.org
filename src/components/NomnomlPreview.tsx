@@ -43,6 +43,12 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
 
         setValue(svg);
         diagramDiv.innerHTML = svg;
+
+        // Adjust the width of the SVG to fit the content
+        const svgElement = diagramDiv.querySelector("svg");
+        if (svgElement) {
+          svgElement.style.width = "100%";
+        }
       };
       fetchNomnoml();
     } catch (err: any) {
