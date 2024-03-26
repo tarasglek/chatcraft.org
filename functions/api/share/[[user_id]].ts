@@ -74,7 +74,7 @@ async function generateUserFeed(env: Env, user_id: any[]): Promise<void> {
   const { objects } = await CHATCRAFT_ORG_BUCKET.list({ newPrefix });
   const newObject = objects.length > 0 ? objects[0] : null;
   const xsltUrl = "../../rss-style.xsl";
-  const feedKey = `/feed/${user}/feed.atom`;
+  const feedKey = `${user}/feed.atom`;
 
   let existingFeedXml: string | null = null;
   try {
