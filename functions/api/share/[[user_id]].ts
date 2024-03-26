@@ -14,7 +14,7 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
   const { CHATCRAFT_ORG_BUCKET } = env;
   const prefix: string = `${user}/`;
   const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix });
-  const xsltUrl = "../../rss-style.xsl";
+  // const xsltUrl = "../../rss-style.xsl";
 
   const feed = new Feed({
     title: `User Feed for ${user}`,
@@ -23,12 +23,12 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
     link: `https://chatcraft.org/api/share/${user}/feed.atom`,
     updated: new Date(),
     feedLinks: {
-      atom: `https://chatcraft.org/api/share/feed/${user}/feed.atom`,
+      atom: `https://chatcraft.org/api/share/${user}/feed.atom`,
     },
     author: {
       name: user,
     },
-    copyright: `Copyright © ${new Date().getFullYear()} by ${user}`,
+    copyright: `Copyright©${new Date().getFullYear()} by ${user}`,
   });
 
   const sortedObjects = objects.sort((a, b) => b.uploaded.getTime() - a.uploaded.getTime());
@@ -39,8 +39,8 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
       const chatContent: string = await chatData.text();
       const $ = load(chatContent);
 
-      const title = $('meta[property="og:title"]').text() || "No Title";
-      const summary = $('meta[name="description"]').attr("content") || "No Summary";
+      const title = $('meta[property="og:title"]').attr("content") || "No Title";
+      const summary = $('meta[property="og:description"]').attr("content") || "No Summary";
       const url = $('meta[property="og:url"]').attr("content") || "No URL";
       const id = url.split("/").pop() || "No ID";
       const preContent = $("pre").text();
@@ -58,6 +58,7 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
     }
   }
 
+  const xsltUrl = "https://daverupert.com/pretty-feed-v3.xsl";
   let feedXml = feed.atom1();
   feedXml =
     `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="${xsltUrl}"?>\n` +
