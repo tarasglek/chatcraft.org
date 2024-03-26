@@ -68,7 +68,7 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
   }
 
   feedXml =
-    `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="${xsltUrl}?">\n` +
+    `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="${xsltUrl}"?>\n` +
     feedXml;
 
   try {
