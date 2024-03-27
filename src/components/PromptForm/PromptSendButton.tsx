@@ -7,6 +7,8 @@ import {
   MenuList,
   MenuItem,
   Tooltip,
+  MenuDivider,
+  MenuGroup,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend } from "react-icons/tb";
 
@@ -17,7 +19,7 @@ import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
 import { useMemo } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
-import { usingOfficialOpenAI } from "../../lib/providers";
+import { providerFromJSON, usingOfficialOpenAI } from "../../lib/providers";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -111,7 +113,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-
+  const supportedProviders = settings.providers;
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
@@ -165,13 +167,35 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models
-            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
-            .map((model) => (
-              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-                {model.prettyModel}
+          <MenuGroup title="Models">
+            {models
+              .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .map((model) => (
+                <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                  {model.prettyModel}
+                </MenuItem>
+              ))}
+          </MenuGroup>
+          <MenuDivider />
+          <MenuGroup title="Providers">
+            {Object.values(supportedProviders).map((provider) => (
+              <MenuItem
+                key={provider.apiUrl}
+                onClick={() => {
+                  const newProvider = providerFromJSON({
+                    id: provider.id,
+                    name: provider.name,
+                    apiUrl: provider.apiUrl,
+                    apiKey: provider.apiKey,
+                  });
+                  setSettings({ ...settings, currentProvider: newProvider });
+                }}
+              >
+                {settings.currentProvider.apiUrl === provider.apiUrl ? "✔️ " : ""}
+                {provider.name}
               </MenuItem>
             ))}
+          </MenuGroup>
         </MenuList>
       </Menu>
     </ButtonGroup>
