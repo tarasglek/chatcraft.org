@@ -7,6 +7,7 @@ import {
   ModalBody,
   Image,
   Flex,
+  Link,
 } from "@chakra-ui/react";
 
 interface ImageModalProps {
@@ -22,15 +23,17 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageSrc }) =>
       <ModalCloseButton />
       <ModalBody>
         <Flex height={"100%"} justifyContent={"center"} alignItems={"center"}>
-          <Image
-            maxWidth="100%"
-            maxHeight="70vh"
-            overflow={"auto"}
-            src={imageSrc}
-            alt="Selected Image"
-            m="auto"
-            objectFit="contain"
-          />
+          <Link href={imageSrc} isExternal>
+            <Image
+              maxWidth="100%"
+              maxHeight="70vh"
+              overflow={"auto"}
+              src={imageSrc}
+              alt="Selected Image"
+              m="auto"
+              objectFit="contain"
+            />
+          </Link>
         </Flex>
       </ModalBody>
     </ModalContent>
