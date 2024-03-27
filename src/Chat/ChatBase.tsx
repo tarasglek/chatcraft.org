@@ -11,7 +11,7 @@ import {
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CgArrowDownO } from "react-icons/cg";
 import { ScrollRestoration } from "react-router-dom";
 
@@ -39,7 +39,6 @@ import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
 import PreferencesModal from "../components/PreferencesModal";
-import { useKeyDownHandler } from "../hooks/use-key-down-handler";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -69,24 +68,38 @@ function ChatBase({ chat }: ChatBaseProps) {
   } = useDisclosure();
 
   // Handle prompt form submission
-  const handleChatInputFocus = (e: FormEvent) => {
+  const handleChatInputFocus = useCallback((e: KeyboardEvent) => {
     e.preventDefault();
-  };
-  const handleForwardSlash = useKeyDownHandler<HTMLDivElement>({
-    onForwardSlash: handleChatInputFocus,
-  });
+    inputPromptRef.current?.focus();
+  }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    switch (e.key) {
-      // Allow the user to cursor-up to repeat last prompt
-      case "/":
-        console.log(e.key);
-        handleForwardSlash(e);
-        break;
-      default:
+  useEffect(() => {
+    const handleForwardSlash = (e: KeyboardEvent) => {
+      // If user is already focused on any text input then don't prevent '/' character entry
+      const focusedElement = document.activeElement;
+      if (
+        focusedElement instanceof HTMLInputElement ||
+        focusedElement instanceof HTMLTextAreaElement
+      ) {
         return;
-    }
-  };
+      }
+      switch (e.key) {
+        // '/' Shortcut to focus on Prompt Input
+        case "/":
+          console.log(e.key);
+          handleChatInputFocus(e);
+          break;
+        default:
+          return;
+      }
+    };
+
+    document.addEventListener("keydown", handleForwardSlash);
+
+    return () => {
+      document.removeEventListener("keydown", handleForwardSlash);
+    };
+  }, [handleChatInputFocus]);
 
   // If we can't load models, it's a bad sign for API connectivity.
   // Show an error so the user is aware.
@@ -382,7 +395,6 @@ function ChatBase({ chat }: ChatBaseProps) {
       transition={"150ms"}
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
-      onKeyDown={handleKeyDown}
     >
       <GridItem colSpan={2}>
         {/* Default Provider Alert Banner*/}
