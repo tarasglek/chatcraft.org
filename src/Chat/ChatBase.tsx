@@ -67,7 +67,7 @@ function ChatBase({ chat }: ChatBaseProps) {
     onClose: onPrefModalClose,
   } = useDisclosure();
 
-  // Handle prompt form submission
+  // Set focus on Prompt Input text area
   const handleChatInputFocus = useCallback((e: KeyboardEvent) => {
     e.preventDefault();
     inputPromptRef.current?.focus();
@@ -84,9 +84,8 @@ function ChatBase({ chat }: ChatBaseProps) {
         return;
       }
       switch (e.key) {
-        // '/' Shortcut to focus on Prompt Input
+        // '/' Shortcut to focus on Prompt Input text area
         case "/":
-          console.log(e.key);
           handleChatInputFocus(e);
           break;
         default:
