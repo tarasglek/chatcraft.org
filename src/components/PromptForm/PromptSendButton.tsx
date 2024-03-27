@@ -30,6 +30,7 @@ type PromptSendButtonProps = {
 function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
+  const supportedProviders = settings.providers;
 
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
@@ -99,13 +100,37 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models
-            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
-            .map((model) => (
-              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-                {model.prettyModel}
+          <MenuGroup title="Models">
+            {models
+              .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .map((model) => (
+                <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                  {model.prettyModel}
+                </MenuItem>
+              ))}
+          </MenuGroup>
+          <MenuGroup title="Providers">
+            {Object.values({
+              ...supportedProviders,
+              [FREEMODELPROVIDER_API_URL]: new FreeModelProvider(),
+            }).map((provider) => (
+              <MenuItem
+                key={provider.apiUrl}
+                onClick={() => {
+                  const newProvider = providerFromJSON({
+                    id: provider.id,
+                    name: provider.name,
+                    apiUrl: provider.apiUrl,
+                    apiKey: provider.apiKey,
+                  });
+                  setSettings({ ...settings, currentProvider: newProvider });
+                }}
+              >
+                {settings.currentProvider.apiUrl === provider.apiUrl ? "✔️ " : ""}
+                {provider.name}
               </MenuItem>
             ))}
+          </MenuGroup>
         </MenuList>
       </Menu>
     </ButtonGroup>
