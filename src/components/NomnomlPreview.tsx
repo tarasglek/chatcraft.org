@@ -35,6 +35,8 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
         const svg = await nomnoml.renderSvg(code);
 
         setValue(svg);
+
+        // Render nomnoml svg if successful
         diagramDiv.innerHTML = svg;
 
         // Adjust the width of the SVG to fit the content inside the CardBody
@@ -45,6 +47,10 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
       } catch (err: any) {
         // When the diagram fails, use the error vs. diagram for copying (to debug)
         setValue(err);
+
+        // Render custom error message instead of error or blank content
+        const errMessage = `Syntax error in Nomnoml code`;
+        diagramDiv.innerHTML = errMessage;
         console.warn(`Error rendering nomnoml diagram`, err);
       }
     };
