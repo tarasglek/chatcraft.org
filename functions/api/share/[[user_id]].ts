@@ -12,7 +12,7 @@ interface Env {
 
 async function generateUserFeed(env: Env, user: string): Promise<void> {
   const { CHATCRAFT_ORG_BUCKET } = env;
-  const prefix: string = `${user}/`;
+  const prefix = `${user}/`;
   const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix });
   const xsltUrl = "/rss-style.xsl";
 
@@ -36,7 +36,7 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
   for (const object of recentObjects) {
     const chatData = await CHATCRAFT_ORG_BUCKET.get(object.key);
     if (chatData) {
-      const chatContent: string = await chatData.text();
+      const chatContent = await chatData.text();
       const $ = load(chatContent);
 
       const title = $('meta[property="og:title"]').attr("content") || "No Title";
