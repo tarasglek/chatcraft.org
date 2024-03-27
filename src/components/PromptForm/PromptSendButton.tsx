@@ -11,6 +11,8 @@ import {
   MenuGroup,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend } from "react-icons/tb";
+import { FREEMODELPROVIDER_API_URL } from "../../lib/ChatCraftProvider";
+import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
@@ -178,7 +180,10 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </MenuGroup>
           <MenuDivider />
           <MenuGroup title="Providers">
-            {Object.values(supportedProviders).map((provider) => (
+            {Object.values({
+              ...supportedProviders,
+              [FREEMODELPROVIDER_API_URL]: new FreeModelProvider(),
+            }).map((provider) => (
               <MenuItem
                 key={provider.apiUrl}
                 onClick={() => {
