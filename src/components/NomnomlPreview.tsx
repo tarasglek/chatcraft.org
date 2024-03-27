@@ -49,7 +49,7 @@ const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
         setValue(err);
 
         // Render custom error message instead of error or blank content
-        const errMessage = `Syntax error in Nomnoml code`;
+        const errMessage = `Error rendering Nomnoml diagram`;
         diagramDiv.innerHTML = errMessage;
         console.warn(`Error rendering nomnoml diagram`, err);
       }
