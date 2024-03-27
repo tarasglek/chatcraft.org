@@ -1,22 +1,24 @@
-import { ChatCraftModel } from "../ChatCraftModel";
 import {
   ChatCraftProvider,
   SerializedChatCraftProvider,
   OPENROUTER_API_URL,
-  ProviderName,
+  OPENROUTER_NAME,
 } from "../ChatCraftProvider";
 import { getReferer } from "../utils";
 
+const OPENROUTER_DEFAULT_MODEL = "openai/gpt-3.5-turbo";
+
 export type SerializedOpenRouterProvider = {
   id: string;
-  name: ProviderName;
+  name: string;
   apiUrl: string;
   apiKey?: string;
+  defaultModel: string;
 };
 
 export class OpenRouterProvider extends ChatCraftProvider {
-  constructor(key?: string) {
-    super(OPENROUTER_API_URL, key);
+  constructor(key?: string, name?: string) {
+    super(name || OPENROUTER_NAME, OPENROUTER_API_URL, OPENROUTER_DEFAULT_MODEL, key);
   }
 
   get clientHeaders() {
@@ -27,8 +29,8 @@ export class OpenRouterProvider extends ChatCraftProvider {
   }
 
   // Parse from serialized JSON
-  static fromJSON({ apiKey }: SerializedChatCraftProvider): OpenRouterProvider {
-    return new OpenRouterProvider(apiKey);
+  static fromJSON({ apiKey, name }: SerializedChatCraftProvider): OpenRouterProvider {
+    return new OpenRouterProvider(apiKey, name);
   }
 
   async validateApiKey(key: string) {
@@ -52,8 +54,4 @@ export class OpenRouterProvider extends ChatCraftProvider {
     // Redirect the user to the OpenRouter authentication page in the same tab
     location.href = `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
   };
-
-  defaultModelForProvider() {
-    return new ChatCraftModel("openai/gpt-3.5-turbo");
-  }
 }

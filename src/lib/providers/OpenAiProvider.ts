@@ -1,21 +1,23 @@
-import { ChatCraftModel } from "../ChatCraftModel";
 import {
   ChatCraftProvider,
   SerializedChatCraftProvider,
   OPENAI_API_URL,
-  ProviderName,
+  OPENAI_NAME,
 } from "../ChatCraftProvider";
+
+const OPENAI_DEFAULT_MODEL = "gpt-3.5-turbo";
 
 export type SerializedOpenAiProvider = {
   id: string;
-  name: ProviderName;
+  name: string;
   apiUrl: string;
   apiKey?: string;
+  defaultModel: string;
 };
 
 export class OpenAiProvider extends ChatCraftProvider {
-  constructor(key?: string) {
-    super(OPENAI_API_URL, key);
+  constructor(key?: string, name?: string) {
+    super(name || OPENAI_NAME, OPENAI_API_URL, OPENAI_DEFAULT_MODEL, key);
   }
 
   get logoUrl() {
@@ -23,15 +25,11 @@ export class OpenAiProvider extends ChatCraftProvider {
   }
 
   // Parse from serialized JSON
-  static fromJSON({ apiKey }: SerializedChatCraftProvider): OpenAiProvider {
-    return new OpenAiProvider(apiKey);
+  static fromJSON({ apiKey, name }: SerializedChatCraftProvider): OpenAiProvider {
+    return new OpenAiProvider(apiKey, name);
   }
 
   async validateApiKey(key: string) {
     return !!(await this.queryModels(key));
-  }
-
-  defaultModelForProvider() {
-    return new ChatCraftModel("gpt-3.5-turbo");
   }
 }

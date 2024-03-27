@@ -13,7 +13,7 @@ import {
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
-import { providerFromUrl, getSupportedProviders } from "../../../lib/providers";
+import { providerFromUrl, supportedProviders } from "../../../lib/providers";
 import { OpenRouterProvider } from "../../../lib/providers/OpenRouterProvider";
 import RevealablePasswordInput from "../../RevealablePasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
@@ -57,7 +57,6 @@ function Instructions(props: MessageBaseProps) {
   const { settings, setSettings } = useSettings();
   const [isValidating, setIsValidating] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
-  const supportedProviders = getSupportedProviders();
 
   // Override the text of the message
   const message = new ChatCraftAppMessage({ ...props.message, text: ApiKeyInstructionsText });

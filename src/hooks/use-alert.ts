@@ -8,6 +8,18 @@ type AlertArguments = {
   message?: string;
 };
 
+function trimMessage(message?: string): string {
+  if (!message) {
+    return "";
+  }
+
+  if (message.length > 200) {
+    return `${message.substring(0, 200)}...`;
+  }
+
+  return message;
+}
+
 export function useAlert() {
   const toast = useToast();
 
@@ -41,8 +53,38 @@ export function useAlert() {
     [toast]
   );
 
+  const success = useCallback(
+    ({ id, title, message }: AlertArguments) =>
+      toast({
+        id,
+        title,
+        description: trimMessage(message),
+        status: "success",
+        position: "top",
+        isClosable: true,
+        duration: 1000,
+      }),
+    [toast]
+  );
+
+  const warning = useCallback(
+    ({ id, title, message }: AlertArguments) =>
+      toast({
+        id,
+        title,
+        description: trimMessage(message),
+        status: "warning",
+        position: "top",
+        isClosable: true,
+        duration: 1000,
+      }),
+    [toast]
+  );
+
   return {
     info,
     error,
+    success,
+    warning,
   };
 }

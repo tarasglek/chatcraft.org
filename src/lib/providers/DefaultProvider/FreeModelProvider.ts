@@ -1,9 +1,19 @@
-import { ChatCraftModel } from "../../ChatCraftModel";
-import { ChatCraftProvider, FREEMODELPROVIDER_API_URL } from "../../ChatCraftProvider";
+import {
+  ChatCraftProvider,
+  FREEMODELPROVIDER_API_URL,
+  FREEMODELPROVIDER_NAME,
+} from "../../ChatCraftProvider";
+
+const FREEMODELPROVIDER_DEFAULT_MODEL = "undi95/toppy-m-7b:free";
 
 export class FreeModelProvider extends ChatCraftProvider {
   constructor() {
-    super(FREEMODELPROVIDER_API_URL, "mock_key");
+    super(
+      FREEMODELPROVIDER_NAME,
+      FREEMODELPROVIDER_API_URL,
+      FREEMODELPROVIDER_DEFAULT_MODEL,
+      "mock_key"
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -27,9 +37,5 @@ export class FreeModelProvider extends ChatCraftProvider {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async validateApiKey(key: string) {
     return true;
-  }
-
-  defaultModelForProvider() {
-    return new ChatCraftModel("undi95/toppy-m-7b:free");
   }
 }
