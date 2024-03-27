@@ -75,6 +75,9 @@ export default defineConfig({
           "**/assets/*.{js,json,css,ico,png,svg}",
           ...buildLanguageGlobPatterns("**/assets/"),
         ],
+        // Don't fallback on document based (e.g. `/some-page`) requests
+        // Even though this says `null` by default, I had to set this specifically to `null` to make it work
+        navigateFallback: null,
       },
     }),
   ],
