@@ -27,11 +27,19 @@ import {
   SliderThumb,
   SliderTrack,
   Stack,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
   Tooltip,
+  useToast,
   VStack,
+  InputGroup,
 } from "@chakra-ui/react";
 import { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
-import { useCopyToClipboard, useDebounce } from "react-use";
+import { useDebounce } from "react-use";
 
 import { capitalize } from "lodash-es";
 import { MdVolumeUp } from "react-icons/md";
@@ -42,13 +50,14 @@ import { useSettings } from "../hooks/use-settings";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { textToSpeech } from "../lib/ai";
 import db from "../lib/db";
-import { getSupportedProviders, providerFromJSON, providerFromUrl } from "../lib/providers";
-import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
+import { getSupportedProviders } from "../lib/providers";
 import { OpenAiProvider } from "../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../lib/providers/OpenRouterProvider";
 import { TextToSpeechVoices } from "../lib/settings";
 import { download, isMac } from "../lib/utils";
 import RevealablePasswordInput from "./RevealablePasswordInput";
+import { CustomProvider } from "../lib/providers/CustomProvider";
+import { ChatCraftProvider, ProviderData } from "../lib/ChatCraftProvider";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -69,13 +78,87 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
   // Using this hook vs. useClipboard() in Chakra to work around a bug
-  const [, copyToClipboard] = useCopyToClipboard();
+  // const [, copyToClipboard] = useCopyToClipboard();
   // Whether our db is being persisted
   const [isPersisted, setIsPersisted] = useState(false);
   const { info, error } = useAlert();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isApiKeyInvalid, setIsApiKeyInvalid] = useState(false);
   const supportedProviders = getSupportedProviders();
+  const [providers, setProviders] = useState<ProviderData>({});
+  const toast = useToast();
+  const [selectedProviders, setSelectedProviders] = useState<Set<string>>(new Set());
+  const [newProvider, setNewProvider] = useState<ChatCraftProvider | null>(null);
+  const [nameError, setNameError] = useState("");
+  const [apiUrlError, setApiUrlError] = useState("");
+  const [apiKeyError, setApiKeyError] = useState("");
+  const [focusedProviderName, setFocusedProviderName] = useState("");
+  const [apiKeySaved, setApiKeySaved] = useState(false);
+
+  useEffect(() => {
+    setProviders({ ...supportedProviders, ...settings.providers });
+  }, [settings.providers, supportedProviders]);
+
+  const handleApiChange = (name: string, newApiKey: string) => {
+    const updatedProviders = { ...providers };
+    if (updatedProviders[name]) {
+      updatedProviders[name].apiKey = newApiKey;
+      setProviders(updatedProviders);
+
+      const updatedSettingsProviders = { ...settings.providers };
+      updatedSettingsProviders[name] = updatedProviders[name];
+      setSettings({ ...settings, providers: updatedSettingsProviders });
+    }
+    setApiKeySaved(true);
+  };
+
+  const handleSetDefaultProvider = (name: string) => {
+    const provider = providers[name];
+    if (provider) {
+      setSettings({ ...settings, currentProvider: provider });
+    }
+  };
+
+  const handleProviderSelectionChange = (name: string, isSelected: boolean) => {
+    const newSelectedProviders = new Set(selectedProviders);
+    if (isSelected) {
+      newSelectedProviders.add(name);
+    } else {
+      newSelectedProviders.delete(name);
+    }
+    setSelectedProviders(newSelectedProviders);
+  };
+
+  const handleAddProvider = () => {
+    const tempNewProvider = new CustomProvider("", "", "");
+    setNewProvider(tempNewProvider);
+  };
+
+  const handleDeleteSelectedProviders = () => {
+    if (selectedProviders.has(settings.currentProvider.name)) {
+      toast({
+        title: "Error",
+        description: "You cannot delete the default provider.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+        position: "top",
+      });
+      return;
+    }
+
+    const updatedProviders = { ...providers };
+    selectedProviders.forEach((name) => {
+      delete updatedProviders[name];
+      setProviders(updatedProviders);
+      setSelectedProviders(new Set());
+      setSettings({ ...settings, providers: updatedProviders });
+    });
+
+    setProviders(updatedProviders);
+    setSelectedProviders(new Set());
+    setSettings({ ...settings, providers: updatedProviders });
+  };
 
   // Check the API Key, but debounce requests if user is typing
   useDebounce(
@@ -163,28 +246,30 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     [inputRef]
   );
 
-  const handleProviderChange = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => {
-      // Get stored data from settings.providers array if exists
-      const newProvider = settings.providers[e.target.value]
-        ? providerFromJSON(settings.providers[e.target.value])
-        : providerFromUrl(e.target.value);
+  // const handleProviderChange = useCallback(
+  //   (e: ChangeEvent<HTMLSelectElement>) => {
+  //     const url = nameToUrlMap[e.target.value];
 
-      if (newProvider instanceof FreeModelProvider) {
-        // If user chooses the free provider, set the key automatically
-        setSettings({
-          ...settings,
-          currentProvider: new FreeModelProvider(),
-        });
-      } else {
-        setSettings({
-          ...settings,
-          currentProvider: newProvider,
-        });
-      }
-    },
-    [setSettings, settings]
-  );
+  //     // Get stored data from settings.providers array if exists
+  //     const newProvider = settings.providers[e.target.value]
+  //       ? settings.providers[e.target.value]
+  //       : providerFromUrl(url, e.target.value);
+
+  //     if (newProvider instanceof FreeModelProvider) {
+  //       // If user chooses the free provider, set the key automatically
+  //       setSettings({
+  //         ...settings,
+  //         currentProvider: new FreeModelProvider(),
+  //       });
+  //     } else {
+  //       setSettings({
+  //         ...settings,
+  //         currentProvider: newProvider,
+  //       });
+  //     }
+  //   },
+  //   [setSettings, settings]
+  // );
 
   const handleVoiceSelection = useCallback(
     (voice: TextToSpeechVoices) => {
@@ -215,21 +300,297 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   }, [addToAudioQueue, clearAudioQueue, error, settings.textToSpeech]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" finalFocusRef={finalFocusRef}>
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" finalFocusRef={finalFocusRef}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent maxW="700px">
         <ModalHeader>User Settings</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {!supportedProviders ? (
+          {!supportedProviders || !providers ? (
             <Box>Loading providers...</Box>
           ) : (
             <VStack gap={4}>
               <FormControl>
+                <FormLabel>
+                  Providers
+                  <ButtonGroup ml={2}>
+                    <Button
+                      size="xs"
+                      onClick={handleAddProvider}
+                      isDisabled={!settings.currentProvider.apiKey}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      size="xs"
+                      colorScheme="red"
+                      onClick={handleDeleteSelectedProviders}
+                      isDisabled={selectedProviders.size === 0}
+                    >
+                      Delete
+                    </Button>
+                  </ButtonGroup>
+                  <FormHelperText fontSize="xs">
+                    Advanced option for use with other OpenAI-compatible APIs
+                  </FormHelperText>
+                </FormLabel>
+                <Table variant="simple" size="sm">
+                  <Thead>
+                    <Tr>
+                      <Th></Th>
+                      <Th>Name</Th>
+                      <Th>API URL</Th>
+                      <Th>API Key</Th>
+                      <Th>Default</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {newProvider && (
+                      <Tr>
+                        <Td sx={{ maxWidth: "30px" }}>
+                          <Checkbox isDisabled={true} />
+                        </Td>
+                        <Td sx={{ maxWidth: "110px" }}>
+                          <FormControl isInvalid={!!nameError}>
+                            <InputGroup size="sm">
+                              <Input
+                                fontSize="xs"
+                                placeholder="Provider Name"
+                                value={newProvider.name}
+                                onChange={(e) => {
+                                  setNewProvider(
+                                    new CustomProvider(
+                                      e.target.value,
+                                      newProvider.apiUrl,
+                                      newProvider.apiKey
+                                    )
+                                  );
+                                  setNameError("");
+                                }}
+                              />
+                            </InputGroup>
+                            <FormErrorMessage fontSize="xs">{nameError}</FormErrorMessage>
+                          </FormControl>
+                        </Td>
+                        <Td sx={{ maxWidth: "190px" }}>
+                          <FormControl isInvalid={!!apiUrlError}>
+                            <InputGroup size="sm">
+                              <Input
+                                fontSize="xs"
+                                placeholder="API URL"
+                                value={newProvider.apiUrl}
+                                onChange={(e) => {
+                                  setNewProvider(
+                                    new CustomProvider(
+                                      newProvider.name,
+                                      e.target.value,
+                                      newProvider.apiKey
+                                    )
+                                  );
+                                  setApiUrlError("");
+                                }}
+                              />
+                            </InputGroup>
+                            <FormErrorMessage fontSize="xs">{apiUrlError}</FormErrorMessage>
+                          </FormControl>
+                        </Td>
+                        <Td>
+                          <FormControl isInvalid={!!apiKeyError}>
+                            <RevealablePasswordInput
+                              fontSize="xs"
+                              type="password"
+                              placeholder="API Key"
+                              value={newProvider.apiKey || ""}
+                              onChange={(e) => {
+                                setNewProvider(
+                                  new CustomProvider(
+                                    newProvider.name,
+                                    newProvider.apiUrl,
+                                    e.target.value
+                                  )
+                                );
+                              }}
+                            />
+                            <FormErrorMessage fontSize="xs">{apiKeyError}</FormErrorMessage>
+                          </FormControl>
+                        </Td>
+                        <Td>
+                          <Button
+                            size="xs"
+                            colorScheme="green"
+                            onClick={() => {
+                              if (newProvider) {
+                                setNameError("");
+                                setApiUrlError("");
+                                setApiKeyError("");
+
+                                const name = newProvider.name.trim();
+                                const apiUrl = newProvider.apiUrl.trim();
+                                const apiKey = newProvider.apiKey?.trim();
+
+                                let isValid = true;
+
+                                if (!name) {
+                                  setNameError("Provider Name is required");
+                                  isValid = false;
+                                }
+                                if (!apiUrl) {
+                                  setApiUrlError("API URL is required");
+                                  isValid = false;
+                                }
+                                if (!apiKey) {
+                                  setApiKeyError("API Key is required");
+                                  isValid = false;
+                                }
+                                if (!isValid) return;
+
+                                if (!name || !apiUrl || !apiKey) {
+                                  toast({
+                                    title: "Error",
+                                    description: "All fields must be filled out.",
+                                    status: "error",
+                                    duration: 2000,
+                                    isClosable: true,
+                                    position: "top",
+                                  });
+                                  return;
+                                }
+
+                                // Check if provider name already exists
+                                if (providers[name]) {
+                                  toast({
+                                    title: "Error",
+                                    description: "A provider with this name already exists.",
+                                    status: "error",
+                                    duration: 2000,
+                                    isClosable: true,
+                                    position: "top",
+                                  });
+                                  return;
+                                }
+
+                                // Create a new provider instance with trimmed apiUrl
+                                const providerToSave = new CustomProvider(name, apiUrl, apiKey);
+
+                                const updatedProviders = {
+                                  ...providers,
+                                  [name]: providerToSave,
+                                };
+
+                                setProviders(updatedProviders);
+
+                                const updatedSettingsProviders = {
+                                  ...settings.providers,
+                                  [newProvider.name]: providerToSave,
+                                };
+                                setSettings({ ...settings, providers: updatedSettingsProviders });
+
+                                // clear the form and hide the new provider row
+                                setNewProvider(null);
+
+                                setApiKeySaved(true);
+                              }
+                            }}
+                          >
+                            Save
+                          </Button>
+                        </Td>
+                      </Tr>
+                    )}
+                    {[...Object.values(providers)] // copy of the array
+                      .reverse() // reverse the array so new provider is at top
+                      .map((provider, index) => (
+                        <Tr key={index}>
+                          <Td sx={{ maxWidth: "30px" }}>
+                            {!(provider.name in supportedProviders) && (
+                              <Checkbox
+                                onChange={(e) =>
+                                  handleProviderSelectionChange(provider.name, e.target.checked)
+                                }
+                                isChecked={selectedProviders.has(provider.name)}
+                              />
+                            )}
+                          </Td>
+                          <Td fontSize="xs" sx={{ maxWidth: "110px" }}>
+                            {provider.name}
+                          </Td>
+                          <Td fontSize="xs" sx={{ maxWidth: "190px" }}>
+                            {provider.apiUrl}
+                          </Td>
+                          <Td>
+                            {provider.name === "Free AI Models" ? (
+                              <InputGroup size="sm">
+                                <Input disabled fontSize="xs" value="N/A" />
+                              </InputGroup>
+                            ) : (
+                              <FormControl
+                                isInvalid={
+                                  settings.currentProvider.name === provider.name && isApiKeyInvalid
+                                }
+                              >
+                                <RevealablePasswordInput
+                                  fontSize="xs"
+                                  type="password"
+                                  value={provider.apiKey || ""}
+                                  onChange={(e) => handleApiChange(provider.name, e.target.value)}
+                                  onFocus={() => setFocusedProviderName(provider.name)}
+                                  onBlur={() => setFocusedProviderName("")}
+                                  isDisabled={provider.name === "Free AI Models"}
+                                />
+                                {settings.currentProvider.name === provider.name &&
+                                  isApiKeyInvalid && (
+                                    <FormErrorMessage fontSize="xs">
+                                      Unable to verify API Key with {settings.currentProvider.name}.
+                                    </FormErrorMessage>
+                                  )}
+                                {provider.name === "OpenRouter.ai" &&
+                                  provider.name === focusedProviderName && (
+                                    <Button
+                                      mt="3"
+                                      size="xs"
+                                      onClick={() => {
+                                        const provider = providers["OpenRouter.ai"];
+                                        if (provider instanceof OpenRouterProvider) {
+                                          provider.openRouterPkceRedirect();
+                                        } else {
+                                          console.error("Provider is not an OpenRouterProvider");
+                                        }
+                                      }}
+                                    >
+                                      Get API key from OpenRouter{" "}
+                                    </Button>
+                                  )}
+                              </FormControl>
+                            )}
+                          </Td>
+                          <Td>
+                            <Button
+                              size="xs"
+                              isDisabled={settings.currentProvider.name === provider.name}
+                              onClick={() => handleSetDefaultProvider(provider.name)}
+                            >
+                              {settings.currentProvider.name === provider.name ? "Default" : "Set"}
+                            </Button>
+                          </Td>
+                        </Tr>
+                      ))}
+                  </Tbody>
+                </Table>
+                <FormErrorMessage>
+                  Unable to verify API Key with {settings.currentProvider.name}.
+                </FormErrorMessage>
+                {apiKeySaved && (
+                  <FormHelperText fontSize="xs">
+                    Your API Key is stored in browser storage
+                  </FormHelperText>
+                )}
+              </FormControl>
+
+              {/* <FormControl>
                 <FormLabel>API URL</FormLabel>
-                <Select value={settings.currentProvider.apiUrl} onChange={handleProviderChange}>
+                <Select value={settings.currentProvider.name} onChange={handleProviderChange}>
                   {Object.values(supportedProviders).map((provider) => (
-                    <option key={provider.apiUrl} value={provider.apiUrl}>
+                    <option key={provider.name} value={provider.name}>
                       {provider.name} ({provider.apiUrl})
                     </option>
                   ))}
@@ -253,14 +614,17 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                     <Button
                       size="xs"
                       colorScheme="red"
-                      onClick={async () => {
+                      onClick={() => {
                         // Create provider that has no key
-                        const newProvider = providerFromUrl(settings.currentProvider.apiUrl);
+                        const newProvider = providerFromUrl(
+                          settings.currentProvider.apiUrl,
+                          settings.currentProvider.name
+                        );
 
                         // Get array with provider removed
                         const updatedProviders = { ...settings.providers };
-                        if (updatedProviders[settings.currentProvider.apiUrl]) {
-                          delete updatedProviders[settings.currentProvider.apiUrl];
+                        if (updatedProviders[settings.currentProvider.name]) {
+                          delete updatedProviders[settings.currentProvider.name];
                         }
 
                         setSettings({
@@ -278,9 +642,10 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 <RevealablePasswordInput
                   type="password"
                   value={settings.currentProvider.apiKey || ""}
-                  onChange={async (e) => {
+                  onChange={(e) => {
                     const newProvider = providerFromUrl(
                       settings.currentProvider.apiUrl,
+                      settings.currentProvider.name,
                       e.target.value
                     );
 
@@ -289,7 +654,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                       currentProvider: newProvider,
                       providers: {
                         ...settings.providers,
-                        [newProvider.apiUrl]: newProvider,
+                        [newProvider.name]: newProvider,
                       },
                     });
                   }}
@@ -309,7 +674,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   Unable to verify API Key with {settings.currentProvider.name}.
                 </FormErrorMessage>
                 <FormHelperText>Your API Key is stored in browser storage</FormHelperText>
-              </FormControl>
+              </FormControl> */}
 
               <FormControl>
                 <FormLabel>

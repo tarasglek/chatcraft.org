@@ -3,7 +3,7 @@ import { ChatCraftProvider, FREEMODELPROVIDER_API_URL } from "../../ChatCraftPro
 
 export class FreeModelProvider extends ChatCraftProvider {
   constructor() {
-    super(FREEMODELPROVIDER_API_URL, "mock_key");
+    super("Free AI Models", FREEMODELPROVIDER_API_URL, "mock_key");
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

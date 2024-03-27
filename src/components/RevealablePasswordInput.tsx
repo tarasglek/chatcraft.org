@@ -7,10 +7,10 @@ function RevealablePasswordInput(props: RevealablePasswordInputProps) {
   const [show, setShow] = useState(false);
 
   return (
-    <InputGroup size="md">
-      <Input {...props} pr="4.5rem" type={show ? "text" : "password"} />
-      <InputRightElement width="4.5rem">
-        <Button variant="ghost" h="1.75rem" size="sm" onClick={() => setShow(!show)}>
+    <InputGroup size="sm">
+      <Input {...props} pr="2.5rem" type={show ? "text" : "password"} />
+      <InputRightElement width="2.5rem">
+        <Button variant="ghost" h="1.75rem" size="xs" onClick={() => setShow(!show)}>
           {show ? "Hide" : "Show"}
         </Button>
       </InputRightElement>

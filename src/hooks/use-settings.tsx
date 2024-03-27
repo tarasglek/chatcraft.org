@@ -59,7 +59,7 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
               currentProvider: newProvider,
               providers: {
                 ...state.providers,
-                [newProvider.apiUrl]: newProvider,
+                [newProvider.name]: newProvider,
               },
             });
             // Strip out openRouter's code from the URL

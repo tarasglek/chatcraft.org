@@ -8,10 +8,16 @@ export const OPENAI_API_URL = "https://api.openai.com/v1";
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
 export const FREEMODELPROVIDER_API_URL = "https://free-chatcraft-ai.deno.dev/api/v1";
 
-const urlToNameMap: { [key: string]: ProviderName } = {
+export const urlToNameMap: { [key: string]: ProviderName } = {
   [OPENAI_API_URL]: "OpenAI",
   [OPENROUTER_API_URL]: "OpenRouter.ai",
   [FREEMODELPROVIDER_API_URL]: "Free AI Models",
+};
+
+export const nameToUrlMap: { [key: string]: string } = {
+  ["OpenAI"]: OPENAI_API_URL,
+  ["OpenRouter.ai"]: OPENROUTER_API_URL,
+  ["Free AI Models"]: FREEMODELPROVIDER_API_URL,
 };
 
 export interface ProviderData {
@@ -20,20 +26,20 @@ export interface ProviderData {
 
 export type SerializedChatCraftProvider = {
   id: string;
-  name: ProviderName;
+  name: string;
   apiUrl: string;
   apiKey?: string;
 };
 
 export abstract class ChatCraftProvider {
   id: string;
-  name: ProviderName;
+  name: string;
   apiUrl: string;
   apiKey?: string;
 
-  constructor(url: string, key?: string) {
+  constructor(name: string, url: string, key?: string) {
     this.id = nanoid();
-    this.name = urlToNameMap[url];
+    this.name = name;
     this.apiUrl = url;
     this.apiKey = key;
   }
