@@ -421,7 +421,7 @@ export async function isGenerateImageSupported() {
   );
 }
 
-type dalle3ImageSize = "1024x1024" | "1792x1024" | "1024x1792";
+export type dalle3ImageSize = "1024x1024" | "1792x1024" | "1024x1792";
 
 export const generateImage = async (
   prompt: string,
