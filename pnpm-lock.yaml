@@ -74,6 +74,9 @@ dependencies:
   nanoid:
     specifier: ^5.0.5
     version: 5.0.5
+  nomnoml:
+    specifier: ^1.6.2
+    version: 1.6.2
   openai:
     specifier: ^4.26.1
     version: 4.26.1
@@ -6564,6 +6567,10 @@ packages:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
 
+  /graphre@0.1.3:
+    resolution: {integrity: sha512-F4OO/+BQj3R2UB3PQOGLgdAUy+SQuwy2A5cVGELAQDJlloSyyHqRe60ESFouRf8W0K+sm6gtWKotOwZoX3BL8w==}
+    dev: false
+
   /has-bigints@1.0.2:
     resolution: {integrity: sha512-tSvCKtBr9lkF0Ex0aQiP9N+OpV4zi2r/Nee5VkRDbaqv35RLYMzbwQfFSZZH0kR+Rd6302UJZ2p/bJCEoR3VoQ==}
     dev: true
@@ -8377,6 +8384,13 @@ packages:
       util: 0.12.5
       vm-browserify: 1.1.2
     dev: true
+
+  /nomnoml@1.6.2:
+    resolution: {integrity: sha512-R3dA3FS8txilobpd2ZdnCuEwmXYYljxza2wR41YE/cIHMbt0eXsjlXHlAsD+F/fVe536f0WkAQ+VQFRC3hPZCA==}
+    hasBin: true
+    dependencies:
+      graphre: 0.1.3
+    dev: false
 
   /non-layered-tidy-tree-layout@2.0.2:
     resolution: {integrity: sha512-gkXMxRzUH+PB0ax9dUN0yYF0S25BqeAYqhgMaLUFmpXLEk7Fcu8f4emJuOAY0V8kjDICxROIKsTAKsV/v355xw==}
@@ -10723,6 +10737,7 @@ packages:
 
   /workbox-google-analytics@7.0.0:
     resolution: {integrity: sha512-MEYM1JTn/qiC3DbpvP2BVhyIH+dV/5BjHk756u9VbwuAhu0QHyKscTnisQuz21lfRpOwiS9z4XdqeVAKol0bzg==}
+    deprecated: It is not compatible with newer versions of GA starting with v4, as long as you are using GAv3 it should be ok, but the package is not longer being maintained
     dependencies:
       workbox-background-sync: 7.0.0
       workbox-core: 7.0.0

@@ -17,6 +17,7 @@ import oneLight from "react-syntax-highlighter/dist/esm/styles/hljs/atom-one-lig
 import CodeHeader from "./CodeHeader";
 import HtmlPreview from "./HtmlPreview";
 import MermaidPreview from "./MermaidPreview";
+import NomnomlPreview from "./NomnomlPreview";
 
 const fixLanguageName = (language: string | null) => {
   if (!language) {
@@ -107,6 +108,10 @@ function Markdown({
             } else if (language === "mermaid") {
               preview = (
                 <MermaidPreview children={Array.isArray(children) ? children : [children]} />
+              );
+            } else if (language === "nomnoml") {
+              preview = (
+                <NomnomlPreview children={Array.isArray(children) ? children : [children]} />
               );
             }
           }
