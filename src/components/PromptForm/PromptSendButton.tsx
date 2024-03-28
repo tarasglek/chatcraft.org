@@ -30,7 +30,6 @@ type PromptSendButtonProps = {
 function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const supportedProviders = settings.providers;
 
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
@@ -111,7 +110,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           </MenuGroup>
           <MenuGroup title="Providers">
             {Object.values({
-              ...supportedProviders,
+              ...settings.providers,
               [FREEMODELPROVIDER_API_URL]: new FreeModelProvider(),
             }).map((provider) => (
               <MenuItem
@@ -140,7 +139,6 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const supportedProviders = settings.providers;
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
@@ -206,7 +204,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           <MenuDivider />
           <MenuGroup title="Providers">
             {Object.values({
-              ...supportedProviders,
+              ...settings.providers,
               [FREEMODELPROVIDER_API_URL]: new FreeModelProvider(),
             }).map((provider) => (
               <MenuItem
