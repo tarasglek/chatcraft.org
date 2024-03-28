@@ -7,8 +7,11 @@ import {
   MenuList,
   MenuItem,
   Tooltip,
+  MenuDivider,
+  MenuGroup,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend } from "react-icons/tb";
+import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
@@ -95,13 +98,38 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models
-            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
-            .map((model) => (
-              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-                {model.prettyModel}
+          <MenuGroup title="Models">
+            {models
+              .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .map((model) => (
+                <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                  {model.prettyModel}
+                </MenuItem>
+              ))}
+          </MenuGroup>
+          <MenuDivider />
+          <MenuGroup title="Providers">
+            {Object.entries({
+              ...settings.providers,
+              "Free AI Models": "Free AI Models",
+            }).map(([providerName]) => (
+              <MenuItem
+                key={providerName}
+                onClick={() => {
+                  const isFreeModel = providerName === "Free AI Models";
+                  const newProvider = isFreeModel
+                    ? new FreeModelProvider()
+                    : settings.providers[providerName];
+                  setSettings({ ...settings, currentProvider: newProvider });
+                }}
+              >
+                <span style={{ width: "1em", display: "inline-block", textAlign: "center" }}>
+                  {settings.currentProvider.name === providerName ? "✔️" : ""}
+                </span>
+                {providerName}
               </MenuItem>
             ))}
+          </MenuGroup>
         </MenuList>
       </Menu>
     </ButtonGroup>
@@ -111,7 +139,6 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
@@ -165,13 +192,38 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models
-            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
-            .map((model) => (
-              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-                {model.prettyModel}
+          <MenuGroup title="Models">
+            {models
+              .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .map((model) => (
+                <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                  {model.prettyModel}
+                </MenuItem>
+              ))}
+          </MenuGroup>
+          <MenuDivider />
+          <MenuGroup title="Providers">
+            {Object.entries({
+              ...settings.providers,
+              "Free AI Models": "Free AI Models",
+            }).map(([providerName]) => (
+              <MenuItem
+                key={providerName}
+                onClick={() => {
+                  const isFreeModel = providerName === "Free AI Models";
+                  const newProvider = isFreeModel
+                    ? new FreeModelProvider()
+                    : settings.providers[providerName];
+                  setSettings({ ...settings, currentProvider: newProvider });
+                }}
+              >
+                <span style={{ width: "1em", display: "inline-block", textAlign: "center" }}>
+                  {settings.currentProvider.name === providerName ? "✔️" : ""}
+                </span>
+                {providerName}
               </MenuItem>
             ))}
+          </MenuGroup>
         </MenuList>
       </Menu>
     </ButtonGroup>
