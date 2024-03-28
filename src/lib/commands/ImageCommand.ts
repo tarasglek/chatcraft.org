@@ -17,21 +17,24 @@ export class ImageCommand extends ChatCraftCommand {
       throw new Error("must include a prompt");
     }
 
-    const regexLandscape = /@(landscape|1792x1024)/g;
-    const regexPortrait = /@(portrait|1024x1792)/g;
-
-    let prompt = args.join(" ");
+    const [first, ...rest] = args;
+    const isLayout = first.startsWith("layout=");
+    const prompt = isLayout ? rest.join(" ") : args.join(" ");
+    let layoutType = "square";
     let size: dalle3ImageSize = "1024x1024";
-    if (regexLandscape.test(prompt)) {
-      size = "1792x1024";
-    } else if (regexPortrait.test(prompt)) {
-      size = "1024x1792";
+    if (isLayout) {
+      const layoutValue = first.split("=")[1];
+      if (layoutValue == "l" || layoutValue == "landscape") {
+        size = "1792x1024";
+        layoutType = "landscape";
+      } else if (layoutValue == "p" || layoutValue == "portrait") {
+        size = "1024x1792";
+        layoutType = "portrait";
+      }
     }
 
-    prompt = prompt.replace(regexLandscape, "").replace(regexPortrait, "");
-
+    const text = `(DALL·E 3 result ${isLayout ? `[layout ${layoutType}]` : ""} of the prompt: ${prompt})`;
     let imageUrls: string[] = [];
-    const text = `(DALL·E 3 result of the prompt: ${prompt})`;
 
     try {
       //TODO, refactor to object calling like generateImage(prompt, {size});
