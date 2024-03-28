@@ -2,6 +2,7 @@ import { ChatCraftCommand } from "../ChatCraftCommand";
 import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
 import { generateImage, isGenerateImageSupported } from "../../lib/ai";
+import type { Dalle3ImageSize } from "../../lib/ai";
 
 export class ImageCommand extends ChatCraftCommand {
   constructor() {
@@ -15,12 +16,28 @@ export class ImageCommand extends ChatCraftCommand {
     if (!(args && args[0])) {
       throw new Error("must include a prompt");
     }
-    const prompt = args.join(" ");
+
+    const [first, ...rest] = args;
+    const isLayout = first.startsWith("layout=");
+    const prompt = isLayout ? rest.join(" ") : args.join(" ");
+    let layoutType = "square";
+    let size: Dalle3ImageSize = "1024x1024";
+    if (isLayout) {
+      const layoutValue = first.split("=")[1];
+      if (layoutValue == "l" || layoutValue == "landscape") {
+        size = "1792x1024";
+        layoutType = "landscape";
+      } else if (layoutValue == "p" || layoutValue == "portrait") {
+        size = "1024x1792";
+        layoutType = "portrait";
+      }
+    }
+
+    const text = `(DALL·E 3 result ${isLayout ? `[layout ${layoutType}]` : ""} of the prompt: ${prompt})`;
     let imageUrls: string[] = [];
-    const text = `(DALL·E 3 result of the prompt: ${prompt})`;
 
     try {
-      imageUrls = await generateImage(prompt);
+      imageUrls = await generateImage({ prompt, size });
     } catch (error: any) {
       console.error(`Failed to generate image: ${error.message}`);
       throw new Error(`Failed to generate image: ${error.message}`);
