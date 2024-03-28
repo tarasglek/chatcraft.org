@@ -11,7 +11,6 @@ import {
   MenuGroup,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend } from "react-icons/tb";
-import { FREEMODELPROVIDER_API_URL } from "../../lib/ChatCraftProvider";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
@@ -21,7 +20,7 @@ import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
 import { useMemo } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
-import { providerFromJSON, usingOfficialOpenAI } from "../../lib/providers";
+import { usingOfficialOpenAI } from "../../lib/providers";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -108,25 +107,26 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                 </MenuItem>
               ))}
           </MenuGroup>
+          <MenuDivider />
           <MenuGroup title="Providers">
-            {Object.values({
+            {Object.entries({
               ...settings.providers,
-              [FREEMODELPROVIDER_API_URL]: new FreeModelProvider(),
-            }).map((provider) => (
+              "Free AI Models": "Free AI Models",
+            }).map(([providerName]) => (
               <MenuItem
-                key={provider.apiUrl}
+                key={providerName}
                 onClick={() => {
-                  const newProvider = providerFromJSON({
-                    id: provider.id,
-                    name: provider.name,
-                    apiUrl: provider.apiUrl,
-                    apiKey: provider.apiKey,
-                  });
+                  const isFreeModel = providerName === "Free AI Models";
+                  const newProvider = isFreeModel
+                    ? new FreeModelProvider()
+                    : settings.providers[providerName];
                   setSettings({ ...settings, currentProvider: newProvider });
                 }}
               >
-                {settings.currentProvider.apiUrl === provider.apiUrl ? "✔️ " : ""}
-                {provider.name}
+                <span style={{ width: "1em", display: "inline-block", textAlign: "center" }}>
+                  {settings.currentProvider.name === providerName ? "✔️" : ""}
+                </span>
+                {providerName}
               </MenuItem>
             ))}
           </MenuGroup>
@@ -203,26 +203,24 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </MenuGroup>
           <MenuDivider />
           <MenuGroup title="Providers">
-            {Object.values({
+            {Object.entries({
               ...settings.providers,
-              [FREEMODELPROVIDER_API_URL]: new FreeModelProvider(),
-            }).map((provider) => (
+              "Free AI Models": "Free AI Models",
+            }).map(([providerName]) => (
               <MenuItem
-                key={provider.apiUrl}
+                key={providerName}
                 onClick={() => {
-                  const newProvider = providerFromJSON({
-                    id: provider.id,
-                    name: provider.name,
-                    apiUrl: provider.apiUrl,
-                    apiKey: provider.apiKey,
-                  });
+                  const isFreeModel = providerName === "Free AI Models";
+                  const newProvider = isFreeModel
+                    ? new FreeModelProvider()
+                    : settings.providers[providerName];
                   setSettings({ ...settings, currentProvider: newProvider });
                 }}
               >
                 <span style={{ width: "1em", display: "inline-block", textAlign: "center" }}>
-                  {settings.currentProvider.apiUrl === provider.apiUrl ? "✔️" : ""}
+                  {settings.currentProvider.name === providerName ? "✔️" : ""}
                 </span>
-                {provider.name}
+                {providerName}
               </MenuItem>
             ))}
           </MenuGroup>
