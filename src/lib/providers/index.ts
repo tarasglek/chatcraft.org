@@ -10,26 +10,27 @@ import { getSettings } from "../settings";
 import { OpenAiProvider } from "./OpenAiProvider";
 import { OpenRouterProvider } from "./OpenRouterProvider";
 import { FreeModelProvider } from "./DefaultProvider/FreeModelProvider";
+import { CustomProvider } from "./CustomProvider";
 
 export const usingOfficialOpenAI = () => getSettings().currentProvider.apiUrl === OPENAI_API_URL;
 export const usingOfficialOpenRouter = () =>
   getSettings().currentProvider.apiUrl === OPENROUTER_API_URL;
 
 // Parses url into instance of ChatCraftProvider
-export function providerFromUrl(url: string, key?: string) {
+export function providerFromUrl(url: string, name: string, key?: string) {
   if (url === OPENAI_API_URL) {
-    return new OpenAiProvider(key);
+    return new OpenAiProvider(key, name);
   }
 
   if (url === OPENROUTER_API_URL) {
-    return new OpenRouterProvider(key);
+    return new OpenRouterProvider(key, name);
   }
 
   if (url === FREEMODELPROVIDER_API_URL) {
     return new FreeModelProvider();
   }
 
-  throw new Error(`Error parsing provider from url, unsupported url: ${url}`);
+  return new CustomProvider(name, url, key);
 }
 
 // Parse JSON into instance of ChatCraftProvider
@@ -51,7 +52,7 @@ export function providerFromJSON({
     return new FreeModelProvider();
   }
 
-  throw new Error(`Error parsing provider from JSON, unsupported url: ${apiUrl}`);
+  return CustomProvider.fromJSON({ id, name, apiUrl, apiKey });
 }
 
 // Returns list of supported providers
@@ -61,8 +62,8 @@ export const getSupportedProviders = (): ProviderData => {
   const freeModel = new FreeModelProvider();
 
   return {
-    [openAi.apiUrl]: openAi,
-    [openRouter.apiUrl]: openRouter,
-    [freeModel.apiUrl]: freeModel,
+    [freeModel.name]: freeModel,
+    [openRouter.name]: openRouter,
+    [openAi.name]: openAi,
   };
 };

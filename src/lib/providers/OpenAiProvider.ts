@@ -3,19 +3,18 @@ import {
   ChatCraftProvider,
   SerializedChatCraftProvider,
   OPENAI_API_URL,
-  ProviderName,
 } from "../ChatCraftProvider";
 
 export type SerializedOpenAiProvider = {
   id: string;
-  name: ProviderName;
+  name: string;
   apiUrl: string;
   apiKey?: string;
 };
 
 export class OpenAiProvider extends ChatCraftProvider {
-  constructor(key?: string) {
-    super(OPENAI_API_URL, key);
+  constructor(key?: string, name?: string) {
+    super(name || "OpenAI", OPENAI_API_URL, key);
   }
 
   get logoUrl() {
@@ -23,8 +22,8 @@ export class OpenAiProvider extends ChatCraftProvider {
   }
 
   // Parse from serialized JSON
-  static fromJSON({ apiKey }: SerializedChatCraftProvider): OpenAiProvider {
-    return new OpenAiProvider(apiKey);
+  static fromJSON({ apiKey, name }: SerializedChatCraftProvider): OpenAiProvider {
+    return new OpenAiProvider(apiKey, name);
   }
 
   async validateApiKey(key: string) {

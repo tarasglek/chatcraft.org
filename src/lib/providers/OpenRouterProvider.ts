@@ -3,20 +3,19 @@ import {
   ChatCraftProvider,
   SerializedChatCraftProvider,
   OPENROUTER_API_URL,
-  ProviderName,
 } from "../ChatCraftProvider";
 import { getReferer } from "../utils";
 
 export type SerializedOpenRouterProvider = {
   id: string;
-  name: ProviderName;
+  name: string;
   apiUrl: string;
   apiKey?: string;
 };
 
 export class OpenRouterProvider extends ChatCraftProvider {
-  constructor(key?: string) {
-    super(OPENROUTER_API_URL, key);
+  constructor(key?: string, name?: string) {
+    super(name || "OpenRouter.ai", OPENROUTER_API_URL, key);
   }
 
   get clientHeaders() {
@@ -27,8 +26,8 @@ export class OpenRouterProvider extends ChatCraftProvider {
   }
 
   // Parse from serialized JSON
-  static fromJSON({ apiKey }: SerializedChatCraftProvider): OpenRouterProvider {
-    return new OpenRouterProvider(apiKey);
+  static fromJSON({ apiKey, name }: SerializedChatCraftProvider): OpenRouterProvider {
+    return new OpenRouterProvider(apiKey, name);
   }
 
   async validateApiKey(key: string) {

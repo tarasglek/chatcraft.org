@@ -6,7 +6,7 @@
  * when you only need to read something.
  */
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { ProviderData, ChatCraftProvider } from "../lib/ChatCraftProvider";
+import { ProviderData, ChatCraftProvider, urlToNameMap } from "../lib/ChatCraftProvider";
 import { providerFromJSON, providerFromUrl } from "./providers";
 import { FreeModelProvider } from "./providers/DefaultProvider/FreeModelProvider";
 /**
@@ -84,14 +84,27 @@ export const deserializer = (value: string): Settings => {
   } else {
     // No current provider, check if we need to handle migration of deprecated apiKey, apiUrl
     if (settings.apiKey && settings.apiUrl) {
-      const newProvider = providerFromUrl(settings.apiUrl, settings.apiKey);
-      settings.currentProvider = newProvider;
-      settings.providers = { ...settings.providers, [newProvider.apiUrl]: newProvider };
-      delete settings.apiKey;
-      delete settings.apiUrl;
-      console.warn("Migrated deprecated apiKey, apiUrl");
+      if (urlToNameMap[settings.apiUrl]) {
+        const newProvider = providerFromUrl(
+          settings.apiUrl,
+          urlToNameMap[settings.apiUrl],
+          settings.apiKey
+        );
+        settings.currentProvider = newProvider;
+        settings.providers = { ...settings.providers, [newProvider.name]: newProvider };
+        delete settings.apiKey;
+        delete settings.apiUrl;
+        console.warn("Migrated deprecated apiKey, apiUrl");
+      }
     }
   }
+
+  // Deserialize each provider in settings.providers
+  const deserializedProviders: ProviderData = {};
+  for (const key in settings.providers) {
+    deserializedProviders[key] = providerFromJSON(settings.providers[key]);
+  }
+  settings.providers = deserializedProviders;
 
   return { ...defaults, ...settings };
 };

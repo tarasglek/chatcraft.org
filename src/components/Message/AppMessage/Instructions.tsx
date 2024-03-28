@@ -13,7 +13,8 @@ import {
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
-import { providerFromUrl, providerFromJSON, getSupportedProviders } from "../../../lib/providers";
+import { providerFromUrl, getSupportedProviders } from "../../../lib/providers";
+import { nameToUrlMap } from "../../../lib/ChatCraftProvider";
 import { OpenRouterProvider } from "../../../lib/providers/OpenRouterProvider";
 import RevealablePasswordInput from "../../RevealablePasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
@@ -85,14 +86,18 @@ function Instructions(props: MessageBaseProps) {
           if (valid) {
             setIsInvalid(false);
 
-            const newProvider = providerFromUrl(settings.currentProvider.apiUrl, apiKey.trim());
+            const newProvider = providerFromUrl(
+              settings.currentProvider.apiUrl,
+              settings.currentProvider.name,
+              apiKey.trim()
+            );
 
             setSettings({
               ...settings,
               currentProvider: newProvider,
               providers: {
                 ...settings.providers,
-                [newProvider.apiUrl]: newProvider,
+                [newProvider.name]: newProvider,
               },
             });
           } else {
@@ -109,10 +114,12 @@ function Instructions(props: MessageBaseProps) {
 
   const handleProviderChange = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => {
+      const url = nameToUrlMap[e.target.value];
+
       // Get stored data from settings.providers array if exists
       const newProvider = settings.providers[e.target.value]
-        ? providerFromJSON(settings.providers[e.target.value])
-        : providerFromUrl(e.target.value);
+        ? settings.providers[e.target.value]
+        : providerFromUrl(url, e.target.value);
 
       if (newProvider instanceof FreeModelProvider) {
         // If user chooses the free provider, set the key automatically
@@ -141,10 +148,10 @@ function Instructions(props: MessageBaseProps) {
             <FormControl>
               <FormLabel>Provider API URL</FormLabel>
 
-              <Select value={settings.currentProvider.apiUrl} onChange={handleProviderChange}>
+              <Select value={settings.currentProvider.name} onChange={handleProviderChange}>
                 {Object.values(supportedProviders).map((provider) => (
-                  <option key={provider.apiUrl} value={provider.apiUrl}>
-                    {provider.name} ({provider.apiUrl})
+                  <option key={provider.name} value={provider.name}>
+                    {provider.name} ({provider.name})
                   </option>
                 ))}
               </Select>
