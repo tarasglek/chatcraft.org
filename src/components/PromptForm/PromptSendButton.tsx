@@ -221,7 +221,9 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                   setSettings({ ...settings, currentProvider: newProvider });
                 }}
               >
-                {settings.currentProvider.apiUrl === provider.apiUrl ? "✔️ " : ""}
+                <span style={{ width: "1em", display: "inline-block", textAlign: "center" }}>
+                  {settings.currentProvider.apiUrl === provider.apiUrl ? "✔️" : ""}
+                </span>
                 {provider.name}
               </MenuItem>
             ))}
