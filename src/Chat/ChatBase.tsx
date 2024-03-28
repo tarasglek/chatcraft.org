@@ -67,6 +67,39 @@ function ChatBase({ chat }: ChatBaseProps) {
     onClose: onPrefModalClose,
   } = useDisclosure();
 
+  // Set focus on Prompt Input text area
+  const handleChatInputFocus = useCallback((e: KeyboardEvent) => {
+    e.preventDefault();
+    inputPromptRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const handleForwardSlash = (e: KeyboardEvent) => {
+      // If user is already focused on any text input then don't prevent '/' character entry
+      const focusedElement = document.activeElement;
+      if (
+        focusedElement instanceof HTMLInputElement ||
+        focusedElement instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+      switch (e.key) {
+        // '/' Shortcut to focus on Prompt Input text area
+        case "/":
+          handleChatInputFocus(e);
+          break;
+        default:
+          return;
+      }
+    };
+
+    document.addEventListener("keydown", handleForwardSlash);
+
+    return () => {
+      document.removeEventListener("keydown", handleForwardSlash);
+    };
+  }, [handleChatInputFocus]);
+
   // If we can't load models, it's a bad sign for API connectivity.
   // Show an error so the user is aware.
   useEffect(() => {
