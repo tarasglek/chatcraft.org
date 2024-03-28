@@ -3,7 +3,7 @@ import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
 import { generateImage, isGenerateImageSupported } from "../../lib/ai";
 import { utilizeAlert } from "../../lib/utils";
-import type { dalle3ImageSize } from "../../lib/ai";
+import type { Dalle3ImageSize } from "../../lib/ai";
 
 export class ImageCommand extends ChatCraftCommand {
   constructor() {
@@ -24,7 +24,7 @@ export class ImageCommand extends ChatCraftCommand {
     const isLayout = first.startsWith("layout=");
     const prompt = isLayout ? rest.join(" ") : args.join(" ");
     let layoutType = "square";
-    let size: dalle3ImageSize = "1024x1024";
+    let size: Dalle3ImageSize = "1024x1024";
     if (isLayout) {
       const layoutValue = first.split("=")[1];
       if (layoutValue == "l" || layoutValue == "landscape") {
@@ -43,8 +43,7 @@ export class ImageCommand extends ChatCraftCommand {
     });
 
     try {
-      //TODO, refactor to object calling like generateImage(prompt, {size});
-      imageUrls = await generateImage(prompt, 1, size);
+      imageUrls = await generateImage({ prompt, size });
     } catch (error: any) {
       console.error(`Failed to generate image: ${error.message}`);
       throw new Error(`Failed to generate image: ${error.message}`);

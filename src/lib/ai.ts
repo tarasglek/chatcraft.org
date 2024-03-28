@@ -421,15 +421,21 @@ export async function isGenerateImageSupported() {
   );
 }
 
-export type dalle3ImageSize = "1024x1024" | "1792x1024" | "1024x1792";
+export type Dalle3ImageSize = "1024x1024" | "1792x1024" | "1024x1792";
 
-export const generateImage = async (
-  prompt: string,
+type GenerateImageParams = {
+  prompt: string;
+  n?: number;
+  size?: Dalle3ImageSize;
+};
+
+export const generateImage = async ({
+  prompt,
   //You can request 1 image at a time with DALL·E 3 (request more by making parallel requests) or up to 10 images at a time using DALL·E 2 with the n parameter.
   //https://platform.openai.com/docs/guides/images/generations
-  n: number = 1,
-  size: dalle3ImageSize = "1024x1024"
-): Promise<string[]> => {
+  n = 1,
+  size = "1024x1024",
+}: GenerateImageParams): Promise<string[]> => {
   const { currentProvider } = getSettings();
   if (!currentProvider.apiKey) {
     throw new Error("Missing OpenAI API Key");
