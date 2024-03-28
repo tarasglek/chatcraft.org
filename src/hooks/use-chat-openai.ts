@@ -15,7 +15,6 @@ import {
   isTtsSupported,
   textToSpeech,
 } from "../lib/ai";
-import { getSettings } from "../lib/settings";
 import { tokenize } from "../lib/summarize";
 import useAudioPlayer from "./use-audio-player";
 import { useAutoScroll } from "./use-autoscroll";
@@ -95,7 +94,7 @@ function useChatOpenAI() {
 
               const { sentences } = tokenize(ttsWordsBuffer);
 
-              if (ttsSupported && getSettings().textToSpeech.announceMessages) {
+              if (ttsSupported && settings.textToSpeech.announceMessages) {
                 if (
                   sentences.length > 1 // Has one full sentence
                 ) {
@@ -170,11 +169,7 @@ function useChatOpenAI() {
           resetScrollProgress();
           setShouldAutoScroll(false);
 
-          if (
-            ttsSupported &&
-            getSettings().textToSpeech.announceMessages &&
-            ttsWordsBuffer.length
-          ) {
+          if (ttsSupported && settings.textToSpeech.announceMessages && ttsWordsBuffer.length) {
             try {
               // Call TTS for any remaining words
               const audioClipUri = textToSpeech(ttsWordsBuffer, settings.textToSpeech.voice);
@@ -188,6 +183,7 @@ function useChatOpenAI() {
     },
     [
       settings.model,
+      settings.textToSpeech.announceMessages,
       settings.textToSpeech.voice,
       settings.countTokens,
       setShouldAutoScroll,

@@ -61,8 +61,8 @@ export const getSupportedProviders = (): ProviderData => {
   const freeModel = new FreeModelProvider();
 
   return {
-    [openAi.apiUrl]: openAi,
-    [openRouter.apiUrl]: openRouter,
-    [freeModel.apiUrl]: freeModel,
+    [openAi.name]: openAi,
+    [openRouter.name]: openRouter,
+    [freeModel.name]: freeModel,
   };
 };

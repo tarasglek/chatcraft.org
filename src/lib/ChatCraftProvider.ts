@@ -8,6 +8,12 @@ export const OPENAI_API_URL = "https://api.openai.com/v1";
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
 export const FREEMODELPROVIDER_API_URL = "https://free-chatcraft-ai.deno.dev/api/v1";
 
+export const nameToUrlMap: { [key: string]: string } = {
+  ["OpenAI"]: OPENAI_API_URL,
+  ["OpenRouter.ai"]: OPENROUTER_API_URL,
+  ["Free AI Models"]: FREEMODELPROVIDER_API_URL,
+};
+
 const urlToNameMap: { [key: string]: ProviderName } = {
   [OPENAI_API_URL]: "OpenAI",
   [OPENROUTER_API_URL]: "OpenRouter.ai",
