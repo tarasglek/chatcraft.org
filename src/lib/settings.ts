@@ -78,11 +78,11 @@ export const deserializer = (value: string): Settings => {
     settings.model = new ChatCraftModel(settings.model);
   }
 
-  // Handle migration of deprecated apiKey, apiUrl
   if (settings.currentProvider) {
     // Handle deserialization of currentProvider
     settings.currentProvider = providerFromJSON(settings.currentProvider);
   } else {
+    // Handle migration of deprecated apiKey, apiUrl
     if (settings.apiKey && settings.apiUrl) {
       const newProvider = providerFromUrl(settings.apiUrl, settings.apiKey);
       settings.currentProvider = newProvider;
