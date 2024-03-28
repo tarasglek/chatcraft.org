@@ -616,6 +616,7 @@ function MessageBase({
                         alt={`Images# ${index}`}
                         margin={"auto"}
                         maxWidth={"100%"}
+                        cursor={"pointer"}
                         onClick={() => openModalWithImage(imageUrl)}
                       />
                     </Box>
