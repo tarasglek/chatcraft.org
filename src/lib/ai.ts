@@ -89,14 +89,15 @@ export const transcribe = async (audio: File) => {
 };
 
 export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
+  const settings = getSettings();
   const {
     onData,
     onFinish,
     onPause,
     onResume,
     onError,
-    temperature = getSettings().temperature,
-    model = getSettings().model,
+    temperature = settings.temperature,
+    model = settings.model,
     functions,
     functionToCall,
   } = options;
@@ -218,15 +219,16 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     throw new Error(`OpenAI API Returned Error: ${error.message}`);
   };
 
-  const { currentProvider } = getSettings();
-  if (!currentProvider.apiKey) {
+  if (!settings.currentProvider.apiKey) {
     throw new Error("Missing API Key");
   }
 
-  const { openai, headers } = currentProvider.createClient(currentProvider.apiKey);
+  const { openai, headers } = settings.currentProvider.createClient(
+    settings.currentProvider.apiKey
+  );
 
   const chatCompletionParams: OpenAI.Chat.ChatCompletionCreateParams = {
-    model: model ? model.id : getSettings().model.id,
+    model: model ? model.id : settings.model.id,
     temperature: Math.min(Math.max(temperature ?? 0, 0.0), 2.0),
 
     /**

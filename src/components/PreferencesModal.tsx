@@ -42,13 +42,14 @@ import { useSettings } from "../hooks/use-settings";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { textToSpeech } from "../lib/ai";
 import db from "../lib/db";
-import { getSupportedProviders, providerFromJSON, providerFromUrl } from "../lib/providers";
+import { getSupportedProviders, providerFromUrl } from "../lib/providers";
 import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
 import { OpenAiProvider } from "../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../lib/providers/OpenRouterProvider";
 import { TextToSpeechVoices } from "../lib/settings";
 import { download, isMac } from "../lib/utils";
 import RevealablePasswordInput from "./RevealablePasswordInput";
+import { nameToUrlMap } from "../lib/ChatCraftProvider";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -165,10 +166,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
   const handleProviderChange = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => {
+      const apiUrl = nameToUrlMap[e.target.value];
+
       // Get stored data from settings.providers array if exists
       const newProvider = settings.providers[e.target.value]
-        ? providerFromJSON(settings.providers[e.target.value])
-        : providerFromUrl(e.target.value);
+        ? settings.providers[e.target.value]
+        : providerFromUrl(apiUrl);
 
       if (newProvider instanceof FreeModelProvider) {
         // If user chooses the free provider, set the key automatically
@@ -227,9 +230,9 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
             <VStack gap={4}>
               <FormControl>
                 <FormLabel>API URL</FormLabel>
-                <Select value={settings.currentProvider.apiUrl} onChange={handleProviderChange}>
+                <Select value={settings.currentProvider.name} onChange={handleProviderChange}>
                   {Object.values(supportedProviders).map((provider) => (
-                    <option key={provider.apiUrl} value={provider.apiUrl}>
+                    <option key={provider.name} value={provider.name}>
                       {provider.name} ({provider.apiUrl})
                     </option>
                   ))}
@@ -253,14 +256,14 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                     <Button
                       size="xs"
                       colorScheme="red"
-                      onClick={async () => {
+                      onClick={() => {
                         // Create provider that has no key
                         const newProvider = providerFromUrl(settings.currentProvider.apiUrl);
 
                         // Get array with provider removed
                         const updatedProviders = { ...settings.providers };
-                        if (updatedProviders[settings.currentProvider.apiUrl]) {
-                          delete updatedProviders[settings.currentProvider.apiUrl];
+                        if (updatedProviders[settings.currentProvider.name]) {
+                          delete updatedProviders[settings.currentProvider.name];
                         }
 
                         setSettings({
@@ -278,7 +281,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 <RevealablePasswordInput
                   type="password"
                   value={settings.currentProvider.apiKey || ""}
-                  onChange={async (e) => {
+                  onChange={(e) => {
                     const newProvider = providerFromUrl(
                       settings.currentProvider.apiUrl,
                       e.target.value
@@ -289,7 +292,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                       currentProvider: newProvider,
                       providers: {
                         ...settings.providers,
-                        [newProvider.apiUrl]: newProvider,
+                        [newProvider.name]: newProvider,
                       },
                     });
                   }}

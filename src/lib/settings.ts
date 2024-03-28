@@ -78,20 +78,28 @@ export const deserializer = (value: string): Settings => {
     settings.model = new ChatCraftModel(settings.model);
   }
 
-  if (settings.currentProvider) {
-    // Handle deserialization of currentProvider
-    settings.currentProvider = providerFromJSON(settings.currentProvider);
-  } else {
-    // No current provider, check if we need to handle migration of deprecated apiKey, apiUrl
-    if (settings.apiKey && settings.apiUrl) {
-      const newProvider = providerFromUrl(settings.apiUrl, settings.apiKey);
-      settings.currentProvider = newProvider;
-      settings.providers = { ...settings.providers, [newProvider.apiUrl]: newProvider };
-      delete settings.apiKey;
-      delete settings.apiUrl;
-      console.warn("Migrated deprecated apiKey, apiUrl");
-    }
+  // Handle migration of deprecated apiKey, apiUrl
+  if (settings.apiKey && settings.apiUrl) {
+    const newProvider = providerFromUrl(settings.apiUrl, settings.apiKey);
+    settings.currentProvider = newProvider;
+    settings.providers = { ...settings.providers, [newProvider.name]: newProvider };
+    delete settings.apiKey;
+    delete settings.apiUrl;
+    console.warn("Migrated deprecated apiKey, apiUrl");
   }
+
+  // Handle deserialization of currentProvider
+  settings.currentProvider = providerFromJSON(settings.currentProvider);
+
+  // Deserialize each provider in settings.providers
+  // Also handles migration for past users who have a saved provider, settings.providers[key],
+  // where the key is an apiUrl instead of a name
+  const deserializedProviders: ProviderData = {};
+  for (const key in settings.providers) {
+    const newProvider = providerFromJSON(settings.providers[key]);
+    deserializedProviders[newProvider.name] = newProvider;
+  }
+  settings.providers = deserializedProviders;
 
   return { ...defaults, ...settings };
 };
