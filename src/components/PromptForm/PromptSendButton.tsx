@@ -17,7 +17,7 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
-import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
+import { MdVolumeUp, MdVolumeOff, MdOutlineChevronRight } from "react-icons/md";
 import { useMemo } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
@@ -123,9 +123,11 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                   setSettings({ ...settings, currentProvider: newProvider });
                 }}
               >
-                <span style={{ width: "1em", display: "inline-block", textAlign: "center" }}>
-                  {settings.currentProvider.name === providerName ? "✔️" : ""}
-                </span>
+                {settings.currentProvider.name === providerName ? (
+                  <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                ) : (
+                  <span style={{ width: "24px", display: "inline-block" }} />
+                )}
                 {providerName}
               </MenuItem>
             ))}
@@ -217,9 +219,11 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                   setSettings({ ...settings, currentProvider: newProvider });
                 }}
               >
-                <span style={{ width: "1em", display: "inline-block", textAlign: "center" }}>
-                  {settings.currentProvider.name === providerName ? "✔️" : ""}
-                </span>
+                {settings.currentProvider.name === providerName ? (
+                  <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                ) : (
+                  <span style={{ width: "24px", display: "inline-block" }} />
+                )}
                 {providerName}
               </MenuItem>
             ))}
