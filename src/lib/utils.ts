@@ -147,3 +147,35 @@ export const updateImageUrls = (
     }
   });
 };
+
+/**
+ * Only meant to be used outside components or hooks
+ * where useAlert cannot be used.
+ */
+import type { AlertArguments } from "../hooks/use-alert";
+export const utilizeAlert = async () => {
+  const { createStandaloneToast } = await import("@chakra-ui/react");
+  const { toast } = createStandaloneToast();
+
+  const loading = ({ id, title, message }: AlertArguments) => {
+    toast({
+      id,
+      title,
+      description: message,
+      colorScheme: "blue",
+      status: "loading",
+      position: "top",
+      isClosable: true,
+      duration: null,
+    });
+  };
+
+  const closeLoading = (id: string) => {
+    toast.close(id);
+  };
+
+  return {
+    loading,
+    closeLoading,
+  };
+};
