@@ -157,6 +157,19 @@ export const utilizeAlert = async () => {
   const { createStandaloneToast } = await import("@chakra-ui/react");
   const { toast } = createStandaloneToast();
 
+  const info = ({ id, title, message }: AlertArguments) => {
+    toast({
+      id,
+      title,
+      description: message,
+      colorScheme: "blue",
+      status: "info",
+      position: "top",
+      isClosable: true,
+      duration: 3000,
+    });
+  };
+
   const loading = ({ id, title, message }: AlertArguments) => {
     toast({
       id,
@@ -175,6 +188,7 @@ export const utilizeAlert = async () => {
   };
 
   return {
+    info,
     loading,
     closeLoading,
   };
