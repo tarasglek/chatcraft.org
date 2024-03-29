@@ -38,7 +38,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 
   return (
     <ButtonGroup variant="outline" isAttached>
-      <Menu placement="top" strategy="fixed" offset={[-90, 0]}>
+      <Menu placement="top" strategy="fixed" closeOnSelect={false} offset={[-90, 0]}>
         <IconButton
           type="submit"
           size="lg"
@@ -102,7 +102,11 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
             {models
               .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
               .map((model) => (
-                <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                <MenuItem
+                  closeOnSelect={true}
+                  key={model.id}
+                  onClick={() => setSettings({ ...settings, model })}
+                >
                   {model.prettyModel}
                 </MenuItem>
               ))}
@@ -185,7 +189,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </Button>
         </Tooltip>
       )}
-      <Menu placement="top" strategy="fixed">
+      <Menu placement="top" strategy="fixed" closeOnSelect={false}>
         <MenuButton
           as={IconButton}
           size="sm"
@@ -198,7 +202,11 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
             {models
               .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
               .map((model) => (
-                <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
+                <MenuItem
+                  closeOnSelect={true}
+                  key={model.id}
+                  onClick={() => setSettings({ ...settings, model })}
+                >
                   {model.prettyModel}
                 </MenuItem>
               ))}
