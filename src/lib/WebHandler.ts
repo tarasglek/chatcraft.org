@@ -10,11 +10,11 @@ export class WebHandler {
   }: {
     handlerUrl: string;
     method: HttpMethod;
-    matchPattern: RegExp;
+    matchPattern: RegExp | string;
   }) {
     this.handlerUrl = handlerUrl;
     this.method = method;
-    this.matchPattern = matchPattern;
+    this.matchPattern = matchPattern instanceof RegExp ? matchPattern : new RegExp(matchPattern);
   }
 
   isMatchingHandler(message: string) {
@@ -48,17 +48,15 @@ export class WebHandler {
   }
 
   static getRegisteredHandlers(): WebHandler[] {
-    // TODO: Fetch from localStorage
-
-    const supportedHandlers = [
-      new WebHandler({
-        handlerUrl: "https://taras-scrape2md.web.val.run/",
-        method: HttpMethod.GET,
-        matchPattern: /^https:\/\/\S+$/,
-      }),
-    ];
+    const supportedHandlers = JSON.parse(
+      localStorage.getItem(webHandlersLocalStorageKey) ?? ""
+    ).map((handler: WebHandler) => new WebHandler(handler));
 
     return supportedHandlers;
+  }
+
+  isValidHandler(): boolean {
+    return !!this.handlerUrl && !!this.method && !!this.matchPattern;
   }
 }
 
@@ -73,3 +71,15 @@ export enum HttpMethod {
   PUT = "PUT",
   TRACE = "TRACE",
 }
+
+export const defaultWebHandlers: WebHandlers = [
+  new WebHandler({
+    handlerUrl: "https://taras-scrape2md.web.val.run/",
+    method: HttpMethod.GET,
+    matchPattern: /^https:\/\/\S+$/,
+  }),
+];
+
+export const webHandlersLocalStorageKey = "webHandlers";
+
+export type WebHandlers = WebHandler[];
