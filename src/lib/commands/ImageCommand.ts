@@ -26,7 +26,7 @@ export class ImageCommand extends ChatCraftCommand {
     try {
       loading({
         id: now.toISOString(),
-        title: `Generating image, please waite.`,
+        title: `Generating image, please wait.`,
       });
       imageUrls = await generateImage(prompt);
     } catch (error: any) {
