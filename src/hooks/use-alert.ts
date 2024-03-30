@@ -8,7 +8,7 @@ type AlertArguments = {
   message?: string;
 };
 
-function trimMessage(message?: string): string {
+function truncateMessage(message?: string): string {
   if (!message) {
     return "";
   }
@@ -58,11 +58,11 @@ export function useAlert() {
       toast({
         id,
         title,
-        description: trimMessage(message),
+        description: truncateMessage(message),
         status: "success",
         position: "top",
         isClosable: true,
-        duration: 1000,
+        duration: 2000,
       }),
     [toast]
   );
@@ -72,11 +72,11 @@ export function useAlert() {
       toast({
         id,
         title,
-        description: trimMessage(message),
+        description: truncateMessage(message),
         status: "warning",
         position: "top",
         isClosable: true,
-        duration: 1000,
+        duration: 3000,
       }),
     [toast]
   );

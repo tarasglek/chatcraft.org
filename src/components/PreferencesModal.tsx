@@ -570,18 +570,30 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                           <Box
                             as={MdCancel}
                             onClick={() => setNewCustomProvider(null)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                setNewCustomProvider(null);
+                              }
+                            }}
+                            tabIndex={0}
                             sx={{
                               cursor: "pointer",
-                              color: "gray", // Icon color
-                              fontSize: "16px", // Adjust the size to match a typical checkbox
-                              display: "inline-flex", // Keeps the icon centered
+                              color: "gray",
+                              fontSize: "16px",
+                              display: "inline-flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              borderColor: "gray.200", // Border color
-                              borderRadius: "50%", // Rounded border
+                              borderColor: "gray.200",
+                              borderRadius: "50%",
+
                               _hover: {
-                                borderColor: "gray.400", // Change border color on hover
-                                color: "gray.400", // Optionally change the icon color to match
+                                borderColor: "gray.400",
+                                color: "gray.400",
+                              },
+                              _focus: {
+                                outline: "none",
+                                boxShadow: "0 0 0 3px rgba(66, 153, 225, 0.6)",
+                                borderColor: "blue.300",
                               },
                             }}
                           />
