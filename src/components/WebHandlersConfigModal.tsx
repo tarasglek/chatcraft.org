@@ -92,6 +92,7 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
             <FormControl>
               <FormLabel>Register Handlers</FormLabel>
               <Textarea
+                fontFamily={"monospace"}
                 value={webHandlerConfig}
                 onChange={handleConfigValueChange}
                 height={200}
