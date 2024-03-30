@@ -11,7 +11,7 @@ export class ImageCommand extends ChatCraftCommand {
   }
 
   async execute(chat: ChatCraftChat, user: User | undefined, args?: string[]) {
-    const { loading, closeLoading } = await utilizeAlert();
+    const { info, loading, closeLoading } = await utilizeAlert();
 
     if (!(await isGenerateImageSupported())) {
       throw new Error("Failed to generate image, no image generation models available");
@@ -25,6 +25,7 @@ export class ImageCommand extends ChatCraftCommand {
     const prompt = isLayout ? rest.join(" ") : args.join(" ");
     let layoutType = "square";
     let size: Dalle3ImageSize = "1024x1024";
+
     if (isLayout) {
       const layoutValue = first.split("=")[1];
       if (layoutValue == "l" || layoutValue == "landscape") {
@@ -33,11 +34,17 @@ export class ImageCommand extends ChatCraftCommand {
       } else if (layoutValue == "p" || layoutValue == "portrait") {
         size = "1024x1792";
         layoutType = "portrait";
+      } else {
+        info({
+          title: `Layout ${layoutValue} is not recognized`,
+          message: "generating image using the default layout",
+        });
       }
     }
 
     const text = `(DALL·E 3 result ${isLayout ? `[layout ${layoutType}]` : ""} of the prompt: ${prompt})`;
     let imageUrls: string[] = [];
+
     const alertId = loading({
       title: `Generating image, please wait.`,
     });
