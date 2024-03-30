@@ -456,6 +456,11 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       });
       setApiKeySaved(true);
 
+      success({
+        title: `New provider added`,
+        message: `${newProviderWithModel.name}`,
+      });
+
       // Clear the form and hide the new provider row
       setNewCustomProvider(null);
       setIsValidating(false);
