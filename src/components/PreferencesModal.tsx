@@ -572,34 +572,36 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                     {newCustomProvider && (
                       <Tr>
                         <Td sx={{ textAlign: "center" }}>
-                          <Box
-                            as={MdCancel}
+                          <IconButton
+                            aria-label="Cancel adding new provider"
+                            icon={<MdCancel />}
+                            size={"xs"}
                             onClick={() => setNewCustomProvider(null)}
                             onKeyDown={(e) => {
                               if (e.key === "Enter" || e.key === " ") {
                                 setNewCustomProvider(null);
                               }
                             }}
+                            variant="outline"
                             tabIndex={0}
-                            sx={{
-                              cursor: "pointer",
-                              color: "gray",
-                              fontSize: "16px",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              borderColor: "gray.200",
-                              borderRadius: "50%",
-
-                              _hover: {
-                                borderColor: "gray.400",
-                                color: "gray.400",
-                              },
+                            color={"grey"}
+                            border={"none"}
+                            p={0}
+                            fontSize={16}
+                            borderRadius={"50%"}
+                            _hover={{
+                              borderColor: "gray.400",
+                              color: "gray.400",
+                            }}
+                            _focus={{
                               _focus: {
                                 outline: "none",
                                 boxShadow: "0 0 0 3px rgba(66, 153, 225, 0.6)",
                                 borderColor: "blue.300",
                               },
+                            }}
+                            _active={{
+                              backgroundColor: "none",
                             }}
                           />
                         </Td>
