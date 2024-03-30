@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useToast } from "@chakra-ui/react";
 
-type AlertArguments = {
+export type AlertArguments = {
   // Use `id` if you want to avoid duplicate alerts showing
   id?: string;
   title: string;
