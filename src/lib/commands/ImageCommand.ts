@@ -18,22 +18,23 @@ export class ImageCommand extends ChatCraftCommand {
     if (!(args && args[0])) {
       throw new Error("must include a prompt");
     }
+
     const prompt = args.join(" ");
     let imageUrls: string[] = [];
     const text = `(DALL·E 3 result of the prompt: ${prompt})`;
 
-    const now = new Date();
+    const alertId = loading({
+      title: `Generating image, please wait.`,
+    });
+
     try {
-      loading({
-        id: now.toISOString(),
-        title: `Generating image, please wait.`,
-      });
       imageUrls = await generateImage(prompt);
     } catch (error: any) {
       console.error(`Failed to generate image: ${error.message}`);
       throw new Error(`Failed to generate image: ${error.message}`);
     }
-    closeLoading(now.toISOString());
+
+    closeLoading(alertId);
     return chat.addMessage(new ChatCraftHumanMessage({ user, text, imageUrls }));
   }
 }

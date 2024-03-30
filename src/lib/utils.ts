@@ -171,8 +171,9 @@ export const utilizeAlert = async () => {
   };
 
   const loading = ({ id, title, message }: AlertArguments) => {
+    const fallbackId = new Date().toISOString();
     toast({
-      id,
+      id: id ?? fallbackId,
       title,
       description: message,
       colorScheme: "blue",
@@ -181,6 +182,7 @@ export const utilizeAlert = async () => {
       isClosable: true,
       duration: null,
     });
+    return id ?? fallbackId;
   };
 
   const closeLoading = (id: string) => {
