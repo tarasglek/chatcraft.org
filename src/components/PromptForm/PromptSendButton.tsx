@@ -7,14 +7,17 @@ import {
   MenuList,
   MenuItem,
   Tooltip,
+  MenuDivider,
+  MenuGroup,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend } from "react-icons/tb";
+import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
-import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
+import { MdVolumeUp, MdVolumeOff, MdOutlineChevronRight } from "react-icons/md";
 import { useMemo } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
@@ -33,9 +36,14 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 
   const { clearAudioQueue } = useAudioPlayer();
 
+  const providersList = {
+    ...settings.providers,
+    "Free AI Models": new FreeModelProvider(),
+  };
+
   return (
     <ButtonGroup variant="outline" isAttached>
-      <Menu placement="top" strategy="fixed" offset={[-90, 0]}>
+      <Menu placement="top" strategy="fixed" closeOnSelect={false} offset={[-90, 0]}>
         <IconButton
           type="submit"
           size="lg"
@@ -95,13 +103,37 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models
-            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
-            .map((model) => (
-              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-                {model.prettyModel}
+          <MenuGroup title="Models">
+            {models
+              .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .map((model) => (
+                <MenuItem
+                  closeOnSelect={true}
+                  key={model.id}
+                  onClick={() => setSettings({ ...settings, model })}
+                >
+                  {model.prettyModel}
+                </MenuItem>
+              ))}
+          </MenuGroup>
+          <MenuDivider />
+          <MenuGroup title="Providers">
+            {Object.entries(providersList).map(([providerName, providerObject]) => (
+              <MenuItem
+                key={providerName}
+                onClick={() => {
+                  setSettings({ ...settings, currentProvider: providerObject });
+                }}
+              >
+                {settings.currentProvider.name === providerName ? (
+                  <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                ) : (
+                  <span style={{ width: "24px", display: "inline-block" }} />
+                )}
+                {providerName}
               </MenuItem>
             ))}
+          </MenuGroup>
         </MenuList>
       </Menu>
     </ButtonGroup>
@@ -111,12 +143,16 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
 
   const { clearAudioQueue } = useAudioPlayer();
+
+  const providersList = {
+    ...settings.providers,
+    "Free AI Models": new FreeModelProvider(),
+  };
 
   return (
     <ButtonGroup isAttached>
@@ -156,7 +192,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </Button>
         </Tooltip>
       )}
-      <Menu placement="top" strategy="fixed">
+      <Menu placement="top" strategy="fixed" closeOnSelect={false}>
         <MenuButton
           as={IconButton}
           size="sm"
@@ -165,13 +201,37 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          {models
-            .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
-            .map((model) => (
-              <MenuItem key={model.id} onClick={() => setSettings({ ...settings, model })}>
-                {model.prettyModel}
+          <MenuGroup title="Models">
+            {models
+              .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .map((model) => (
+                <MenuItem
+                  closeOnSelect={true}
+                  key={model.id}
+                  onClick={() => setSettings({ ...settings, model })}
+                >
+                  {model.prettyModel}
+                </MenuItem>
+              ))}
+          </MenuGroup>
+          <MenuDivider />
+          <MenuGroup title="Providers">
+            {Object.entries(providersList).map(([providerName, providerObject]) => (
+              <MenuItem
+                key={providerName}
+                onClick={() => {
+                  setSettings({ ...settings, currentProvider: providerObject });
+                }}
+              >
+                {settings.currentProvider.name === providerName ? (
+                  <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                ) : (
+                  <span style={{ width: "24px", display: "inline-block" }} />
+                )}
+                {providerName}
               </MenuItem>
             ))}
+          </MenuGroup>
         </MenuList>
       </Menu>
     </ButtonGroup>
