@@ -1,10 +1,7 @@
-import {
-  ChatCraftProvider,
-  SerializedChatCraftProvider,
-  OPENAI_API_URL,
-  OPENAI_NAME,
-} from "../ChatCraftProvider";
+import { ChatCraftProvider, SerializedChatCraftProvider } from "../ChatCraftProvider";
 
+export const OPENAI_API_URL = "https://api.openai.com/v1";
+export const OPENAI_NAME = "OpenAI";
 const OPENAI_DEFAULT_MODEL = "gpt-3.5-turbo";
 
 export type SerializedOpenAiProvider = {

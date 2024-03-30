@@ -1,11 +1,8 @@
-import {
-  ChatCraftProvider,
-  SerializedChatCraftProvider,
-  OPENROUTER_API_URL,
-  OPENROUTER_NAME,
-} from "../ChatCraftProvider";
+import { ChatCraftProvider, SerializedChatCraftProvider } from "../ChatCraftProvider";
 import { getReferer } from "../utils";
 
+export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
+export const OPENROUTER_NAME = "OpenRouter.ai";
 const OPENROUTER_DEFAULT_MODEL = "openai/gpt-3.5-turbo";
 
 export type SerializedOpenRouterProvider = {

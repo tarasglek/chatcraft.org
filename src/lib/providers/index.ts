@@ -1,15 +1,12 @@
-import {
-  ChatCraftProvider,
-  OPENAI_API_URL,
-  OPENROUTER_API_URL,
-  FREEMODELPROVIDER_API_URL,
-  ProviderData,
-  SerializedChatCraftProvider,
-} from "../ChatCraftProvider";
+import { ChatCraftProvider, ProviderData, SerializedChatCraftProvider } from "../ChatCraftProvider";
 import { getSettings } from "../settings";
-import { OpenAiProvider } from "./OpenAiProvider";
-import { OpenRouterProvider } from "./OpenRouterProvider";
-import { FreeModelProvider } from "./DefaultProvider/FreeModelProvider";
+import { OPENAI_API_URL, OPENAI_NAME, OpenAiProvider } from "./OpenAiProvider";
+import { OPENROUTER_API_URL, OPENROUTER_NAME, OpenRouterProvider } from "./OpenRouterProvider";
+import {
+  FREEMODELPROVIDER_API_URL,
+  FREEMODELPROVIDER_NAME,
+  FreeModelProvider,
+} from "./DefaultProvider/FreeModelProvider";
 import { CustomProvider } from "./CustomProvider";
 
 export const usingOfficialOpenAI = () => getSettings().currentProvider.apiUrl === OPENAI_API_URL;
@@ -74,3 +71,9 @@ export const supportedProviders: ProviderData = (() => {
     [openAi.name]: openAi,
   };
 })();
+
+export const nameToUrlMap: { [key: string]: string } = {
+  [OPENAI_NAME]: OPENAI_API_URL,
+  [OPENROUTER_NAME]: OPENROUTER_API_URL,
+  [FREEMODELPROVIDER_NAME]: FREEMODELPROVIDER_API_URL,
+};

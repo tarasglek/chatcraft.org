@@ -13,12 +13,11 @@ import {
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
-import { providerFromUrl, supportedProviders } from "../../../lib/providers";
+import { nameToUrlMap, providerFromUrl, supportedProviders } from "../../../lib/providers";
 import { OpenRouterProvider } from "../../../lib/providers/OpenRouterProvider";
 import RevealablePasswordInput from "../../RevealablePasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
 import { FreeModelProvider } from "../../../lib/providers/DefaultProvider/FreeModelProvider";
-import { nameToUrlMap } from "../../../lib/ChatCraftProvider";
 
 const ApiKeyInstructionsText = `## Getting Started with ChatCraft
 

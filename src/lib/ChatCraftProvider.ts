@@ -2,20 +2,6 @@ import { nanoid } from "nanoid";
 import OpenAI from "openai";
 import { ChatCraftModel } from "./ChatCraftModel";
 
-export const OPENAI_API_URL = "https://api.openai.com/v1";
-export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
-export const FREEMODELPROVIDER_API_URL = "https://free-chatcraft-ai.deno.dev/api/v1";
-
-export const OPENAI_NAME = "OpenAI";
-export const OPENROUTER_NAME = "OpenRouter.ai";
-export const FREEMODELPROVIDER_NAME = "Free AI Models";
-
-export const nameToUrlMap: { [key: string]: string } = {
-  [OPENAI_NAME]: OPENAI_API_URL,
-  [OPENROUTER_NAME]: OPENROUTER_API_URL,
-  [FREEMODELPROVIDER_NAME]: FREEMODELPROVIDER_API_URL,
-};
-
 export interface ProviderData {
   [key: string]: ChatCraftProvider;
 }

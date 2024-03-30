@@ -1,9 +1,7 @@
-import {
-  ChatCraftProvider,
-  FREEMODELPROVIDER_API_URL,
-  FREEMODELPROVIDER_NAME,
-} from "../../ChatCraftProvider";
+import { ChatCraftProvider } from "../../ChatCraftProvider";
 
+export const FREEMODELPROVIDER_API_URL = "https://free-chatcraft-ai.deno.dev/api/v1";
+export const FREEMODELPROVIDER_NAME = "Free AI Models";
 const FREEMODELPROVIDER_DEFAULT_MODEL = "undi95/toppy-m-7b:free";
 
 export class FreeModelProvider extends ChatCraftProvider {
