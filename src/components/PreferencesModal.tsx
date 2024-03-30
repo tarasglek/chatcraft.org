@@ -374,12 +374,20 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       return;
     }
 
-    if (!newCustomProvider.name || !newCustomProvider.apiUrl || !newCustomProvider.apiKey) {
+    const customProviderData = new CustomProvider(
+      newCustomProvider.name?.trim(),
+      newCustomProvider.apiUrl?.trim(),
+      "",
+      newCustomProvider.apiKey?.trim()
+    );
+
+    if (!customProviderData.name || !customProviderData.apiUrl || !customProviderData.apiKey) {
+      setNewCustomProvider(customProviderData);
       return;
     }
 
     // Check if provider name already exists
-    if (tableProviders[newCustomProvider.name]) {
+    if (tableProviders[customProviderData.name]) {
       warning({
         title: "Provider not added",
         message: "A provider with this name already exists.",
@@ -389,9 +397,9 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
     // Create new ChatCraftProvider object from CustomProviderProvider parsing provider type from url
     const newProvider = providerFromUrl(
-      newCustomProvider.apiUrl.trim(),
-      newCustomProvider.apiKey.trim(),
-      newCustomProvider.name.trim()
+      customProviderData.apiUrl,
+      customProviderData.apiKey,
+      customProviderData.name
     );
 
     if (newProvider instanceof FreeModelProvider) {
