@@ -36,6 +36,11 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 
   const { clearAudioQueue } = useAudioPlayer();
 
+  const providersList = {
+    ...settings.providers,
+    "Free AI Models": new FreeModelProvider(),
+  };
+
   return (
     <ButtonGroup variant="outline" isAttached>
       <Menu placement="top" strategy="fixed" closeOnSelect={false} offset={[-90, 0]}>
@@ -113,18 +118,11 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           </MenuGroup>
           <MenuDivider />
           <MenuGroup title="Providers">
-            {Object.entries({
-              ...settings.providers,
-              "Free AI Models": "Free AI Models",
-            }).map(([providerName]) => (
+            {Object.entries(providersList).map(([providerName, providerObject]) => (
               <MenuItem
                 key={providerName}
                 onClick={() => {
-                  const isFreeModel = providerName === "Free AI Models";
-                  const newProvider = isFreeModel
-                    ? new FreeModelProvider()
-                    : settings.providers[providerName];
-                  setSettings({ ...settings, currentProvider: newProvider });
+                  setSettings({ ...settings, currentProvider: providerObject });
                 }}
               >
                 {settings.currentProvider.name === providerName ? (
@@ -150,6 +148,11 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   }, [models]);
 
   const { clearAudioQueue } = useAudioPlayer();
+
+  const providersList = {
+    ...settings.providers,
+    "Free AI Models": new FreeModelProvider(),
+  };
 
   return (
     <ButtonGroup isAttached>
@@ -213,18 +216,11 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </MenuGroup>
           <MenuDivider />
           <MenuGroup title="Providers">
-            {Object.entries({
-              ...settings.providers,
-              "Free AI Models": "Free AI Models",
-            }).map(([providerName]) => (
+            {Object.entries(providersList).map(([providerName, providerObject]) => (
               <MenuItem
                 key={providerName}
                 onClick={() => {
-                  const isFreeModel = providerName === "Free AI Models";
-                  const newProvider = isFreeModel
-                    ? new FreeModelProvider()
-                    : settings.providers[providerName];
-                  setSettings({ ...settings, currentProvider: newProvider });
+                  setSettings({ ...settings, currentProvider: providerObject });
                 }}
               >
                 {settings.currentProvider.name === providerName ? (
