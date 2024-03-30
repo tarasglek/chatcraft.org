@@ -389,9 +389,9 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
     // Create new ChatCraftProvider object from CustomProviderProvider parsing provider type from url
     const newProvider = providerFromUrl(
-      newCustomProvider.apiUrl,
-      newCustomProvider.apiKey,
-      newCustomProvider.name
+      newCustomProvider.apiUrl.trim(),
+      newCustomProvider.apiKey.trim(),
+      newCustomProvider.name.trim()
     );
 
     if (newProvider instanceof FreeModelProvider) {
