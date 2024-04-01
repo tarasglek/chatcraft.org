@@ -18,7 +18,7 @@ Some commands accept arguments as well.
 | /clear        | Erases all messages in the current chat. |
 | /summary&nbsp;[max-length] | Uses ChatGPT to create a summary of the current chat. Optionally takes a maximum word length (defaults to 500). |
 | /import&nbsp;<url> | Loads the provided URL and imports the text. Where possible, ChatCraft will try to get raw text vs. HTML from sites like GitHub. NOTE: to prevent abuse, you must be logged into use the import command. |
-| /image&nbsp;<prompt> | Creates an image using the provided prompt.|
+| /image&nbsp;[layout-option]<prompt> | Creates an image using the provided prompt. By default, the image will be square, and you can also change the layout to landscape or portrait by specifying \`layout=[l\\|landscape\\|p\\|portrait]\`|
 `;
 
 const helpText = `## ChatCraft.org Help
