@@ -2,7 +2,7 @@ import { ChatCraftProvider } from "../../ChatCraftProvider";
 
 export const FREEMODELPROVIDER_API_URL = "https://free-chatcraft-ai.deno.dev/api/v1";
 export const FREEMODELPROVIDER_NAME = "Free AI Models";
-const FREEMODELPROVIDER_DEFAULT_MODEL = "undi95/toppy-m-7b:free";
+const FREEMODELPROVIDER_DEFAULT_MODEL = "auto";
 
 export class FreeModelProvider extends ChatCraftProvider {
   constructor() {
@@ -10,7 +10,7 @@ export class FreeModelProvider extends ChatCraftProvider {
       FREEMODELPROVIDER_NAME,
       FREEMODELPROVIDER_API_URL,
       FREEMODELPROVIDER_DEFAULT_MODEL,
-      "mock_key"
+      "mock_key",
     );
   }
 
