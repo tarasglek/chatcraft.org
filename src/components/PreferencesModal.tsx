@@ -10,6 +10,7 @@ import {
   FormLabel,
   IconButton,
   Input,
+  InputGroup,
   Kbd,
   Link,
   Modal,
@@ -29,38 +30,37 @@ import {
   Spinner,
   Stack,
   Table,
-  Text,
-  Thead,
   Tbody,
-  Tr,
-  Th,
   Td,
+  Text,
+  Th,
+  Thead,
   Tooltip,
+  Tr,
   VStack,
-  InputGroup,
 } from "@chakra-ui/react";
-import { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "react-use";
 
 import { capitalize } from "lodash-es";
-import { MdCancel, MdVolumeUp } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
+import { MdCancel, MdVolumeUp } from "react-icons/md";
 import { useAlert } from "../hooks/use-alert";
 import useAudioPlayer from "../hooks/use-audio-player";
 import { useModels } from "../hooks/use-models";
 import { useSettings } from "../hooks/use-settings";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
+import { ChatCraftProvider, ProviderData } from "../lib/ChatCraftProvider";
 import { textToSpeech } from "../lib/ai";
 import db from "../lib/db";
-import { supportedProviders, providerFromUrl } from "../lib/providers";
+import { providerFromUrl, supportedProviders } from "../lib/providers";
+import { CustomProvider } from "../lib/providers/CustomProvider";
+import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
 import { OpenAiProvider } from "../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../lib/providers/OpenRouterProvider";
 import { TextToSpeechVoices } from "../lib/settings";
 import { download, isMac } from "../lib/utils";
 import PasswordInput from "./PasswordInput";
-import { CustomProvider } from "../lib/providers/CustomProvider";
-import { ChatCraftProvider, ProviderData } from "../lib/ChatCraftProvider";
-import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
 
 // https://dexie.org/docs/StorageManager
 async function isStoragePersisted() {
@@ -503,6 +503,10 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     }
   }, [isOpen]);
 
+  const isTtsSupported = useMemo(() => {
+    return !!models.filter((model) => model.id.includes("tts"))?.length;
+  }, [models]);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl" finalFocusRef={finalFocusRef}>
       <ModalOverlay />
@@ -909,35 +913,40 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 </FormHelperText>
               </FormControl>
 
-              <FormControl>
-                <FormLabel>Select Voice</FormLabel>
+              {isTtsSupported && (
+                <FormControl>
+                  <FormLabel>Select Voice</FormLabel>
 
-                <Flex gap={3} alignItems={"center"}>
-                  <Select
-                    value={settings.textToSpeech.voice}
-                    onChange={(evt) => handleVoiceSelection(evt.target.value as TextToSpeechVoices)}
-                  >
-                    {Object.values(TextToSpeechVoices).map((voice) => (
-                      <option key={voice} value={voice}>
-                        {capitalize(voice)}
-                      </option>
-                    ))}
-                  </Select>
-                  <Tooltip label="Audio Preview">
-                    <IconButton
-                      variant="outline"
-                      type="button"
-                      aria-label={"Audio Preview for " + capitalize(settings.textToSpeech.voice)}
-                      icon={<MdVolumeUp />}
-                      onClick={handlePlayAudioPreview}
-                    />
-                  </Tooltip>
-                </Flex>
+                  <Flex gap={3} alignItems={"center"}>
+                    <Select
+                      value={settings.textToSpeech.voice}
+                      onChange={(evt) =>
+                        handleVoiceSelection(evt.target.value as TextToSpeechVoices)
+                      }
+                    >
+                      {Object.values(TextToSpeechVoices).map((voice) => (
+                        <option key={voice} value={voice}>
+                          {capitalize(voice)}
+                        </option>
+                      ))}
+                    </Select>
+                    <Tooltip label="Audio Preview">
+                      <IconButton
+                        variant="outline"
+                        type="button"
+                        aria-label={"Audio Preview for " + capitalize(settings.textToSpeech.voice)}
+                        icon={<MdVolumeUp />}
+                        onClick={handlePlayAudioPreview}
+                      />
+                    </Tooltip>
+                  </Flex>
 
-                <FormHelperText>
-                  Used when announcing messages in real-time or with the &lsquo;Speak&rsquo; option
-                </FormHelperText>
-              </FormControl>
+                  <FormHelperText>
+                    Used when announcing messages in real-time or with the &lsquo;Speak&rsquo;
+                    option
+                  </FormHelperText>
+                </FormControl>
+              )}
 
               <FormControl as="fieldset">
                 <FormLabel as="legend">Image Compression</FormLabel>
