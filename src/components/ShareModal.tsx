@@ -19,7 +19,6 @@ import {
   Textarea,
   ButtonGroup,
   IconButton,
-  Box,
 } from "@chakra-ui/react";
 import { useCopyToClipboard } from "react-use";
 import { BsGithub } from "react-icons/bs";
