@@ -13,12 +13,11 @@ import {
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
-import { providerFromUrl, getSupportedProviders } from "../../../lib/providers";
+import { nameToUrlMap, providerFromUrl, supportedProviders } from "../../../lib/providers";
 import { OpenRouterProvider } from "../../../lib/providers/OpenRouterProvider";
-import RevealablePasswordInput from "../../RevealablePasswordInput";
+import PasswordInput from "../../PasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
 import { FreeModelProvider } from "../../../lib/providers/DefaultProvider/FreeModelProvider";
-import { nameToUrlMap } from "../../../lib/ChatCraftProvider";
 
 const ApiKeyInstructionsText = `## Getting Started with ChatCraft
 
@@ -57,7 +56,6 @@ function Instructions(props: MessageBaseProps) {
   const { settings, setSettings } = useSettings();
   const [isValidating, setIsValidating] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
-  const supportedProviders = getSupportedProviders();
 
   // Override the text of the message
   const message = new ChatCraftAppMessage({ ...props.message, text: ApiKeyInstructionsText });
@@ -156,7 +154,7 @@ function Instructions(props: MessageBaseProps) {
             <FormControl isInvalid={isInvalid}>
               <FormLabel>{settings.currentProvider.name} API Key </FormLabel>
               <Flex gap={4} align="center">
-                <RevealablePasswordInput
+                <PasswordInput
                   flex="1"
                   type="password"
                   name="openai-api-key"

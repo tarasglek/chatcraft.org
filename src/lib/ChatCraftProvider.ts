@@ -2,46 +2,31 @@ import { nanoid } from "nanoid";
 import OpenAI from "openai";
 import { ChatCraftModel } from "./ChatCraftModel";
 
-export type ProviderName = "OpenAI" | "OpenRouter.ai" | "Free AI Models";
-
-export const OPENAI_API_URL = "https://api.openai.com/v1";
-export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
-export const FREEMODELPROVIDER_API_URL = "https://free-chatcraft-ai.deno.dev/api/v1";
-
-export const nameToUrlMap: { [key: string]: string } = {
-  ["OpenAI"]: OPENAI_API_URL,
-  ["OpenRouter.ai"]: OPENROUTER_API_URL,
-  ["Free AI Models"]: FREEMODELPROVIDER_API_URL,
-};
-
-const urlToNameMap: { [key: string]: ProviderName } = {
-  [OPENAI_API_URL]: "OpenAI",
-  [OPENROUTER_API_URL]: "OpenRouter.ai",
-  [FREEMODELPROVIDER_API_URL]: "Free AI Models",
-};
-
 export interface ProviderData {
   [key: string]: ChatCraftProvider;
 }
 
 export type SerializedChatCraftProvider = {
   id: string;
-  name: ProviderName;
+  name: string;
   apiUrl: string;
   apiKey?: string;
+  defaultModel: string;
 };
 
 export abstract class ChatCraftProvider {
   id: string;
-  name: ProviderName;
+  name: string;
   apiUrl: string;
   apiKey?: string;
+  defaultModel: string;
 
-  constructor(url: string, key?: string) {
+  constructor(name: string, url: string, defaultModel: string, key?: string) {
     this.id = nanoid();
-    this.name = urlToNameMap[url];
+    this.name = name;
     this.apiUrl = url;
     this.apiKey = key;
+    this.defaultModel = defaultModel;
   }
 
   createClient(key: string) {
@@ -86,5 +71,7 @@ export abstract class ChatCraftProvider {
 
   abstract validateApiKey(key: string): Promise<boolean>;
 
-  abstract defaultModelForProvider(): ChatCraftModel;
+  defaultModelForProvider(): ChatCraftModel {
+    return new ChatCraftModel(this.defaultModel);
+  }
 }
