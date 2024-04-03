@@ -258,6 +258,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         },
       });
     }
+
+    // If the key that was changed is the selected provider, update the selected provider
+    if (newProvider.name === selectedProvider?.name) {
+      setSelectedProvider(newProvider);
+    }
+
     setApiKeySaved(true);
   };
 
