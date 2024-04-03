@@ -2,20 +2,20 @@ import { useState, type ComponentPropsWithRef } from "react";
 import { Input, InputGroup, InputRightElement, Button } from "@chakra-ui/react";
 
 type PasswordInputProps = ComponentPropsWithRef<typeof Input> & {
-  size?: "sm" | "md";
+  inputSize?: "sm" | "md";
   isInvalid?: boolean;
 };
 
-function PasswordInput({ size = "md", isInvalid, ...props }: PasswordInputProps) {
+function PasswordInput({ inputSize = "md", isInvalid, ...props }: PasswordInputProps) {
   const [show, setShow] = useState(false);
 
-  const paddingRight = size === "sm" ? "2.5rem" : "4.5rem";
-  const paddingLeft = size === "sm" ? "0.4rem" : undefined;
-  const inputSize = size === "sm" ? "sm" : "md";
-  const buttonSize = size === "sm" ? "xs" : "sm";
+  const paddingRight = inputSize === "sm" ? "2.5rem" : "4.5rem";
+  const paddingLeft = inputSize === "sm" ? "0.4rem" : undefined;
+  const inputFieldSize = inputSize === "sm" ? "sm" : "md";
+  const buttonSize = inputSize === "sm" ? "xs" : "sm";
 
   return (
-    <InputGroup size={inputSize}>
+    <InputGroup size={inputFieldSize}>
       <Input
         {...props}
         pr={paddingRight}

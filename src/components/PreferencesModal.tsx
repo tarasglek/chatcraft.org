@@ -652,7 +652,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                         <Td>
                           <FormControl isInvalid={!newCustomProvider.apiKey}>
                             <PasswordInput
-                              size="sm"
+                              inputSize="sm"
                               fontSize="xs"
                               type="password"
                               placeholder="API Key"
@@ -724,7 +724,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                                   }
                                 >
                                   <PasswordInput
-                                    size="sm"
+                                    inputSize="sm"
                                     fontSize="xs"
                                     type="password"
                                     value={provider.apiKey || ""}
