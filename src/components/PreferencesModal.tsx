@@ -695,7 +695,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                         return (
                           <Tr key={provider.name}>
                             <Td>
-                              <Flex justifyContent={"center"}>
+                              <Flex width={6} justifyContent={"center"}>
                                 <Checkbox
                                   onChange={() => handleSelectedProviderChange(provider)}
                                   isChecked={selectedProvider?.name === provider.name}
