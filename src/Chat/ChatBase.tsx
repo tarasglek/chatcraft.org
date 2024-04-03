@@ -35,6 +35,7 @@ import {
   ChatCraftFunctionResultMessage,
   ChatCraftHumanMessage,
 } from "../lib/ChatCraftMessage";
+import { WebHandler } from "../lib/WebHandler";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
@@ -207,6 +208,26 @@ function ChatBase({ chat }: ChatBaseProps) {
       // Special-case for "help", to invoke /help command
       if (prompt?.toLowerCase() === "help") {
         prompt = "/help";
+      }
+
+      // If we have a web handler registered for this url
+      const handler = WebHandler.getMatchingHandler(prompt ?? "");
+
+      if (prompt && handler) {
+        try {
+          const result = await handler.executeHandler(prompt);
+
+          chat.addMessage(new ChatCraftHumanMessage({ user, text: result }));
+          forceScroll();
+        } catch (err: any) {
+          error({
+            title: "Error running Web Handler",
+            message: err.message,
+          });
+        }
+
+        setLoading(false);
+        return;
       }
 
       // If this is a slash command, execute that instead of prompting LLM
