@@ -571,7 +571,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   <Tbody>
                     {newCustomProvider && (
                       <Tr>
-                        <Td sx={{ textAlign: "center" }}>
+                        <Td>
                           <IconButton
                             aria-label="Cancel adding new provider"
                             icon={<MdCancel />}
@@ -695,10 +695,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                         return (
                           <Tr key={provider.name}>
                             <Td>
-                              <Checkbox
-                                onChange={() => handleSelectedProviderChange(provider)}
-                                isChecked={selectedProvider?.name === provider.name}
-                              />
+                              <Flex justifyContent={"center"}>
+                                <Checkbox
+                                  onChange={() => handleSelectedProviderChange(provider)}
+                                  isChecked={selectedProvider?.name === provider.name}
+                                />
+                              </Flex>
                             </Td>
                             <Td fontSize="xs">{provider.name}</Td>
                             <Td fontSize="xs">
