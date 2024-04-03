@@ -57,7 +57,7 @@ import { OpenAiProvider } from "../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../lib/providers/OpenRouterProvider";
 import { TextToSpeechVoices } from "../lib/settings";
 import { download, isMac } from "../lib/utils";
-import SmallRevealablePasswordInput from "./SmallRevealablePasswordInput";
+import PasswordInput from "./PasswordInput";
 import { CustomProvider } from "../lib/providers/CustomProvider";
 import { ChatCraftProvider, ProviderData } from "../lib/ChatCraftProvider";
 import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
@@ -440,8 +440,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         return;
       }
 
-      // models.forEach((model) => console.log(model));
-
       // Set the first model in list as defaultModel
       const newProviderWithModel = providerFromUrl(
         newCustomProvider.apiUrl,
@@ -485,12 +483,19 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       // ensure the input is always treated as a string
       const urlString = url instanceof URL ? url.href : url;
       const parsedUrl = new URL(urlString);
-      return parsedUrl.hostname; // always a string
+      return parsedUrl.hostname;
     } catch (err: any) {
       console.error("Error extracting domain from URL:", err);
       return typeof url === "string" ? url : "Invalid URL";
     }
   };
+
+  // Clean up actions when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setNewCustomProvider(null);
+    }
+  }, [isOpen]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl" finalFocusRef={finalFocusRef}>
@@ -646,7 +651,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                         </Td>
                         <Td>
                           <FormControl isInvalid={!newCustomProvider.apiKey}>
-                            <SmallRevealablePasswordInput
+                            <PasswordInput
+                              size="sm"
                               fontSize="xs"
                               type="password"
                               placeholder="API Key"
@@ -717,7 +723,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                                     )
                                   }
                                 >
-                                  <SmallRevealablePasswordInput
+                                  <PasswordInput
+                                    size="sm"
                                     fontSize="xs"
                                     type="password"
                                     value={provider.apiKey || ""}
@@ -754,7 +761,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                                         size="xs"
                                         onClick={provider.openRouterPkceRedirect}
                                       >
-                                        Get key from OpenRouter{" "}
+                                        Get OpenRouter key{" "}
                                       </Button>
                                     )}
                                 </FormControl>

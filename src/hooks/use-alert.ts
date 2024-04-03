@@ -28,7 +28,7 @@ export function useAlert() {
       toast({
         id,
         title,
-        description: message,
+        description: truncateMessage(message),
         colorScheme: "blue",
         status: "success",
         position: "top",
@@ -43,7 +43,7 @@ export function useAlert() {
       toast({
         id,
         title,
-        description: message,
+        description: truncateMessage(message),
         status: "error",
         position: "top",
         isClosable: true,
