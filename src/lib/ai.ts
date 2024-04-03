@@ -452,10 +452,7 @@ export const generateImage = async ({
       response_format: "b64_json",
     });
 
-    const imageUrls = response.data.map((item) => {
-      const base64ImageData = item.b64_json;
-      return `data:image/jpeg;base64,${base64ImageData}`;
-    });
+    const imageUrls = response.data.map(({ b64_json }) => `data:image/jpeg;base64,${b64_json}`);
     return imageUrls;
   } catch (error: any) {
     throw new Error(error);
