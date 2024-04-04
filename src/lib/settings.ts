@@ -42,6 +42,7 @@ export type Settings = {
   compressionFactor: number;
   maxCompressedFileSizeMB: number;
   maxImageDimension: number;
+  showWebHandlersInstructions: boolean;
 };
 
 export const defaults: Settings = {
@@ -62,6 +63,7 @@ export const defaults: Settings = {
   compressionFactor: 1,
   maxCompressedFileSizeMB: 20,
   maxImageDimension: 2048,
+  showWebHandlersInstructions: true,
 };
 
 export const key = "settings";

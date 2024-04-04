@@ -29,6 +29,7 @@ import CodeHeader from "./CodeHeader";
 
 import { yaml } from "@codemirror/lang-yaml";
 import { MdSignalCellularAlt } from "react-icons/md";
+import { useSettings } from "../hooks/use-settings";
 
 type WebHandlersConfigModalProps = {
   isOpen: boolean;
@@ -39,7 +40,7 @@ type WebHandlersConfigModalProps = {
 function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersConfigModalProps) {
   const { webHandlers, registerHandlers } = useWebHandlers();
   const { success, error } = useAlert();
-  const [showInstructions, setShowInstructions] = useState(true);
+  const { settings, setSettings } = useSettings();
 
   const getWebHandlersYaml = useCallback(
     (webHandlers: WebHandlers) => {
@@ -63,11 +64,11 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
 ##                 of your Web Handler definitions.
 ##############################################################################`;
 
-      return `${showInstructions ? `${onBoardingInstructions}\n\n` : ""}${YAML.stringify(
+      return `${settings.showWebHandlersInstructions ? `${onBoardingInstructions}\n\n` : ""}${YAML.stringify(
         webHandlers.map((handler) => ({ ...handler, matchPattern: handler.matchPattern.source }))
       )}`;
     },
-    [showInstructions]
+    [settings.showWebHandlersInstructions]
   );
 
   const [webHandlerConfig, setWebHandlerConfig] = useState(getWebHandlersYaml(webHandlers));
@@ -153,8 +154,13 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
                 </FormLabel>
                 <Switch
                   id="show-instructions-switch"
-                  isChecked={showInstructions}
-                  onChange={() => setShowInstructions((prevValue) => !prevValue)}
+                  isChecked={settings.showWebHandlersInstructions}
+                  onChange={() =>
+                    setSettings({
+                      ...settings,
+                      showWebHandlersInstructions: !settings.showWebHandlersInstructions,
+                    })
+                  }
                 />
               </FormControl>
             </Flex>
