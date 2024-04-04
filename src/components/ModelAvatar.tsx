@@ -12,7 +12,8 @@ export default function ModelAvatar({ model, size }: { model: ChatCraftModel; si
   if (id.includes("gpt-3.5-turbo")) {
     return <Avatar size={size} bg="#75AB9C" src={logoUrl} title={prettyModel} />;
   }
-  if (id.includes("free")) {
+  // FreeModelProvider models
+  if (id.includes("free") || id === "auto") {
     return <Avatar size={size} bg="#75AB9C" src={logoUrl} title={prettyModel} />;
   }
 
