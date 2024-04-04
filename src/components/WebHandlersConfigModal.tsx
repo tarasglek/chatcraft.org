@@ -30,6 +30,7 @@ import CodeHeader from "./CodeHeader";
 import { yaml } from "@codemirror/lang-yaml";
 import { MdSignalCellularAlt } from "react-icons/md";
 import { useSettings } from "../hooks/use-settings";
+import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
 
 type WebHandlersConfigModalProps = {
   isOpen: boolean;
@@ -120,6 +121,7 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
   const configDownloadFilename = "WebHandlersConfig.yaml";
   const { colorMode } = useColorMode();
   const editorHeight = "350px";
+  const isMobile = useMobileBreakpoint();
 
   return (
     <Modal isOpen={isOpen} onClose={onModalClose} size="2xl" finalFocusRef={finalFocusRef}>
@@ -131,7 +133,7 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
         <ModalCloseButton />
         <ModalBody>
           <VStack gap={4}>
-            <Text>
+            <Text textAlign={isMobile ? "justify" : "start"}>
               {/* eslint-disable-next-line react/no-unescaped-entities */}
               If you want to extend ChatCraft's functionality by plugging external services your own
               services, you are at the right place 😎
