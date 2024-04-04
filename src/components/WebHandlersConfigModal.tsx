@@ -38,7 +38,7 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
   const { success, error } = useAlert();
 
   const getWebHandlersYaml = useCallback((webHandlers: WebHandlers) => {
-    const onBoardingInstructions = `##############################################################################
+    const onBoardingInstructions = `#######################################################################
 ## You can configure "match patterns" for certain types
 ## of URLs, that send an HTTP request to your
 ## configured "handler url".
@@ -56,7 +56,7 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
 ##                 if the your prompt text is a match.
 ##                 The match patterns are evaluated in the order
 ##                 of your Web Handler definitions.
-##############################################################################`;
+#######################################################################`;
 
     return `${onBoardingInstructions}\n\n${YAML.stringify(
       webHandlers.map((handler) => ({ ...handler, matchPattern: handler.matchPattern.source }))
