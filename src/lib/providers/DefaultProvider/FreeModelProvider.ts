@@ -10,7 +10,7 @@ export class FreeModelProvider extends ChatCraftProvider {
       FREEMODELPROVIDER_NAME,
       FREEMODELPROVIDER_API_URL,
       FREEMODELPROVIDER_DEFAULT_MODEL,
-      "mock_key",
+      "mock_key"
     );
   }
 
