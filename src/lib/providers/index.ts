@@ -1,35 +1,40 @@
-import {
-  ChatCraftProvider,
-  OPENAI_API_URL,
-  OPENROUTER_API_URL,
-  FREEMODELPROVIDER_API_URL,
-  ProviderData,
-  SerializedChatCraftProvider,
-} from "../ChatCraftProvider";
+import { ChatCraftProvider, ProviderData, SerializedChatCraftProvider } from "../ChatCraftProvider";
 import { getSettings } from "../settings";
-import { OpenAiProvider } from "./OpenAiProvider";
-import { OpenRouterProvider } from "./OpenRouterProvider";
-import { FreeModelProvider } from "./DefaultProvider/FreeModelProvider";
+import { OPENAI_API_URL, OPENAI_NAME, OpenAiProvider } from "./OpenAiProvider";
+import { OPENROUTER_API_URL, OPENROUTER_NAME, OpenRouterProvider } from "./OpenRouterProvider";
+import {
+  FREEMODELPROVIDER_API_URL,
+  FREEMODELPROVIDER_NAME,
+  FreeModelProvider,
+} from "./DefaultProvider/FreeModelProvider";
+import { CustomProvider } from "./CustomProvider";
 
 export const usingOfficialOpenAI = () => getSettings().currentProvider.apiUrl === OPENAI_API_URL;
 export const usingOfficialOpenRouter = () =>
   getSettings().currentProvider.apiUrl === OPENROUTER_API_URL;
 
 // Parses url into instance of ChatCraftProvider
-export function providerFromUrl(url: string, key?: string) {
-  if (url === OPENAI_API_URL) {
-    return new OpenAiProvider(key);
+export function providerFromUrl(url: string, key?: string, name?: string, defaultModel?: string) {
+  // trim trailing / from url
+  const trimmedUrl = url.trim().replace(/\/+$/, "");
+
+  if (trimmedUrl === OPENAI_API_URL) {
+    return new OpenAiProvider(key, name);
   }
 
-  if (url === OPENROUTER_API_URL) {
-    return new OpenRouterProvider(key);
+  if (trimmedUrl === OPENROUTER_API_URL) {
+    return new OpenRouterProvider(key, name);
   }
 
-  if (url === FREEMODELPROVIDER_API_URL) {
+  if (trimmedUrl === FREEMODELPROVIDER_API_URL) {
     return new FreeModelProvider();
   }
 
-  throw new Error(`Error parsing provider from url, unsupported url: ${url}`);
+  if (name) {
+    return new CustomProvider(name, url, defaultModel || "", key);
+  }
+
+  throw new Error("Error parsing provider from url, name missing");
 }
 
 // Parse JSON into instance of ChatCraftProvider
@@ -38,31 +43,37 @@ export function providerFromJSON({
   name,
   apiUrl,
   apiKey,
+  defaultModel,
 }: SerializedChatCraftProvider): ChatCraftProvider {
   if (apiUrl === OPENAI_API_URL) {
-    return OpenAiProvider.fromJSON({ id, name, apiUrl, apiKey });
+    return OpenAiProvider.fromJSON({ id, name, apiUrl, apiKey, defaultModel });
   }
 
   if (apiUrl === OPENROUTER_API_URL) {
-    return OpenRouterProvider.fromJSON({ id, name, apiUrl, apiKey });
+    return OpenRouterProvider.fromJSON({ id, name, apiUrl, apiKey, defaultModel });
   }
 
   if (apiUrl === FREEMODELPROVIDER_API_URL) {
     return new FreeModelProvider();
   }
 
-  throw new Error(`Error parsing provider from JSON, unsupported url: ${apiUrl}`);
+  return CustomProvider.fromJSON({ id, name, apiUrl, apiKey, defaultModel });
 }
 
-// Returns list of supported providers
-export const getSupportedProviders = (): ProviderData => {
-  const openAi = new OpenAiProvider();
-  const openRouter = new OpenRouterProvider();
+export const supportedProviders: ProviderData = (() => {
   const freeModel = new FreeModelProvider();
+  const openRouter = new OpenRouterProvider();
+  const openAi = new OpenAiProvider();
 
   return {
-    [openAi.name]: openAi,
-    [openRouter.name]: openRouter,
     [freeModel.name]: freeModel,
+    [openRouter.name]: openRouter,
+    [openAi.name]: openAi,
   };
+})();
+
+export const nameToUrlMap: { [key: string]: string } = {
+  [OPENAI_NAME]: OPENAI_API_URL,
+  [OPENROUTER_NAME]: OPENROUTER_API_URL,
+  [FREEMODELPROVIDER_NAME]: FREEMODELPROVIDER_API_URL,
 };

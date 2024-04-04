@@ -30,6 +30,7 @@ import PreferencesModal from "./PreferencesModal";
 import DefaultSystemPromptModal from "./DefaultSystemPromptModal";
 import { useUser } from "../hooks/use-user";
 import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
+import WebHandlersConfigModal from "./WebHandlersConfigModal";
 import { useAlert } from "../hooks/use-alert";
 
 type HeaderProps = {
@@ -46,6 +47,11 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     isOpen: isPrefModalOpen,
     onOpen: onPrefModalOpen,
     onClose: onPrefModalClose,
+  } = useDisclosure();
+  const {
+    isOpen: isWebHandlersModalOpen,
+    onOpen: onWebHandlersModalOpen,
+    onClose: onWebHandlersModalClose,
   } = useDisclosure();
   const {
     isOpen: isSysPromptModalOpen,
@@ -177,6 +183,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
             />
             <MenuList>
               <MenuItem onClick={onPrefModalOpen}>Settings...</MenuItem>
+              <MenuItem onClick={onWebHandlersModalOpen}>Web Handlers</MenuItem>
               <MenuItem onClick={onSysPromptModalOpen}>Default System Prompt...</MenuItem>
               {user ? (
                 <MenuItem
@@ -225,6 +232,11 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       <PreferencesModal
         isOpen={isPrefModalOpen}
         onClose={onPrefModalClose}
+        finalFocusRef={inputPromptRef}
+      />
+      <WebHandlersConfigModal
+        isOpen={isWebHandlersModalOpen}
+        onClose={onWebHandlersModalClose}
         finalFocusRef={inputPromptRef}
       />
       <DefaultSystemPromptModal

@@ -8,6 +8,18 @@ export type AlertArguments = {
   message?: string;
 };
 
+function truncateMessage(message?: string): string {
+  if (!message) {
+    return "";
+  }
+
+  if (message.length > 200) {
+    return `${message.substring(0, 200)}...`;
+  }
+
+  return message;
+}
+
 export function useAlert() {
   const toast = useToast();
 
@@ -16,7 +28,7 @@ export function useAlert() {
       toast({
         id,
         title,
-        description: message,
+        description: truncateMessage(message),
         colorScheme: "blue",
         status: "success",
         position: "top",
@@ -31,7 +43,7 @@ export function useAlert() {
       toast({
         id,
         title,
-        description: message,
+        description: truncateMessage(message),
         status: "error",
         position: "top",
         isClosable: true,
@@ -41,8 +53,38 @@ export function useAlert() {
     [toast]
   );
 
+  const success = useCallback(
+    ({ id, title, message }: AlertArguments) =>
+      toast({
+        id,
+        title,
+        description: truncateMessage(message),
+        status: "success",
+        position: "top",
+        isClosable: true,
+        duration: 2000,
+      }),
+    [toast]
+  );
+
+  const warning = useCallback(
+    ({ id, title, message }: AlertArguments) =>
+      toast({
+        id,
+        title,
+        description: truncateMessage(message),
+        status: "warning",
+        position: "top",
+        isClosable: true,
+        duration: 3000,
+      }),
+    [toast]
+  );
+
   return {
     info,
     error,
+    success,
+    warning,
   };
 }

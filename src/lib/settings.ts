@@ -6,7 +6,7 @@
  * when you only need to read something.
  */
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { ProviderData, ChatCraftProvider } from "../lib/ChatCraftProvider";
+import { ChatCraftProvider, ProviderData } from "../lib/ChatCraftProvider";
 import { providerFromJSON, providerFromUrl } from "./providers";
 import { FreeModelProvider } from "./providers/DefaultProvider/FreeModelProvider";
 /**
@@ -45,7 +45,7 @@ export type Settings = {
 };
 
 export const defaults: Settings = {
-  model: new ChatCraftModel("undi95/toppy-m-7b:free"),
+  model: new ChatCraftModel("auto"),
   temperature: 0,
   enterBehaviour: "send",
   // Disabled by default, since token parsing requires downloading larger deps
@@ -86,7 +86,10 @@ export const deserializer = (value: string): Settings => {
     if (settings.apiKey && settings.apiUrl) {
       const newProvider = providerFromUrl(settings.apiUrl, settings.apiKey);
       settings.currentProvider = newProvider;
-      settings.providers = { ...settings.providers, [newProvider.name]: newProvider };
+      settings.providers = {
+        ...settings.providers,
+        [newProvider.name]: newProvider,
+      };
       delete settings.apiKey;
       delete settings.apiUrl;
       console.warn("Migrated deprecated apiKey, apiUrl");
