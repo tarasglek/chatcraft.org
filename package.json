@@ -17,6 +17,7 @@
     "@antonz/runno": "^0.6.1",
     "@chakra-ui/react": "^2.8.2",
     "@codemirror/lang-javascript": "^6.2.1",
+    "@codemirror/lang-yaml": "^6.0.0",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@szhsin/react-menu": "^4.1.0",

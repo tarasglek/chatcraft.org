@@ -1,8 +1,10 @@
 import {
+  Box,
   Button,
+  Flex,
   FormControl,
-  FormHelperText,
   FormLabel,
+  Heading,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -10,16 +12,23 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Textarea,
+  Switch,
+  Text,
   VStack,
+  useColorMode,
 } from "@chakra-ui/react";
-import { ChangeEvent, RefObject, useCallback, useState } from "react";
+import { RefObject, useCallback, useEffect, useState } from "react";
 
+import ReactCodeMirror from "@uiw/react-codemirror";
 import { MdSave } from "react-icons/md";
 import YAML from "yaml";
+import { useAlert } from "../hooks/use-alert";
 import { useWebHandlers } from "../hooks/use-web-handlers";
 import { WebHandler, WebHandlers } from "../lib/WebHandler";
-import { useAlert } from "../hooks/use-alert";
+import CodeHeader from "./CodeHeader";
+
+import { yaml } from "@codemirror/lang-yaml";
+import { MdSignalCellularAlt } from "react-icons/md";
 
 type WebHandlersConfigModalProps = {
   isOpen: boolean;
@@ -29,20 +38,46 @@ type WebHandlersConfigModalProps = {
 
 function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersConfigModalProps) {
   const { webHandlers, registerHandlers } = useWebHandlers();
-  const { info, error } = useAlert();
+  const { success, error } = useAlert();
+  const [showInstructions, setShowInstructions] = useState(true);
 
-  const getWebHandlersYaml = (webHandlers: WebHandlers) => {
-    return YAML.stringify(
-      webHandlers.map((handler) => ({ ...handler, matchPattern: handler.matchPattern.source }))
-    );
-  };
+  const getWebHandlersYaml = useCallback(
+    (webHandlers: WebHandlers) => {
+      const onBoardingInstructions = `##############################################################################
+## You can configure "match patterns" for certain types
+## of URLs, that send an HTTP request to your
+## configured "handler url".
+## Various options can be set to customize the
+## the type of request that is sent.
+##
+## Supported Options
+##
+## - handlerUrl:   The web url of the service,
+##                 you want to send a request to.
+##                 e.g. 'https://taras-scrape2md.web.val.run/'
+##   method:       The HTTP method type of the request
+##                 to be sent.
+##   matchPattern: A regular expression to execute the web handler,
+##                 if the your prompt text is a match.
+##                 The match patterns are evaluated in the order
+##                 of your Web Handler definitions.
+##############################################################################`;
+
+      return `${showInstructions ? `${onBoardingInstructions}\n\n` : ""}${YAML.stringify(
+        webHandlers.map((handler) => ({ ...handler, matchPattern: handler.matchPattern.source }))
+      )}`;
+    },
+    [showInstructions]
+  );
 
   const [webHandlerConfig, setWebHandlerConfig] = useState(getWebHandlersYaml(webHandlers));
 
-  const handleConfigValueChange = useCallback(
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      const updatedConfig = event.target.value;
+  useEffect(() => {
+    setWebHandlerConfig(getWebHandlersYaml(webHandlers));
+  }, [getWebHandlersYaml, webHandlers]);
 
+  const handleConfigValueChange = useCallback(
+    (updatedConfig: string) => {
       setWebHandlerConfig(updatedConfig);
     },
     [setWebHandlerConfig]
@@ -54,7 +89,7 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
 
     // Close the modal
     onClose();
-  }, [onClose, webHandlers]);
+  }, [getWebHandlersYaml, onClose, webHandlers]);
 
   const onSaveConfig = useCallback(() => {
     try {
@@ -69,7 +104,7 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
       // Persist handlers to local storage
       registerHandlers(updatedWebHandlers);
 
-      info({
+      success({
         title: "Saved",
         message: "Successfully updated Web Handlers configuration",
       });
@@ -79,30 +114,78 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
         message: "Please enter valid YAML configuration",
       });
     }
-  }, [error, info, registerHandlers, webHandlerConfig]);
+  }, [error, registerHandlers, success, webHandlerConfig]);
+
+  const configDownloadFilename = "WebHandlersConfig.yaml";
+  const { colorMode } = useColorMode();
+  const editorHeight = "350px";
 
   return (
-    <Modal isOpen={isOpen} onClose={onModalClose} size="lg" finalFocusRef={finalFocusRef}>
+    <Modal isOpen={isOpen} onClose={onModalClose} size="2xl" finalFocusRef={finalFocusRef}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Web Handlers</ModalHeader>
+        <ModalHeader display={"flex"} alignItems={"center"} gap={2}>
+          Web Handlers <MdSignalCellularAlt />
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack gap={4}>
-            <FormControl>
-              <FormLabel>Register Handlers</FormLabel>
-              <Textarea
-                fontFamily={"monospace"}
-                value={webHandlerConfig}
-                onChange={handleConfigValueChange}
-                height={200}
-                placeholder="Please enter the configurations of your handlers in YAML"
-              />
+            <Text>
+              {/* eslint-disable-next-line react/no-unescaped-entities */}
+              If you want to extend ChatCraft's functionality by plugging external services your own
+              services, you are at the right place 😎
+            </Text>
 
-              <FormHelperText>
-                The first handler with a successful match pattern is executed
-              </FormHelperText>
-            </FormControl>
+            <Flex
+              width={"100%"}
+              justifyContent={"space-between"}
+              alignItems={"center"}
+              wrap={"wrap"}
+              gap={2}
+            >
+              <Heading size={"md"} alignSelf={"start"} fontWeight={"normal"} flexGrow={1}>
+                Register Handlers
+              </Heading>
+
+              <FormControl display="flex" alignItems="center" width={"auto"}>
+                <FormLabel htmlFor="show-instructions-switch" mb="0">
+                  Show Instructions?
+                </FormLabel>
+                <Switch
+                  id="show-instructions-switch"
+                  isChecked={showInstructions}
+                  onChange={() => setShowInstructions((prevValue) => !prevValue)}
+                />
+              </FormControl>
+            </Flex>
+            <Box
+              w={"100%"}
+              border="1px"
+              borderRadius="5px"
+              borderColor="gray.200"
+              bg="gray.50"
+              _dark={{
+                bg: "gray.800",
+                borderColor: "gray.600",
+              }}
+              pb={1}
+              minHeight={editorHeight} // To avoid resizing when editor loads
+            >
+              <CodeHeader
+                language="yaml"
+                code={webHandlerConfig}
+                codeDownloadFilename={configDownloadFilename}
+                isLoading={false}
+              >
+                <ReactCodeMirror
+                  value={webHandlerConfig}
+                  extensions={[yaml()]}
+                  theme={colorMode}
+                  height={editorHeight}
+                  onChange={handleConfigValueChange}
+                />
+              </CodeHeader>
+            </Box>
           </VStack>
         </ModalBody>
 
