@@ -1,9 +1,6 @@
 import {
   Box,
   Button,
-  Flex,
-  FormControl,
-  FormLabel,
   Heading,
   Modal,
   ModalBody,
@@ -12,7 +9,6 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Switch,
   Text,
   VStack,
   useColorMode,
@@ -29,7 +25,6 @@ import CodeHeader from "./CodeHeader";
 
 import { yaml } from "@codemirror/lang-yaml";
 import { MdSignalCellularAlt } from "react-icons/md";
-import { useSettings } from "../hooks/use-settings";
 import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
 
 type WebHandlersConfigModalProps = {
@@ -41,11 +36,9 @@ type WebHandlersConfigModalProps = {
 function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersConfigModalProps) {
   const { webHandlers, registerHandlers } = useWebHandlers();
   const { success, error } = useAlert();
-  const { settings, setSettings } = useSettings();
 
-  const getWebHandlersYaml = useCallback(
-    (webHandlers: WebHandlers) => {
-      const onBoardingInstructions = `##############################################################################
+  const getWebHandlersYaml = useCallback((webHandlers: WebHandlers) => {
+    const onBoardingInstructions = `##############################################################################
 ## You can configure "match patterns" for certain types
 ## of URLs, that send an HTTP request to your
 ## configured "handler url".
@@ -65,12 +58,10 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
 ##                 of your Web Handler definitions.
 ##############################################################################`;
 
-      return `${settings.showWebHandlersInstructions ? `${onBoardingInstructions}\n\n` : ""}${YAML.stringify(
-        webHandlers.map((handler) => ({ ...handler, matchPattern: handler.matchPattern.source }))
-      )}`;
-    },
-    [settings.showWebHandlersInstructions]
-  );
+    return `${onBoardingInstructions}\n\n${YAML.stringify(
+      webHandlers.map((handler) => ({ ...handler, matchPattern: handler.matchPattern.source }))
+    )}`;
+  }, []);
 
   const [webHandlerConfig, setWebHandlerConfig] = useState(getWebHandlersYaml(webHandlers));
 
@@ -139,33 +130,10 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
               services, you are at the right place 😎
             </Text>
 
-            <Flex
-              width={"100%"}
-              justifyContent={"space-between"}
-              alignItems={"center"}
-              wrap={"wrap"}
-              gap={2}
-            >
-              <Heading size={"md"} alignSelf={"start"} fontWeight={"normal"} flexGrow={1}>
-                Register Handlers
-              </Heading>
+            <Heading size={"md"} width={"100%"} fontWeight={"normal"}>
+              Register Handlers
+            </Heading>
 
-              <FormControl display="flex" alignItems="center" width={"auto"}>
-                <FormLabel htmlFor="show-instructions-switch" mb="0">
-                  Show Instructions?
-                </FormLabel>
-                <Switch
-                  id="show-instructions-switch"
-                  isChecked={settings.showWebHandlersInstructions}
-                  onChange={() =>
-                    setSettings({
-                      ...settings,
-                      showWebHandlersInstructions: !settings.showWebHandlersInstructions,
-                    })
-                  }
-                />
-              </FormControl>
-            </Flex>
             <Box
               w={"100%"}
               border="1px"
