@@ -85,7 +85,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     try {
       const UserFeedUrl = `https://chatcraft.org/api/share/${user.username}/feed.atom`;
       info({
-        title: "Copy Shared Chats Feed URL Successfully",
+        title: "Copied Shared Chats Feed URL Successfully",
         message: `URL has been copied to clipboard`,
       });
       copyToClipboard(UserFeedUrl);

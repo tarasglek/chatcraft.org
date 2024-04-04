@@ -54,8 +54,8 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
         throw new Error("Unable to create Share URL");
       }
       setUrl(url);
-      const baseUrl = url.split("/api/")[0];
-      const newUserFeedUrl = `${baseUrl}/api/share/${user.username}/feed.atom`;
+      const parsedUrl = new URL(url);
+      const newUserFeedUrl = `${parsedUrl.origin}/api/share/${user.username}/feed.atom`;
       setFeedUrl(newUserFeedUrl);
     } catch (err: any) {
       console.error(err);
