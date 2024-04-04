@@ -8,11 +8,7 @@ export default function ModelAvatar({ model, size }: { model: ChatCraftModel; si
   // Differentiate OpenAI models by colour
   if (id.includes("gpt-4")) {
     return <Avatar size={size} bg="#A96CF9" src={logoUrl} title={prettyModel} />;
-  }
-  if (id.includes("gpt-3.5-turbo")) {
-    return <Avatar size={size} bg="#75AB9C" src={logoUrl} title={prettyModel} />;
-  }
-  if (id.includes("free") || id === "auto") {
+  } else if (id.includes("gpt-3.5-turbo")) {
     return <Avatar size={size} bg="#75AB9C" src={logoUrl} title={prettyModel} />;
   }
 
@@ -20,6 +16,7 @@ export default function ModelAvatar({ model, size }: { model: ChatCraftModel; si
   return (
     <Avatar
       size={size}
+      bg="#75AB9C"
       showBorder
       borderColor="gray.100"
       _dark={{ borderColor: "gray.600" }}
