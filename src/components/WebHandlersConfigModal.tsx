@@ -126,7 +126,7 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
           <VStack gap={4}>
             <Text textAlign={isMobile ? "justify" : "start"}>
               {/* eslint-disable-next-line react/no-unescaped-entities */}
-              If you want to extend ChatCraft's functionality by plugging external services your own
+              If you want to extend ChatCraft's default URL handling by adding your own external
               services, you are at the right place 😎
             </Text>
 
