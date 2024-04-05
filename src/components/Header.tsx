@@ -83,12 +83,12 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       return;
     }
     try {
-      const UserFeedUrl = `https://chatcraft.org/api/share/${user.username}/feed.atom`;
+      const userFeedUrl = `https://chatcraft.org/api/share/${user.username}/feed.atom`;
       info({
         title: "Copied Shared Chats Feed URL Successfully",
         message: `URL has been copied to clipboard`,
       });
-      copyToClipboard(UserFeedUrl);
+      copyToClipboard(userFeedUrl);
     } catch (err) {
       console.error(err);
       error({
