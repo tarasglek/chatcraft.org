@@ -1,4 +1,5 @@
 import { useCallback, type RefObject } from "react";
+import { useCopyToClipboard } from "react-use";
 import {
   Avatar,
   Box,
@@ -22,6 +23,7 @@ import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { TbSearch } from "react-icons/tb";
+import { FiRss } from "react-icons/fi";
 import { Form } from "react-router-dom";
 
 import PreferencesModal from "./PreferencesModal";
@@ -29,6 +31,7 @@ import DefaultSystemPromptModal from "./DefaultSystemPromptModal";
 import { useUser } from "../hooks/use-user";
 import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
 import WebHandlersConfigModal from "./WebHandlersConfigModal";
+import { useAlert } from "../hooks/use-alert";
 
 type HeaderProps = {
   chatId?: string;
@@ -39,6 +42,7 @@ type HeaderProps = {
 
 function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
+  const [, copyToClipboard] = useCopyToClipboard();
   const {
     isOpen: isPrefModalOpen,
     onOpen: onPrefModalOpen,
@@ -55,6 +59,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     onClose: onSysPromptModalClose,
   } = useDisclosure();
   const { user, login, logout } = useUser();
+  const { info, error } = useAlert();
 
   const handleLoginLogout = useCallback(
     (provider: string) => {
@@ -68,6 +73,30 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
   );
 
   const isMobile = useMobileBreakpoint();
+
+  const handleCopyFeedUrl = useCallback(async () => {
+    if (!user) {
+      error({
+        title: "Failed to Share Message",
+        message: "Can't share message because user is not logged in",
+      });
+      return;
+    }
+    try {
+      const userFeedUrl = `https://chatcraft.org/api/share/${user.username}/feed.atom`;
+      info({
+        title: "Copied Shared Chats Feed URL Successfully",
+        message: `URL has been copied to clipboard`,
+      });
+      copyToClipboard(userFeedUrl);
+    } catch (err) {
+      console.error(err);
+      error({
+        title: "Failed to Copy Shared Chats Feed URL",
+        message: "An error occurred while trying to copy shared chats feed URL.",
+      });
+    }
+  }, [user, info, error, copyToClipboard]);
 
   return (
     <Flex
@@ -116,6 +145,13 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       </Box>
 
       <ButtonGroup isAttached pr={2} alignItems="center">
+        <IconButton
+          aria-label={"Copy Shared Chats Feed URL"}
+          title={"Copy Shared Chats Feed URL"}
+          icon={<FiRss />}
+          variant="ghost"
+          onClick={handleCopyFeedUrl}
+        />
         <IconButton
           aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
           title={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}

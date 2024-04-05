@@ -38,6 +38,7 @@ type AuthenticatedForm = {
 function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
   const { settings } = useSettings();
   const [url, setUrl] = useState("");
+  const [feedUrl, setFeedUrl] = useState("");
   const [error, setError] = useState<string | undefined>();
   const [summary, setSummary] = useState<string>(chat.summary);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -53,6 +54,9 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
         throw new Error("Unable to create Share URL");
       }
       setUrl(url);
+      const parsedUrl = new URL(url);
+      const newUserFeedUrl = `${parsedUrl.origin}/api/share/${user.username}/feed.atom`;
+      setFeedUrl(newUserFeedUrl);
     } catch (err: any) {
       console.error(err);
       setError(err.message);
@@ -104,6 +108,10 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
     copyToClipboard(url);
   }, [url, copyToClipboard]);
 
+  const handleCopyFeedClick = useCallback(() => {
+    copyToClipboard(feedUrl);
+  }, [feedUrl, copyToClipboard]);
+
   return (
     <VStack gap={2}>
       <FormControl>
@@ -135,19 +143,34 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
       </FormControl>
 
       {url && (
-        <FormControl>
-          <FormLabel>Public Share URL</FormLabel>
-          <Flex gap={1}>
-            <Input autoFocus={true} type="url" defaultValue={url} readOnly flex={1} />{" "}
-            <IconButton
-              icon={<TbCopy />}
-              aria-label="Copy URL"
-              variant="ghost"
-              onClick={() => handleCopyClick()}
-            />
-          </Flex>
-          <FormHelperText>Anyone can access the chat using this URL.</FormHelperText>
-        </FormControl>
+        <>
+          <FormControl>
+            <FormLabel>Public Share URL</FormLabel>
+            <Flex gap={1}>
+              <Input autoFocus={false} type="url" defaultValue={url} readOnly flex={1} />{" "}
+              <IconButton
+                icon={<TbCopy />}
+                aria-label="Copy URL"
+                variant="ghost"
+                onClick={() => handleCopyClick()}
+              />
+            </Flex>
+            <FormHelperText>Anyone can access the chat using this URL.</FormHelperText>
+          </FormControl>
+          <FormControl mt={4}>
+            <FormLabel>Public Shared Chats Feed URL</FormLabel>
+            <Flex gap={1}>
+              <Input autoFocus={false} type="url" defaultValue={feedUrl} readOnly flex={1} />{" "}
+              <IconButton
+                icon={<TbCopy />}
+                aria-label="Copy URL"
+                variant="ghost"
+                onClick={() => handleCopyFeedClick()}
+              />
+            </Flex>
+            <FormHelperText>Anyone can access the shared chats feed using this URL.</FormHelperText>
+          </FormControl>
+        </>
       )}
     </VStack>
   );
