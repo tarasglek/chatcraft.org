@@ -8,11 +8,11 @@ export class GitHubRewriter extends DefaultRewriter {
 
   async rewriteUrl(url: URL) {
     // Blob URLs - https://github.com/<owner>/<repo>/blob/<branch>/<path>
-    if (url.origin === "https://github.com" && /\/(.*)\/blob\/(.*)$/.test(url.pathname)) {
-      // https://github.com/<owner>/<repo>/blob/<branch>/<path> -> https://raw.githubusercontent.com<owner>/<repo>/<branch>/<path>
+    if (url.origin === "https://github.com" && /\/(.*)\/blob\/(.*)\/?$/.test(url.pathname)) {
+      // https://github.com/<owner>/<repo>/blob/<branch>/<path> ->
       return new URL(
         url.href.replace(
-          /^https:\/\/github\.com\/(.*)\/blob\/(.*)$/,
+          /^https:\/\/github\.com\/(.*)\/blob\/(.*)\/?$/,
           "https://raw.githubusercontent.com/$1/$2"
         )
       );
@@ -23,14 +23,14 @@ export class GitHubRewriter extends DefaultRewriter {
       // https://gist.github.com/<owner>/<gist-id> -> https://gist.githubusercontent.com/<owner>/<gist-id>/raw
       return new URL(
         url.href.replace(
-          /^https:\/\/gist\.github\.com\/([a-zA-Z0-9_-]+)\/([a-f0-9]+)$/,
+          /^https:\/\/gist\.github\.com\/([a-zA-Z0-9_-]+)\/([a-f0-9]+)\/?$/,
           "https://gist.githubusercontent.com/$1/$2/raw"
         )
       );
     }
 
     // PR URLs - https://github.com/<owner>/<repo>/pull/<number>
-    if (url.origin === "https://github.com" && /\/(.*)\/pull\/(.*)$/.test(url.pathname)) {
+    if (url.origin === "https://github.com" && /\/(.*)\/pull\/(.*)\/?$/.test(url.pathname)) {
       // TODO: we need to add more logic to deal with a specific comment in a PR via the GitHub API
       // Example: https://github.com/tarasglek/chatcraft.org/pull/370#issuecomment-1916037856
       if (url.hash.startsWith("#issuecomment-")) {
@@ -40,7 +40,7 @@ export class GitHubRewriter extends DefaultRewriter {
       // https://github.com/<owner>/<repo>/pull/<number> -> https://patch-diff.githubusercontent.com/raw/<owner>/<repo>/pull/<number>.patch
       return new URL(
         url.href.replace(
-          /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)$/,
+          /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)\/?$/,
           "https://patch-diff.githubusercontent.com/raw/$1/$2/pull/$3.patch"
         )
       );
