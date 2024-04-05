@@ -58,9 +58,14 @@ function WebHandlersConfigModal({ isOpen, onClose, finalFocusRef }: WebHandlersC
 ##                 of your Web Handler definitions.
 #######################################################################`;
 
+    const sampleWebHandlers = `## Example:
+# - handlerUrl: https://taras-scrape2md.web.val.run/
+#   method: GET
+#   matchPattern: ^https:\\/\\/\\S*$\n`;
+
     return `${onBoardingInstructions}\n\n${YAML.stringify(
       webHandlers.map((handler) => ({ ...handler, matchPattern: handler.matchPattern.source }))
-    )}`;
+    )}\n${sampleWebHandlers}`;
   }, []);
 
   const [webHandlerConfig, setWebHandlerConfig] = useState(getWebHandlersYaml(webHandlers));
