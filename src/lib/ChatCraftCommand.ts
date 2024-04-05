@@ -19,7 +19,6 @@ export abstract class ChatCraftCommand {
   // Checks if a string is a command.
   static isCommand(input: string): boolean {
     // Check if there's something resembling a command (no non-word characters in the portion after forward slash)
-    const match = input.match(/^\/(\w+)(?:\s+(.*))?$/);
-    return !!match;
+    return /^\/(\w+)(?:\s+(.*))?$/.test(input);
   }
 }
