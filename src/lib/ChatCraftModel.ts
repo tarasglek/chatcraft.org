@@ -38,8 +38,21 @@ export class ChatCraftModel {
       return "/hugging-face-logo.png";
     }
 
-    // If we don't know, use the OpenAI logo as a fallback
-    return "/openai-logo.png";
+    return undefined;
+  }
+
+  // Simple hash from name's characters to a 6-digit hexadecimal color code
+  get logoBg(): string {
+    let hash = 0;
+    for (let i = 0; i < this.name.length; i++) {
+      hash = this.name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    let color = "#";
+    for (let i = 0; i < 3; i++) {
+      const value = (hash >> (i * 8)) & 0xff;
+      color += ("00" + value.toString(16)).substr(-2);
+    }
+    return color;
   }
 
   /**

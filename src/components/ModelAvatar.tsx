@@ -3,7 +3,7 @@ import { Avatar } from "@chakra-ui/react";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 
 export default function ModelAvatar({ model, size }: { model: ChatCraftModel; size: "sm" | "xs" }) {
-  const { id, logoUrl, prettyModel } = model;
+  const { id, logoUrl, logoBg, prettyModel } = model;
 
   // Differentiate OpenAI models by colour
   if (id.includes("gpt-4")) {
@@ -12,15 +12,15 @@ export default function ModelAvatar({ model, size }: { model: ChatCraftModel; si
     return <Avatar size={size} bg="#75AB9C" src={logoUrl} title={prettyModel} />;
   }
 
-  // For now, all the rest use the same colour, or just the logo's background
   return (
     <Avatar
       size={size}
-      bg="#75AB9C"
+      bg={logoBg}
       showBorder
       borderColor="gray.100"
       _dark={{ borderColor: "gray.600" }}
       src={logoUrl}
+      name={prettyModel}
       title={prettyModel}
     />
   );
