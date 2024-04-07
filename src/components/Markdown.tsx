@@ -146,6 +146,7 @@ function Markdown({
                   showLineNumbers={true}
                   showInlineLineNumbers={true}
                   wrapLines={true}
+                  lineNumberStyle={{ WebkitUserSelect: "none" }}
                   lineProps={{
                     style: { display: "block" },
                   }}
