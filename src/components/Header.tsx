@@ -1,5 +1,4 @@
 import { useCallback, type RefObject } from "react";
-import { useCopyToClipboard } from "react-use";
 import {
   Avatar,
   Box,
@@ -42,7 +41,6 @@ type HeaderProps = {
 
 function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
-  const [, copyToClipboard] = useCopyToClipboard();
   const {
     isOpen: isPrefModalOpen,
     onOpen: onPrefModalOpen,
