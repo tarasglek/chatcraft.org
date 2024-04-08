@@ -81,7 +81,9 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       return;
     }
     try {
-      const userFeedUrl = `https://chatcraft.org/api/share/${user.username}/feed.atom`;
+      const currentUrl = window.location.href;
+      const parsedUrl = new URL(currentUrl);
+      const userFeedUrl = `${parsedUrl.origin}/api/share/${user.username}/feed.atom`;
       window.open(userFeedUrl, "_blank");
     } catch (err) {
       console.error(err);
