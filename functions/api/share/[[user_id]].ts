@@ -51,7 +51,7 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
       const id = url.split("/").pop() || "No ID";
 
       const preContentElement = document.querySelector("pre");
-      const preContent = preContentElement.textContent ?? "";
+      const preContent = preContentElement ? preContentElement.textContent : "";
       const dateMatch = preContent.match(/date:\s*(.+)/i);
       const date = dateMatch ? new Date(dateMatch[1]) : new Date();
 
