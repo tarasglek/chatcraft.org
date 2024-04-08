@@ -40,18 +40,18 @@ async function generateUserFeed(env: Env, user: string): Promise<void> {
       const document = new DOMParser().parseFromString(chatContent, "text/html");
 
       const getTitle = document.querySelector('meta[property="og:title"]');
-      const title = getTitle ? getTitle.getAttribute("content") : "No Title";
+      const title = getTitle.getAttribute("content") ?? "No Title";
 
       const getSummary = document.querySelector('meta[property="og:description"]');
-      const summary = getSummary ? getSummary.getAttribute("content") : "No Summary";
+      const summary = getSummary.getAttribute("content") ?? "No Summary";
 
       const getUrl = document.querySelector('meta[property="og:url"]');
-      const url = getUrl ? getUrl.getAttribute("content") : "No URL";
+      const url = getUrl.getAttribute("content") ?? "No URL";
 
       const id = url.split("/").pop() || "No ID";
 
       const preContentElement = document.querySelector("pre");
-      const preContent = preContentElement ? preContentElement.textContent : "";
+      const preContent = preContentElement.textContent ?? "";
       const dateMatch = preContent.match(/date:\s*(.+)/i);
       const date = dateMatch ? new Date(dateMatch[1]) : new Date();
 
