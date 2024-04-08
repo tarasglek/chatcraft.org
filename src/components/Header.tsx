@@ -59,7 +59,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     onClose: onSysPromptModalClose,
   } = useDisclosure();
   const { user, login, logout } = useUser();
-  const { info, error } = useAlert();
+  const { error } = useAlert();
 
   const handleLoginLogout = useCallback(
     (provider: string) => {
@@ -74,29 +74,25 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
 
   const isMobile = useMobileBreakpoint();
 
-  const handleCopyFeedUrl = useCallback(async () => {
+  const handleOpenFeedUrl = useCallback(async () => {
     if (!user) {
       error({
-        title: "Failed to Share Message",
-        message: "Can't share message because user is not logged in",
+        title: "Failed to Open Feed",
+        message: "Can't open feed because user is not logged in",
       });
       return;
     }
     try {
       const userFeedUrl = `https://chatcraft.org/api/share/${user.username}/feed.atom`;
-      info({
-        title: "Copied Shared Chats Feed URL Successfully",
-        message: `URL has been copied to clipboard`,
-      });
-      copyToClipboard(userFeedUrl);
+      window.open(userFeedUrl, "_blank");
     } catch (err) {
       console.error(err);
       error({
-        title: "Failed to Copy Shared Chats Feed URL",
-        message: "An error occurred while trying to copy shared chats feed URL.",
+        title: "Failed to Open Shared Chats Feed URL",
+        message: "An error occurred while trying to open shared chats feed URL.",
       });
     }
-  }, [user, info, error, copyToClipboard]);
+  }, [user, error]);
 
   return (
     <Flex
@@ -150,7 +146,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
           title={"Copy Shared Chats Feed URL"}
           icon={<FiRss />}
           variant="ghost"
-          onClick={handleCopyFeedUrl}
+          onClick={handleOpenFeedUrl}
         />
         <IconButton
           aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
