@@ -159,7 +159,7 @@ function AiMessage(props: AiMessageProps) {
       onRetryClick={retrying ? undefined : handleRetryClick}
       onDeleteClick={retrying ? undefined : props.onDeleteClick}
       disableFork={retrying}
-      disableEdit={retrying}
+      disableEdit={message.readonly ?? retrying}
     />
   );
 }

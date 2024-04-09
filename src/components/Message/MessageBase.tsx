@@ -430,7 +430,7 @@ function MessageBase({
                       onClick={() => onEditingChange(!editing)}
                     />
                   )}
-                  {onDeleteClick && (
+                  {!disableEdit && onDeleteClick && (
                     <IconButton
                       variant="ghost"
                       icon={<TbTrash />}
