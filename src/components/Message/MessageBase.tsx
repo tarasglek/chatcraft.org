@@ -132,9 +132,8 @@ function MessageBase({
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
   const isLongMessage = text.length > 5000;
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
-  const shouldShowDeleteMenu = Boolean(
-    (onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick) && !disableEdit
-  );
+  const shouldShowDeleteMenu =
+    Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick) && !disableEdit;
   const chat = useLiveQuery(() => ChatCraftChat.find(chatId), [chatId]);
   const { user } = useUser();
   const handleShareMessage = useCallback(async () => {
