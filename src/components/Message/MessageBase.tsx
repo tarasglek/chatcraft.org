@@ -498,7 +498,6 @@ function MessageBase({
                     {editing ? "Cancel Editing" : "Edit"}
                   </MenuItem>
                 )}
-
                 {shouldShowDeleteMenu && (
                   <>
                     {onDeleteClick && !onDeleteBeforeClick && !onDeleteAfterClick ? (
