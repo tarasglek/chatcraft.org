@@ -1,5 +1,6 @@
 import { Button, Input, InputGroup, InputRightElement } from "@chakra-ui/react";
 import { type ComponentPropsWithRef, useState } from "react";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 type PasswordInputProps = ComponentPropsWithRef<typeof Input> & {
   buttonSize?: "lg" | "md" | "sm" | "xs";
@@ -28,7 +29,7 @@ function PasswordInput({
       />
       <InputRightElement width={paddingRight}>
         <Button variant="ghost" h="1.75rem" size={buttonSize} onClick={() => setShow(!show)}>
-          {show ? "Hide" : "Show"}
+          {show ? <IoMdEyeOff /> : <IoMdEye />}
         </Button>
       </InputRightElement>
     </InputGroup>
