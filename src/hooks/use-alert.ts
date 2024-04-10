@@ -24,7 +24,7 @@ export function useAlert() {
   const isMobile = useMobileBreakpoint();
   const toast = useToast({
     containerStyle: {
-      maxWidth: isMobile ? "100vw" : undefined,
+      width: isMobile ? "90vw" : "initial",
     },
   });
 
