@@ -68,7 +68,7 @@ export class ChatCraftModel {
   }
 
   get supportsImages() {
-    return this.name.includes("vision");
+    return this.name.includes("vision") || this.name == "gpt-4-turbo";
   }
 
   get prettyModel(): string {
