@@ -10,12 +10,12 @@ export class GitHubRewriter extends DefaultRewriter {
     // Blob URLs - https://github.com/<owner>/<repo>/blob/<branch>/<path>
     if (url.origin === "https://github.com" && /\/(.*)\/blob\/(.*)\/?$/.test(url.pathname)) {
       // https://github.com/<owner>/<repo>/blob/<branch>/<path> ->
-      return new URL(
-        url.href.replace(
-          /^https:\/\/github\.com\/(.*)\/blob\/(.*)\/?$/,
-          "https://raw.githubusercontent.com/$1/$2"
-        )
+      let newUrl = url.href.replace(
+        /^https:\/\/github\.com\/(.+?)\/blob\/(.+?)\/?$/,
+        "https://raw.githubusercontent.com/$1/$2"
       );
+      newUrl = newUrl.replace(/\/$/, "");
+      return new URL(newUrl);
     }
 
     // Gist URLs - https://gist.github.com/<owner>/<gist-id>
