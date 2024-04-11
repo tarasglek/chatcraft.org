@@ -80,7 +80,7 @@ export interface MessageBaseProps {
   isLoading: boolean;
   hidePreviews?: boolean;
   onPrompt?: (prompt?: string) => void;
-  onResubmitClick?: () => void;
+  onResubmitClick?: (promtText?: string) => void;
   onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;
   onDeleteAfterClick?: () => void;
@@ -337,7 +337,7 @@ function MessageBase({
           .finally(() => {
             onEditingChange(false);
             if (action === "resubmit" && onResubmitClick) {
-              onResubmitClick();
+              onResubmitClick(text);
             }
             messageForm.current?.removeAttribute("data-action");
           });
