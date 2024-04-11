@@ -37,6 +37,7 @@
     "iframe-resizer-react": "^1.1.0",
     "jose": "^5.2.1",
     "katex": "^0.16.9",
+    "linkedom": "^0.16.11",
     "lodash-es": "^4.17.21",
     "mermaid": "^10.8.0",
     "nanoid": "^5.0.5",
