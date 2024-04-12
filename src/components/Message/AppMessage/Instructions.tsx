@@ -163,8 +163,6 @@ function Instructions(props: MessageBaseProps) {
                 <PasswordInput
                   flex="1"
                   size={"md"}
-                  type="password"
-                  name="api-key"
                   bg="white"
                   _dark={{ bg: "gray.700" }}
                   style={{

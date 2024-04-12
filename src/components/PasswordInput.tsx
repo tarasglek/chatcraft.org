@@ -25,7 +25,10 @@ function PasswordInput({
         paddingRight={paddingRight}
         isInvalid={isInvalid}
         {...props}
-        type={show ? "text" : "password"}
+        type="text"
+        sx={{
+          WebkitTextSecurity: show ? "none" : "disc",
+        }}
       />
       <InputRightElement width={paddingRight}>
         <IconButton

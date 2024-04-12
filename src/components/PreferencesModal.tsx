@@ -670,7 +670,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                               paddingRight={"2.5rem"}
                               paddingLeft={"0.5rem"}
                               fontSize="xs"
-                              type="password"
                               placeholder="API Key"
                               value={newCustomProvider.apiKey || ""}
                               onChange={(e) => {
@@ -747,7 +746,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                                     paddingRight={"2.5rem"}
                                     paddingLeft={"0.5rem"}
                                     fontSize="xs"
-                                    type="password"
                                     value={provider.apiKey || ""}
                                     onChange={(e) => handleApiKeyChange(provider, e.target.value)}
                                     onFocus={() => setFocusedProvider(provider)}
