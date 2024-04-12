@@ -71,9 +71,3 @@ export const supportedProviders: ProviderData = (() => {
     [openAi.name]: openAi,
   };
 })();
-
-export const nameToUrlMap: { [key: string]: string } = {
-  [OPENAI_NAME]: OPENAI_API_URL,
-  [OPENROUTER_NAME]: OPENROUTER_API_URL,
-  [FREEMODELPROVIDER_NAME]: FREEMODELPROVIDER_API_URL,
-};
