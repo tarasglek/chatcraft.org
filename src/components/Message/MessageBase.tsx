@@ -80,7 +80,7 @@ export interface MessageBaseProps {
   isLoading: boolean;
   hidePreviews?: boolean;
   onPrompt?: (prompt?: string) => void;
-  onResubmitClick?: (promtText?: string) => void;
+  onResubmitClick?: (promptText?: string) => void;
   onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;
   onDeleteAfterClick?: () => void;
