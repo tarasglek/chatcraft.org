@@ -1,12 +1,8 @@
 import { ChatCraftProvider, ProviderData, SerializedChatCraftProvider } from "../ChatCraftProvider";
 import { getSettings } from "../settings";
-import { OPENAI_API_URL, OPENAI_NAME, OpenAiProvider } from "./OpenAiProvider";
-import { OPENROUTER_API_URL, OPENROUTER_NAME, OpenRouterProvider } from "./OpenRouterProvider";
-import {
-  FREEMODELPROVIDER_API_URL,
-  FREEMODELPROVIDER_NAME,
-  FreeModelProvider,
-} from "./DefaultProvider/FreeModelProvider";
+import { OPENAI_API_URL, OpenAiProvider } from "./OpenAiProvider";
+import { OPENROUTER_API_URL, OpenRouterProvider } from "./OpenRouterProvider";
+import { FREEMODELPROVIDER_API_URL, FreeModelProvider } from "./DefaultProvider/FreeModelProvider";
 import { CustomProvider } from "./CustomProvider";
 
 export const usingOfficialOpenAI = () => getSettings().currentProvider.apiUrl === OPENAI_API_URL;
