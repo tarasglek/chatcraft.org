@@ -500,6 +500,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   useEffect(() => {
     if (!isOpen) {
       setNewCustomProvider(null);
+      setIsApiKeyInvalid(false);
     }
   }, [isOpen]);
 

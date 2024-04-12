@@ -1,4 +1,4 @@
-import { FormEvent, memo, useState, useCallback, ChangeEvent } from "react";
+import { FormEvent, memo, useState, useEffect } from "react";
 import {
   Button,
   Box,
@@ -13,11 +13,12 @@ import {
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
-import { nameToUrlMap, providerFromUrl, supportedProviders } from "../../../lib/providers";
+import { providerFromUrl, supportedProviders } from "../../../lib/providers";
 import { OpenRouterProvider } from "../../../lib/providers/OpenRouterProvider";
 import PasswordInput from "../../PasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
 import { FreeModelProvider } from "../../../lib/providers/DefaultProvider/FreeModelProvider";
+import { ProviderData } from "../../../lib/ChatCraftProvider";
 
 const ApiKeyInstructionsText = `## Getting Started with ChatCraft
 
@@ -56,20 +57,50 @@ function Instructions(props: MessageBaseProps) {
   const { settings, setSettings } = useSettings();
   const [isValidating, setIsValidating] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState(settings.currentProvider);
+
+  useEffect(() => {
+    setSelectedProvider(settings.currentProvider);
+  }, [settings.currentProvider]);
+
+  const providersList: ProviderData = {
+    ...supportedProviders,
+    ...settings.providers,
+  };
 
   // Override the text of the message
   const message = new ChatCraftAppMessage({ ...props.message, text: ApiKeyInstructionsText });
 
+  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const apiKey = e.target.value;
+    const newProvider = providerFromUrl(
+      selectedProvider.apiUrl,
+      apiKey,
+      selectedProvider.name,
+      selectedProvider.defaultModel
+    );
+
+    setSelectedProvider(newProvider);
+    providersList[newProvider.name] = newProvider;
+
+    // Save key to settings.providers
+    setSettings({
+      ...settings,
+      providers: {
+        ...settings.providers,
+        [newProvider.name]: newProvider,
+      },
+    });
+  };
+
   const handleApiKeySubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = new FormData(e.target as HTMLFormElement);
-    const apiKey = data.get("openai-api-key");
 
-    if (typeof apiKey !== "string") {
+    if (typeof selectedProvider.apiKey !== "string") {
       return;
     }
 
-    if (settings.currentProvider instanceof FreeModelProvider) {
+    if (selectedProvider instanceof FreeModelProvider) {
       // If user chooses the free provider, no need for validation
       setSettings({
         ...settings,
@@ -78,21 +109,15 @@ function Instructions(props: MessageBaseProps) {
     } else {
       // See if this API Key is valid
       setIsValidating(true);
-      settings.currentProvider
-        .validateApiKey(apiKey)
+      selectedProvider
+        .validateApiKey(selectedProvider.apiKey)
         .then((valid) => {
           if (valid) {
             setIsInvalid(false);
 
-            const newProvider = providerFromUrl(settings.currentProvider.apiUrl, apiKey.trim());
-
             setSettings({
               ...settings,
-              currentProvider: newProvider,
-              providers: {
-                ...settings.providers,
-                [newProvider.name]: newProvider,
-              },
+              currentProvider: selectedProvider,
             });
           } else {
             setIsInvalid(true);
@@ -106,35 +131,10 @@ function Instructions(props: MessageBaseProps) {
     }
   };
 
-  const handleProviderChange = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => {
-      const apiUrl = nameToUrlMap[e.target.value];
-
-      // Get stored data from settings.providers array if exists
-      const newProvider = settings.providers[e.target.value]
-        ? settings.providers[e.target.value]
-        : providerFromUrl(apiUrl);
-
-      if (newProvider instanceof FreeModelProvider) {
-        // If user chooses the free provider, set the key automatically
-        setSettings({
-          ...settings,
-          currentProvider: new FreeModelProvider(),
-        });
-      } else {
-        setSettings({
-          ...settings,
-          currentProvider: newProvider,
-        });
-      }
-    },
-    [setSettings, settings]
-  );
-
   // Provide a form to enter and process the api key when entered
   const apiKeyForm = (
     <Container pb={6}>
-      {!supportedProviders ? (
+      {!providersList ? (
         <Box>Loading providers...</Box>
       ) : (
         <form onSubmit={handleApiKeySubmit}>
@@ -142,8 +142,14 @@ function Instructions(props: MessageBaseProps) {
             <FormControl>
               <FormLabel>Provider API URL</FormLabel>
 
-              <Select value={settings.currentProvider.name} onChange={handleProviderChange}>
-                {Object.values(supportedProviders).map((provider) => (
+              <Select
+                value={selectedProvider.name}
+                onChange={(e) => {
+                  setSelectedProvider(providersList[e.target.value]);
+                  setIsInvalid(false);
+                }}
+              >
+                {Object.values(providersList).map((provider) => (
                   <option key={provider.name} value={provider.name}>
                     {provider.name} ({provider.apiUrl})
                   </option>
@@ -152,28 +158,34 @@ function Instructions(props: MessageBaseProps) {
             </FormControl>
 
             <FormControl isInvalid={isInvalid}>
-              <FormLabel>{settings.currentProvider.name} API Key </FormLabel>
+              <FormLabel>{selectedProvider.name} API Key </FormLabel>
               <Flex gap={4} align="center">
                 <PasswordInput
                   flex="1"
                   size={"md"}
                   type="password"
-                  name="openai-api-key"
+                  name="api-key"
                   bg="white"
                   _dark={{ bg: "gray.700" }}
-                  required={!(settings.currentProvider instanceof FreeModelProvider)}
+                  style={{
+                    color:
+                      selectedProvider instanceof FreeModelProvider ? "transparent" : "initial",
+                  }}
+                  isDisabled={selectedProvider instanceof FreeModelProvider}
+                  value={selectedProvider.apiKey || ""}
+                  onChange={handleApiKeyChange}
                 />
                 <Button type="submit" size="sm" isLoading={isValidating}>
                   Save
                 </Button>
               </Flex>
-              {settings.currentProvider instanceof OpenRouterProvider && (
-                <Button mt="3" size="sm" onClick={settings.currentProvider.openRouterPkceRedirect}>
+              {selectedProvider instanceof OpenRouterProvider && (
+                <Button mt="3" size="sm" onClick={selectedProvider.openRouterPkceRedirect}>
                   Get API key from OpenRouter{" "}
                 </Button>
               )}
               <FormErrorMessage>
-                Unable to verify API Key with {settings.currentProvider.name}.
+                Unable to verify API Key with {selectedProvider.name}.
               </FormErrorMessage>
             </FormControl>
           </VStack>
