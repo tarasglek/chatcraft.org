@@ -68,7 +68,7 @@ function Message({
         onDeleteAfterClick={onDeleteAfterClick}
         hasMessagesAfter={hasMessagesAfter}
         disableFork={disableFork}
-        disableEdit={message.readonly && disableEdit}
+        disableEdit={message.readonly ?? disableEdit}
       />
     );
   }
@@ -92,7 +92,7 @@ function Message({
         onDeleteAfterClick={onDeleteAfterClick}
         hasMessagesAfter={hasMessagesAfter}
         disableFork={disableFork}
-        disableEdit={message.readonly && disableEdit}
+        disableEdit={message.readonly ?? disableEdit}
       />
     );
   }
@@ -112,7 +112,7 @@ function Message({
         onDeleteAfterClick={onDeleteAfterClick}
         hasMessagesAfter={hasMessagesAfter}
         disableFork={true}
-        disableEdit={message.readonly && disableEdit}
+        disableEdit={message.readonly ?? disableEdit}
       />
     );
   }
@@ -131,6 +131,7 @@ function Message({
         onDeleteClick={onDeleteClick}
         onDeleteAfterClick={onDeleteAfterClick}
         hasMessagesAfter={hasMessagesAfter}
+        disableEdit={message.readonly ?? disableEdit}
       />
     );
   }

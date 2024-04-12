@@ -137,7 +137,7 @@ type SystemMessageProps = Omit<MessageBaseProps, "avatar" | "message"> & {
 };
 
 function SystemMessage(props: SystemMessageProps) {
-  const { chatId, message, editing, onEditingChange } = props;
+  const { chatId, message, disableEdit, editing, onEditingChange } = props;
   const { isOpen, onToggle } = useDisclosure();
   const summaryText = createSystemPromptSummary(message);
   const { error } = useAlert();
@@ -161,7 +161,12 @@ function SystemMessage(props: SystemMessageProps) {
           <Button size="sm" variant="ghost" onClick={() => onToggle()}>
             {isOpen ? "Show Less" : "Show More..."}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => onEditingChange(true)}>
+          <Button
+            hidden={!!disableEdit}
+            size="sm"
+            variant="ghost"
+            onClick={() => onEditingChange(true)}
+          >
             <Text fontSize="xs" as="em">
               Edit to customize
             </Text>
