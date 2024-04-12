@@ -156,6 +156,7 @@ function Instructions(props: MessageBaseProps) {
               <Flex gap={4} align="center">
                 <PasswordInput
                   flex="1"
+                  size={"md"}
                   type="password"
                   name="openai-api-key"
                   bg="white"
