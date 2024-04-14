@@ -38,6 +38,11 @@ import {
   Tooltip,
   Tr,
   VStack,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from "@chakra-ui/react";
 import { ChangeEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "react-use";
@@ -953,91 +958,107 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 </FormControl>
               )}
 
-              <FormControl as="fieldset">
-                <FormLabel as="legend">Image Compression</FormLabel>
-                <Stack>
-                  <Box px="5">
-                    <FormControl>
-                      <FormLabel>
-                        Maximum file size after compression: {settings.maxCompressedFileSizeMB} (MB)
+              <FormControl>
+                <Accordion allowToggle>
+                  <AccordionItem>
+                    <AccordionButton>
+                      <FormLabel as="legend" flex="1">
+                        Image Compression
                       </FormLabel>
-                      <Slider
-                        id="max-compressed-file-size"
-                        value={settings.maxCompressedFileSizeMB}
-                        onChange={(value) =>
-                          setSettings({ ...settings, maxCompressedFileSizeMB: value })
-                        }
-                        min={1}
-                        max={20}
-                        step={1}
-                      >
-                        <SliderTrack>
-                          <SliderFilledTrack />
-                        </SliderTrack>
-                        <SliderThumb />
-                      </Slider>
-                      <FormErrorMessage>
-                        Maximum file size must be between 1 and 20 MB.
-                      </FormErrorMessage>
-                      <FormHelperText>
-                        After compression, each attached image will be under your chosen maximum
-                        file size (1-20 MB).
-                      </FormHelperText>
-                    </FormControl>
-                  </Box>
-                  <Box px="5">
-                    <FormControl>
-                      <FormLabel>
-                        Maximum image dimension: {settings.maxImageDimension} (px)
-                      </FormLabel>
-                      <Slider
-                        id="max-image-dimension"
-                        value={settings.maxImageDimension}
-                        onChange={(value) => setSettings({ ...settings, maxImageDimension: value })}
-                        min={16}
-                        max={2048}
-                        step={16}
-                      >
-                        <SliderTrack>
-                          <SliderFilledTrack />
-                        </SliderTrack>
-                        <SliderThumb />
-                      </Slider>
-                      <FormErrorMessage>
-                        Maximum Image dimension must be between 16 and 2048
-                      </FormErrorMessage>
-                      <FormHelperText>
-                        Your compressed image&apos;s maximum width or height will be within the
-                        dimension you choose (16-2048 pixels).
-                      </FormHelperText>
-                    </FormControl>
-                  </Box>
-                  <Box px="5">
-                    <FormControl>
-                      <FormLabel>Compression factor: {settings.compressionFactor}</FormLabel>
-                      <Slider
-                        id="compression-factor"
-                        value={settings.compressionFactor}
-                        onChange={(value) => setSettings({ ...settings, compressionFactor: value })}
-                        min={0.1}
-                        max={1}
-                        step={0.1}
-                      >
-                        <SliderTrack>
-                          <SliderFilledTrack />
-                        </SliderTrack>
-                        <SliderThumb />
-                      </Slider>
-                      <FormErrorMessage>
-                        Compression factor must be between 0.1 and 1.0
-                      </FormErrorMessage>
-                      <FormHelperText>
-                        Set the maximum file size based on the original size multiplied by the
-                        factor you choose (0.1-1.0).
-                      </FormHelperText>
-                    </FormControl>
-                  </Box>
-                </Stack>
+                      <AccordionIcon />
+                    </AccordionButton>
+                    <AccordionPanel pb={6}>
+                      <Stack>
+                        <Box px="1">
+                          <FormControl>
+                            <FormLabel>
+                              Maximum file size after compression:{" "}
+                              {settings.maxCompressedFileSizeMB} (MB)
+                            </FormLabel>
+                            <Slider
+                              id="max-compressed-file-size"
+                              value={settings.maxCompressedFileSizeMB}
+                              onChange={(value) =>
+                                setSettings({ ...settings, maxCompressedFileSizeMB: value })
+                              }
+                              min={1}
+                              max={20}
+                              step={1}
+                            >
+                              <SliderTrack>
+                                <SliderFilledTrack />
+                              </SliderTrack>
+                              <SliderThumb />
+                            </Slider>
+                            <FormErrorMessage>
+                              Maximum file size must be between 1 and 20 MB.
+                            </FormErrorMessage>
+                            <FormHelperText>
+                              After compression, each attached image will be under your chosen
+                              maximum file size (1-20 MB).
+                            </FormHelperText>
+                          </FormControl>
+                        </Box>
+                        <Box px="1">
+                          <FormControl>
+                            <FormLabel>
+                              Maximum image dimension: {settings.maxImageDimension} (px)
+                            </FormLabel>
+                            <Slider
+                              id="max-image-dimension"
+                              value={settings.maxImageDimension}
+                              onChange={(value) =>
+                                setSettings({ ...settings, maxImageDimension: value })
+                              }
+                              min={16}
+                              max={2048}
+                              step={16}
+                            >
+                              <SliderTrack>
+                                <SliderFilledTrack />
+                              </SliderTrack>
+                              <SliderThumb />
+                            </Slider>
+                            <FormErrorMessage>
+                              Maximum Image dimension must be between 16 and 2048
+                            </FormErrorMessage>
+                            <FormHelperText>
+                              Your compressed image&apos;s maximum width or height will be within
+                              the dimension you choose (16-2048 pixels).
+                            </FormHelperText>
+                          </FormControl>
+                        </Box>
+                        <Box px="1">
+                          <FormControl>
+                            <FormLabel>Compression factor: {settings.compressionFactor}</FormLabel>
+                            <Slider
+                              id="compression-factor"
+                              value={settings.compressionFactor}
+                              onChange={(value) =>
+                                setSettings({ ...settings, compressionFactor: value })
+                              }
+                              min={0.1}
+                              max={1}
+                              step={0.1}
+                            >
+                              <SliderTrack>
+                                <SliderFilledTrack />
+                              </SliderTrack>
+                              <SliderThumb />
+                            </Slider>
+                            <FormErrorMessage>
+                              Compression factor must be between 0.1 and 1.0
+                            </FormErrorMessage>
+                            <FormHelperText>
+                              Set the maximum file size based on the original size multiplied by the
+                              factor you choose (0.1-1.0).
+                            </FormHelperText>
+                          </FormControl>
+                        </Box>
+                      </Stack>
+                    </AccordionPanel>
+                  </AccordionItem>
+                </Accordion>
               </FormControl>
 
               <FormControl>
