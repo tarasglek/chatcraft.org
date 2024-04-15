@@ -64,7 +64,10 @@ export class ChatCraftModel {
   get supportsFunctionCalling() {
     const { name } = this;
     // The OpenAI vision models can't do function calling
-    return !this.supportsImages && (name.startsWith("gpt-3.5-turbo") || name.startsWith("gpt-4"));
+    return (
+      !this.name.includes("vision") &&
+      (name.startsWith("gpt-3.5-turbo") || name.startsWith("gpt-4"))
+    );
   }
 
   get supportsImages() {
