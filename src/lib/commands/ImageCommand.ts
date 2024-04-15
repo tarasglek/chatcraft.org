@@ -54,9 +54,10 @@ export class ImageCommand extends ChatCraftCommand {
     } catch (error: any) {
       console.error(`Failed to generate image: ${error.message}`);
       throw new Error(`Failed to generate image: ${error.message}`);
+    } finally {
+      closeLoading(alertId);
     }
 
-    closeLoading(alertId);
     return chat.addMessage(new ChatCraftHumanMessage({ user, text, imageUrls }));
   }
 }
