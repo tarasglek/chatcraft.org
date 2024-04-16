@@ -44,17 +44,20 @@ export function useAlert() {
   );
 
   const error = useCallback(
-    ({ id, title, message }: AlertArguments) =>
-      toast({
-        id,
-        title,
-        description: truncateMessage(message),
-        status: "error",
-        position: "top",
-        isClosable: true,
-        // Don't auto-close errors
-        duration: null,
-      }),
+    ({ id, title, message }: AlertArguments) => {
+      if (id && !toast.isActive(id)) {
+        toast({
+          id,
+          title,
+          description: truncateMessage(message),
+          status: "error",
+          position: "top",
+          isClosable: true,
+          // Don't auto-close errors
+          duration: null,
+        });
+      }
+    },
     [toast]
   );
 
