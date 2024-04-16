@@ -138,7 +138,7 @@ function DesktopPromptForm({
 
   // Update model to the supported model when inputImages is not empty
   useEffect(() => {
-    if (inputImageUrls?.length > 0) {
+    if (inputImageUrls?.length > 0 && !settings.model.supportsImages) {
       const visionModel = models.find((model) => model.supportsImages);
       if (visionModel && visionModel.name != settings.model.name) {
         setSettings({ ...settings, model: visionModel });
