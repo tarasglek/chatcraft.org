@@ -40,7 +40,6 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { ChangeEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useDebounce } from "react-use";
 
 import { capitalize } from "lodash-es";
 import { FaCheck } from "react-icons/fa";
@@ -97,39 +96,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   // Stores the provider that has its api key field currently actively selected
   const [focusedProvider, setFocusedProvider] = useState<ChatCraftProvider | null>(
     settings.currentProvider
-  );
-
-  // Get the list of providers to display in providers table
-  // Combination of default list of supported providers and settings.providers from localStorage
-  useEffect(() => {
-    setTableProviders({ ...supportedProviders, ...settings.providers });
-  }, [settings.providers]);
-
-  // Check the API Key, but debounce requests if user is typing
-  useDebounce(
-    () => {
-      setIsApiKeyInvalid(false);
-      if (focusedProvider) {
-        setIsValidating(true);
-        if (!focusedProvider.apiKey) {
-          setIsApiKeyInvalid(true);
-          setIsValidating(false);
-        } else {
-          focusedProvider
-            .validateApiKey(focusedProvider.apiKey)
-            .then((result: boolean) => {
-              setIsApiKeyInvalid(!result);
-            })
-            .catch((err: any) => {
-              console.warn("Error validating API key", err.message);
-              setIsApiKeyInvalid(true);
-            })
-            .finally(() => setIsValidating(false));
-        }
-      }
-    },
-    500,
-    [focusedProvider]
   );
 
   useEffect(() => {
@@ -227,7 +193,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     }
   }, [addToAudioQueue, clearAudioQueue, error, settings.textToSpeech]);
 
-  const handleApiKeyChange = (provider: ChatCraftProvider, apiKey: string) => {
+  const handleApiKeyChange = async (provider: ChatCraftProvider, apiKey: string) => {
     const newProvider = providerFromUrl(
       provider.apiUrl,
       apiKey,
@@ -235,31 +201,45 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       provider.defaultModel
     );
 
-    // Set as focused provider to trigger key validation
     setFocusedProvider(newProvider);
 
-    if (newProvider.name === settings.currentProvider.name) {
-      // Save key to settings.currentProvider and settings.providers
-      setSettings({
-        ...settings,
-        currentProvider: newProvider,
-        providers: {
-          ...settings.providers,
-          [newProvider.name]: newProvider,
-        },
-      });
-    } else {
-      // Save key to settings.providers
-      setSettings({
-        ...settings,
-        providers: {
-          ...settings.providers,
-          [newProvider.name]: newProvider,
-        },
-      });
+    const newProviders = { ...settings.providers };
+
+    // Update api key in table
+    tableProviders[newProvider.name] = newProvider;
+
+    // Api key validation
+    try {
+      setIsApiKeyInvalid(false);
+      setIsValidating(true);
+
+      const result = await newProvider.validateApiKey(newProvider.apiKey!);
+
+      setIsApiKeyInvalid(!result);
+      setIsValidating(false);
+
+      // Valid key, update in settings.providers
+      if (result) {
+        // Valid key, update in settings.providers
+        newProviders[newProvider.name] = newProvider;
+      } else {
+        // Invalid key, remove from settings.providers
+        delete newProviders[newProvider.name];
+      }
+    } catch (err: any) {
+      setIsApiKeyInvalid(true);
+      setIsValidating(false);
+
+      // Invalid key, remove from settings.providers
+      delete newProviders[newProvider.name];
     }
 
-    // If the key that was changed is the selected provider, update the selected provider
+    setSettings({
+      ...settings,
+      ...(newProvider.name === settings.currentProvider.name && { currentProvider: newProvider }),
+      providers: newProviders,
+    });
+
     if (newProvider.name === selectedProvider?.name) {
       setSelectedProvider(newProvider);
     }
@@ -285,41 +265,53 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
     setFocusedProvider(selectedProvider);
 
-    // Validate api key
-    setIsApiKeyInvalid(false);
-    setIsValidating(true);
-    if (!selectedProvider.apiKey) {
-      setIsApiKeyInvalid(true);
+    // Api key validation
+    try {
+      setIsApiKeyInvalid(false);
+      setIsValidating(true);
+
+      const result = await selectedProvider.validateApiKey(selectedProvider.apiKey!);
+
+      setIsApiKeyInvalid(!result);
       setIsValidating(false);
-    } else {
-      selectedProvider
-        .validateApiKey(selectedProvider.apiKey)
-        .then((result: boolean) => {
-          setIsApiKeyInvalid(!result);
 
-          // Set as current provider
-          setSettings({ ...settings, currentProvider: selectedProvider });
-          setApiKeySaved(true);
-          setSelectedProvider(null);
+      // Valid key
+      if (result) {
+        // Set as current provider
+        setSettings({ ...settings, currentProvider: selectedProvider });
+        setApiKeySaved(true);
+        setSelectedProvider(null);
 
-          success({
-            title: "Current provider changed",
-            message: `${selectedProvider.name} set as current provider`,
-          });
+        success({
+          title: "Current provider changed",
+          message: `${selectedProvider.name} set as current provider`,
+        });
 
-          // Uncheck checkbox
-          setSelectedProvider(null);
-        })
-        .catch((err: any) => {
-          console.warn("Error validating API key", err);
-          setIsApiKeyInvalid(true);
+        setSettings({ ...settings, currentProvider: selectedProvider });
+        setApiKeySaved(true);
 
-          warning({
-            title: "Provider not set",
-            message: err.message,
-          });
-        })
-        .finally(() => setIsValidating(false));
+        // Sync table
+        tableProviders[selectedProvider.name] = selectedProvider;
+
+        // Uncheck checkbox
+        setSelectedProvider(null);
+      } else {
+        console.warn("Error validating API key");
+        error({
+          title: "Provider not set",
+          message: "Invalid API key",
+        });
+      }
+    } catch (err: any) {
+      setIsValidating(false);
+
+      console.warn("Error validating API key", err);
+      setIsApiKeyInvalid(true);
+
+      error({
+        title: "Provider not set",
+        message: err.message,
+      });
     }
   };
 
@@ -364,12 +356,15 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       return;
     }
 
-    const newSettingsProviders = { ...settings.providers };
-    delete newSettingsProviders[selectedProvider.name];
-    setSettings({ ...settings, providers: newSettingsProviders });
+    const newProviders = { ...settings.providers };
+    delete newProviders[selectedProvider.name];
+    setSettings({ ...settings, providers: newProviders });
 
     // Uncheck checkbox
     setSelectedProvider(null);
+
+    // Sync table
+    setTableProviders({ ...supportedProviders, ...newProviders });
   };
 
   const handleSaveNewCustomProvider = async () => {
@@ -412,12 +407,16 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       return;
     }
 
-    // Validate api key
+    // Api key validation
     try {
       setIsApiKeyInvalid(false);
       setIsValidating(true);
+
       const result = await newProvider.validateApiKey(newProvider.apiKey!);
+
       setIsApiKeyInvalid(!result);
+      setIsValidating(false);
+
       if (!result) {
         return;
       }
@@ -429,7 +428,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       } catch (err: any) {
         console.warn("Error querying models for custom provider:", err);
         setFocusedProvider(null);
-        warning({
+        error({
           title: "Provider not added",
           message: err.message,
         });
@@ -439,7 +438,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       if (models.length === 0) {
         console.warn("No models available for custom provider");
         setFocusedProvider(null);
-        warning({
+        error({
           title: "Provider not added",
           message: "Provider is not Open AI compatible.",
         });
@@ -454,15 +453,17 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         models[0]
       );
 
-      // Save the new custom provider
+      const newProviders = { ...settings.providers };
+      newProviders[newProviderWithModel.name] = newProviderWithModel;
+
       setSettings({
         ...settings,
-        providers: {
-          ...settings.providers,
-          [newProviderWithModel.name]: newProviderWithModel,
-        },
+        providers: newProviders,
       });
       setApiKeySaved(true);
+
+      // Sync table
+      setTableProviders({ ...supportedProviders, ...newProviders });
 
       success({
         title: `New provider added`,
@@ -475,7 +476,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     } catch (err: any) {
       console.warn("Error validating API key", err.message);
       setFocusedProvider(null);
-      warning({
+      error({
         title: "Provider not added",
         message: err.message,
       });
@@ -498,10 +499,14 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
   // Clean up actions when modal closes
   useEffect(() => {
+    // Sync table
+    setTableProviders({ ...supportedProviders, ...settings.providers });
+
     if (!isOpen) {
       setNewCustomProvider(null);
       setIsApiKeyInvalid(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const isTtsSupported = useMemo(() => {
@@ -670,7 +675,6 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                               paddingRight={"2.5rem"}
                               paddingLeft={"0.5rem"}
                               fontSize="xs"
-                              placeholder="API Key"
                               value={newCustomProvider.apiKey || ""}
                               onChange={(e) => {
                                 setNewCustomProvider(
@@ -767,7 +771,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                                     </Flex>
                                   ) : (
                                     <FormErrorMessage fontSize="xs">
-                                      {focusedProvider?.apiKey
+                                      {provider.apiKey
                                         ? "Unable to verify key."
                                         : "API Key is required."}
                                     </FormErrorMessage>
