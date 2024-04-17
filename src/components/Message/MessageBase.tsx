@@ -491,7 +491,7 @@ function MessageBase({
                 <MenuItem onClick={() => handleShareMessage()} icon={<TbShare2 />}>
                   Share Message
                 </MenuItem>
-                {(!disableEdit || onDeleteClick) && <MenuDivider />}
+                {(!disableEdit || shouldShowDeleteMenu) && <MenuDivider />}
                 {!disableEdit && (
                   <MenuItem onClick={() => onEditingChange(!editing)} icon={<AiOutlineEdit />}>
                     {editing ? "Cancel Editing" : "Edit"}
