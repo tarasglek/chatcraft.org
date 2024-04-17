@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useToast } from "@chakra-ui/react";
-import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
+
 export type AlertArguments = {
   // Use `id` if you want to avoid duplicate alerts showing
   id?: string;
@@ -21,12 +21,7 @@ function truncateMessage(message?: string): string {
 }
 
 export function useAlert() {
-  const isMobile = useMobileBreakpoint();
-  const toast = useToast({
-    containerStyle: {
-      width: isMobile ? "90vw" : "initial",
-    },
-  });
+  const toast = useToast();
 
   const info = useCallback(
     ({ id, title, message }: AlertArguments) =>
