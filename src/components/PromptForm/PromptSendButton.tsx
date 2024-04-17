@@ -210,6 +210,11 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                   key={model.id}
                   onClick={() => setSettings({ ...settings, model })}
                 >
+                  {settings.model.id === model.id ? (
+                    <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                  ) : (
+                    <span style={{ width: "24px", display: "inline-block" }} />
+                  )}
                   {model.prettyModel}
                 </MenuItem>
               ))}
