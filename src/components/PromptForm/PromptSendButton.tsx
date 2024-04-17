@@ -27,6 +27,7 @@ type PromptSendButtonProps = {
 };
 
 function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
+  const [searchQuery, setSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
 
@@ -104,14 +105,29 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
           <MenuGroup title="Models">
+            <input
+              type="text"
+              placeholder="Search models..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ margin: "10px", padding: "5px", width: "calc(100% - 20px)" }}
+            />
             {models
               .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .filter((model) =>
+                model.prettyModel.toLowerCase().includes(searchQuery.toLowerCase())
+              )
               .map((model) => (
                 <MenuItem
                   closeOnSelect={true}
                   key={model.id}
                   onClick={() => setSettings({ ...settings, model })}
                 >
+                  {settings.model.id === model.id ? (
+                    <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                  ) : (
+                    <span style={{ width: "24px", display: "inline-block" }} />
+                  )}
                   {model.prettyModel}
                 </MenuItem>
               ))}
