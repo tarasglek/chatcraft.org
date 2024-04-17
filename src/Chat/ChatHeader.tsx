@@ -154,7 +154,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                       {title}
                     </Link>
                   </Text>
-                  {settings.currentProvider.apiKey && (
+                  {!chat.readonly && settings.currentProvider.apiKey && (
                     <IconButton
                       variant="ghost"
                       size="sm"
