@@ -18,7 +18,7 @@ import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff, MdOutlineChevronRight } from "react-icons/md";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
 
@@ -141,6 +141,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 }
 
 function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
+  const [searchQuery, setSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
   const isTtsSupported = useMemo(() => {
@@ -202,8 +203,18 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
           <MenuGroup title="Models">
+            <input
+              type="text"
+              placeholder="Search models..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ margin: "10px", padding: "5px", width: "calc(100% - 20px)" }}
+            />
             {models
               .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .filter((model) =>
+                model.prettyModel.toLowerCase().includes(searchQuery.toLowerCase())
+              )
               .map((model) => (
                 <MenuItem
                   closeOnSelect={true}
