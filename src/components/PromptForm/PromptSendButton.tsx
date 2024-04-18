@@ -21,6 +21,7 @@ import { MdVolumeUp, MdVolumeOff, MdOutlineChevronRight } from "react-icons/md";
 import { useMemo, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
+import { useDebounce } from "react-use";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -158,11 +159,20 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 
 function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
+
+  useDebounce(
+    () => {
+      setDebouncedSearchQuery(searchQuery);
+    },
+    800,
+    [searchQuery]
+  );
 
   const { clearAudioQueue } = useAudioPlayer();
 
@@ -229,7 +239,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
             {models
               .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
               .filter((model) =>
-                model.prettyModel.toLowerCase().includes(searchQuery.toLowerCase())
+                model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
               )
               .map((model) => (
                 <MenuItem
