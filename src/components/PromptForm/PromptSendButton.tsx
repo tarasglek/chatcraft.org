@@ -12,6 +12,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend, TbSearch } from "react-icons/tb";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
@@ -35,11 +36,21 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Optionally, add a slight delay if needed to ensure the input is ready to be focused
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
 
   const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
     // Check if the inputRef is current and the input is not already focused
@@ -76,7 +87,14 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 
   return (
     <ButtonGroup variant="outline" isAttached>
-      <Menu placement="top" strategy="fixed" closeOnSelect={false} offset={[-90, 0]}>
+      <Menu
+        placement="top"
+        strategy="fixed"
+        closeOnSelect={false}
+        offset={[-90, 0]}
+        onOpen={onOpen}
+        onClose={onClose}
+      >
         <IconButton
           type="submit"
           size="lg"
