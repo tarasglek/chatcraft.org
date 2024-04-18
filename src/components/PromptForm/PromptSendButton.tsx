@@ -170,7 +170,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
     () => {
       setDebouncedSearchQuery(searchQuery);
     },
-    800,
+    500,
     [searchQuery]
   );
 
