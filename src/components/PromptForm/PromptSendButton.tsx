@@ -41,6 +41,20 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
 
+  const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
+    // Check if the inputRef is current and the input is not already focused
+    if (inputRef.current && document.activeElement !== inputRef.current) {
+      // Don't handle the keydown event more than once
+      e.preventDefault();
+      // Make sure we are focused on the input element
+      inputRef.current.focus();
+      // Ignore control keys
+      const char = e.key.length === 1 ? e.key : "";
+      // Set the initial character in the input so we don't lose it
+      setSearchQuery(char);
+    }
+  };
+
   const { clearAudioQueue } = useAudioPlayer();
 
   useDebounce(
@@ -121,7 +135,12 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
+        <MenuList
+          maxHeight={"70vh"}
+          overflowY={"auto"}
+          zIndex={theme.zIndices.dropdown}
+          onKeyDownCapture={onStartTyping}
+        >
           <MenuGroup title="Models">
             <InputGroup>
               <InputLeftElement pointerEvents="none">
