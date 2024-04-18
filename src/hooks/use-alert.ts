@@ -54,7 +54,7 @@ export function useAlert() {
           width: isMobile ? "90vw" : "initial",
         },
       }),
-    [toast]
+    [toast, isMobile]
   );
 
   const success = useCallback(
