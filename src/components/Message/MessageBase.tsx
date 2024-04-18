@@ -33,12 +33,12 @@ import {
   type ReactNode,
 } from "react";
 
-import { Menu, MenuItem, SubMenu, MenuDivider } from "../Menu";
-import ResizeTextarea from "react-textarea-autosize";
-import { TbTrash, TbShare2 } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
+import { TbShare2, TbTrash } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
+import ResizeTextarea from "react-textarea-autosize";
+import { Menu, MenuDivider, MenuItem, SubMenu } from "../Menu";
 
 import { useCopyToClipboard } from "react-use";
 import { useAlert } from "../../hooks/use-alert";
@@ -66,6 +66,7 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { textToSpeech } from "../../lib/ai";
 import { usingOfficialOpenAI } from "../../lib/providers";
 import "./Message.css";
+import { getSentenceChunksFrom } from "../../lib/summarize";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -363,8 +364,12 @@ function MessageBase({
 
         const { voice } = settings.textToSpeech;
 
-        // Use lighter tts-1 model to minimize latency
-        addToAudioQueue(textToSpeech(messageContent, voice, "tts-1"));
+        const messageChunks = getSentenceChunksFrom(messageContent, 500);
+
+        messageChunks.forEach((messageChunk) => {
+          // Use lighter tts-1 model to minimize latency
+          addToAudioQueue(textToSpeech(messageChunk, voice, "tts-1"));
+        });
       } catch (err: any) {
         console.error(err);
         error({ title: "Error while generating Audio", message: err.message });
