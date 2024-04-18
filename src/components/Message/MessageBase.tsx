@@ -53,7 +53,14 @@ import {
   ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
-import { download, formatDate, formatNumber, getMetaKey, screenshotElement } from "../../lib/utils";
+import {
+  download,
+  formatDate,
+  formatNumber,
+  getMetaKey,
+  screenshotElement,
+  utilizeAlert,
+} from "../../lib/utils";
 import ImageModal from "../ImageModal";
 import Markdown from "../Markdown";
 
@@ -65,8 +72,8 @@ import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { textToSpeech } from "../../lib/ai";
 import { usingOfficialOpenAI } from "../../lib/providers";
-import "./Message.css";
 import { getSentenceChunksFrom } from "../../lib/summarize";
+import "./Message.css";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -247,14 +254,28 @@ function MessageBase({
     if (messageContent.current) {
       const text = messageContent.current.textContent;
       if (text) {
-        try {
-          info({
-            title: "Downloading...",
-            message: "Please wait while we prepare your audio download.",
-          });
+        const { loading, closeLoading } = await utilizeAlert();
 
-          const audioClipUrl = await textToSpeech(text, settings.textToSpeech.voice, "tts-1-hd");
-          const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
+        const alertId = loading({
+          title: "Downloading...",
+          message: "Please wait while we prepare your audio download.",
+        });
+
+        try {
+          const textChunks = getSentenceChunksFrom(text, 4096);
+          const audioClips: Blob[] = [];
+
+          for (const textChunk of textChunks) {
+            const audioClipUrl = await textToSpeech(
+              textChunk,
+              settings.textToSpeech.voice,
+              "tts-1-hd"
+            );
+
+            audioClips.push(await fetch(audioClipUrl).then((r) => r.blob()));
+          }
+
+          const audioClip = new Blob(audioClips, { type: audioClips[0].type });
 
           download(
             audioClip,
@@ -262,12 +283,15 @@ function MessageBase({
             audioClip.type
           );
 
+          closeLoading(alertId);
           info({
             title: "Downloaded",
             message: "Message was downloaded as Audio",
           });
         } catch (err: any) {
           console.error(err);
+
+          closeLoading(alertId);
           error({ title: "Error while downloading audio", message: err.message });
         }
       }
