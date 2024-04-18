@@ -61,7 +61,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
     () => {
       setDebouncedSearchQuery(searchQuery);
     },
-    250,
+    500,
     [searchQuery]
   );
 
