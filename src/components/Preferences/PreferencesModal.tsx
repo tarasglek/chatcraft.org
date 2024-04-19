@@ -35,7 +35,8 @@ interface Setting {
 }
 
 function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalProps) {
-  const { colorMode } = useColorMode();
+  const isDarkMode = useColorMode().colorMode === "dark";
+
   const [selectedSetting, setSelectedSetting] = useState<Setting>({
     name: "Models",
     icon: FaRobot,
@@ -50,6 +51,26 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
   const handleSettingClick = (setting: Setting) => {
     setSelectedSetting(setting);
+  };
+
+  const getHoverStyle = (setting: Setting) => {
+    if (selectedSetting.name !== setting.name) {
+      return {
+        bg: isDarkMode ? "gray.600" : "gray.200",
+      };
+    }
+  };
+
+  const getColorStyle = (setting: Setting) => {
+    if (selectedSetting.name === setting.name) {
+      return isDarkMode ? "black" : "white";
+    }
+  };
+
+  const getBackgroundStyle = (setting: Setting) => {
+    if (selectedSetting.name === setting.name) {
+      return isDarkMode ? "blue.200" : "blue.500";
+    }
   };
 
   const [isSmallViewport] = useMediaQuery("(max-width: 600px)");
@@ -76,19 +97,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                     }
                   }}
                   cursor="pointer"
-                  _hover={{
-                    bg:
-                      selectedSetting.name === setting.name
-                        ? "gray.500"
-                        : colorMode === "dark"
-                          ? "gray.600"
-                          : "gray.100",
-                  }}
+                  _hover={getHoverStyle(setting)}
                   p={2}
                   ps={4}
                   borderRadius="md"
-                  color={selectedSetting.name === setting.name ? "white" : "inherit"}
-                  bg={selectedSetting.name === setting.name ? "gray.500" : "transparent"}
+                  color={getColorStyle(setting)}
+                  bg={getBackgroundStyle(setting)}
                 >
                   <Flex alignItems="center">
                     <Box mr={4}>
