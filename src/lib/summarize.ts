@@ -61,9 +61,12 @@ export function tokenize(text: string) {
  * Tries to split the provided text into
  * an array of text chunks where
  * each chunk is composed of one or more sentences.
+ *
  * The function attempts to limit each chunk to maximum
- * preferred characters, but the chunk limit may still exceed
- * if a single sentence's length is greater than the preferred character limit.
+ * preferred characters.
+ * If a single sentence exceeds preferred character length,
+ * that sentence will be force broken into chunks of preferred length
+ * with no guarantee that individual chunks make sense.
  *
  * @param text The text content that needs to be split into Chunks
  * @param maxCharsPerSentence Maximum number of characters preferred per chunk
@@ -76,14 +79,35 @@ export function getSentenceChunksFrom(text: string, maxCharsPerSentence: number 
   let currentText = "";
 
   for (const sentence of sentences) {
-    if (currentText.length + sentence.length < maxCharsPerSentence) {
-      currentText += ` ${sentence.trim()}`;
-    } else {
+    if (sentence.length >= maxCharsPerSentence) {
+      // If the sentence itself is greater than maxCharsPerSentence
+
+      // Flush existing text buffer as a chunk
       if (currentText.length) {
         chunks.push(currentText);
+        currentText = "";
       }
 
-      currentText = sentence;
+      // Force break the long sentence without caring
+      // about natural language
+      const sentencePieces = sentence.match(new RegExp(`.{1,${500}}\\b`, "g")) || [];
+
+      chunks.push(...sentencePieces);
+    } else {
+      // Check if adding the new sentence to the buffer
+      // exceeds the allowed limit.
+
+      // If not, add another sentence to the buffer
+      if (currentText.length + sentence.length < maxCharsPerSentence) {
+        currentText += ` ${sentence.trim()}`;
+      } else {
+        // Flush the buffer as a chunk
+        if (currentText.length) {
+          chunks.push(currentText);
+        }
+
+        currentText = sentence;
+      }
     }
   }
 
