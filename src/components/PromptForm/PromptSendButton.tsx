@@ -12,7 +12,6 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  useDisclosure,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend, TbSearch } from "react-icons/tb";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
@@ -36,35 +35,11 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
-
-  useEffect(() => {
-    if (isOpen) {
-      // Optionally, add a slight delay if needed to ensure the input is ready to be focused
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    }
-  }, [isOpen]);
-
-  const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
-    // Check if the inputRef is current and the input is not already focused
-    if (inputRef.current && document.activeElement !== inputRef.current) {
-      // Don't handle the keydown event more than once
-      e.preventDefault();
-      // Make sure we are focused on the input element
-      inputRef.current.focus();
-      // Ignore control keys
-      const char = e.key.length === 1 ? e.key : "";
-      // Set the initial character in the input so we don't lose it
-      setSearchQuery(char);
-    }
-  };
 
   const { clearAudioQueue } = useAudioPlayer();
 
@@ -72,7 +47,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
     () => {
       setDebouncedSearchQuery(searchQuery);
     },
-    500,
+    600,
     [searchQuery]
   );
 
@@ -87,14 +62,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 
   return (
     <ButtonGroup variant="outline" isAttached>
-      <Menu
-        placement="top"
-        strategy="fixed"
-        closeOnSelect={false}
-        offset={[-90, 0]}
-        onOpen={onOpen}
-        onClose={onClose}
-      >
+      <Menu placement="top" strategy="fixed" closeOnSelect={false} offset={[-90, 0]}>
         <IconButton
           type="submit"
           size="lg"
@@ -153,12 +121,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList
-          maxHeight={"70vh"}
-          overflowY={"auto"}
-          zIndex={theme.zIndices.dropdown}
-          onKeyDownCapture={onStartTyping}
-        >
+        <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
           <MenuGroup title="Models">
             <InputGroup>
               <InputLeftElement pointerEvents="none">
