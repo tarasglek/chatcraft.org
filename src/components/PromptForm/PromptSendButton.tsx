@@ -9,8 +9,11 @@ import {
   Tooltip,
   MenuDivider,
   MenuGroup,
+  Input,
+  InputGroup,
+  InputLeftElement,
 } from "@chakra-ui/react";
-import { TbChevronUp, TbSend } from "react-icons/tb";
+import { TbChevronUp, TbSend, TbSearch } from "react-icons/tb";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
@@ -18,23 +21,35 @@ import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff, MdOutlineChevronRight } from "react-icons/md";
-import { useMemo } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
+import { useDebounce } from "react-use";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
 };
 
 function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
 
   const { clearAudioQueue } = useAudioPlayer();
+
+  useDebounce(
+    () => {
+      setDebouncedSearchQuery(searchQuery);
+    },
+    600,
+    [searchQuery]
+  );
 
   const providersList = {
     ...settings.providers,
@@ -104,14 +119,35 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
           <MenuGroup title="Models">
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <TbSearch />
+              </InputLeftElement>
+              <Input
+                ref={inputRef}
+                type="text"
+                variant="ghost"
+                placeholder="Search models..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </InputGroup>
             {models
               .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .filter((model) =>
+                model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+              )
               .map((model) => (
                 <MenuItem
                   closeOnSelect={true}
                   key={model.id}
                   onClick={() => setSettings({ ...settings, model })}
                 >
+                  {settings.model.id === model.id ? (
+                    <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                  ) : (
+                    <span style={{ width: "24px", display: "inline-block" }} />
+                  )}
                   {model.prettyModel}
                 </MenuItem>
               ))}
@@ -141,11 +177,36 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 }
 
 function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
   const isTtsSupported = useMemo(() => {
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useDebounce(
+    () => {
+      setDebouncedSearchQuery(searchQuery);
+    },
+    250,
+    [searchQuery]
+  );
+
+  const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
+    // Check if the inputRef is current and the input is not already focused
+    if (inputRef.current && document.activeElement !== inputRef.current) {
+      // Don't handle the keydown event more than once
+      e.preventDefault();
+      // Make sure we are focused on the input element
+      inputRef.current.focus();
+      // Ignore control keys
+      const char = e.key.length === 1 ? e.key : "";
+      // Set the initial character in the input so we don't lose it
+      setSearchQuery(searchQuery + char);
+    }
+  };
 
   const { clearAudioQueue } = useAudioPlayer();
 
@@ -200,16 +261,42 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
+        <MenuList
+          maxHeight={"70vh"}
+          overflowY={"auto"}
+          zIndex={theme.zIndices.dropdown}
+          onKeyDownCapture={onStartTyping}
+        >
           <MenuGroup title="Models">
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <TbSearch />
+              </InputLeftElement>
+              <Input
+                ref={inputRef}
+                type="text"
+                variant="ghost"
+                placeholder="Search models..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </InputGroup>
             {models
               .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+              .filter((model) =>
+                model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+              )
               .map((model) => (
                 <MenuItem
                   closeOnSelect={true}
                   key={model.id}
                   onClick={() => setSettings({ ...settings, model })}
                 >
+                  {settings.model.id === model.id ? (
+                    <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                  ) : (
+                    <span style={{ width: "24px", display: "inline-block" }} />
+                  )}
                   {model.prettyModel}
                 </MenuItem>
               ))}
