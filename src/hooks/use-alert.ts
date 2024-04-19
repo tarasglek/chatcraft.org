@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useToast } from "@chakra-ui/react";
+import useMobileBreakpoint from "./use-mobile-breakpoint";
 
 export type AlertArguments = {
   // Use `id` if you want to avoid duplicate alerts showing
@@ -19,9 +20,9 @@ function truncateMessage(message?: string): string {
 
   return message;
 }
-
 export function useAlert() {
   const toast = useToast();
+  const isMobile = useMobileBreakpoint();
 
   const info = useCallback(
     ({ id, title, message }: AlertArguments) =>
@@ -49,8 +50,11 @@ export function useAlert() {
         isClosable: true,
         // Don't auto-close errors
         duration: null,
+        containerStyle: {
+          width: isMobile ? "90vw" : "initial",
+        },
       }),
-    [toast]
+    [toast, isMobile]
   );
 
   const success = useCallback(
