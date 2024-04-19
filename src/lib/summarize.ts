@@ -90,7 +90,8 @@ export function getSentenceChunksFrom(text: string, maxCharsPerSentence: number 
 
       // Force break the long sentence without caring
       // about natural language
-      const sentencePieces = sentence.match(new RegExp(`.{1,${500}}\\b`, "g")) || [];
+      const sentencePieces =
+        sentence.match(new RegExp(`.{1,${maxCharsPerSentence}}\\b`, "g")) || [];
 
       chunks.push(...sentencePieces);
     } else {
