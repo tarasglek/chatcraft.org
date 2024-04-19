@@ -204,7 +204,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       // Ignore control keys
       const char = e.key.length === 1 ? e.key : "";
       // Set the initial character in the input so we don't lose it
-      setSearchQuery(char);
+      setSearchQuery(searchQuery + char);
     }
   };
 
@@ -253,7 +253,12 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </Button>
         </Tooltip>
       )}
-      <Menu placement="top" strategy="fixed" closeOnSelect={false}>
+      <Menu
+        placement="top"
+        strategy="fixed"
+        closeOnSelect={false}
+        onClose={() => setSearchQuery("")}
+      >
         <MenuButton
           as={IconButton}
           size="sm"
