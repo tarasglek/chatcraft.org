@@ -33,12 +33,12 @@ import {
   type ReactNode,
 } from "react";
 
-import { Menu, MenuItem, SubMenu, MenuDivider } from "../Menu";
-import ResizeTextarea from "react-textarea-autosize";
-import { TbTrash, TbShare2 } from "react-icons/tb";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
+import { TbShare2, TbTrash } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
+import ResizeTextarea from "react-textarea-autosize";
+import { Menu, MenuDivider, MenuItem, SubMenu } from "../Menu";
 
 import { useCopyToClipboard } from "react-use";
 import { useAlert } from "../../hooks/use-alert";
@@ -53,7 +53,14 @@ import {
   ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
-import { download, formatDate, formatNumber, getMetaKey, screenshotElement } from "../../lib/utils";
+import {
+  download,
+  formatDate,
+  formatNumber,
+  getMetaKey,
+  screenshotElement,
+  utilizeAlert,
+} from "../../lib/utils";
 import ImageModal from "../ImageModal";
 import Markdown from "../Markdown";
 
@@ -65,6 +72,7 @@ import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { textToSpeech } from "../../lib/ai";
 import { usingOfficialOpenAI } from "../../lib/providers";
+import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
 
 export interface MessageBaseProps {
@@ -246,14 +254,39 @@ function MessageBase({
     if (messageContent.current) {
       const text = messageContent.current.textContent;
       if (text) {
+        const { loading, closeLoading } = await utilizeAlert();
+
+        const alertId = loading({
+          title: "Downloading...",
+          message: "Please wait while we prepare your audio download.",
+        });
+
         try {
-          info({
-            title: "Downloading...",
-            message: "Please wait while we prepare your audio download.",
+          const textChunks = getSentenceChunksFrom(text, 500);
+          const audioClips: Blob[] = new Array<Blob>(textChunks.length);
+
+          // Limit the number of concurrent tasks
+          const pLimit = (await import("p-limit")).default;
+
+          const limit = pLimit(8); // Adjust the concurrency limit as needed
+
+          const tasks = textChunks.map((textChunk, index) => {
+            return limit(async () => {
+              const audioClipUrl = await textToSpeech(
+                textChunk,
+                settings.textToSpeech.voice,
+                "tts-1-hd"
+              );
+
+              const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
+              audioClips[index] = audioClip;
+            });
           });
 
-          const audioClipUrl = await textToSpeech(text, settings.textToSpeech.voice, "tts-1-hd");
-          const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
+          // Wait for all the tasks to complete
+          await Promise.all(tasks);
+
+          const audioClip = new Blob(audioClips, { type: audioClips[0].type });
 
           download(
             audioClip,
@@ -261,12 +294,15 @@ function MessageBase({
             audioClip.type
           );
 
+          closeLoading(alertId);
           info({
             title: "Downloaded",
             message: "Message was downloaded as Audio",
           });
         } catch (err: any) {
           console.error(err);
+
+          closeLoading(alertId);
           error({ title: "Error while downloading audio", message: err.message });
         }
       }
@@ -363,8 +399,12 @@ function MessageBase({
 
         const { voice } = settings.textToSpeech;
 
-        // Use lighter tts-1 model to minimize latency
-        addToAudioQueue(textToSpeech(messageContent, voice, "tts-1"));
+        const messageChunks = getSentenceChunksFrom(messageContent, 500);
+
+        messageChunks.forEach((messageChunk) => {
+          // Use lighter tts-1 model to minimize latency
+          addToAudioQueue(textToSpeech(messageChunk, voice, "tts-1"));
+        });
       } catch (err: any) {
         console.error(err);
         error({ title: "Error while generating Audio", message: err.message });
