@@ -262,18 +262,29 @@ function MessageBase({
         });
 
         try {
-          const textChunks = getSentenceChunksFrom(text, 4096);
-          const audioClips: Blob[] = [];
+          const textChunks = getSentenceChunksFrom(text, 500);
+          const audioClips: Blob[] = new Array<Blob>(textChunks.length);
 
-          for (const textChunk of textChunks) {
-            const audioClipUrl = await textToSpeech(
-              textChunk,
-              settings.textToSpeech.voice,
-              "tts-1-hd"
-            );
+          // Limit the number of concurrent tasks
+          const pLimit = (await import("p-limit")).default;
 
-            audioClips.push(await fetch(audioClipUrl).then((r) => r.blob()));
-          }
+          const limit = pLimit(8); // Adjust the concurrency limit as needed
+
+          const tasks = textChunks.map((textChunk, index) => {
+            return limit(async () => {
+              const audioClipUrl = await textToSpeech(
+                textChunk,
+                settings.textToSpeech.voice,
+                "tts-1-hd"
+              );
+
+              const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
+              audioClips[index] = audioClip;
+            });
+          });
+
+          // Wait for all the tasks to complete
+          await Promise.all(tasks);
 
           const audioClip = new Blob(audioClips, { type: audioClips[0].type });
 

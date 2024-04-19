@@ -1,4 +1,5 @@
-import { useState, useEffect, createContext, useContext, ReactNode, FC } from "react";
+import { useState, useEffect, createContext, useContext, ReactNode, FC, useCallback } from "react";
+import { useAlert } from "./use-alert";
 
 type AudioPlayerContextType = {
   addToAudioQueue: (audioClipUri: Promise<string>) => void;
@@ -23,31 +24,44 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
   const [queue, setQueue] = useState<Promise<string>[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentAudioClip, setCurrentAudioClip] = useState<AudioClip | null>();
+  const { error } = useAlert();
+
+  const playAudio = useCallback(
+    async (audioClipUri: Promise<string>) => {
+      try {
+        setIsPlaying(true);
+        const audioUrl: string = await audioClipUri;
+        const audio = new Audio(audioUrl);
+        audio.preload = "auto";
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          setQueue((oldQueue) => oldQueue.slice(1));
+          setIsPlaying(false);
+
+          setCurrentAudioClip(null);
+        };
+        audio.play();
+        setCurrentAudioClip({
+          audioElement: audio,
+          audioUrl: audioUrl,
+        });
+      } catch (err: any) {
+        console.error(err);
+
+        error({
+          title: "Error playing audio",
+          message: err.message,
+        });
+      }
+    },
+    [error]
+  );
 
   useEffect(() => {
     if (!isPlaying && queue.length > 0) {
       playAudio(queue[0]);
     }
-  }, [queue, isPlaying]);
-
-  const playAudio = async (audioClipUri: Promise<string>) => {
-    setIsPlaying(true);
-    const audioUrl: string = await audioClipUri;
-    const audio = new Audio(audioUrl);
-    audio.preload = "auto";
-    audio.onended = () => {
-      URL.revokeObjectURL(audioUrl);
-      setQueue((oldQueue) => oldQueue.slice(1));
-      setIsPlaying(false);
-
-      setCurrentAudioClip(null);
-    };
-    audio.play();
-    setCurrentAudioClip({
-      audioElement: audio,
-      audioUrl: audioUrl,
-    });
-  };
+  }, [queue, isPlaying, playAudio]);
 
   const addToAudioQueue = (audioClipUri: Promise<string>) => {
     setQueue((oldQueue) => [...oldQueue, audioClipUri]);

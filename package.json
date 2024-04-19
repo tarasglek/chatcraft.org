@@ -43,6 +43,7 @@
     "nanoid": "^5.0.5",
     "nomnoml": "^1.6.2",
     "openai": "^4.26.1",
+    "p-limit": "^5.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.0.1",

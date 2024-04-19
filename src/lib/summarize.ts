@@ -61,8 +61,8 @@ export function tokenize(text: string) {
  * Tries to split the provided text into
  * an array of text chunks where
  * each chunk is composed of one or more sentences.
- * The function attempts to limit each chunk to maximim
- * preferred characters preferred, but the chunk limit may still exceed
+ * The function attempts to limit each chunk to maximum
+ * preferred characters, but the chunk limit may still exceed
  * if a single sentence's length is greater than the preferred character limit.
  *
  * @param text The text content that needs to be split into Chunks
@@ -77,7 +77,7 @@ export function getSentenceChunksFrom(text: string, maxCharsPerSentence: number 
 
   for (const sentence of sentences) {
     if (currentText.length + sentence.length < maxCharsPerSentence) {
-      currentText += ` ${sentence}`;
+      currentText += ` ${sentence.trim()}`;
     } else {
       if (currentText.length) {
         chunks.push(currentText);
