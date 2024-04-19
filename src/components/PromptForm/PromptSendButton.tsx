@@ -253,12 +253,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </Button>
         </Tooltip>
       )}
-      <Menu
-        placement="top"
-        strategy="fixed"
-        closeOnSelect={false}
-        onClose={() => setSearchQuery("")}
-      >
+      <Menu placement="top" strategy="fixed" closeOnSelect={false}>
         <MenuButton
           as={IconButton}
           size="sm"
