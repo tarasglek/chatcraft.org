@@ -21,7 +21,7 @@ import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeUp, MdVolumeOff, MdOutlineChevronRight } from "react-icons/md";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
 import { useDebounce } from "react-use";
@@ -50,10 +50,6 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
     600,
     [searchQuery]
   );
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   const providersList = {
     ...settings.providers,
