@@ -12,6 +12,11 @@ import {
   List,
   useColorMode,
   useMediaQuery,
+  Accordion,
+  AccordionIcon,
+  AccordionButton,
+  AccordionItem,
+  AccordionPanel,
 } from "@chakra-ui/react";
 import { RefObject, useState } from "react";
 import ModelsSettings from "./ModelsSettings";
@@ -76,45 +81,105 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const [isSmallViewport] = useMediaQuery("(max-width: 600px)");
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl" finalFocusRef={finalFocusRef}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size={isSmallViewport ? "full" : "xl"}
+      finalFocusRef={finalFocusRef}
+    >
       <ModalOverlay />
-      <ModalContent top="-2rem" maxWidth="54rem">
-        <ModalHeader ps={8}>User Settings</ModalHeader>
-        <Divider />
-        <ModalCloseButton mt="0.5rem" />
+      <ModalContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem">
+        <Flex alignItems="center" justifyContent="space-between" width="100%">
+          <ModalHeader style={{ whiteSpace: "nowrap" }}>User Settings</ModalHeader>
+          <ModalCloseButton position="relative" top={0} right={0} mx="1rem" />
+        </Flex>
+        {!isSmallViewport && <Divider />}
         <Flex flexDirection={isSmallViewport ? "column" : "row"}>
-          <Box p={4} pr={isSmallViewport ? "4" : "0"} fontSize="m" minWidth="14rem">
-            <List spacing={1}>
-              {settings.map((setting, index) => (
-                <ListItem
-                  tabIndex={0}
-                  key={index}
-                  onClick={() => handleSettingClick(setting)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleSettingClick(setting);
-                    }
-                  }}
-                  cursor="pointer"
-                  _hover={getHoverStyle(setting)}
-                  p={2}
-                  ps={4}
-                  borderRadius="md"
-                  color={getColorStyle(setting)}
-                  bg={getBackgroundStyle(setting)}
+          {isSmallViewport ? (
+            <Accordion allowToggle>
+              <AccordionItem px="0.25rem" py="0.75rem">
+                <AccordionButton
+                  pl="1.25rem"
+                  justifyContent={"space-between"}
+                  _hover={{ bg: isDarkMode ? "grey.500" : "white" }}
                 >
                   <Flex alignItems="center">
                     <Box mr={4}>
-                      <setting.icon />
+                      <selectedSetting.icon />
                     </Box>
-                    {setting.name}
+                    {selectedSetting.name}
                   </Flex>
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-          {isSmallViewport && <Divider />}
+                  <AccordionIcon boxSize="1.5rem" />
+                </AccordionButton>
+                <AccordionPanel pb="0">
+                  <List spacing={1.5}>
+                    {settings.map((setting, index) => (
+                      <ListItem
+                        mx="0.25rem"
+                        tabIndex={0}
+                        key={index}
+                        onClick={() => handleSettingClick(setting)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSettingClick(setting);
+                          }
+                        }}
+                        cursor="pointer"
+                        _hover={getHoverStyle(setting)}
+                        p={1}
+                        pl={2}
+                        borderRadius="md"
+                        color={getColorStyle(setting)}
+                        bg={getBackgroundStyle(setting)}
+                      >
+                        <AccordionButton>
+                          <Flex alignItems="center">
+                            <Box mr={4}>
+                              <setting.icon />
+                            </Box>
+                            {setting.name}
+                          </Flex>
+                        </AccordionButton>
+                      </ListItem>
+                    ))}
+                  </List>
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
+          ) : (
+            <Box p={4} pr={isSmallViewport ? "4" : "0"} fontSize="m" minWidth="14rem">
+              <List spacing={1}>
+                {settings.map((setting, index) => (
+                  <ListItem
+                    tabIndex={0}
+                    key={index}
+                    onClick={() => handleSettingClick(setting)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleSettingClick(setting);
+                      }
+                    }}
+                    cursor="pointer"
+                    _hover={getHoverStyle(setting)}
+                    p={2}
+                    ps={4}
+                    borderRadius="md"
+                    color={getColorStyle(setting)}
+                    bg={getBackgroundStyle(setting)}
+                  >
+                    <Flex alignItems="center">
+                      <Box mr={4}>
+                        <setting.icon />
+                      </Box>
+                      {setting.name}
+                    </Flex>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
           {selectedSetting.name === "Models" && <ModelsSettings isOpen={isOpen} />}
           {selectedSetting.name === "Web Handlers" && <WebHandlersConfig />}
           {selectedSetting.name === "System Prompt" && <DefaultSystemPrompt />}
