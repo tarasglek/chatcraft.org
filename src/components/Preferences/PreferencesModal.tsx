@@ -63,6 +63,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       return {
         bg: isDarkMode ? "gray.600" : "gray.200",
       };
+    } else {
+      return "transparent";
     }
   };
 
@@ -111,29 +113,17 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   </Flex>
                   <AccordionIcon boxSize="1.5rem" />
                 </AccordionButton>
-                <AccordionPanel pb="0">
-                  <List spacing={1.5}>
+                <AccordionPanel pb="0.25rem">
+                  <List spacing={1}>
                     {settings.map((setting, index) => (
-                      <ListItem
-                        mx="0.25rem"
-                        tabIndex={0}
-                        key={index}
-                        onClick={() => handleSettingClick(setting)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            handleSettingClick(setting);
-                          }
-                        }}
-                        cursor="pointer"
-                        _hover={getHoverStyle(setting)}
-                        p={1}
-                        pl={2}
-                        borderRadius="md"
-                        color={getColorStyle(setting)}
-                        bg={getBackgroundStyle(setting)}
-                      >
-                        <AccordionButton>
+                      <ListItem key={index} cursor="pointer" p={0.75}>
+                        <AccordionButton
+                          borderRadius="md"
+                          _hover={getHoverStyle(setting)}
+                          color={getColorStyle(setting)}
+                          bg={getBackgroundStyle(setting)}
+                          onClick={() => handleSettingClick(setting)}
+                        >
                           <Flex alignItems="center">
                             <Box mr={4}>
                               <setting.icon />
