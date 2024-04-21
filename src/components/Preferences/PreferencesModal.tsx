@@ -87,6 +87,80 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
   const [isSmallViewport] = useMediaQuery("(max-width: 600px)");
 
+  const MobileSettingsList = () => {
+    return (
+      <Accordion allowToggle>
+        <AccordionItem px="0.25rem" py="0.75rem">
+          <AccordionButton
+            pl="1.25rem"
+            justifyContent={"space-between"}
+            _hover={{ bg: isDarkMode ? "grey.500" : "white" }}
+          >
+            <Flex alignItems="center">
+              <Box mr={4}>
+                <selectedSetting.icon />
+              </Box>
+              {selectedSetting.name}
+            </Flex>
+            <AccordionIcon boxSize="1.5rem" />
+          </AccordionButton>
+          <AccordionPanel pb="0.25rem">
+            <List spacing={1}>
+              {settings.map((setting, index) => (
+                <ListItem key={index} cursor="pointer" p={0.75}>
+                  <AccordionButton
+                    borderRadius="md"
+                    _hover={getHoverStyle(setting)}
+                    color={getColorStyle(setting)}
+                    bg={getBackgroundStyle(setting)}
+                    onClick={() => handleSettingClick(setting)}
+                  >
+                    <Flex alignItems="center">
+                      <Box mr={4}>
+                        <setting.icon />
+                      </Box>
+                      {setting.name}
+                    </Flex>
+                  </AccordionButton>
+                </ListItem>
+              ))}
+            </List>
+          </AccordionPanel>
+        </AccordionItem>
+      </Accordion>
+    );
+  };
+
+  const DesktopSettingsList = () => {
+    return (
+      <Box p={4} pr="0" fontSize="m" minWidth="14rem">
+        <List spacing={1}>
+          {settings.map((setting, index) => (
+            <ListItem key={index} cursor="pointer" p={0.75}>
+              <Button
+                borderRadius="md"
+                fontWeight="400"
+                width="100%"
+                justifyContent="left"
+                _hover={getHoverStyle(setting)}
+                color={getColorStyle(setting)}
+                bg={getBackgroundStyle(setting)}
+                onClick={() => handleSettingClick(setting)}
+              >
+                <Flex alignItems="center">
+                  <Box mr={4}>
+                    <setting.icon />
+                  </Box>
+                  {setting.name}
+                </Flex>
+              </Button>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
+    );
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -97,78 +171,12 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       <ModalOverlay />
       <ModalContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem">
         <Flex alignItems="center" justifyContent="space-between" width="100%">
-          <ModalHeader style={{ whiteSpace: "nowrap" }}>User Settings</ModalHeader>
+          <ModalHeader whiteSpace="nowrap">User Settings</ModalHeader>
           <ModalCloseButton position="relative" top={0} right={0} mx="1rem" />
         </Flex>
         {!isSmallViewport && <Divider />}
         <Flex flexDirection={isSmallViewport ? "column" : "row"}>
-          {isSmallViewport ? (
-            <Accordion allowToggle>
-              <AccordionItem px="0.25rem" py="0.75rem">
-                <AccordionButton
-                  pl="1.25rem"
-                  justifyContent={"space-between"}
-                  _hover={{ bg: isDarkMode ? "grey.500" : "white" }}
-                >
-                  <Flex alignItems="center">
-                    <Box mr={4}>
-                      <selectedSetting.icon />
-                    </Box>
-                    {selectedSetting.name}
-                  </Flex>
-                  <AccordionIcon boxSize="1.5rem" />
-                </AccordionButton>
-                <AccordionPanel pb="0.25rem">
-                  <List spacing={1}>
-                    {settings.map((setting, index) => (
-                      <ListItem key={index} cursor="pointer" p={0.75}>
-                        <AccordionButton
-                          borderRadius="md"
-                          _hover={getHoverStyle(setting)}
-                          color={getColorStyle(setting)}
-                          bg={getBackgroundStyle(setting)}
-                          onClick={() => handleSettingClick(setting)}
-                        >
-                          <Flex alignItems="center">
-                            <Box mr={4}>
-                              <setting.icon />
-                            </Box>
-                            {setting.name}
-                          </Flex>
-                        </AccordionButton>
-                      </ListItem>
-                    ))}
-                  </List>
-                </AccordionPanel>
-              </AccordionItem>
-            </Accordion>
-          ) : (
-            <Box p={4} pr={isSmallViewport ? "4" : "0"} fontSize="m" minWidth="14rem">
-              <List spacing={1}>
-                {settings.map((setting, index) => (
-                  <ListItem key={index} cursor="pointer" p={0.75}>
-                    <Button
-                      borderRadius="md"
-                      fontWeight="400"
-                      width="100%"
-                      justifyContent="left"
-                      _hover={getHoverStyle(setting)}
-                      color={getColorStyle(setting)}
-                      bg={getBackgroundStyle(setting)}
-                      onClick={() => handleSettingClick(setting)}
-                    >
-                      <Flex alignItems="center">
-                        <Box mr={4}>
-                          <setting.icon />
-                        </Box>
-                        {setting.name}
-                      </Flex>
-                    </Button>
-                  </ListItem>
-                ))}
-              </List>
-            </Box>
-          )}
+          {isSmallViewport ? <MobileSettingsList /> : <DesktopSettingsList />}
           {selectedSetting.name === "Models" && <ModelsSettings isOpen={isOpen} />}
           {selectedSetting.name === "Web Handlers" && <WebHandlersConfig />}
           {selectedSetting.name === "System Prompt" && <DefaultSystemPrompt />}
