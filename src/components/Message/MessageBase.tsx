@@ -494,7 +494,7 @@ function MessageBase({
                   )}
                   <MenuItem
                     onClick={handleDownloadImage}
-                    disabled={displaySummaryText !== false || editing}
+                    isDisabled={displaySummaryText !== false || editing}
                   >
                     Download as Image
                   </MenuItem>
@@ -540,31 +540,27 @@ function MessageBase({
                 {shouldShowDeleteMenu && (
                   <>
                     {onDeleteClick && !onDeleteBeforeClick && !onDeleteAfterClick ? (
-                      <MenuItem
-                        onClick={onDeleteClick}
-                        className="delete-button"
-                        icon={<TbTrash color="red.400" />}
-                      >
+                      <MenuItem onClick={onDeleteClick} color="red.400" icon={<TbTrash />}>
                         Delete Message
                       </MenuItem>
                     ) : (
-                      <SubMenu label="Delete" className="delete-button">
+                      <SubMenu label="Delete">
                         {onDeleteBeforeClick && (
-                          <MenuItem onClick={onDeleteBeforeClick} className="delete-button">
+                          <MenuItem
+                            onClick={onDeleteBeforeClick}
+                            color="red.400"
+                            icon={<TbTrash />}
+                          >
                             Delete Messages Before
                           </MenuItem>
                         )}
                         {onDeleteClick && (
-                          <MenuItem
-                            onClick={onDeleteClick}
-                            className="delete-button"
-                            icon={<TbTrash color="red.400" />}
-                          >
+                          <MenuItem color="red.400" onClick={onDeleteClick} icon={<TbTrash />}>
                             Delete Message
                           </MenuItem>
                         )}
                         {onDeleteAfterClick && (
-                          <MenuItem onClick={onDeleteAfterClick} className="delete-button">
+                          <MenuItem onClick={onDeleteAfterClick} color="red.400" icon={<TbTrash />}>
                             Delete Messages After
                           </MenuItem>
                         )}

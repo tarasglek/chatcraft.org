@@ -47,7 +47,3 @@
 .szh-menu-container--theme-dark .szh-menu__item:active {
   background-color: var(--chakra-gray-500);
 }
-
-.delete-button {
-  color: var(--chakra-red-400);
-}

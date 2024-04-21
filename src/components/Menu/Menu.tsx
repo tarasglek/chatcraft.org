@@ -1,8 +1,9 @@
 import { Box, IconButton, useColorMode } from "@chakra-ui/react";
 import { Menu as ReactMenu, type MenuProps as ReactMenuProps } from "@szhsin/react-menu";
-
 import React from "react";
 import { TbDots } from "react-icons/tb";
+
+import theme from "../../theme";
 
 // Stylesheets
 import "@szhsin/react-menu/dist/core.css";
@@ -13,23 +14,21 @@ import "./Menu.css";
 
 export type MenuProps = Omit<ReactMenuProps, "menuButton" | "theming" | "transition"> & {
   isDisabled?: boolean;
+  menuButton?: ReactMenuProps["menuButton"];
 };
 
 const Menu: React.FC<MenuProps> = (props) => {
   const { colorMode } = useColorMode();
+  const menuButton = props.menuButton ?? (
+    <IconButton aria-label="Menu" icon={<TbDots />} variant="ghost" isDisabled={props.isDisabled} />
+  );
+
   return (
-    <Box>
+    <Box zIndex={theme.zIndices.dropdown}>
       <ReactMenu
         align={"end"}
         theming={colorMode === "dark" ? "dark" : undefined}
-        menuButton={
-          <IconButton
-            aria-label="Message Menu"
-            icon={<TbDots />}
-            variant="ghost"
-            isDisabled={props.isDisabled}
-          />
-        }
+        menuButton={menuButton}
         transition={true}
       >
         {props.children}
