@@ -17,6 +17,7 @@ import {
   AccordionButton,
   AccordionItem,
   AccordionPanel,
+  Button,
 } from "@chakra-ui/react";
 import { RefObject, useState } from "react";
 import ModelsSettings from "./ModelsSettings";
@@ -71,12 +72,16 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const getColorStyle = (setting: Setting) => {
     if (selectedSetting.name === setting.name) {
       return isDarkMode ? "black" : "white";
+    } else {
+      return "inherit";
     }
   };
 
   const getBackgroundStyle = (setting: Setting) => {
     if (selectedSetting.name === setting.name) {
       return isDarkMode ? "blue.200" : "blue.500";
+    } else {
+      return "inherit";
     }
   };
 
@@ -141,30 +146,24 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
             <Box p={4} pr={isSmallViewport ? "4" : "0"} fontSize="m" minWidth="14rem">
               <List spacing={1}>
                 {settings.map((setting, index) => (
-                  <ListItem
-                    tabIndex={0}
-                    key={index}
-                    onClick={() => handleSettingClick(setting)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleSettingClick(setting);
-                      }
-                    }}
-                    cursor="pointer"
-                    _hover={getHoverStyle(setting)}
-                    p={2}
-                    ps={4}
-                    borderRadius="md"
-                    color={getColorStyle(setting)}
-                    bg={getBackgroundStyle(setting)}
-                  >
-                    <Flex alignItems="center">
-                      <Box mr={4}>
-                        <setting.icon />
-                      </Box>
-                      {setting.name}
-                    </Flex>
+                  <ListItem key={index} cursor="pointer" p={0.75}>
+                    <Button
+                      borderRadius="md"
+                      fontWeight="400"
+                      width="100%"
+                      justifyContent="left"
+                      _hover={getHoverStyle(setting)}
+                      color={getColorStyle(setting)}
+                      bg={getBackgroundStyle(setting)}
+                      onClick={() => handleSettingClick(setting)}
+                    >
+                      <Flex alignItems="center">
+                        <Box mr={4}>
+                          <setting.icon />
+                        </Box>
+                        {setting.name}
+                      </Flex>
+                    </Button>
                   </ListItem>
                 ))}
               </List>
