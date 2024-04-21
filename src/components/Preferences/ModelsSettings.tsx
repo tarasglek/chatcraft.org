@@ -510,7 +510,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
       {!tableProviders ? (
         <Box>Loading providers...</Box>
       ) : (
-        <VStack gap={4}>
+        <VStack gap={4} mt={3}>
           <FormControl>
             <FormLabel>
               Providers
