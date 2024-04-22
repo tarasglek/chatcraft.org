@@ -65,7 +65,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         bg: isDarkMode ? "gray.600" : "gray.200",
       };
     } else {
-      return "transparent";
+      return { bg: isDarkMode ? "blue.200" : "blue.500" };
     }
   };
 
