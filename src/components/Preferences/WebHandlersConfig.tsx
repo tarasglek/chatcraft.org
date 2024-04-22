@@ -1,4 +1,4 @@
-import { Box, Button, Heading, ModalBody, Text, VStack, useColorMode } from "@chakra-ui/react";
+import { Box, Button, Heading, Text, VStack, useColorMode } from "@chakra-ui/react";
 import { useCallback, useEffect, useState } from "react";
 
 import ReactCodeMirror from "@uiw/react-codemirror";
@@ -91,51 +91,49 @@ function WebHandlersConfig() {
   const isMobile = useMobileBreakpoint();
 
   return (
-    <ModalBody>
-      <VStack gap={4} mt={3}>
-        <Text textAlign={isMobile ? "justify" : "start"}>
-          {/* eslint-disable-next-line react/no-unescaped-entities */}
-          If you want to extend ChatCraft's default URL handling by adding your own external
-          services, you are at the right place 😎
-        </Text>
+    <VStack gap={4} my={3}>
+      <Text textAlign={isMobile ? "justify" : "start"}>
+        {/* eslint-disable-next-line react/no-unescaped-entities */}
+        If you want to extend ChatCraft's default URL handling by adding your own external services,
+        you are at the right place 😎
+      </Text>
 
-        <Heading size={"md"} width={"100%"} fontWeight={"normal"}>
-          Register Handlers
-        </Heading>
+      <Heading size={"md"} width={"100%"} fontWeight={"normal"}>
+        Register Handlers
+      </Heading>
 
-        <Box
-          w={"100%"}
-          border="1px"
-          borderRadius="5px"
-          borderColor="gray.200"
-          bg="gray.50"
-          _dark={{
-            bg: "gray.800",
-            borderColor: "gray.600",
-          }}
-          pb={1}
-          minHeight={editorHeight} // To avoid resizing when editor loads
+      <Box
+        w={"100%"}
+        border="1px"
+        borderRadius="5px"
+        borderColor="gray.200"
+        bg="gray.50"
+        _dark={{
+          bg: "gray.800",
+          borderColor: "gray.600",
+        }}
+        pb={1}
+        minHeight={editorHeight} // To avoid resizing when editor loads
+      >
+        <CodeHeader
+          language="yaml"
+          code={webHandlerConfig}
+          codeDownloadFilename={configDownloadFilename}
+          isLoading={false}
         >
-          <CodeHeader
-            language="yaml"
-            code={webHandlerConfig}
-            codeDownloadFilename={configDownloadFilename}
-            isLoading={false}
-          >
-            <ReactCodeMirror
-              value={webHandlerConfig}
-              extensions={[yaml()]}
-              theme={colorMode}
-              height={editorHeight}
-              onChange={handleConfigValueChange}
-            />
-          </CodeHeader>
-        </Box>
-        <Button size="sm" alignSelf="flex-end" rightIcon={<MdSave />} onClick={onSaveConfig}>
-          Save
-        </Button>
-      </VStack>
-    </ModalBody>
+          <ReactCodeMirror
+            value={webHandlerConfig}
+            extensions={[yaml()]}
+            theme={colorMode}
+            height={editorHeight}
+            onChange={handleConfigValueChange}
+          />
+        </CodeHeader>
+      </Box>
+      <Button size="sm" alignSelf="flex-end" rightIcon={<MdSave />} onClick={onSaveConfig}>
+        Save
+      </Button>
+    </VStack>
   );
 }
 

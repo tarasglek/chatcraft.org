@@ -3,7 +3,6 @@ import {
   Button,
   Flex,
   FormControl,
-  ModalBody,
   VStack,
   Text,
   Textarea,
@@ -37,40 +36,38 @@ function DefaultSystemPrompt() {
   };
 
   return (
-    <ModalBody>
-      <VStack gap={4} mt={3}>
-        <Text>
-          The default system prompt is used as the first message in every chat. It provides the LLM
-          important context, behavioral cues, and expectations about responses and desired response
-          formats.
-        </Text>
+    <VStack gap={4} my={3}>
+      <Text>
+        The default system prompt is used as the first message in every chat. It provides the LLM
+        important context, behavioral cues, and expectations about responses and desired response
+        formats.
+      </Text>
 
-        <Text as="em" fontSize="sm">
-          NOTE: changes to the default system prompt will take effect in new chats, but won&apos;t
-          affect existing ones.
-        </Text>
+      <Text as="em" fontSize="sm">
+        NOTE: changes to the default system prompt will take effect in new chats, but won&apos;t
+        affect existing ones.
+      </Text>
 
-        <Heading size={"md"} width={"100%"} fontWeight={"normal"}>
-          Default System Prompt
-        </Heading>
-        <FormControl>
-          <Textarea
-            autoFocus
-            variant="filled"
-            rows={16}
-            value={prompt}
-            onChange={(e) => handleUpdate(e.target.value)}
-          />
-        </FormControl>
-        <Flex w="100%" justifyContent="flex-end">
-          <Tooltip hasArrow placement="left" label="Reset to the default ChatCraft system prompt">
-            <Button size="sm" colorScheme="red" onClick={() => handleReset()}>
-              Reset
-            </Button>
-          </Tooltip>
-        </Flex>
-      </VStack>
-    </ModalBody>
+      <Heading size={"md"} width={"100%"} fontWeight={"normal"}>
+        Default System Prompt
+      </Heading>
+      <FormControl>
+        <Textarea
+          autoFocus
+          variant="filled"
+          rows={16}
+          value={prompt}
+          onChange={(e) => handleUpdate(e.target.value)}
+        />
+      </FormControl>
+      <Flex w="100%" justifyContent="flex-end">
+        <Tooltip hasArrow placement="left" label="Reset to the default ChatCraft system prompt">
+          <Button size="sm" colorScheme="red" onClick={() => handleReset()}>
+            Reset
+          </Button>
+        </Tooltip>
+      </Flex>
+    </VStack>
   );
 }
 

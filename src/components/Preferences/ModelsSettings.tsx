@@ -12,7 +12,6 @@ import {
   Input,
   InputGroup,
   Link,
-  ModalBody,
   Select,
   Slider,
   SliderFilledTrack,
@@ -506,11 +505,11 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
   }, [models]);
 
   return (
-    <ModalBody>
+    <Box my={3}>
       {!tableProviders ? (
         <Box>Loading providers...</Box>
       ) : (
-        <VStack gap={4} mt={3}>
+        <VStack gap={4}>
           <FormControl>
             <FormLabel>
               Providers
@@ -942,7 +941,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
           )}
         </VStack>
       )}
-    </ModalBody>
+    </Box>
   );
 }
 

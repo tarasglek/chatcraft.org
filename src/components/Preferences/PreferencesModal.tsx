@@ -4,7 +4,6 @@ import {
   Modal,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
   Divider,
@@ -18,6 +17,7 @@ import {
   AccordionItem,
   AccordionPanel,
   Button,
+  ModalBody,
 } from "@chakra-ui/react";
 import { RefObject, useState } from "react";
 import ModelsSettings from "./ModelsSettings";
@@ -87,7 +87,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
   const [isSmallViewport] = useMediaQuery("(max-width: 600px)");
 
-  const MobileSettingsList = () => {
+  const MobileSettingsAccordion = () => {
     return (
       <Accordion allowToggle>
         <AccordionItem px="0.25rem" py="0.75rem">
@@ -146,6 +146,9 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 color={getColorStyle(setting)}
                 bg={getBackgroundStyle(setting)}
                 onClick={() => handleSettingClick(setting)}
+                _active={{
+                  bg: isDarkMode ? "grey.500" : "grey.200",
+                }}
               >
                 <Flex alignItems="center">
                   <Box mr={4}>
@@ -167,23 +170,26 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       onClose={onClose}
       size={isSmallViewport ? "full" : "xl"}
       finalFocusRef={finalFocusRef}
+      scrollBehavior="inside"
     >
       <ModalOverlay />
-      <ModalContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem">
+      <ModalContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem" maxHeight="90vh">
         <Flex alignItems="center" justifyContent="space-between" width="100%">
           <ModalHeader whiteSpace="nowrap">User Settings</ModalHeader>
           <ModalCloseButton position="relative" top={0} right={0} mx="1rem" />
         </Flex>
         {!isSmallViewport && <Divider />}
-        <Flex flexDirection={isSmallViewport ? "column" : "row"}>
-          {isSmallViewport ? <MobileSettingsList /> : <DesktopSettingsList />}
-          {selectedSetting.name === "Models" && <ModelsSettings isOpen={isOpen} />}
-          {selectedSetting.name === "Web Handlers" && <WebHandlersConfig />}
-          {selectedSetting.name === "System Prompt" && <DefaultSystemPrompt />}
-          {selectedSetting.name === "Customization" && <CustomizationSettings />}
-        </Flex>
-
-        <ModalFooter></ModalFooter>
+        <ModalBody p={0} display="flex" h="95vh">
+          <Flex flexDirection={isSmallViewport ? "column" : "row"}>
+            {isSmallViewport ? <MobileSettingsAccordion /> : <DesktopSettingsList />}
+            <Box overflowY="auto" px={8} py={3}>
+              {selectedSetting.name === "Models" && <ModelsSettings isOpen={isOpen} />}
+              {selectedSetting.name === "System Prompt" && <DefaultSystemPrompt />}
+              {selectedSetting.name === "Web Handlers" && <WebHandlersConfig />}
+              {selectedSetting.name === "Customization" && <CustomizationSettings />}
+            </Box>
+          </Flex>
+        </ModalBody>
       </ModalContent>
     </Modal>
   );
