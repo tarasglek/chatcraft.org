@@ -89,57 +89,55 @@ function ChatHeader({ chat }: ChatHeaderProps) {
         mt={2}
       >
         <CardBody pb={0}>
-          <Flex justify="space-between" align="center">
-            <Box w="100%">
-              {isEditing ? (
-                <form onSubmit={handleSaveSummary}>
-                  <Flex align="center" gap={2}>
-                    <Input
-                      flex={1}
-                      defaultValue={chat.summary}
-                      type="text"
-                      name="summary"
-                      bg="white"
-                      _dark={{ bg: "gray.700" }}
-                      size="sm"
-                      w="100%"
-                      autoFocus={true}
-                      placeholder="Chat Summary"
-                    />
-                    <ButtonGroup>
-                      <Button variant="outline" size="xs" onClick={() => setIsEditing(false)}>
-                        Cancel
-                      </Button>
-                      <Button size="xs" type="submit">
-                        Save
-                      </Button>
-                    </ButtonGroup>
-                  </Flex>
-                </form>
-              ) : (
-                <Flex align="center" gap={2} maxW="100%">
-                  <Box>
-                    <MdOutlineChatBubbleOutline />
-                  </Box>
-                  <Text fontSize="md" fontWeight="bold" noOfLines={1} title={title}>
-                    <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
-                      {title}
-                    </Link>
-                  </Text>
-                  {!chat.readonly && settings.currentProvider.apiKey && (
-                    <IconButton
-                      variant="ghost"
-                      size="sm"
-                      icon={<AiOutlineEdit />}
-                      aria-label="Edit summary"
-                      title="Edit summary"
-                      onClick={() => setIsEditing(true)}
-                    />
-                  )}
+          <Box w="100%">
+            {isEditing ? (
+              <form onSubmit={handleSaveSummary}>
+                <Flex align="center" gap={2}>
+                  <Input
+                    flex={1}
+                    defaultValue={chat.summary}
+                    type="text"
+                    name="summary"
+                    bg="white"
+                    _dark={{ bg: "gray.700" }}
+                    size="sm"
+                    w="100%"
+                    autoFocus={true}
+                    placeholder="Chat Summary"
+                  />
+                  <ButtonGroup>
+                    <Button variant="outline" size="xs" onClick={() => setIsEditing(false)}>
+                      Cancel
+                    </Button>
+                    <Button size="xs" type="submit">
+                      Save
+                    </Button>
+                  </ButtonGroup>
                 </Flex>
-              )}
-            </Box>
-          </Flex>
+              </form>
+            ) : (
+              <Flex align="center" gap={2} maxW="100%">
+                <Box>
+                  <MdOutlineChatBubbleOutline />
+                </Box>
+                <Text fontSize="md" fontWeight="bold" noOfLines={1} title={title}>
+                  <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
+                    {title}
+                  </Link>
+                </Text>
+                {!chat.readonly && settings.currentProvider.apiKey && (
+                  <IconButton
+                    variant="ghost"
+                    size="sm"
+                    icon={<AiOutlineEdit />}
+                    aria-label="Edit summary"
+                    title="Edit summary"
+                    onClick={() => setIsEditing(true)}
+                  />
+                )}
+              </Flex>
+            )}
+          </Box>
         </CardBody>
         <CardFooter pt={0}>
           <Flex w="100%" gap={4} color="gray.500" _dark={{ color: "gray.400" }}>
