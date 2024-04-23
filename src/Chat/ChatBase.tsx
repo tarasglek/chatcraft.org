@@ -39,7 +39,7 @@ import { WebHandler } from "../lib/WebHandler";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
-import PreferencesModal from "../components/PreferencesModal";
+import PreferencesModal from "../components/Preferences/PreferencesModal";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
