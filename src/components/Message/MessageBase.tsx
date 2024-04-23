@@ -35,7 +35,7 @@ import {
 
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
-import { TbShare2, TbTrash } from "react-icons/tb";
+import { TbShare2, TbTrash, TbDownload } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
 import ResizeTextarea from "react-textarea-autosize";
 import { Menu, MenuDivider, MenuItem, SubMenu } from "../Menu";
@@ -482,21 +482,21 @@ function MessageBase({
                   )}
                 </ButtonGroup>
               )}
-              <Menu isDisabled={isLoading}>
+              <Menu align="end" isDisabled={isLoading}>
                 <MenuItem onClick={handleCopy} icon={<MdContentCopy />}>
                   Copy
                 </MenuItem>
-                <SubMenu label="Download">
-                  <MenuItem onClick={handleDownloadMarkdown}>Download as Markdown</MenuItem>
-                  <MenuItem onClick={handleDownloadPlainText}>Download as Text</MenuItem>
+                <SubMenu label="Export" icon={<TbDownload />}>
+                  <MenuItem onClick={handleDownloadMarkdown}>Export as Markdown</MenuItem>
+                  <MenuItem onClick={handleDownloadPlainText}>Export as Text</MenuItem>
                   {isTtsSupported && (
-                    <MenuItem onClick={handleDownloadAudio}>Download as Audio</MenuItem>
+                    <MenuItem onClick={handleDownloadAudio}>Export as Audio</MenuItem>
                   )}
                   <MenuItem
                     onClick={handleDownloadImage}
                     isDisabled={displaySummaryText !== false || editing}
                   >
-                    Download as Image
+                    Export as Image
                   </MenuItem>
                 </SubMenu>
                 {isTtsSupported && (
@@ -544,7 +544,7 @@ function MessageBase({
                         Delete Message
                       </MenuItem>
                     ) : (
-                      <SubMenu label="Delete">
+                      <SubMenu label="Delete" color="red.400" icon={<TbTrash />}>
                         {onDeleteBeforeClick && (
                           <MenuItem
                             onClick={onDeleteBeforeClick}
@@ -555,12 +555,12 @@ function MessageBase({
                           </MenuItem>
                         )}
                         {onDeleteClick && (
-                          <MenuItem color="red.400" onClick={onDeleteClick} icon={<TbTrash />}>
+                          <MenuItem color="red.400" onClick={onDeleteClick}>
                             Delete Message
                           </MenuItem>
                         )}
                         {onDeleteAfterClick && (
-                          <MenuItem onClick={onDeleteAfterClick} color="red.400" icon={<TbTrash />}>
+                          <MenuItem onClick={onDeleteAfterClick} color="red.400">
                             Delete Messages After
                           </MenuItem>
                         )}

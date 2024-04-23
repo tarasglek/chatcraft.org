@@ -258,26 +258,26 @@ function OptionsButton({
         </MenuItem>
       )}
       <MenuDivider />
-      <SubMenu label="Copy">
-        <MenuItem isDisabled={!chat} icon={<TbCopy />} onClick={() => handleCopyAsMarkdown()}>
+      <SubMenu label="Copy" icon={<TbCopy />}>
+        <MenuItem isDisabled={!chat} onClick={() => handleCopyAsMarkdown()}>
           Copy as Markdown
         </MenuItem>
-        <MenuItem isDisabled={!chat} icon={<TbCopy />} onClick={() => handleCopyAsJson()}>
+        <MenuItem isDisabled={!chat} onClick={() => handleCopyAsJson()}>
           Copy as JSON
         </MenuItem>
-        <MenuItem isDisabled={!chat} icon={<TbCopy />} onClick={() => handleCopyAsYaml()}>
+        <MenuItem isDisabled={!chat} onClick={() => handleCopyAsYaml()}>
           Copy as YAML
         </MenuItem>
       </SubMenu>
-      <SubMenu label="Download">
-        <MenuItem isDisabled={!chat} icon={<TbDownload />} onClick={handleDownloadMarkdown}>
-          Download as Markdown
+      <SubMenu label="Export" icon={<TbDownload />}>
+        <MenuItem isDisabled={!chat} onClick={handleDownloadMarkdown}>
+          Export as Markdown
         </MenuItem>
-        <MenuItem isDisabled={!chat} icon={<TbDownload />} onClick={handleDownloadJson}>
-          Download as JSON
+        <MenuItem isDisabled={!chat} onClick={handleDownloadJson}>
+          Export as JSON
         </MenuItem>
-        <MenuItem isDisabled={!chat} icon={<TbDownload />} onClick={handleDownloadYaml}>
-          Download as YAML
+        <MenuItem isDisabled={!chat} onClick={handleDownloadYaml}>
+          Export as YAML
         </MenuItem>
       </SubMenu>
       <ShareMenuItem chat={chat} />

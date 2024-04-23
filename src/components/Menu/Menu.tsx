@@ -26,11 +26,14 @@ const Menu: React.FC<MenuProps> = (props) => {
   return (
     <Box zIndex={theme.zIndices.dropdown}>
       <ReactMenu
-        {...props}
-        align={"end"}
-        theming={colorMode === "dark" ? "dark" : undefined}
-        menuButton={menuButton}
         transition={true}
+        theming={colorMode === "dark" ? "dark" : undefined}
+        {...props}
+        menuButton={menuButton}
+        menuStyle={{
+          minWidth: "225px",
+          ...props.menuStyle,
+        }}
       >
         {props.children}
       </ReactMenu>
