@@ -20,7 +20,7 @@ export class ChatCraftModel {
   get logoUrl() {
     const vendor = this.vendor;
 
-    if (vendor === "openai") {
+    if (vendor === "openai" && this.name.includes("gpt")) {
       return "/openai-logo.png";
     }
 
