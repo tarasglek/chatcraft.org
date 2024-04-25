@@ -271,7 +271,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       // Not a slash command, so pass this prompt to LLM
       let promptMessage: ChatCraftHumanMessage | undefined;
       try {
-        // If retrying, set the prompt to null to avoid duplicate message
+        // If retrying, empty the prompt to avoid duplicate message
         if (retry) {
           prompt = "";
         }
