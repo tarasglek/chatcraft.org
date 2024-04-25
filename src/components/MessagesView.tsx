@@ -22,7 +22,7 @@ type MessagesViewProps = {
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
-  onPrompt: (prompt?: string) => void;
+  onPrompt: (prompt?: string, imageUrls?: string[], retry?: boolean) => void;
 };
 
 function MessagesView({
@@ -99,7 +99,7 @@ function MessagesView({
           isLoading={isLoading}
           onResubmitClick={async (promptText?: string) => {
             await deleteMessages(message.id, "after");
-            onPrompt(promptText);
+            onPrompt(promptText, undefined, true); // pass prompt text and true for retry, don't include any imageURLs
           }}
           onDeleteBeforeClick={
             hasMessagesBefore ? () => deleteMessages(message.id, "before") : undefined
