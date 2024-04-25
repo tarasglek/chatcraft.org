@@ -165,10 +165,6 @@ function Instructions(props: MessageBaseProps) {
                   size={"md"}
                   bg="white"
                   _dark={{ bg: "gray.700" }}
-                  style={{
-                    color:
-                      selectedProvider instanceof FreeModelProvider ? "transparent" : "initial",
-                  }}
                   isDisabled={selectedProvider instanceof FreeModelProvider}
                   value={selectedProvider.apiKey || ""}
                   onChange={handleApiKeyChange}
