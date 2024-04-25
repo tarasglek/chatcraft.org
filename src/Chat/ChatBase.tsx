@@ -202,7 +202,7 @@ function ChatBase({ chat }: ChatBaseProps) {
 
   // Handle prompt form submission
   const onPrompt = useCallback(
-    async (prompt?: string, imageUrls?: string[]) => {
+    async (prompt?: string, imageUrls?: string[], retry: boolean = false) => {
       setLoading(true);
 
       // Special-case for "help", to invoke /help command
