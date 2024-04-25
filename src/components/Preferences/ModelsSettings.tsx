@@ -658,7 +658,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                         <PasswordInput
                           size="sm"
                           buttonSize="xs"
-                          paddingRight={"2.5rem"}
+                          paddingRight={"2rem"}
                           paddingLeft={"0.5rem"}
                           fontSize="xs"
                           value={newCustomProvider.apiKey || ""}
@@ -733,7 +733,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                               <PasswordInput
                                 size="sm"
                                 buttonSize="xs"
-                                paddingRight={"2.5rem"}
+                                paddingRight={"2rem"}
                                 paddingLeft={"0.5rem"}
                                 fontSize="xs"
                                 value={provider.apiKey || ""}

@@ -11,7 +11,7 @@ function PasswordInput({
   isInvalid,
   size = "sm",
   buttonSize = "sm",
-  paddingRight = "4.5rem",
+  paddingRight = "2.5rem",
   ...props
 }: PasswordInputProps) {
   const [show, setShow] = useState(false);
