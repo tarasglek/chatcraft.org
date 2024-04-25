@@ -187,8 +187,8 @@ function OptionsButton({
     const markdown = chat.toMarkdown();
     download(markdown, "message.md", "text/markdown");
     info({
-      title: "Downloaded",
-      message: "Chat was downloaded as a Markdown file",
+      title: "Exported",
+      message: "Chat was exported as a Markdown file",
     });
   }, [info, chat]);
 
@@ -201,8 +201,8 @@ function OptionsButton({
     const json = chat.toOpenAiFormat(model);
     download(JSON.stringify(json, null, 2), "chat.json", "application/json");
     info({
-      title: "Downloaded",
-      message: "Chat was downloaded as an OpenAI formatted JSON file",
+      title: "Exported",
+      message: "Chat was exported as an OpenAI formatted JSON file",
     });
   }, [info, settings, chat]);
 
@@ -215,8 +215,8 @@ function OptionsButton({
     const json = chat.toOpenAiFormat(model);
     download(yaml.stringify(json), "chat.yaml", "application/yaml");
     info({
-      title: "Downloaded",
-      message: "Chat was downloaded as an OpenAI formatted JSON file",
+      title: "Exported",
+      message: "Chat was exported as an OpenAI formatted YAML file",
     });
   }, [info, settings, chat]);
 
