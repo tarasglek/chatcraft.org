@@ -38,7 +38,7 @@ import { MdContentCopy } from "react-icons/md";
 import { TbShare2, TbTrash, TbDownload } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
 import ResizeTextarea from "react-textarea-autosize";
-import { Menu, MenuDivider, MenuItem, SubMenu } from "../Menu";
+import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "../Menu";
 
 import { useCopyToClipboard } from "react-use";
 import { useAlert } from "../../hooks/use-alert";
@@ -507,11 +507,9 @@ function MessageBase({
                   </MenuItem>
                 )}
                 {!disableFork && (
-                  <MenuItem>
-                    <Link as={ReactRouterLink} to={`./fork/${id}`} target="_blank">
-                      Duplicate Chat until Message...
-                    </Link>
-                  </MenuItem>
+                  <MenuItemLink to={`./fork/${id}`} target="_blank">
+                    Duplicate Chat until Message...
+                  </MenuItemLink>
                 )}
                 {onRetryClick && (
                   <>

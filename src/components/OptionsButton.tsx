@@ -1,5 +1,5 @@
-import { Button, IconButton, Input, Link, useDisclosure } from "@chakra-ui/react";
-import { Link as ReactRouterLink, useFetcher } from "react-router-dom";
+import { Button, IconButton, Input, useDisclosure } from "@chakra-ui/react";
+import { useFetcher } from "react-router-dom";
 import { TbShare2, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
 import { PiGearBold } from "react-icons/pi";
 import { BsPaperclip } from "react-icons/bs";
@@ -13,7 +13,7 @@ import { useAlert } from "../hooks/use-alert";
 import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
 import { download, compressImageToBase64 } from "../lib/utils";
-import { Menu, MenuDivider, MenuItem, SubMenu } from "./Menu";
+import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
 
 function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
   const supportsWebShare = !!navigator.share;
@@ -240,23 +240,17 @@ function OptionsButton({
         )
       }
     >
-      <MenuItem>
-        <Link as={ReactRouterLink} to="/new">
-          Clear
-        </Link>
-      </MenuItem>
-      <MenuItem>
-        <Link as={ReactRouterLink} to="/new" target="_blank">
-          New Window
-        </Link>
-      </MenuItem>
+      <MenuItemLink to="/new">Clear</MenuItemLink>
+      <MenuItemLink to="/new" target="_blank">
+        New Window
+      </MenuItemLink>
+
       {!!forkUrl && (
-        <MenuItem>
-          <Link as={ReactRouterLink} to={forkUrl} target="_blank">
-            Duplicate...
-          </Link>
-        </MenuItem>
+        <MenuItemLink to={forkUrl} target="_blank">
+          Duplicate...
+        </MenuItemLink>
       )}
+
       <MenuDivider />
       <SubMenu label="Copy" icon={<TbCopy />}>
         <MenuItem isDisabled={!chat} onClick={() => handleCopyAsMarkdown()}>
