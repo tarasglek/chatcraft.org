@@ -302,6 +302,13 @@ export class ChatCraftChat {
     });
   }
 
+  toOpenAiFormat(model: string): { messages: { role: string; content: string }[]; model: string } {
+    return {
+      messages: this._messages.map((message) => ({ role: message.type, content: message.text })),
+      model,
+    };
+  }
+
   toJSON(): SerializedChatCraftChat {
     return {
       id: this.id,

@@ -1,20 +1,11 @@
-import {
-  Button,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  MenuDivider,
-  IconButton,
-  Input,
-  useDisclosure,
-} from "@chakra-ui/react";
-import { Link as ReactRouterLink, useFetcher } from "react-router-dom";
+import { Button, IconButton, Input, useDisclosure } from "@chakra-ui/react";
+import { useFetcher } from "react-router-dom";
 import { TbShare2, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
 import { PiGearBold } from "react-icons/pi";
 import { BsPaperclip } from "react-icons/bs";
 import { useCallback, useRef } from "react";
 import { useCopyToClipboard } from "react-use";
+import * as yaml from "yaml";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useUser } from "../hooks/use-user";
@@ -22,7 +13,7 @@ import { useAlert } from "../hooks/use-alert";
 import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
 import { download, compressImageToBase64 } from "../lib/utils";
-import theme from "../theme";
+import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
 
 function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
   const supportsWebShare = !!navigator.share;
@@ -142,30 +133,6 @@ function OptionsButton({
     fileInputRef.current?.click();
   }, [fileInputRef]);
 
-  const handleCopyClick = useCallback(() => {
-    if (!chat) {
-      return;
-    }
-
-    const text = chat.toMarkdown();
-    copyToClipboard(text);
-    info({
-      title: "Chat copied to clipboard",
-    });
-  }, [chat, copyToClipboard, info]);
-
-  const handleDownloadClick = useCallback(() => {
-    if (!chat) {
-      return;
-    }
-
-    const text = chat.toMarkdown();
-    download(text, "chat.md", "text/markdown");
-    info({
-      title: "Chat downloaded as Markdown",
-    });
-  }, [chat, info]);
-
   const handleDeleteClick = useCallback(() => {
     if (!chat) {
       return;
@@ -174,76 +141,167 @@ function OptionsButton({
     fetcher.submit({}, { method: "post", action: `/c/${chat.id}/delete` });
   }, [chat, fetcher]);
 
+  const handleCopyAsMarkdown = useCallback(() => {
+    if (!chat) {
+      return;
+    }
+
+    const markdown = chat.toMarkdown();
+    copyToClipboard(markdown);
+    info({
+      title: "Chat copied to clipboard as Markdown",
+    });
+  }, [chat, copyToClipboard, info]);
+
+  const handleCopyAsJson = useCallback(() => {
+    if (!chat) {
+      return;
+    }
+
+    const model = settings.model.name;
+    const json = chat.toOpenAiFormat(model);
+    copyToClipboard(JSON.stringify(json, null, 2));
+    info({
+      title: "Chat copied to clipboard as JSON",
+    });
+  }, [chat, settings, copyToClipboard, info]);
+
+  const handleCopyAsYaml = useCallback(() => {
+    if (!chat) {
+      return;
+    }
+
+    const model = settings.model.name;
+    const json = chat.toOpenAiFormat(model);
+    copyToClipboard(yaml.stringify(json));
+    info({
+      title: "Chat copied to clipboard as YAML",
+    });
+  }, [chat, settings, copyToClipboard, info]);
+
+  const handleDownloadMarkdown = useCallback(() => {
+    if (!chat) {
+      return;
+    }
+
+    const markdown = chat.toMarkdown();
+    download(markdown, "message.md", "text/markdown");
+    info({
+      title: "Exported",
+      message: "Chat was exported as a Markdown file",
+    });
+  }, [info, chat]);
+
+  const handleDownloadJson = useCallback(() => {
+    if (!chat) {
+      return;
+    }
+
+    const model = settings.model.name;
+    const json = chat.toOpenAiFormat(model);
+    download(JSON.stringify(json, null, 2), "chat.json", "application/json");
+    info({
+      title: "Exported",
+      message: "Chat was exported as an OpenAI formatted JSON file",
+    });
+  }, [info, settings, chat]);
+
+  const handleDownloadYaml = useCallback(() => {
+    if (!chat) {
+      return;
+    }
+
+    const model = settings.model.name;
+    const json = chat.toOpenAiFormat(model);
+    download(yaml.stringify(json), "chat.yaml", "application/yaml");
+    info({
+      title: "Exported",
+      message: "Chat was exported as an OpenAI formatted YAML file",
+    });
+  }, [info, settings, chat]);
+
   return (
-    <Menu strategy="fixed">
-      {iconOnly ? (
-        <MenuButton
-          isDisabled={isDisabled}
-          as={IconButton}
-          size="lg"
-          variant="outline"
-          icon={<PiGearBold />}
-          isRound
-        />
-      ) : (
-        <MenuButton
-          isDisabled={isDisabled}
-          as={Button}
-          size="sm"
-          variant={variant}
-          leftIcon={<PiGearBold />}
-        >
-          Options
-        </MenuButton>
+    <Menu
+      isDisabled={isDisabled}
+      menuButton={
+        iconOnly ? (
+          <IconButton
+            aria-label="Options menu"
+            isDisabled={isDisabled}
+            size="lg"
+            variant="outline"
+            icon={<PiGearBold />}
+            isRound
+          />
+        ) : (
+          <Button isDisabled={isDisabled} size="sm" variant={variant} leftIcon={<PiGearBold />}>
+            Options
+          </Button>
+        )
+      }
+    >
+      <MenuItemLink to="/new">Clear</MenuItemLink>
+      <MenuItemLink to="/new" target="_blank">
+        New Window
+      </MenuItemLink>
+
+      {!!forkUrl && (
+        <MenuItemLink to={forkUrl} target="_blank">
+          Duplicate...
+        </MenuItemLink>
       )}
-      <MenuList zIndex={theme.zIndices.dropdown}>
-        <MenuItem as={ReactRouterLink} to="/new">
-          Clear
+
+      <MenuDivider />
+      <SubMenu label="Copy" icon={<TbCopy />}>
+        <MenuItem isDisabled={!chat} onClick={() => handleCopyAsMarkdown()}>
+          Copy as Markdown
         </MenuItem>
-        <MenuItem as={ReactRouterLink} to="/new" target="_blank">
-          New Window
+        <MenuItem isDisabled={!chat} onClick={() => handleCopyAsJson()}>
+          Copy as JSON
         </MenuItem>
-        {!!forkUrl && (
-          <MenuItem as={ReactRouterLink} to={forkUrl} target="_blank">
-            Duplicate...
+        <MenuItem isDisabled={!chat} onClick={() => handleCopyAsYaml()}>
+          Copy as YAML
+        </MenuItem>
+      </SubMenu>
+      <SubMenu label="Export" icon={<TbDownload />}>
+        <MenuItem isDisabled={!chat} onClick={handleDownloadMarkdown}>
+          Export as Markdown
+        </MenuItem>
+        <MenuItem isDisabled={!chat} onClick={handleDownloadJson}>
+          Export as JSON
+        </MenuItem>
+        <MenuItem isDisabled={!chat} onClick={handleDownloadYaml}>
+          Export as YAML
+        </MenuItem>
+      </SubMenu>
+      <ShareMenuItem chat={chat} />
+      <MenuDivider />
+      {!!onFileSelected && (
+        <>
+          <Input
+            multiple
+            type="file"
+            ref={fileInputRef}
+            hidden
+            onChange={handleFileChange}
+            accept="image/*"
+          />
+          <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
+            Attach Files...
           </MenuItem>
-        )}
-        <MenuDivider />
-        <MenuItem isDisabled={!chat} icon={<TbCopy />} onClick={() => handleCopyClick()}>
-          Copy
+          <MenuDivider />
+        </>
+      )}
+      {!chat?.readonly && (
+        <MenuItem
+          color="red.400"
+          icon={<TbTrash />}
+          isDisabled={!chat}
+          onClick={() => handleDeleteClick()}
+        >
+          Delete Chat
         </MenuItem>
-        <MenuItem icon={<TbDownload />} isDisabled={!chat} onClick={() => handleDownloadClick()}>
-          Download
-        </MenuItem>
-        <ShareMenuItem chat={chat} />
-        <MenuDivider />
-        {!!onFileSelected && (
-          <>
-            <Input
-              multiple
-              type="file"
-              ref={fileInputRef}
-              hidden
-              onChange={handleFileChange}
-              accept="image/*"
-            />
-            <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
-              Attach Files...
-            </MenuItem>
-            <MenuDivider />
-          </>
-        )}
-        {!chat?.readonly && (
-          <MenuItem
-            color="red.400"
-            icon={<TbTrash />}
-            isDisabled={!chat}
-            onClick={() => handleDeleteClick()}
-          >
-            Delete Chat
-          </MenuItem>
-        )}
-      </MenuList>
+      )}
     </Menu>
   );
 }
