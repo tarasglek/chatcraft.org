@@ -60,7 +60,7 @@ export class ImportCommand extends ChatCraftCommand {
         // Parse the HTML string into a Document object
         const doc = parser.parseFromString(content, "text/html");
         // Extract error message
-        const errorMessage = doc.getElementsByClassName("error-message")[0].innerHTML;
+        const errorMessage = doc.getElementsByClassName("error-message")[0].innerHTML.trim();
         throw new Error(`${errorMessage}`);
       } else {
         throw new Error(`Unable to proxy request for URL: ${res.statusText}`);
