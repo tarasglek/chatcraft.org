@@ -1,7 +1,7 @@
 import { ChatCraftCommand } from "../ChatCraftCommand";
 import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
-
+import { load } from "cheerio";
 // To keep this small, just deal with some common cases vs doing proper parser/list
 const guessType = (contentType: string | null) => {
   if (!contentType) {
@@ -49,12 +49,21 @@ export class ImportCommand extends ChatCraftCommand {
     const [url] = args;
 
     const res = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
-    if (!res.ok) {
-      throw new Error(`Unable to proxy request for URL: ${res.statusText}`);
-    }
-
     const type = guessType(res.headers.get("Content-Type"));
     const content = (await res.text()).trim();
+
+    if (!res.ok) {
+      // If res.text() is a CloudFlare Worker error page (HTML), extract the error message
+      if (type === "html") {
+        // Load HTML content using Cheerio
+        const htmlContent = load(content);
+        // Error message located in 'error-message'
+        const errorMessage = htmlContent(".error-message").html();
+        throw new Error(`${errorMessage}`);
+      } else {
+        throw new Error(`Unable to proxy request for URL: ${res.statusText}`);
+      }
+    }
 
     const command = `**Command**: import [${url}](${url})`;
     const text =
