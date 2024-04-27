@@ -1,7 +1,7 @@
 import { ChatCraftCommand } from "../ChatCraftCommand";
 import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
-import { load } from "cheerio";
+
 // To keep this small, just deal with some common cases vs doing proper parser/list
 const guessType = (contentType: string | null) => {
   if (!contentType) {
@@ -55,10 +55,12 @@ export class ImportCommand extends ChatCraftCommand {
     if (!res.ok) {
       // If res.text() is a CloudFlare Worker error page (HTML), extract the error message
       if (type === "html") {
-        // Load HTML content using Cheerio
-        const htmlContent = load(content);
-        // Error message located in 'error-message'
-        const errorMessage = htmlContent(".error-message").html();
+        // Create a new DOMParser instance
+        const parser = new DOMParser();
+        // Parse the HTML string into a Document object
+        const doc = parser.parseFromString(content, "text/html");
+        // Extract error message
+        const errorMessage = doc.getElementsByClassName("error-message")[0].innerHTML;
         throw new Error(`${errorMessage}`);
       } else {
         throw new Error(`Unable to proxy request for URL: ${res.statusText}`);
