@@ -1,5 +1,6 @@
+import { ToastId, UseToastOptions, useToast } from "@chakra-ui/react";
 import { useCallback } from "react";
-import { useToast } from "@chakra-ui/react";
+import ProgressToast from "../components/ProgressToast";
 import useMobileBreakpoint from "./use-mobile-breakpoint";
 
 export type AlertArguments = {
@@ -85,10 +86,55 @@ export function useAlert() {
     [toast]
   );
 
+  type ProgressAlertArguements = Omit<AlertArguments, "id"> & {
+    id?: ToastId;
+    progressPercentage: number;
+  };
+
+  const progress = useCallback(
+    ({ id, title, message, progressPercentage }: ProgressAlertArguements) => {
+      const toastOptions: UseToastOptions = {
+        status: "loading",
+        position: "top",
+        isClosable: false,
+        duration: null,
+        render: () => (
+          <ProgressToast
+            title={title}
+            message={message}
+            progressPercentage={progressPercentage}
+          ></ProgressToast>
+        ),
+      };
+
+      if (id) {
+        if (toast.isActive(id)) {
+          toast.update(id, toastOptions);
+        }
+      } else {
+        return toast({
+          ...toastOptions,
+        });
+      }
+    },
+    [toast]
+  );
+
+  const closeToast = useCallback(
+    (toastId?: ToastId) => {
+      if (toastId) {
+        toast.close(toastId);
+      }
+    },
+    [toast]
+  );
+
   return {
     info,
     error,
     success,
     warning,
+    progress,
+    closeToast,
   };
 }

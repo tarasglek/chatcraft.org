@@ -35,7 +35,7 @@ import {
 
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
-import { TbShare2, TbTrash, TbDownload } from "react-icons/tb";
+import { TbDownload, TbShare2, TbTrash } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
 import ResizeTextarea from "react-textarea-autosize";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "../Menu";
@@ -53,14 +53,7 @@ import {
   ChatCraftSystemMessage,
 } from "../../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
-import {
-  download,
-  formatDate,
-  formatNumber,
-  getMetaKey,
-  screenshotElement,
-  utilizeAlert,
-} from "../../lib/utils";
+import { download, formatDate, formatNumber, getMetaKey, screenshotElement } from "../../lib/utils";
 import ImageModal from "../ImageModal";
 import Markdown from "../Markdown";
 
@@ -127,7 +120,7 @@ function MessageBase({
     return !!models.filter((model) => model.id.includes("tts"))?.length;
   }, [models]);
   const { onCopy } = useClipboard(text);
-  const { info, error } = useAlert();
+  const { info, error, progress, closeToast } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
   const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
@@ -256,16 +249,18 @@ function MessageBase({
     if (messageContent.current) {
       const text = messageContent.current.textContent;
       if (text) {
-        const { loading, closeLoading } = await utilizeAlert();
-
-        const alertId = loading({
+        const alertId = progress({
           title: "Downloading...",
           message: "Please wait while we prepare your audio download.",
+          progressPercentage: 0,
         });
 
         try {
           const textChunks = getSentenceChunksFrom(text, 500);
-          const audioClips: Blob[] = new Array<Blob>(textChunks.length);
+          const chunksToBeProcessed = textChunks.length;
+          const audioClips: Blob[] = new Array<Blob>(chunksToBeProcessed);
+
+          let chunksProcessed = 0;
 
           // Limit the number of concurrent tasks
           const pLimit = (await import("p-limit")).default;
@@ -282,6 +277,15 @@ function MessageBase({
 
               const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
               audioClips[index] = audioClip;
+
+              ++chunksProcessed;
+              const processedPercentage = Math.floor(chunksProcessed / chunksToBeProcessed);
+              progress({
+                id: alertId,
+                title: "Downloading...",
+                message: "Please wait while we prepare your audio download.",
+                progressPercentage: processedPercentage,
+              });
             });
           });
 
@@ -296,7 +300,7 @@ function MessageBase({
             audioClip.type
           );
 
-          closeLoading(alertId);
+          closeToast(alertId);
           info({
             title: "Downloaded",
             message: "Message was downloaded as Audio",
@@ -304,12 +308,19 @@ function MessageBase({
         } catch (err: any) {
           console.error(err);
 
-          closeLoading(alertId);
+          closeToast(alertId);
           error({ title: "Error while downloading audio", message: err.message });
         }
       }
     }
-  }, [error, info, settings.currentProvider.name, settings.textToSpeech.voice]);
+  }, [
+    closeToast,
+    error,
+    info,
+    progress,
+    settings.currentProvider.name,
+    settings.textToSpeech.voice,
+  ]);
 
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     messageForm.current?.setAttribute("data-action", e.currentTarget.name);
