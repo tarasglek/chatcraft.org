@@ -59,9 +59,9 @@ export class ImportCommand extends ChatCraftCommand {
         const parser = new DOMParser();
         // Parse the HTML string into a Document object
         const doc = parser.parseFromString(content, "text/html");
-        // Extract error message
-        const errorMessage = doc.getElementsByClassName("error-message")[0].innerHTML.trim();
-        throw new Error(`${errorMessage}`);
+        // Try to extract CloudFlare error message from HTML
+        const errorMessage = doc.querySelector(".error-message")?.innerHTML?.trim();
+        throw new Error(errorMessage ?? `Unable to proxy request for URL: ${res.statusText}`);
       } else {
         throw new Error(`Unable to proxy request for URL: ${res.statusText}`);
       }
