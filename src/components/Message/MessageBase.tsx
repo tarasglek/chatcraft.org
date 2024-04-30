@@ -544,11 +544,7 @@ function MessageBase({
                     ) : (
                       <SubMenu label="Delete" color="red.400" icon={<TbTrash />}>
                         {onDeleteBeforeClick && (
-                          <MenuItem
-                            onClick={onDeleteBeforeClick}
-                            color="red.400"
-                            icon={<TbTrash />}
-                          >
+                          <MenuItem onClick={onDeleteBeforeClick} color="red.400">
                             Delete Messages Before
                           </MenuItem>
                         )}
