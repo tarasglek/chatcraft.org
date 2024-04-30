@@ -138,7 +138,9 @@ function MessageBase({
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
-  const isLongMessage = text.length > 5000;
+  const isSystemMessage = message instanceof ChatCraftSystemMessage;
+  const isLongMessage =
+    text.length > 5000 || (isSystemMessage && summaryText && text.length > summaryText.length);
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
   const shouldShowDeleteMenu =
     Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick) && !disableEdit;
@@ -659,11 +661,28 @@ function MessageBase({
                   >
                     {displaySummaryText ? summaryText || text.slice(0, 500).trim() : text}
                   </Markdown>
-                  {isLongMessage ? (
-                    <Button zIndex={10} size="sm" variant="ghost" onClick={() => onToggle()}>
+                  <Flex w="100%" justify="space-between" align="center">
+                    <Button
+                      hidden={!isLongMessage || editing}
+                      zIndex={10}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onToggle()}
+                    >
                       {isOpen ? "Show Less" : "Show More..."}
                     </Button>
-                  ) : undefined}
+                    <Button
+                      hidden={!!disableEdit || !isSystemMessage}
+                      size="sm"
+                      variant="ghost"
+                      ml="auto"
+                      onClick={() => onEditingChange(true)}
+                    >
+                      <Text fontSize="xs" as="em">
+                        Edit to customize
+                      </Text>
+                    </Button>
+                  </Flex>
                 </Box>
               )}
             </Box>
