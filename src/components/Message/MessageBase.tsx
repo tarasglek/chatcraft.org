@@ -140,7 +140,7 @@ function MessageBase({
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
   const isSystemMessage = message instanceof ChatCraftSystemMessage;
   const isLongMessage =
-    text.length > 5000 || (isSystemMessage && text.length > summaryText!.length);
+    text.length > 5000 || (isSystemMessage && text.length > (summaryText ?? "").length);
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
   const shouldShowDeleteMenu =
     Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick) && !disableEdit;
