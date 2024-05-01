@@ -45,7 +45,7 @@ ${combineCaptions(captions.map(({ text }) => text?.trim() ?? ""))}`;
         headers: { "Content-Type": "text/markdown; charset=UTF-8" },
       });
     } catch (error) {
-      return new Response(`**Error**: ${error?.message}`, {
+      return new Response(`Error: ${error?.message}`, {
         headers: { "Content-Type": "text/markdown; charset=UTF-8" },
       });
     }
