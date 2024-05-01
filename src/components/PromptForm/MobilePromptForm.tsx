@@ -16,7 +16,15 @@ import { updateImageUrls } from "../../lib/utils";
 type MobilePromptFormProps = {
   chat: ChatCraftChat;
   forkUrl: string;
-  onSendClick: (prompt: string, imageUrls: string[]) => void;
+  onSendClick: ({
+    prompt,
+    imageUrls,
+    retry,
+  }: {
+    prompt?: string;
+    imageUrls?: string[];
+    retry?: boolean;
+  }) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
@@ -91,7 +99,7 @@ function MobilePromptForm({
     const textValue = prompt.trim();
     setPrompt("");
     setInputImageUrls([]);
-    onSendClick(textValue, inputImageUrls);
+    onSendClick({ prompt: textValue, imageUrls: inputImageUrls });
   };
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
@@ -152,7 +160,7 @@ function MobilePromptForm({
     setIsTranscribing(false);
 
     // Use this transcript as our prompt
-    onSendClick(transcription, inputImageUrls);
+    onSendClick({ prompt: transcription, imageUrls: inputImageUrls });
     setInputImageUrls([]);
   };
 
