@@ -209,7 +209,7 @@ function ChatBase({ chat }: ChatBaseProps) {
     }: {
       prompt?: string;
       imageUrls?: string[];
-      retry: boolean;
+      retry?: boolean;
     }) => {
       setLoading(true);
 
@@ -358,7 +358,7 @@ function ChatBase({ chat }: ChatBaseProps) {
 
           // If the user has opted to always send function results back to LLM, do it now
           if (settings.alwaysSendFunctionResult) {
-            await onPrompt();
+            await onPrompt({});
           }
 
           forceScroll();
