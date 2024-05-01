@@ -63,7 +63,15 @@ function KeyboardHint({ isVisible }: KeyboardHintProps) {
 type DesktopPromptFormProps = {
   chat: ChatCraftChat;
   forkUrl: string;
-  onSendClick: (prompt: string, imageUrls: string[]) => void;
+  onSendClick: ({
+    prompt,
+    imageUrls,
+    retry,
+  }: {
+    prompt?: string;
+    imageUrls?: string[];
+    retry?: boolean;
+  }) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
@@ -166,7 +174,7 @@ function DesktopPromptForm({
     const textValue = prompt.trim();
     setPrompt("");
     setInputImageUrls([]);
-    onSendClick(textValue, inputImageUrls);
+    onSendClick({ prompt: textValue, imageUrls: inputImageUrls });
   };
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
@@ -219,7 +227,7 @@ function DesktopPromptForm({
 
   const handleTranscriptionAvailable = (transcription: string) => {
     // Use this transcript as our prompt
-    onSendClick(transcription, inputImageUrls);
+    onSendClick({ prompt: transcription, imageUrls: inputImageUrls });
     setIsRecording(false);
     setIsTranscribing(false);
     setInputImageUrls([]);
