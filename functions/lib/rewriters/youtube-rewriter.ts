@@ -28,20 +28,26 @@ export class YouTubeRewriter extends DefaultRewriter {
   }
 
   async fetchData(url: URL) {
-    const videoInfo = getVideoId(url.href);
-    if (!videoInfo.id) {
-      throw new Error(`Unable to parse YouTube video ID from URL ${url.href}`);
-    }
+    try {
+      const videoInfo = getVideoId(url.href);
+      if (!videoInfo.id) {
+        throw new Error(`Unable to parse YouTube video ID from URL ${url.href}`);
+      }
 
-    const videoId = videoInfo.id;
-    // TODO: could allow passing lang so we can pass to getSubtitles
-    const captions: WebVTTCaption[] = await getSubtitles({ videoID: videoInfo.id, lang: "en" });
-    const text = `[![http://www.youtube.com/watch?v=${videoId}](http://img.youtube.com/vi/${videoId}/0.jpg)](http://www.youtube.com/watch?v=${videoId})
+      const videoId = videoInfo.id;
+      // TODO: could allow passing lang so we can pass to getSubtitles
+      const captions: WebVTTCaption[] = await getSubtitles({ videoID: videoInfo.id, lang: "en" });
+      const text = `[![http://www.youtube.com/watch?v=${videoId}](http://img.youtube.com/vi/${videoId}/0.jpg)](http://www.youtube.com/watch?v=${videoId})
 
 ${combineCaptions(captions.map(({ text }) => text?.trim() ?? ""))}`;
 
-    return new Response(text, {
-      headers: { "Content-Type": "text/markdown; charset=UTF-8" },
-    });
+      return new Response(text, {
+        headers: { "Content-Type": "text/markdown; charset=UTF-8" },
+      });
+    } catch (error) {
+      return new Response(`Error: ${error?.message}`, {
+        headers: { "Content-Type": "text/markdown; charset=UTF-8" },
+      });
+    }
   }
 }
