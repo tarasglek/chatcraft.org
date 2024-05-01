@@ -53,7 +53,15 @@ const fixLanguageName = (language: string | null) => {
 type MarkdownProps = {
   previewCode?: boolean;
   isLoading: boolean;
-  onPrompt?: (prompt: string) => void;
+  onPrompt?: ({
+    prompt,
+    imageUrls,
+    retry,
+  }: {
+    prompt?: string;
+    imageUrls?: string[];
+    retry?: boolean;
+  }) => void;
   children: string;
   className?: string;
 };
