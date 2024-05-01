@@ -39,7 +39,7 @@ function FunctionResultMessage(props: FunctionMessageProps) {
           Always send
         </Checkbox>
         {!settings.alwaysSendFunctionResult && (
-          <Button size="xs" onClick={() => onPrompt()}>
+          <Button size="xs" onClick={() => onPrompt({})}>
             Send
           </Button>
         )}
