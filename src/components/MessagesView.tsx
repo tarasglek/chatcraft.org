@@ -22,15 +22,7 @@ type MessagesViewProps = {
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
-  onPrompt: ({
-    prompt,
-    imageUrls,
-    retry,
-  }: {
-    prompt?: string;
-    imageUrls?: string[];
-    retry?: boolean;
-  }) => void;
+  onPrompt: (options?: { prompt?: string; imageUrls?: string[]; retry?: boolean }) => void;
 };
 
 function MessagesView({
