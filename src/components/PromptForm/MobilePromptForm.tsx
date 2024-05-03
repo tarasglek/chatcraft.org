@@ -12,11 +12,12 @@ import AudioStatus from "./AudioStatus";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { updateImageUrls } from "../../lib/utils";
+import { OnPromptFunction } from "../../lib/OnPromptFunction";
 
 type MobilePromptFormProps = {
   chat: ChatCraftChat;
   forkUrl: string;
-  onSendClick: (options?: { prompt?: string; imageUrls?: string[]; retry?: boolean }) => void;
+  onSendClick: OnPromptFunction;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;

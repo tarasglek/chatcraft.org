@@ -14,13 +14,14 @@ import AppMessage from "./AppMessage";
 import SystemMessage from "./SystemMessage";
 import FunctionCallMessage from "./FunctionCallMessage";
 import FunctionResultMessage from "./FunctionResultMessage";
+import { OnPromptFunction } from "../../lib/OnPromptFunction";
 
 type MessageProps = {
   message: ChatCraftMessage;
   chatId: string;
   isLoading: boolean;
   hidePreviews?: boolean;
-  onPrompt?: (options?: { prompt?: string; imageUrls?: string[]; retry?: boolean }) => void;
+  onPrompt?: OnPromptFunction;
   onResubmitClick?: () => void;
   onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;

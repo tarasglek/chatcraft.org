@@ -29,6 +29,7 @@ import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import { useAlert } from "../../hooks/use-alert";
 import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
+import { OnPromptFunction } from "../../lib/OnPromptFunction";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -63,7 +64,7 @@ function KeyboardHint({ isVisible }: KeyboardHintProps) {
 type DesktopPromptFormProps = {
   chat: ChatCraftChat;
   forkUrl: string;
-  onSendClick: (options?: { prompt?: string; imageUrls?: string[]; retry?: boolean }) => void;
+  onSendClick: OnPromptFunction;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;

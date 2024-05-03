@@ -74,6 +74,7 @@ import { textToSpeech } from "../../lib/ai";
 import { usingOfficialOpenAI } from "../../lib/providers";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
+import { OnPromptFunction } from "../../lib/OnPromptFunction";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -87,7 +88,7 @@ export interface MessageBaseProps {
   footer?: ReactNode;
   isLoading: boolean;
   hidePreviews?: boolean;
-  onPrompt?: (options?: { prompt?: string; imageUrls?: string[]; retry?: boolean }) => void;
+  onPrompt?: OnPromptFunction;
   onResubmitClick?: (promptText?: string) => void;
   onDeleteBeforeClick?: () => void;
   onDeleteClick?: () => void;

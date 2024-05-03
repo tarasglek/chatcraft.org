@@ -13,6 +13,7 @@ import {
 import { useSettings } from "../hooks/use-settings";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useAlert } from "../hooks/use-alert";
+import { OnPromptFunction } from "../lib/OnPromptFunction";
 
 type MessagesViewProps = {
   chat: ChatCraftChat;
@@ -22,7 +23,7 @@ type MessagesViewProps = {
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
-  onPrompt: (options?: { prompt?: string; imageUrls?: string[]; retry?: boolean }) => void;
+  onPrompt: OnPromptFunction;
 };
 
 function MessagesView({
