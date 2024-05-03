@@ -206,11 +206,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       prompt,
       imageUrls,
       retry = false,
-    }: {
-      prompt?: string;
-      imageUrls?: string[];
-      retry?: boolean;
-    }) => {
+    }: { prompt?: string; imageUrls?: string[]; retry?: boolean } = {}) => {
       setLoading(true);
 
       // Special-case for "help", to invoke /help command
