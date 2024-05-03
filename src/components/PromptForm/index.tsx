@@ -9,15 +9,7 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 export type PromptFormProps = {
   chat: ChatCraftChat;
   forkUrl: string;
-  onSendClick: ({
-    prompt,
-    imageUrls,
-    retry,
-  }: {
-    prompt?: string;
-    imageUrls?: string[];
-    retry?: boolean;
-  }) => void;
+  onSendClick: (options?: { prompt?: string; imageUrls?: string[]; retry?: boolean }) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
