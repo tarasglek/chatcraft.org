@@ -68,6 +68,11 @@ function ChatBase({ chat }: ChatBaseProps) {
     onClose: onPrefModalClose,
   } = useDisclosure();
 
+  useEffect(() => {
+    const providersLength = Object.keys(settings.providers).length;
+    setShowAlert(providersLength === 0);
+  }, [settings.providers]);
+
   // Set focus on Prompt Input text area
   const handleChatInputFocus = useCallback((e: KeyboardEvent) => {
     e.preventDefault();
@@ -374,7 +379,7 @@ function ChatBase({ chat }: ChatBaseProps) {
 
   const defaultProviderAlert = useMemo(() => {
     // If we are using default provider, show alert banner to notify user
-    if (showAlert && settings.currentProvider instanceof FreeModelProvider) {
+    if (showAlert) {
       return (
         <Alert status="info" variant="solid" sx={{ py: 1 }}>
           <AlertIcon boxSize="4" />
