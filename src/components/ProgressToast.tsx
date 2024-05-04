@@ -3,9 +3,15 @@ import { AlertArguments } from "../hooks/use-alert";
 
 type ProgressAlertArguements = AlertArguments & {
   progressPercentage: number;
+  showPercentage: boolean;
 };
 
-function ProgressToast({ title, message, progressPercentage }: ProgressAlertArguements) {
+function ProgressToast({
+  title,
+  message,
+  progressPercentage,
+  showPercentage,
+}: ProgressAlertArguements) {
   return (
     <Flex
       bgColor={useColorModeValue("blue.500", "blue.200")}
@@ -28,16 +34,20 @@ function ProgressToast({ title, message, progressPercentage }: ProgressAlertArgu
       </Flex>
 
       {/* The 'css' hack is to animate the progress bar as value changes */}
-      <Progress
-        value={progressPercentage}
-        size="xs"
-        colorScheme="whatsapp"
-        css={{
-          "> div:first-of-type": {
-            transition: "width 500ms ease-in-out",
-          },
-        }}
-      />
+      <Flex alignItems={"center"} gap={2}>
+        {showPercentage && <Text>{progressPercentage}%</Text>}
+        <Progress
+          flexGrow={1}
+          value={progressPercentage}
+          size="xs"
+          colorScheme="whatsapp"
+          css={{
+            "> div:first-of-type": {
+              transition: "width 500ms ease-in-out",
+            },
+          }}
+        />
+      </Flex>
     </Flex>
   );
 }
