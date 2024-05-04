@@ -89,10 +89,11 @@ export function useAlert() {
   type ProgressAlertArguements = Omit<AlertArguments, "id"> & {
     id?: ToastId;
     progressPercentage: number;
+    updateOnly?: boolean;
   };
 
   const progress = useCallback(
-    ({ id, title, message, progressPercentage }: ProgressAlertArguements) => {
+    ({ id, title, message, progressPercentage, updateOnly = false }: ProgressAlertArguements) => {
       const toastOptions: UseToastOptions = {
         status: "loading",
         position: "top",
@@ -111,7 +112,7 @@ export function useAlert() {
         if (toast.isActive(id)) {
           toast.update(id, toastOptions);
         }
-      } else {
+      } else if (!updateOnly) {
         return toast({
           ...toastOptions,
         });

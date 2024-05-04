@@ -255,17 +255,16 @@ function MessageBase({
           progressPercentage: 0,
         });
 
+        // Limit the number of concurrent tasks
+        const pLimit = (await import("p-limit")).default;
+        const limit = pLimit(8); // Adjust the concurrency limit as needed
+
         try {
           const textChunks = getSentenceChunksFrom(text, 500);
           const chunksToBeProcessed = textChunks.length;
           const audioClips: Blob[] = new Array<Blob>(chunksToBeProcessed);
 
           let chunksProcessed = 0;
-
-          // Limit the number of concurrent tasks
-          const pLimit = (await import("p-limit")).default;
-
-          const limit = pLimit(8); // Adjust the concurrency limit as needed
 
           const tasks = textChunks.map((textChunk, index) => {
             return limit(async () => {
@@ -279,12 +278,13 @@ function MessageBase({
               audioClips[index] = audioClip;
 
               ++chunksProcessed;
-              const processedPercentage = Math.floor(chunksProcessed / chunksToBeProcessed);
+              const processedPercentage = Math.floor((chunksProcessed * 100) / chunksToBeProcessed);
               progress({
                 id: alertId,
                 title: "Downloading...",
                 message: "Please wait while we prepare your audio download.",
                 progressPercentage: processedPercentage,
+                updateOnly: true,
               });
             });
           });
@@ -310,6 +310,7 @@ function MessageBase({
 
           closeToast(alertId);
           error({ title: "Error while downloading audio", message: err.message });
+          limit.clearQueue();
         }
       }
     }
