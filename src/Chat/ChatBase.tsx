@@ -61,7 +61,7 @@ function ChatBase({ chat }: ChatBaseProps) {
   const { error } = useAlert();
   const { user } = useUser();
   const { clearAudioQueue } = useAudioPlayer();
-  const [showAlert, setShowAlert] = useState(true);
+  const [showAlert, setShowAlert] = useState(false);
   const {
     isOpen: isPrefModalOpen,
     onOpen: onPrefModalOpen,
