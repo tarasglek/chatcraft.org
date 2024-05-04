@@ -61,6 +61,15 @@ export default defineConfig({
         theme_color: "#ffffff",
         background_color: "#ffffff",
         display: "standalone",
+        share_target: {
+          action: "https://chatcraft.org/",
+          method: "GET",
+          params: {
+            title: "name",
+            text: "description",
+            url: "link",
+          },
+        },
       },
       workbox: {
         globIgnores: [
