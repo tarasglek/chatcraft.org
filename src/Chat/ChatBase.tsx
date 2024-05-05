@@ -40,7 +40,7 @@ import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import { FreeModelProvider } from "../lib/providers/DefaultProvider/FreeModelProvider";
 import PreferencesModal from "../components/Preferences/PreferencesModal";
-import { OnPromptFunction } from "../lib/OnPromptFunction";
+import { OnPromptFunction, PromptFunctionOptions } from "../lib/OnPromptFunction";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -203,7 +203,7 @@ function ChatBase({ chat }: ChatBaseProps) {
 
   // Handle prompt form submission
   const onPrompt: OnPromptFunction = useCallback(
-    async (options?: { prompt?: string; imageUrls?: string[]; retry?: boolean }) => {
+    async (options?: PromptFunctionOptions) => {
       let prompt = options?.prompt;
       const { imageUrls, retry } = options || {};
       setLoading(true);
