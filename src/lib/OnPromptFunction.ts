@@ -1,5 +1,7 @@
-export type OnPromptFunction = (options?: {
+export type PromptFunctionOptions = {
   prompt?: string;
   imageUrls?: string[];
   retry?: boolean;
-}) => void;
+};
+
+export type OnPromptFunction = (options?: PromptFunctionOptions) => void;
