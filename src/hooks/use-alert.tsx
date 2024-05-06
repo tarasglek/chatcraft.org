@@ -91,6 +91,7 @@ export function useAlert() {
     progressPercentage: number;
     updateOnly?: boolean;
     showPercentage?: boolean;
+    isClosable?: boolean;
   };
 
   const progress = useCallback(
@@ -101,18 +102,20 @@ export function useAlert() {
       progressPercentage,
       updateOnly = false,
       showPercentage = true,
+      isClosable = true,
     }: ProgressAlertArguements) => {
       const toastOptions: UseToastOptions = {
         status: "loading",
         position: "top",
-        isClosable: false,
+        isClosable: isClosable,
         duration: null,
-        render: () => (
+        render: ({ onClose }) => (
           <ProgressToast
             title={title}
             message={message}
             progressPercentage={progressPercentage}
             showPercentage={showPercentage}
+            onClose={isClosable ? onClose : undefined}
           ></ProgressToast>
         ),
       };
