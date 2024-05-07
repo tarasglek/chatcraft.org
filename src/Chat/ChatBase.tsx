@@ -376,28 +376,30 @@ function ChatBase({ chat }: ChatBaseProps) {
     // If we are using default provider, show alert banner to notify user
     if (showAlert && settings.currentProvider instanceof FreeModelProvider) {
       return (
-        <Alert status="info" variant="solid" sx={{ py: 1 }}>
-          <AlertIcon boxSize="4" />
-          <AlertDescription fontSize="sm">
-            You are using the default free AI Provider, which has limited features.{" "}
-            <Text
-              as="span"
-              cursor="pointer"
-              fontSize="sm"
-              textDecoration="underline"
-              onClick={onPrefModalOpen}
-            >
-              Click here
-            </Text>{" "}
-            to add other AI providers.
-          </AlertDescription>
-          <CloseButton
-            position="absolute"
-            right="8px"
-            top="4px"
-            size="sm"
-            onClick={() => setShowAlert(false)}
-          />
+        <Alert
+          status="info"
+          variant="solid"
+          sx={{ py: 1 }}
+          display="flex"
+          justifyContent="space-between"
+        >
+          <Box display="flex" alignItems="center">
+            <AlertIcon boxSize="4" />
+            <AlertDescription fontSize="sm">
+              You are using the default free AI Provider, which has limited features.{" "}
+              <Text
+                as="span"
+                cursor="pointer"
+                fontSize="sm"
+                textDecoration="underline"
+                onClick={onPrefModalOpen}
+              >
+                Click here
+              </Text>{" "}
+              to add other AI providers.
+            </AlertDescription>
+          </Box>
+          <CloseButton size="sm" onClick={() => setShowAlert(false)} />
         </Alert>
       );
     }
