@@ -249,10 +249,18 @@ function MessageBase({
     if (messageContent.current) {
       const text = messageContent.current.textContent;
       if (text) {
+        let cancelled = false;
+
+        const handleClose = () => {
+          limit.clearQueue();
+          cancelled = true;
+        };
+
         const alertId = progress({
           title: "Downloading...",
           message: "Please wait while we prepare your audio download.",
           progressPercentage: 0,
+          handleClose,
         });
 
         // Limit the number of concurrent tasks
@@ -285,6 +293,7 @@ function MessageBase({
                 message: "Please wait while we prepare your audio download.",
                 progressPercentage: processedPercentage,
                 updateOnly: true,
+                handleClose,
               });
             });
           });
@@ -294,17 +303,20 @@ function MessageBase({
 
           const audioClip = new Blob(audioClips, { type: audioClips[0].type });
 
-          download(
-            audioClip,
-            `${settings.currentProvider.name}_message.${audioClip.type.split("/")[1]}`,
-            audioClip.type
-          );
+          if (!cancelled) {
+            download(
+              audioClip,
+              `${settings.currentProvider.name}_message.${audioClip.type.split("/")[1]}`,
+              audioClip.type
+            );
 
-          closeToast(alertId);
-          info({
-            title: "Downloaded",
-            message: "Message was downloaded as Audio",
-          });
+            closeToast(alertId);
+
+            info({
+              title: "Downloaded",
+              message: "Message was downloaded as Audio",
+            });
+          }
         } catch (err: any) {
           console.error(err);
 

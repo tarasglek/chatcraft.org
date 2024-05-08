@@ -8,7 +8,7 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { AlertArguments } from "../hooks/use-alert";
-import { MdMinimize } from "react-icons/md";
+import { RxCross2 } from "react-icons/rx";
 
 type ProgressAlertArguements = AlertArguments & {
   progressPercentage: number;
@@ -42,13 +42,12 @@ function ProgressToast({
           bgColor={"transparent"}
           alignItems={"center"}
           top={0}
-          right={2}
-          aria-label="Minimize Download Progress"
+          right={0}
+          aria-label="Cancel Process"
           onClick={onClose}
-          _hover={{}} // Remove hover
-          _active={{}} // and active effects
-          size={"xs"}
-          icon={<MdMinimize size={"xs"} />}
+          _active={{}} // remove active effects
+          size={"sm"}
+          icon={<RxCross2 />}
         ></IconButton>
       )}
 
