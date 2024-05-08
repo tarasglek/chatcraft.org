@@ -1,5 +1,6 @@
+import { ToastId, UseToastOptions, useToast } from "@chakra-ui/react";
 import { useCallback } from "react";
-import { useToast } from "@chakra-ui/react";
+import ProgressToast from "../components/ProgressToast";
 import useMobileBreakpoint from "./use-mobile-breakpoint";
 
 export type AlertArguments = {
@@ -85,10 +86,77 @@ export function useAlert() {
     [toast]
   );
 
+  type ProgressAlertArguements = Omit<AlertArguments, "id"> & {
+    id?: ToastId;
+    progressPercentage: number;
+    updateOnly?: boolean;
+    showPercentage?: boolean;
+    isClosable?: boolean;
+    handleClose?: () => void;
+  };
+
+  const progress = useCallback(
+    ({
+      id,
+      title,
+      message,
+      progressPercentage,
+      updateOnly = false,
+      showPercentage = true,
+      isClosable = true,
+      handleClose,
+    }: ProgressAlertArguements) => {
+      const toastOptions: UseToastOptions = {
+        status: "loading",
+        position: "top",
+        isClosable: isClosable,
+        duration: null,
+        render: ({ onClose }) => {
+          const closeHandler = () => {
+            handleClose?.();
+            onClose();
+          };
+
+          return (
+            <ProgressToast
+              title={title}
+              message={message}
+              progressPercentage={progressPercentage}
+              showPercentage={showPercentage}
+              onClose={isClosable ? closeHandler : undefined}
+            ></ProgressToast>
+          );
+        },
+      };
+
+      if (id) {
+        if (toast.isActive(id)) {
+          toast.update(id, toastOptions);
+        }
+      } else if (!updateOnly) {
+        return toast({
+          ...toastOptions,
+        });
+      }
+    },
+    [toast]
+  );
+
+  const closeToast = useCallback(
+    (toastId?: ToastId) => {
+      if (toastId) {
+        toast.close(toastId);
+      }
+    },
+    [toast]
+  );
+
   return {
     info,
     error,
     success,
     warning,
+    progress,
+    closeToast,
   };
 }
