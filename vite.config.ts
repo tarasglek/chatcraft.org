@@ -90,6 +90,6 @@ export default defineConfig({
     outDir: "build",
     target: "esnext",
     minify: false, // Disable minification for better stack traces
-    sourcemap: false, // ✘ [ERROR] Error: Pages only supports files up to 25 MiB in size
+    sourcemap: "inline", // ✘ [ERROR] Error: Pages only supports files up to 25 MiB in size
   },
 });
