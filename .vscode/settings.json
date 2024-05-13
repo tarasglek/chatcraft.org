@@ -9,7 +9,7 @@
   },
   "files.eol": "\n",
   "files.insertFinalNewline": true,
-  "deno.enable": true,
+  "deno.enable": false,
   "deno.lint": true,
   "deno.unstable": false, // Set to true if you want to enable unstable Deno features
   "[typescript]": {

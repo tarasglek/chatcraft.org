@@ -89,7 +89,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 2200,
     outDir: "build",
     target: "esnext",
-    sourcemap: true, // Enable source maps for production builds
     minify: false, // Disable minification for better stack traces
+    sourcemap: false, // ✘ [ERROR] Error: Pages only supports files up to 25 MiB in size
   },
 });
