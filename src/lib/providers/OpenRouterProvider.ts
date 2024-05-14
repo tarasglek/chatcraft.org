@@ -3,7 +3,7 @@ import { getReferer } from "../utils";
 
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
 export const OPENROUTER_NAME = "OpenRouter.ai";
-const OPENROUTER_DEFAULT_MODEL = "openai/gpt-3.5-turbo";
+const OPENROUTER_DEFAULT_MODEL = "openrouter/auto";
 
 export type SerializedOpenRouterProvider = {
   id: string;

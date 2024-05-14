@@ -71,14 +71,14 @@ export class ChatCraftModel {
   }
 
   get supportsImages() {
-    return this.name.includes("vision") || this.name == "gpt-4-turbo";
+    return (
+      this.name.includes("vision") ||
+      this.name.startsWith("gpt-4-turbo") ||
+      this.name.startsWith("gpt-4o")
+    );
   }
 
   get prettyModel(): string {
-    if (this.name.startsWith("gpt-3.5-turbo")) {
-      return this.name.replace("gpt-3.5-turbo", "chat-gpt");
-    }
-
     return this.name;
   }
 
