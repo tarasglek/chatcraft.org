@@ -3,6 +3,7 @@ import type { ChatCompletionChunk } from "openai/resources";
 import { Stream } from "openai/streaming";
 import type { Tiktoken } from "tiktoken/lite";
 import { ChatCraftFunction } from "./ChatCraftFunction";
+
 import {
   ChatCraftAiMessage,
   ChatCraftFunctionCallMessage,
@@ -10,6 +11,42 @@ import {
 } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { TextToSpeechVoices, getSettings } from "./settings";
+
+/**
+ * Shim for requestIdleCallback - https://gist.github.com/paullewis/55efe5d6f05434a96c36
+ *
+ * Copyright 2015 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+window.requestIdleCallback =
+  window.requestIdleCallback ||
+  function (cb) {
+    return setTimeout(function () {
+      const start = Date.now();
+      cb({
+        didTimeout: false,
+        timeRemaining: function () {
+          return Math.max(0, 50 - (Date.now() - start));
+        },
+      });
+    }, 1);
+  };
+window.cancelIdleCallback =
+  window.cancelIdleCallback ||
+  function (id) {
+    clearTimeout(id);
+  };
 
 export type ChatOptions = {
   model?: ChatCraftModel;
@@ -266,15 +303,50 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     signal: controller.signal,
   };
 
+  /**
+   * Handles streaming response from an API by processing chunks of data
+   * using requestIdleCallback to avoid blocking the main thread.
+   */
   const handleStreamingResponse = async (streamResponse: Stream<ChatCompletionChunk>) => {
+    const buffer: string[] = [];
+    const timeLimit = 10; // Time limit in milliseconds for each rIC callback
+
+    const processChunks = (chunks: ChatCompletionChunk[]) => {
+      return new Promise<void>((resolve) => {
+        let index = 0;
+
+        const processNextChunk = async (deadline: IdleDeadline) => {
+          while (index < chunks.length && deadline.timeRemaining() > timeLimit) {
+            const streamChunk = chunks[index];
+            const parsedData = parseOpenAIChunkResponse(streamChunk);
+            await streamOpenAIResponse(
+              parsedData.token,
+              parsedData.functionName,
+              parsedData.functionArgs
+            );
+            buffer.push(parsedData.token);
+            index++;
+          }
+
+          if (index < chunks.length) {
+            // If there are still chunks left, schedule the next chunk processing
+            requestIdleCallback(processNextChunk);
+          } else {
+            // All chunks have been processed, resolve the promise
+            resolve();
+          }
+        };
+
+        requestIdleCallback(processNextChunk);
+      });
+    };
+
+    const chunks: ChatCompletionChunk[] = [];
     for await (const streamChunk of streamResponse) {
-      const parsedData = parseOpenAIChunkResponse(streamChunk);
-      await streamOpenAIResponse(
-        parsedData.token,
-        parsedData.functionName,
-        parsedData.functionArgs
-      );
+      chunks.push(streamChunk);
     }
+
+    await processChunks(chunks);
 
     const content = buffer.join("");
     return handleOpenAIResponse(content, functionName, functionArgs);
