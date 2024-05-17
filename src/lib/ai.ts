@@ -194,6 +194,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   const buffer: string[] = [];
   let functionName: string = "";
   let functionArgs: string = "";
+
   const streamOpenAIResponse = async (token: string, func: string, args: string) => {
     if (func || args) {
       functionName += func;
@@ -202,9 +203,17 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         onData({ token: func, currentText: functionArgs });
       }
     } else if (token) {
+      console.log(token);
       buffer.push(token);
       if (onData && !isPaused) {
-        onData({ token, currentText: buffer.join("") });
+        // wait for UI to be ready to render via requestingFramePromise before proceeding
+        const requestingFramePromise: Promise<void> = new Promise((resolve) => {
+          requestAnimationFrame(() => {
+            onData({ token, currentText: buffer.join("") });
+            resolve();
+          });
+        });
+        await requestingFramePromise;
       }
     }
 
