@@ -215,12 +215,15 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
           streamOpenAIResponsePromise = new Promise((resolve) => {
             requestAnimationFrame(() => {
               onData({ token: waitingTokens.join(""), currentText: buffer.join("") });
+              if (waitingTokens.length > 1) {
+                console.log("waitingTokens", waitingTokens.length);
+              }
               waitingTokens = [];
               const endTime = performance.now();
               const waitTime = endTime - startTime;
               if (waitTime > maxWaitTimeMS && waitTime > 16) {
                 maxWaitTimeMS = waitTime;
-                console.error("streamOpenAIResponse maxWaitTimeMS", maxWaitTimeMS);
+                console.log("streamOpenAIResponse maxWaitTimeMS", maxWaitTimeMS);
               }
               streamOpenAIResponsePromise = null;
               resolve();
