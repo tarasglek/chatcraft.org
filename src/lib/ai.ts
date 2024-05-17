@@ -203,7 +203,6 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         onData({ token: func, currentText: functionArgs });
       }
     } else if (token) {
-      console.log(token);
       buffer.push(token);
       if (onData && !isPaused) {
         // wait for UI to be ready to render via requestingFramePromise before proceeding
