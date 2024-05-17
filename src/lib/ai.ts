@@ -192,11 +192,10 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const buffer: string[] = [];
-  let functionName: string = "";
-  let functionArgs: string = "";
-  let maxWaitTimeMS = 0;
-  let waitingTokens = new Array<string>();
-  let streamOpenAIResponsePromise: Promise<void> | null = null;
+  const pendingTokens: string[] = [];
+  let functionName = "";
+  let functionArgs = "";
+  let uiRenderPromise: Promise<void> | null = null;
 
   const streamOpenAIResponse = async (token: string, func: string, args: string) => {
     if (func || args) {
@@ -207,25 +206,19 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
       }
     } else if (token) {
       buffer.push(token);
+
       if (onData && !isPaused) {
-        waitingTokens.push(token);
-        if (!streamOpenAIResponsePromise) {
-          const startTime = performance.now();
-          // wait for UI to be ready to render via requestingFramePromise before proceeding
-          streamOpenAIResponsePromise = new Promise((resolve) => {
+        pendingTokens.push(token);
+
+        // We need to render this new content, so we'll schedule a UI render
+        // when the main thread is ready before before proceeding so we don't
+        // swamp it with too many concurrent updates.
+        if (!uiRenderPromise) {
+          uiRenderPromise = new Promise((resolve) => {
             requestAnimationFrame(() => {
-              onData({ token: waitingTokens.join(""), currentText: buffer.join("") });
-              if (waitingTokens.length > 1) {
-                console.log("waitingTokens", waitingTokens.length);
-              }
-              waitingTokens = [];
-              const endTime = performance.now();
-              const waitTime = endTime - startTime;
-              if (waitTime > maxWaitTimeMS && waitTime > 16) {
-                maxWaitTimeMS = waitTime;
-                console.log("streamOpenAIResponse maxWaitTimeMS", maxWaitTimeMS);
-              }
-              streamOpenAIResponsePromise = null;
+              onData({ token: pendingTokens.join(""), currentText: buffer.join("") });
+              pendingTokens.length = 0;
+              uiRenderPromise = null;
               resolve();
             });
           });
@@ -301,8 +294,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
       );
     }
 
-    if (streamOpenAIResponsePromise) {
-      await streamOpenAIResponsePromise;
+    if (uiRenderPromise) {
+      await uiRenderPromise;
     }
     const content = buffer.join("");
     return handleOpenAIResponse(content, functionName, functionArgs);
