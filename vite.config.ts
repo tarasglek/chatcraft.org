@@ -62,7 +62,7 @@ export default defineConfig({
         background_color: "#ffffff",
         display: "standalone",
         share_target: {
-          action: "https://chatcraft.org/",
+          action: "/share",
           method: "GET",
           params: {
             title: "name",
