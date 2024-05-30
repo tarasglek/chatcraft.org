@@ -119,6 +119,25 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
+          <MenuGroup title="Providers">
+            {Object.entries(providersList).map(([providerName, providerObject]) => (
+              <MenuItem
+                paddingInline={4}
+                key={providerName}
+                onClick={() => {
+                  setSettings({ ...settings, currentProvider: providerObject });
+                }}
+              >
+                {settings.currentProvider.name === providerName ? (
+                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                ) : (
+                  <span style={{ width: "1.6rem", display: "inline-block" }} />
+                )}
+                {providerName}
+              </MenuItem>
+            ))}
+          </MenuGroup>
+          <MenuDivider />
           <MenuGroup title="Models">
             <InputGroup>
               <InputLeftElement paddingLeft={3} pointerEvents="none">
@@ -158,25 +177,6 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                   {model.prettyModel}
                 </MenuItem>
               ))}
-          </MenuGroup>
-          <MenuDivider />
-          <MenuGroup title="Providers">
-            {Object.entries(providersList).map(([providerName, providerObject]) => (
-              <MenuItem
-                paddingInline={4}
-                key={providerName}
-                onClick={() => {
-                  setSettings({ ...settings, currentProvider: providerObject });
-                }}
-              >
-                {settings.currentProvider.name === providerName ? (
-                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                ) : (
-                  <span style={{ width: "1.6rem", display: "inline-block" }} />
-                )}
-                {providerName}
-              </MenuItem>
-            ))}
           </MenuGroup>
         </MenuList>
       </Menu>
@@ -278,6 +278,25 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           zIndex={theme.zIndices.dropdown}
           onKeyDownCapture={onStartTyping}
         >
+          <MenuGroup title="Providers">
+            {Object.entries(providersList).map(([providerName, providerObject]) => (
+              <MenuItem
+                paddingInline={4}
+                key={providerName}
+                onClick={() => {
+                  setSettings({ ...settings, currentProvider: providerObject });
+                }}
+              >
+                {settings.currentProvider.name === providerName ? (
+                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                ) : (
+                  <span style={{ width: "1.6rem", display: "inline-block" }} />
+                )}
+                {providerName}
+              </MenuItem>
+            ))}
+          </MenuGroup>
+          <MenuDivider />
           <MenuGroup title="Models">
             <InputGroup>
               <InputLeftElement paddingLeft={3} pointerEvents="none">
@@ -317,25 +336,6 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                   {model.prettyModel}
                 </MenuItem>
               ))}
-          </MenuGroup>
-          <MenuDivider />
-          <MenuGroup title="Providers">
-            {Object.entries(providersList).map(([providerName, providerObject]) => (
-              <MenuItem
-                paddingInline={4}
-                key={providerName}
-                onClick={() => {
-                  setSettings({ ...settings, currentProvider: providerObject });
-                }}
-              >
-                {settings.currentProvider.name === providerName ? (
-                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                ) : (
-                  <span style={{ width: "1.6rem", display: "inline-block" }} />
-                )}
-                {providerName}
-              </MenuItem>
-            ))}
           </MenuGroup>
         </MenuList>
       </Menu>
