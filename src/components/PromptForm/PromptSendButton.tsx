@@ -12,6 +12,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  Box,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend, TbSearch } from "react-icons/tb";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
@@ -20,7 +21,8 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
-import { MdVolumeUp, MdVolumeOff, MdOutlineChevronRight } from "react-icons/md";
+import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
+import { IoMdCheckmark } from "react-icons/io";
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
@@ -118,18 +120,42 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
+          <MenuGroup title="Providers">
+            {Object.entries(providersList).map(([providerName, providerObject]) => (
+              <MenuItem
+                paddingInline={4}
+                key={providerName}
+                onClick={() => {
+                  setSettings({ ...settings, currentProvider: providerObject });
+                }}
+              >
+                {settings.currentProvider.name === providerName ? (
+                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                ) : (
+                  <span style={{ width: "1.6rem", display: "inline-block" }} />
+                )}
+                {providerName}
+              </MenuItem>
+            ))}
+          </MenuGroup>
+          <MenuDivider />
           <MenuGroup title="Models">
             <InputGroup>
-              <InputLeftElement pointerEvents="none">
+              <InputLeftElement paddingLeft={3} pointerEvents="none">
                 <TbSearch />
               </InputLeftElement>
               <Input
+                marginInline={2}
+                marginBottom={1}
                 ref={inputRef}
                 type="text"
-                variant="ghost"
+                variant="outline"
                 placeholder="Search models..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setSearchQuery(e.target.value);
+                }}
               />
             </InputGroup>
             {models
@@ -139,36 +165,19 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
               )
               .map((model) => (
                 <MenuItem
+                  paddingInline={4}
                   closeOnSelect={true}
                   key={model.id}
                   onClick={() => setSettings({ ...settings, model })}
                 >
                   {settings.model.id === model.id ? (
-                    <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                    <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
                   ) : (
-                    <span style={{ width: "24px", display: "inline-block" }} />
+                    <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
                   )}
                   {model.prettyModel}
                 </MenuItem>
               ))}
-          </MenuGroup>
-          <MenuDivider />
-          <MenuGroup title="Providers">
-            {Object.entries(providersList).map(([providerName, providerObject]) => (
-              <MenuItem
-                key={providerName}
-                onClick={() => {
-                  setSettings({ ...settings, currentProvider: providerObject });
-                }}
-              >
-                {settings.currentProvider.name === providerName ? (
-                  <MdOutlineChevronRight style={{ marginRight: "4px" }} />
-                ) : (
-                  <span style={{ width: "24px", display: "inline-block" }} />
-                )}
-                {providerName}
-              </MenuItem>
-            ))}
           </MenuGroup>
         </MenuList>
       </Menu>
@@ -197,14 +206,17 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
     // Check if the inputRef is current and the input is not already focused
     if (inputRef.current && document.activeElement !== inputRef.current) {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "Enter") {
+        return;
+      }
       // Don't handle the keydown event more than once
       e.preventDefault();
-      // Make sure we are focused on the input element
-      inputRef.current.focus();
       // Ignore control keys
       const char = e.key.length === 1 ? e.key : "";
       // Set the initial character in the input so we don't lose it
       setSearchQuery(searchQuery + char);
+      // Make sure we are focused on the input element
+      inputRef.current.focus();
     }
   };
 
@@ -253,7 +265,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </Button>
         </Tooltip>
       )}
-      <Menu placement="top" strategy="fixed" closeOnSelect={false}>
+      <Menu placement="top-end" strategy="fixed" closeOnSelect={false}>
         <MenuButton
           as={IconButton}
           size="sm"
@@ -262,62 +274,71 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList
-          maxHeight={"70vh"}
+          maxHeight={"80vh"}
           overflowY={"auto"}
           zIndex={theme.zIndices.dropdown}
           onKeyDownCapture={onStartTyping}
         >
-          <MenuGroup title="Models">
-            <InputGroup>
-              <InputLeftElement pointerEvents="none">
-                <TbSearch />
-              </InputLeftElement>
-              <Input
-                ref={inputRef}
-                type="text"
-                variant="ghost"
-                placeholder="Search models..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </InputGroup>
-            {models
-              .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
-              .filter((model) =>
-                model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-              )
-              .map((model) => (
-                <MenuItem
-                  closeOnSelect={true}
-                  key={model.id}
-                  onClick={() => setSettings({ ...settings, model })}
-                >
-                  {settings.model.id === model.id ? (
-                    <MdOutlineChevronRight style={{ marginRight: "4px" }} />
-                  ) : (
-                    <span style={{ width: "24px", display: "inline-block" }} />
-                  )}
-                  {model.prettyModel}
-                </MenuItem>
-              ))}
-          </MenuGroup>
-          <MenuDivider />
           <MenuGroup title="Providers">
             {Object.entries(providersList).map(([providerName, providerObject]) => (
               <MenuItem
+                paddingInline={4}
                 key={providerName}
                 onClick={() => {
                   setSettings({ ...settings, currentProvider: providerObject });
                 }}
               >
                 {settings.currentProvider.name === providerName ? (
-                  <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
                 ) : (
-                  <span style={{ width: "24px", display: "inline-block" }} />
+                  <span style={{ width: "1.6rem", display: "inline-block" }} />
                 )}
                 {providerName}
               </MenuItem>
             ))}
+          </MenuGroup>
+          <MenuDivider />
+          <MenuGroup title="Models">
+            <InputGroup>
+              <InputLeftElement paddingLeft={3} pointerEvents="none">
+                <TbSearch />
+              </InputLeftElement>
+              <Input
+                marginInline={2}
+                marginBottom={1}
+                ref={inputRef}
+                type="text"
+                variant="outline"
+                placeholder="Search models..."
+                value={searchQuery}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setSearchQuery(e.target.value);
+                }}
+              />
+            </InputGroup>
+            <Box maxHeight="40vh" overflowY="auto">
+              {models
+                .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                .filter((model) =>
+                  model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+                )
+                .map((model) => (
+                  <MenuItem
+                    paddingInline={4}
+                    closeOnSelect={true}
+                    key={model.id}
+                    onClick={() => setSettings({ ...settings, model })}
+                  >
+                    {settings.model.id === model.id ? (
+                      <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                    ) : (
+                      <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
+                    )}
+                    {model.prettyModel}
+                  </MenuItem>
+                ))}
+            </Box>
           </MenuGroup>
         </MenuList>
       </Menu>
