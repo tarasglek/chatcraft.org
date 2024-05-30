@@ -20,7 +20,8 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
-import { MdVolumeUp, MdVolumeOff, MdOutlineChevronRight } from "react-icons/md";
+import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
+import { IoMdCheckmark } from "react-icons/io";
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
@@ -120,13 +121,15 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
         <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
           <MenuGroup title="Models">
             <InputGroup>
-              <InputLeftElement pointerEvents="none">
+              <InputLeftElement paddingLeft={3} pointerEvents="none">
                 <TbSearch />
               </InputLeftElement>
               <Input
+                marginInline={2}
+                marginBottom={1}
                 ref={inputRef}
                 type="text"
-                variant="ghost"
+                variant="outline"
                 placeholder="Search models..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -139,14 +142,15 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
               )
               .map((model) => (
                 <MenuItem
+                  paddingInline={4}
                   closeOnSelect={true}
                   key={model.id}
                   onClick={() => setSettings({ ...settings, model })}
                 >
                   {settings.model.id === model.id ? (
-                    <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                    <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
                   ) : (
-                    <span style={{ width: "24px", display: "inline-block" }} />
+                    <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
                   )}
                   {model.prettyModel}
                 </MenuItem>
@@ -156,15 +160,16 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           <MenuGroup title="Providers">
             {Object.entries(providersList).map(([providerName, providerObject]) => (
               <MenuItem
+                paddingInline={4}
                 key={providerName}
                 onClick={() => {
                   setSettings({ ...settings, currentProvider: providerObject });
                 }}
               >
                 {settings.currentProvider.name === providerName ? (
-                  <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
                 ) : (
-                  <span style={{ width: "24px", display: "inline-block" }} />
+                  <span style={{ width: "1.6rem", display: "inline-block" }} />
                 )}
                 {providerName}
               </MenuItem>
@@ -253,7 +258,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </Button>
         </Tooltip>
       )}
-      <Menu placement="top" strategy="fixed" closeOnSelect={false}>
+      <Menu placement="top-start" strategy="fixed" closeOnSelect={false}>
         <MenuButton
           as={IconButton}
           size="sm"
@@ -269,13 +274,15 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
         >
           <MenuGroup title="Models">
             <InputGroup>
-              <InputLeftElement pointerEvents="none">
+              <InputLeftElement paddingLeft={3} pointerEvents="none">
                 <TbSearch />
               </InputLeftElement>
               <Input
+                marginInline={2}
+                marginBottom={1}
                 ref={inputRef}
                 type="text"
-                variant="ghost"
+                variant="outline"
                 placeholder="Search models..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -288,14 +295,15 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
               )
               .map((model) => (
                 <MenuItem
+                  paddingInline={4}
                   closeOnSelect={true}
                   key={model.id}
                   onClick={() => setSettings({ ...settings, model })}
                 >
                   {settings.model.id === model.id ? (
-                    <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                    <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
                   ) : (
-                    <span style={{ width: "24px", display: "inline-block" }} />
+                    <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
                   )}
                   {model.prettyModel}
                 </MenuItem>
@@ -305,15 +313,16 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           <MenuGroup title="Providers">
             {Object.entries(providersList).map(([providerName, providerObject]) => (
               <MenuItem
+                paddingInline={4}
                 key={providerName}
                 onClick={() => {
                   setSettings({ ...settings, currentProvider: providerObject });
                 }}
               >
                 {settings.currentProvider.name === providerName ? (
-                  <MdOutlineChevronRight style={{ marginRight: "4px" }} />
+                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
                 ) : (
-                  <span style={{ width: "24px", display: "inline-block" }} />
+                  <span style={{ width: "1.6rem", display: "inline-block" }} />
                 )}
                 {providerName}
               </MenuItem>
