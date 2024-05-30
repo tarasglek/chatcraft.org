@@ -12,6 +12,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  Box,
 } from "@chakra-ui/react";
 import { TbChevronUp, TbSend, TbSearch } from "react-icons/tb";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
@@ -273,7 +274,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           icon={<TbChevronUp />}
         />
         <MenuList
-          maxHeight={"70vh"}
+          maxHeight={"80vh"}
           overflowY={"auto"}
           zIndex={theme.zIndices.dropdown}
           onKeyDownCapture={onStartTyping}
@@ -316,26 +317,28 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                 }}
               />
             </InputGroup>
-            {models
-              .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
-              .filter((model) =>
-                model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-              )
-              .map((model) => (
-                <MenuItem
-                  paddingInline={4}
-                  closeOnSelect={true}
-                  key={model.id}
-                  onClick={() => setSettings({ ...settings, model })}
-                >
-                  {settings.model.id === model.id ? (
-                    <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                  ) : (
-                    <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
-                  )}
-                  {model.prettyModel}
-                </MenuItem>
-              ))}
+            <Box maxHeight="40vh" overflowY="auto">
+              {models
+                .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                .filter((model) =>
+                  model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+                )
+                .map((model) => (
+                  <MenuItem
+                    paddingInline={4}
+                    closeOnSelect={true}
+                    key={model.id}
+                    onClick={() => setSettings({ ...settings, model })}
+                  >
+                    {settings.model.id === model.id ? (
+                      <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                    ) : (
+                      <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
+                    )}
+                    {model.prettyModel}
+                  </MenuItem>
+                ))}
+            </Box>
           </MenuGroup>
         </MenuList>
       </Menu>
