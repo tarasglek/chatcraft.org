@@ -132,7 +132,10 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                 variant="outline"
                 placeholder="Search models..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setSearchQuery(e.target.value);
+                }}
               />
             </InputGroup>
             {models
@@ -202,14 +205,17 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
     // Check if the inputRef is current and the input is not already focused
     if (inputRef.current && document.activeElement !== inputRef.current) {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "Enter") {
+        return;
+      }
       // Don't handle the keydown event more than once
       e.preventDefault();
-      // Make sure we are focused on the input element
-      inputRef.current.focus();
       // Ignore control keys
       const char = e.key.length === 1 ? e.key : "";
       // Set the initial character in the input so we don't lose it
       setSearchQuery(searchQuery + char);
+      // Make sure we are focused on the input element
+      inputRef.current.focus();
     }
   };
 
@@ -285,7 +291,10 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                 variant="outline"
                 placeholder="Search models..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setSearchQuery(e.target.value);
+                }}
               />
             </InputGroup>
             {models
