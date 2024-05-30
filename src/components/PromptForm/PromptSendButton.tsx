@@ -265,7 +265,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </Button>
         </Tooltip>
       )}
-      <Menu placement="top-start" strategy="fixed" closeOnSelect={false}>
+      <Menu placement="top-end" strategy="fixed" closeOnSelect={false}>
         <MenuButton
           as={IconButton}
           size="sm"
