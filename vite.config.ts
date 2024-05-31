@@ -63,7 +63,7 @@ export default defineConfig({
         background_color: "#ffffff",
         display: "standalone",
         share_target: {
-          action: "/",
+          action: "/_web-share-target",
           params: {
             title: "title",
             text: "text",
