@@ -5,7 +5,11 @@ import { chatWithLLM } from "../ai";
 
 export class SummaryCommand extends ChatCraftCommand {
   constructor() {
-    super("summary");
+    super("summary", {
+      helpTitle: "/summary [max-length]",
+      helpDescription:
+        "Uses ChatGPT to create a summary of the current chat. Optionally takes a maximum word length (defaults to 500).",
+    });
   }
 
   async execute(chat: ChatCraftChat, user: User | undefined, args?: string[]) {

@@ -4,7 +4,10 @@ import { ChatCraftAppMessage } from "../ChatCraftMessage";
 
 export class HelpCommand extends ChatCraftCommand {
   constructor() {
-    super("help");
+    super("help", {
+      helpTitle: "/help",
+      helpDescription: "Shows this help message.",
+    });
   }
 
   async execute(chat: ChatCraftChat) {

@@ -1,7 +1,15 @@
 import { ChatCraftChat } from "./ChatCraftChat";
 
+type ChatCraftCommandMetaData = {
+  helpTitle: string; // Help strings can be
+  helpDescription: string; // markdown text
+};
+
 export abstract class ChatCraftCommand {
-  constructor(public command: string) {}
+  constructor(
+    public command: string,
+    public metaData: ChatCraftCommandMetaData
+  ) {}
 
   // This method should be overridden by subclasses to implement the command
   abstract execute(chat: ChatCraftChat, user: User | undefined, args?: string[]): Promise<void>;
