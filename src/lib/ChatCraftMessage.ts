@@ -101,7 +101,7 @@ export class ChatCraftMessage {
     };
   }
 
-  toOpenAiMessage(model: ChatCraftModel): OpenAI.Chat.Completions.ChatCompletionMessageParam {
+  toOpenAiMessage(): OpenAI.Chat.Completions.ChatCompletionMessageParam {
     const text = this.text;
 
     const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [{ type: "text", text }];
