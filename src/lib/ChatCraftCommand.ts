@@ -1,14 +1,16 @@
 import { ChatCraftChat } from "./ChatCraftChat";
 
-type ChatCraftCommandMetaData = {
-  helpTitle: string; // Help strings can be
-  helpDescription: string; // markdown text
-};
-
 export abstract class ChatCraftCommand {
+  /**
+   *
+   * @param command Name of the command to be used in format - `/<command-name>`
+   * @param helpTitle Title of the command to be displayed in help grid
+   * @param helpDescription A brief paragraph explaining how the command works, and any supported options
+   */
   constructor(
     public command: string,
-    public metaData: ChatCraftCommandMetaData
+    public helpTitle: string,
+    public helpDescription: string
   ) {}
 
   // This method should be overridden by subclasses to implement the command

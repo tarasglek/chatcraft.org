@@ -25,12 +25,8 @@ export class ChatCraftCommandRegistry {
       command.execute(chat, user, parsed.args);
   }
 
-  static getCommandsList() {
-    const commandsList: ChatCraftCommand[] = [];
-
-    this.commands.forEach((command) => commandsList.push(command));
-
-    return commandsList;
+  static getCommands() {
+    return Array.from(this.commands.values());
   }
 
   static isCommand(input: string): boolean {

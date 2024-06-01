@@ -34,11 +34,11 @@ const guessType = (contentType: string | null) => {
 
 export class ImportCommand extends ChatCraftCommand {
   constructor() {
-    super("import", {
-      helpTitle: "/import <url>",
-      helpDescription:
-        "	Loads the provided URL and imports the text. Where possible, ChatCraft will try to get raw text vs. HTML from sites like GitHub. NOTE: to prevent abuse, you must be logged into use the import command.",
-    });
+    super(
+      "import",
+      "/import <url>",
+      "	Loads the provided URL and imports the text. Where possible, ChatCraft will try to get raw text vs. HTML from sites like GitHub. NOTE: to prevent abuse, you must be logged into use the import command."
+    );
   }
 
   async execute(chat: ChatCraftChat, user: User | undefined, args?: string[]) {

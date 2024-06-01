@@ -14,7 +14,7 @@ function getCommandsHelpText(supportedCommands: ChatCraftCommand[]) {
 
   | Command | Description |
   |-----|------|
-  ${supportedCommands.map((command) => `| ${command.metaData.helpTitle} | ${command.metaData.helpDescription} |`).join("\n")}
+  ${supportedCommands.map((command) => `| ${command.helpTitle} | ${command.helpDescription} |`).join("\n")}
   `;
 }
 
@@ -147,7 +147,7 @@ interface HelpMessageProps extends MessageBaseProps {
 
 function Help(props: HelpMessageProps) {
   const supportedCommands = useMemo(() => {
-    return ChatCraftCommandRegistry.getCommandsList();
+    return ChatCraftCommandRegistry.getCommands();
   }, []);
 
   // Override the text of the message

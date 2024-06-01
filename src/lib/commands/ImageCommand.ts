@@ -7,11 +7,11 @@ import type { Dalle3ImageSize } from "../../lib/ai";
 
 export class ImageCommand extends ChatCraftCommand {
   constructor() {
-    super("image", {
-      helpTitle: "/image [layout-option]<prompt>",
-      helpDescription:
-        "/image&nbsp;[layout-option]<prompt> | Creates an image using the provided prompt. By default, the image will be square, and you can also change the layout to landscape or portrait by specifying `layout=[l\\|landscape\\|p\\|portrait]`",
-    });
+    super(
+      "image",
+      "/image [layout-option]<prompt>",
+      "/image&nbsp;[layout-option]<prompt> | Creates an image using the provided prompt. By default, the image will be square, and you can also change the layout to landscape or portrait by specifying `layout=[l\\|landscape\\|p\\|portrait]`"
+    );
   }
 
   async execute(chat: ChatCraftChat, user: User | undefined, args?: string[]) {
