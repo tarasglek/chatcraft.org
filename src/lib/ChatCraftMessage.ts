@@ -105,7 +105,7 @@ export class ChatCraftMessage {
     const text = this.text;
 
     const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [{ type: "text", text }];
-    if (model.supportsImages && this.imageUrls.length > 0) {
+    if (this.imageUrls.length > 0) {
       this.imageUrls.forEach((imageUrl) => {
         content.push({
           type: "image_url",
