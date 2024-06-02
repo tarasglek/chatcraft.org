@@ -18,6 +18,7 @@ import { ScrollRestoration } from "react-router-dom";
 import Header from "../components/Header";
 import MessagesView from "../components/MessagesView";
 import OptionsButton from "../components/OptionsButton";
+import PreferencesModal from "../components/Preferences/PreferencesModal";
 import PromptForm from "../components/PromptForm";
 import Sidebar from "../components/Sidebar";
 import { useAlert } from "../hooks/use-alert";
@@ -34,8 +35,9 @@ import { ChatCraftFunctionCallMessage, ChatCraftHumanMessage } from "../lib/Chat
 import { WebHandler } from "../lib/WebHandler";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
-import PreferencesModal from "../components/Preferences/PreferencesModal";
 import { ChatCompletionError } from "../lib/ai";
+
+import DisableAudioPlayerButton from "../components/DisableAudioPlayerButton";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -56,7 +58,7 @@ function ChatBase({ chat }: ChatBaseProps) {
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const { error } = useAlert();
   const { user } = useUser();
-  const { clearAudioQueue } = useAudioPlayer();
+  const { clearAudioQueue, isPlaying } = useAudioPlayer();
   const [showAlert, setShowAlert] = useState(false);
   const {
     isOpen: isPrefModalOpen,
@@ -306,8 +308,10 @@ function ChatBase({ chat }: ChatBaseProps) {
 
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
         const messages = chat.messages({ includeAppMessages: false });
+
         // Clear any previous audio clips
         clearAudioQueue();
+
         const response = await callChatApi(messages, {
           functions,
           functionToCall,
@@ -395,7 +399,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         </Alert>
       );
     }
-  }, [onPrefModalOpen, settings.currentProvider, showAlert]);
+  }, [onPrefModalOpen, showAlert]);
 
   return (
     <Grid
@@ -410,6 +414,8 @@ function ChatBase({ chat }: ChatBaseProps) {
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
+      {isPlaying && <DisableAudioPlayerButton clearOnly={!streamingMessage} />}
+
       <GridItem colSpan={2}>
         {/* Default Provider Alert Banner*/}
         {defaultProviderAlert}

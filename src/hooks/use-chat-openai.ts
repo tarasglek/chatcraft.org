@@ -38,7 +38,7 @@ function useChatOpenAI() {
     pausedRef.current = paused;
   }, [paused]);
 
-  const { addToAudioQueue } = useAudioPlayer();
+  const { addToAudioQueue, audioQueueDisabledRef, enableAudioQueue } = useAudioPlayer();
   const { error } = useAlert();
 
   const { isTtsSupported } = useModels();
@@ -90,7 +90,11 @@ function useChatOpenAI() {
 
               const { sentences } = tokenize(ttsWordsBuffer);
 
-              if (isTtsSupported && settings.textToSpeech.announceMessages) {
+              if (
+                isTtsSupported &&
+                settings.textToSpeech.announceMessages &&
+                !audioQueueDisabledRef?.current
+              ) {
                 if (
                   sentences.length > 1 // Has one full sentence
                 ) {
@@ -100,7 +104,7 @@ function useChatOpenAI() {
                   addToAudioQueue(audioClipUri);
 
                   // Update the tts Cursor
-                  ttsCursor += sentences[0].length;
+                  ttsCursor += textToBeProcessed.length;
                 } else if (
                   nlp(ttsWordsBuffer).terms().out("array").length >= TTS_BUFFER_THRESHOLD
                 ) {
@@ -165,7 +169,14 @@ function useChatOpenAI() {
           resetScrollProgress();
           setShouldAutoScroll(false);
 
-          if (isTtsSupported && settings.textToSpeech.announceMessages && ttsWordsBuffer.length) {
+          ttsWordsBuffer = ttsWordsBuffer.slice(ttsCursor);
+
+          if (
+            isTtsSupported &&
+            settings.textToSpeech.announceMessages &&
+            !audioQueueDisabledRef?.current &&
+            ttsWordsBuffer.length
+          ) {
             try {
               // Call TTS for any remaining words
               const audioClipUri = textToSpeech(ttsWordsBuffer, settings.textToSpeech.voice);
@@ -175,6 +186,9 @@ function useChatOpenAI() {
               error({ title: "Error generating audio", message: err.message });
             }
           }
+
+          // In case TTS was temporarily disabled, just for this message
+          enableAudioQueue();
         });
     },
     [
@@ -190,6 +204,8 @@ function useChatOpenAI() {
       addToAudioQueue,
       error,
       incrementCost,
+      audioQueueDisabledRef,
+      enableAudioQueue,
     ]
   );
 

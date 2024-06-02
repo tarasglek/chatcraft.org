@@ -1,14 +1,31 @@
-import { useState, useEffect, createContext, useContext, ReactNode, FC, useCallback } from "react";
+import {
+  FC,
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useAlert } from "./use-alert";
 
 type AudioPlayerContextType = {
   addToAudioQueue: (audioClipUri: Promise<string>) => void;
   clearAudioQueue: () => void;
+  disableAudioQueue: () => void;
+  enableAudioQueue: () => void;
+  isPlaying: boolean;
+  audioQueueDisabledRef: React.MutableRefObject<boolean> | null;
 };
 
 const AudioPlayerContext = createContext<AudioPlayerContextType>({
   addToAudioQueue: () => {},
   clearAudioQueue: () => {},
+  disableAudioQueue: () => {},
+  enableAudioQueue: () => {},
+  audioQueueDisabledRef: null,
+  isPlaying: false,
 });
 
 type AudioClip = {
@@ -25,6 +42,9 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentAudioClip, setCurrentAudioClip] = useState<AudioClip | null>();
   const { error } = useAlert();
+
+  // For enabling/disabling audio player temporarily
+  const audioQueueDisabledRef = useRef<boolean>(false);
 
   const playAudio = useCallback(
     async (audioClipUri: Promise<string>) => {
@@ -64,7 +84,9 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
   }, [queue, isPlaying, playAudio]);
 
   const addToAudioQueue = (audioClipUri: Promise<string>) => {
-    setQueue((oldQueue) => [...oldQueue, audioClipUri]);
+    if (!audioQueueDisabledRef.current) {
+      setQueue((oldQueue) => [...oldQueue, audioClipUri]);
+    }
   };
 
   const clearAudioQueue = () => {
@@ -81,7 +103,23 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
     setQueue([]);
   };
 
-  const value = { addToAudioQueue, clearAudioQueue };
+  const disableAudioQueue = () => {
+    audioQueueDisabledRef.current = true;
+    clearAudioQueue();
+  };
+
+  const enableAudioQueue = () => {
+    audioQueueDisabledRef.current = false;
+  };
+
+  const value = {
+    addToAudioQueue,
+    clearAudioQueue,
+    disableAudioQueue,
+    enableAudioQueue,
+    isPlaying: queue.length > 0,
+    audioQueueDisabledRef,
+  };
 
   return <AudioPlayerContext.Provider value={value}>{children}</AudioPlayerContext.Provider>;
 };
