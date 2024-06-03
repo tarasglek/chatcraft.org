@@ -15,8 +15,9 @@ type AudioPlayerContextType = {
   clearAudioQueue: () => void;
   disableAudioQueue: () => void;
   enableAudioQueue: () => void;
-  isPlaying: boolean;
   audioQueueDisabledRef: React.MutableRefObject<boolean> | null;
+  isPlaying: boolean;
+  isQueueEmpty: boolean;
 };
 
 const AudioPlayerContext = createContext<AudioPlayerContextType>({
@@ -26,6 +27,7 @@ const AudioPlayerContext = createContext<AudioPlayerContextType>({
   enableAudioQueue: () => {},
   audioQueueDisabledRef: null,
   isPlaying: false,
+  isQueueEmpty: true,
 });
 
 type AudioClip = {
@@ -117,8 +119,9 @@ export const AudioPlayerProvider: FC<{ children: ReactNode }> = ({ children }) =
     clearAudioQueue,
     disableAudioQueue,
     enableAudioQueue,
-    isPlaying: queue.length > 0,
     audioQueueDisabledRef,
+    isPlaying,
+    isQueueEmpty: queue.length === 0,
   };
 
   return <AudioPlayerContext.Provider value={value}>{children}</AudioPlayerContext.Provider>;

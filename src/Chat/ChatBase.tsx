@@ -37,7 +37,7 @@ import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import { ChatCompletionError } from "../lib/ai";
 
-import DisableAudioPlayerButton from "../components/DisableAudioPlayerButton";
+import DisableAudioPlayerButton from "../components/InterruptSpeechButton";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -58,7 +58,7 @@ function ChatBase({ chat }: ChatBaseProps) {
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
   const { error } = useAlert();
   const { user } = useUser();
-  const { clearAudioQueue, isPlaying } = useAudioPlayer();
+  const { clearAudioQueue, isQueueEmpty } = useAudioPlayer();
   const [showAlert, setShowAlert] = useState(false);
   const {
     isOpen: isPrefModalOpen,
@@ -414,7 +414,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
-      {isPlaying && <DisableAudioPlayerButton clearOnly={!streamingMessage} />}
+      {!isQueueEmpty && <DisableAudioPlayerButton clearOnly={!streamingMessage} />}
 
       <GridItem colSpan={2}>
         {/* Default Provider Alert Banner*/}

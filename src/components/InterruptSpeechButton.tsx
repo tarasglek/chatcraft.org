@@ -11,7 +11,7 @@ type DisableAudioPlayerButtonProps = {
 const TOOLTIP_OPEN_DURATION = 1;
 
 function DisableAudioPlayerButton({ clearOnly = false }: DisableAudioPlayerButtonProps) {
-  const { disableAudioQueue, clearAudioQueue } = useAudioPlayer();
+  const { disableAudioQueue, clearAudioQueue, isPlaying } = useAudioPlayer();
 
   const handleDisableAudioQueue = useCallback(() => {
     if (clearOnly) {
@@ -25,7 +25,7 @@ function DisableAudioPlayerButton({ clearOnly = false }: DisableAudioPlayerButto
 
   return (
     <motion.div
-      style={{ position: "fixed", zIndex: theme.zIndices.dropdown }}
+      style={{ position: "fixed", zIndex: theme.zIndices.toast }}
       animate={{ top: ["-5vh", "10vh"], left: ["-5vw", "3vw"] }}
       transition={{ duration: TOOLTIP_OPEN_DURATION, type: "spring", bounce: 0.4 }}
     >
@@ -40,6 +40,7 @@ function DisableAudioPlayerButton({ clearOnly = false }: DisableAudioPlayerButto
           onClick={handleDisableAudioQueue}
           rounded={"full"}
           aria-label="Stop announcing the message"
+          variant={isPlaying ? "solid" : "outline"}
           icon={<MdSpatialAudioOff />}
         ></IconButton>
       </Tooltip>
