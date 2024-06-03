@@ -169,8 +169,6 @@ function useChatOpenAI() {
           resetScrollProgress();
           setShouldAutoScroll(false);
 
-          ttsWordsBuffer = ttsWordsBuffer.slice(ttsCursor);
-
           if (
             isTtsSupported &&
             settings.textToSpeech.announceMessages &&
