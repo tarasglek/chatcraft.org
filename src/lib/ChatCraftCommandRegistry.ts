@@ -25,6 +25,10 @@ export class ChatCraftCommandRegistry {
       command.execute(chat, user, parsed.args);
   }
 
+  static getCommands() {
+    return Array.from(this.commands.values());
+  }
+
   static isCommand(input: string): boolean {
     return ChatCraftCommand.isCommand(input);
   }

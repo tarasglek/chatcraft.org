@@ -4,7 +4,7 @@ import { ChatCraftAppMessage } from "../ChatCraftMessage";
 
 export class CommandsHelpCommand extends ChatCraftCommand {
   constructor() {
-    super("commands");
+    super("commands", "/commands", "Shows a list of **supported commands** in ChatCraft");
   }
 
   static getQueriedCommand(messageText: string) {

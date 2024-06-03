@@ -1,7 +1,17 @@
 import { ChatCraftChat } from "./ChatCraftChat";
 
 export abstract class ChatCraftCommand {
-  constructor(public command: string) {}
+  /**
+   *
+   * @param command Name of the command to be used in format - `/<command-name>`
+   * @param helpTitle Title of the command to be displayed in help grid
+   * @param helpDescription A brief paragraph explaining how the command works, and any supported options
+   */
+  constructor(
+    public command: string,
+    public helpTitle: string,
+    public helpDescription: string
+  ) {}
 
   // This method should be overridden by subclasses to implement the command
   abstract execute(chat: ChatCraftChat, user: User | undefined, args?: string[]): Promise<void>;
