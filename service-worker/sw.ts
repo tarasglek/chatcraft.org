@@ -19,9 +19,9 @@ self.addEventListener("message", (event) => {
 });
 
 const entries = self.__WB_MANIFEST;
-if (import.meta.env.DEV) {
-  entries.push({ url: "/", revision: Math.random().toString() });
-}
+// if (import.meta.env.DEV) {
+//   entries.push({ url: "/", revision: Math.random().toString() });
+// }
 
 precacheAndRoute(entries);
 
@@ -30,42 +30,42 @@ cleanupOutdatedCaches();
 
 // allow only fallback in dev: don't cache anything
 let allowlist: undefined | RegExp[];
-if (import.meta.env.DEV) {
-  allowlist = [/^\/$/];
-}
+// if (import.meta.env.DEV) {
+//   allowlist = [/^\/$/];
+// }
 // deny api and server page calls
 let denylist: undefined | RegExp[];
-if (import.meta.env.PROD) {
-  denylist = [
-    /^\/api\//,
-    /^\/login\//,
-    /^\/oauth\//,
-    /^\/signin\//,
-    /^\/web-share-target\//,
-    // exclude emoji: has its own cache
-    /^\/emojis\//,
-    // exclude sw: if the user navigates to it, fallback to index.html
-    /^\/sw.js$/,
-    // exclude webmanifest: has its own cache
-    /^\/manifest-(.*).webmanifest$/,
-  ];
-}
+// if (import.meta.env.PROD) {
+denylist = [
+  /^\/api\//,
+  /^\/login\//,
+  /^\/oauth\//,
+  /^\/signin\//,
+  /^\/web-share-target\//,
+  // exclude emoji: has its own cache
+  /^\/emojis\//,
+  // exclude sw: if the user navigates to it, fallback to index.html
+  /^\/sw.js$/,
+  // exclude webmanifest: has its own cache
+  /^\/manifest-(.*).webmanifest$/,
+];
+// }
 
 // only cache pages and external assets on local build + start or in production
-if (import.meta.env.PROD) {
-  // include webmanifest cache
-  registerRoute(
-    ({ request, sameOrigin }) => sameOrigin && request.destination === "manifest",
-    new NetworkFirst({
-      cacheName: "chatcraft-webmanifest",
-      plugins: [
-        new CacheableResponsePlugin({ statuses: [200] }),
-        // we only need a few entries
-        new ExpirationPlugin({ maxEntries: 100 }),
-      ],
-    })
-  );
-}
+// if (import.meta.env.PROD) {
+// include webmanifest cache
+registerRoute(
+  ({ request, sameOrigin }) => sameOrigin && request.destination === "manifest",
+  new NetworkFirst({
+    cacheName: "chatcraft-webmanifest",
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      // we only need a few entries
+      new ExpirationPlugin({ maxEntries: 100 }),
+    ],
+  })
+);
+// }
 
 // allow work offline
 registerRoute(new NavigationRoute(createHandlerBoundToURL("/"), { allowlist, denylist }));
