@@ -68,7 +68,7 @@ export default defineConfig({
         display: "standalone",
         share_target: {
           action: "/web-share-target",
-          method: "GET",
+          method: "POST",
           params: {
             title: "title",
             text: "text",
