@@ -46,6 +46,10 @@ export default defineConfig({
     // https://vite-pwa-org.netlify.app/guide/
     VitePWA({
       registerType: "autoUpdate",
+      scope: "/",
+      srcDir: "./service-worker",
+      filename: "sw.ts",
+      strategies: "injectManifest",
       manifest: {
         name: "ChatCraft.org",
         short_name: "ChatCraft",
