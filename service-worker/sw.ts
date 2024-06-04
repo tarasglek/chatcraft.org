@@ -34,9 +34,7 @@ let allowlist: undefined | RegExp[];
 //   allowlist = [/^\/$/];
 // }
 // deny api and server page calls
-let denylist: undefined | RegExp[];
-// if (import.meta.env.PROD) {
-denylist = [
+const denylist: undefined | RegExp[] = [
   /^\/api\//,
   /^\/login\//,
   /^\/oauth\//,
@@ -49,7 +47,6 @@ denylist = [
   // exclude webmanifest: has its own cache
   /^\/manifest-(.*).webmanifest$/,
 ];
-// }
 
 // only cache pages and external assets on local build + start or in production
 // if (import.meta.env.PROD) {
