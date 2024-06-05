@@ -45,6 +45,7 @@ export default defineConfig({
     wasm(),
     // https://vite-pwa-org.netlify.app/guide/
     VitePWA({
+      base: "/",
       registerType: "autoUpdate",
       scope: "/",
       srcDir: "/service-worker",
