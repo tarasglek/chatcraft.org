@@ -69,6 +69,7 @@ export default defineConfig({
         share_target: {
           action: "/web-share-target",
           method: "POST",
+          enctype: "multipart/form-data",
           params: {
             title: "title",
             text: "text",
