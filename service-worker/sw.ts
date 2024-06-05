@@ -65,7 +65,7 @@ registerRoute(
 // }
 
 // allow work offline
-registerRoute(new NavigationRoute(createHandlerBoundToURL("/"), { allowlist, denylist }));
+// registerRoute(new NavigationRoute(createHandlerBoundToURL("/"), { allowlist, denylist }));
 
 // share target handler
 self.addEventListener("fetch", onShareTarget);
