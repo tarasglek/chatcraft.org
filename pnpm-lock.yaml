@@ -229,6 +229,9 @@ devDependencies:
   vitest-environment-miniflare:
     specifier: ^2.14.2
     version: 2.14.2(vitest@1.6.0)
+  workbox-precaching:
+    specifier: ^7.1.0
+    version: 7.1.0
   wrangler:
     specifier: ^3.56.0
     version: 3.56.0(@cloudflare/workers-types@4.20240512.0)
