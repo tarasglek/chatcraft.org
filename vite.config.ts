@@ -50,7 +50,7 @@ export default defineConfig({
       srcDir: "./service-worker",
       filename: "sw.ts",
       strategies: "injectManifest",
-      injectRegister: "inline",
+      injectRegister: false,
       manifest: {
         name: "ChatCraft.org",
         short_name: "ChatCraft",
