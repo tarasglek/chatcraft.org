@@ -46,9 +46,9 @@ export default defineConfig({
     // https://vite-pwa-org.netlify.app/guide/
     VitePWA({
       registerType: "autoUpdate",
-      // srcDir: "./service-worker",
-      // filename: "sw.ts",
-      // scope: "/",
+      srcDir: "/",
+      filename: "sw.ts",
+      scope: "/",
       strategies: "injectManifest",
       injectRegister: false,
       manifest: {
