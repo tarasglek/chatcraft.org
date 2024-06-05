@@ -45,11 +45,10 @@ export default defineConfig({
     wasm(),
     // https://vite-pwa-org.netlify.app/guide/
     VitePWA({
-      base: "/",
       registerType: "autoUpdate",
-      scope: "/",
-      srcDir: "/service-worker",
-      filename: "sw.ts",
+      // srcDir: "./service-worker",
+      // filename: "sw.ts",
+      // scope: "/",
       strategies: "injectManifest",
       injectRegister: false,
       manifest: {
