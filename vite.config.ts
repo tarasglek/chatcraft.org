@@ -47,7 +47,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       scope: "/",
-      srcDir: "/service-worker",
+      srcDir: "./service-worker",
       filename: "sw.ts",
       strategies: "injectManifest",
       manifest: {
