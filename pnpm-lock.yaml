@@ -50,6 +50,9 @@ dependencies:
   esbuild-wasm:
     specifier: ^0.21.3
     version: 0.21.3
+  exponential-backoff:
+    specifier: ^3.1.1
+    version: 3.1.1
   feed:
     specifier: ^4.2.2
     version: 4.2.2
@@ -6681,6 +6684,10 @@ packages:
     resolution: {integrity: sha512-eNTPlAD67BmP31LDINZ3U7HSF8l57TxOY2PmBJ1shpCvpnxBF93mWCE8YHBnXs8qiUZJc9WDcWIeC3a2HIAMfw==}
     engines: {node: '>=6'}
     dev: true
+
+  /exponential-backoff@3.1.1:
+    resolution: {integrity: sha512-dX7e/LHVJ6W3DE1MHWi9S1EYzDESENfLrYohG2G++ovZrYOkm4Knwa0mc1cn84xJOR4KEU0WSchhLbd0UklbHw==}
+    dev: false
 
   /extend@3.0.2:
     resolution: {integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==}

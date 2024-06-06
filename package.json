@@ -30,6 +30,7 @@
     "dexie-export-import": "^4.1.2",
     "dexie-react-hooks": "^1.1.7",
     "esbuild-wasm": "^0.21.3",
+    "exponential-backoff": "^3.1.1",
     "feed": "^4.2.2",
     "framer-motion": "^11.2.3",
     "get-video-id": "^3.6.5",
