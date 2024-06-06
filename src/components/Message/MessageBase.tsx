@@ -278,29 +278,34 @@ function MessageBase({
 
           const tasks = textChunks.map((textChunk, index) => {
             return limit(async () => {
-              await backOff(async () => {
-                const audioClipUrl = await textToSpeech(
-                  textChunk,
-                  settings.textToSpeech.voice,
-                  "tts-1-hd"
-                );
+              await backOff(
+                async () => {
+                  const audioClipUrl = await textToSpeech(
+                    textChunk,
+                    settings.textToSpeech.voice,
+                    "tts-1-hd"
+                  );
 
-                const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
-                audioClips[index] = audioClip;
+                  const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
+                  audioClips[index] = audioClip;
 
-                ++chunksProcessed;
-                const processedPercentage = Math.floor(
-                  (chunksProcessed * 100) / chunksToBeProcessed
-                );
-                progress({
-                  id: alertId,
-                  title: "Downloading...",
-                  message: "Please wait while we prepare your audio download.",
-                  progressPercentage: processedPercentage,
-                  updateOnly: true,
-                  handleClose,
-                });
-              });
+                  ++chunksProcessed;
+                  const processedPercentage = Math.floor(
+                    (chunksProcessed * 100) / chunksToBeProcessed
+                  );
+                  progress({
+                    id: alertId,
+                    title: "Downloading...",
+                    message: "Please wait while we prepare your audio download.",
+                    progressPercentage: processedPercentage,
+                    updateOnly: true,
+                    handleClose,
+                  });
+                },
+                {
+                  startingDelay: 3 * 1000,
+                }
+              );
             });
           });
 
