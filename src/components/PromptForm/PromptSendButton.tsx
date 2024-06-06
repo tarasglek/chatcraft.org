@@ -27,6 +27,7 @@ import { type KeyboardEvent, useRef, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { useDebounce } from "react-use";
 import { isChatModel } from "../../lib/ai";
+import InterruptSpeechButton from "../InterruptSpeechButton";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -215,7 +216,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
     }
   };
 
-  const { clearAudioQueue } = useAudioPlayer();
+  const { clearAudioQueue, isQueueEmpty } = useAudioPlayer();
 
   const providersList = {
     ...settings.providers,
@@ -227,7 +228,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
         Ask {settings.model.prettyModel}
       </Button>
-      {isTtsSupported && (
+      {isTtsSupported && isQueueEmpty ? (
         <Tooltip
           label={
             settings.textToSpeech.announceMessages
@@ -259,7 +260,9 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
             )}
           </Button>
         </Tooltip>
-      )}
+      ) : isTtsSupported ? (
+        <InterruptSpeechButton clearOnly={!isLoading} />
+      ) : null}
       <Menu placement="top-end" strategy="fixed" closeOnSelect={false}>
         <MenuButton
           as={IconButton}
