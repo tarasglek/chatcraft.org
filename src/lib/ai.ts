@@ -352,14 +352,17 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
       }
     };
 
-    // Set up the responsePromise for the Flask API
-    responsePromise = fetch("http://127.0.0.1:8000/ask", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ question }),
-    })
+    // Set up the responsePromise for the Flask API... using an ngrok file to test rn.
+    responsePromise = fetch(
+      "https://6930-2c0f-2a80-46-4010-8133-3c5-fe65-8e5c.ngrok-free.app/ask",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ question }),
+      }
+    )
       .then((response) => {
         if (!response.body) {
           throw new Error("No response body");
