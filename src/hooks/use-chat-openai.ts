@@ -49,6 +49,7 @@ function useChatOpenAI() {
   const callChatApi = useCallback(
     async (
       messages: ChatCraftMessage[],
+      useRagModel: boolean = false,
       {
         model = settings.model,
         functions,
@@ -62,6 +63,11 @@ function useChatOpenAI() {
       // When we're streaming, use this message to hold the content as it comes.
       // Later we'll replace it with the full response.
       const message = new ChatCraftAiMessage({ model, text: "" });
+
+      console.log(
+        "<----- The empty streaming message being passed in use chat hook ------>",
+        message
+      );
       setStreamingMessage(message);
       setShouldAutoScroll(true);
       resetScrollProgress();
@@ -77,6 +83,7 @@ function useChatOpenAI() {
 
       const chat = chatWithLLM(messages, {
         model,
+        useRagModel,
         functions,
         functionToCall,
         onPause() {
@@ -122,7 +129,10 @@ function useChatOpenAI() {
             }
 
             //#endregion
-
+            console.log(
+              "<----- The current text being streamed in use chat hook ------>",
+              currentText
+            );
             setStreamingMessage(
               new ChatCraftAiMessage({
                 id: message.id,
@@ -144,15 +154,21 @@ function useChatOpenAI() {
       return chat.promise
         .then((response): Promise<[ChatCraftAiMessage | ChatCraftFunctionCallMessage, number]> => {
           // Re-use the id and date from the message we've been streaming for consistency in UI
+          // @ts-ignore
           response.id = message.id;
+          // @ts-ignore
+
           response.date = message.date;
 
           // If we're tracking token cost, update it
           // TODO: this is wrong with functions now involved
+          // @ts-ignore
+
           if (settings.countTokens) {
+            // @ts-ignore
             return Promise.all([response, countTokensInMessages([...messages, response])]);
           }
-
+          // @ts-ignore
           return Promise.resolve([response, 0]);
         })
         .then(([response, tokens]) => {
@@ -160,6 +176,7 @@ function useChatOpenAI() {
             const cost = calculateTokenCost(tokens, settings.model);
             incrementCost(cost);
           }
+          console.log("<----- The response being returned in use chat hook ------>", response);
 
           return response;
         })
@@ -170,6 +187,7 @@ function useChatOpenAI() {
           setShouldAutoScroll(false);
 
           if (ttsSupported && settings.textToSpeech.announceMessages && ttsWordsBuffer.length) {
+            console.log("<----- is TTS being called? ------>");
             try {
               // Call TTS for any remaining words
               const audioClipUri = textToSpeech(ttsWordsBuffer, settings.textToSpeech.voice);

@@ -1,4 +1,13 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useMemo } from "react";
+import {
+  FormEvent,
+  KeyboardEvent,
+  useEffect,
+  Dispatch,
+  SetStateAction,
+  useState,
+  type RefObject,
+  useMemo,
+} from "react";
 import {
   Box,
   chakra,
@@ -11,6 +20,7 @@ import {
   CardBody,
   Image,
   Spinner,
+  Switch,
   Square,
 } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
@@ -66,6 +76,8 @@ type DesktopPromptFormProps = {
   onSendClick: (prompt: string, imageUrls: string[]) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
+  useRag: boolean;
+  setUseRag: Dispatch<SetStateAction<boolean>>;
   previousMessage?: string;
 };
 
@@ -75,6 +87,9 @@ function DesktopPromptForm({
   onSendClick,
   inputPromptRef,
   isLoading,
+  useRag,
+  setUseRag,
+
   previousMessage,
 }: DesktopPromptFormProps) {
   const [prompt, setPrompt] = useState("");
@@ -426,15 +441,22 @@ function DesktopPromptForm({
               </InputGroup>
 
               <Flex w="100%" gap={1} justify={"space-between"} align="center">
-                <OptionsButton
-                  chat={chat}
-                  forkUrl={forkUrl}
-                  variant="outline"
-                  isDisabled={isLoading}
-                  onFileSelected={(base64String) => {
-                    updateImageUrls(base64String, setInputImageUrls);
-                  }}
-                />
+                <Box>
+                  <OptionsButton
+                    chat={chat}
+                    forkUrl={forkUrl}
+                    variant="outline"
+                    isDisabled={isLoading}
+                    onFileSelected={(base64String) => {
+                      updateImageUrls(base64String, setInputImageUrls);
+                    }}
+                  />
+                  <Flex alignItems={"center"} gap={2} mt="2">
+                    <Switch size="md" isChecked={useRag} onChange={() => setUseRag(!useRag)} />
+
+                    <Text fontSize="12px">Switch Rag</Text>
+                  </Flex>
+                </Box>
 
                 <Flex alignItems="center" gap={2}>
                   <KeyboardHint isVisible={!!prompt.length && !isLoading} />

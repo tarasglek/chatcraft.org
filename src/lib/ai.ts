@@ -13,6 +13,7 @@ import { TextToSpeechVoices, getSettings } from "./settings";
 
 export type ChatOptions = {
   model?: ChatCraftModel;
+  useRagModel?: boolean;
   functions?: ChatCraftFunction[];
   functionToCall?: ChatCraftFunction;
   respondWithText?: boolean;
@@ -91,6 +92,7 @@ export const transcribe = async (audio: File) => {
 export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
   const settings = getSettings();
   const {
+    useRagModel,
     onData,
     onFinish,
     onPause,
@@ -101,6 +103,11 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
     functions,
     functionToCall,
   } = options;
+
+  console.log(
+    "<----- what is the nessages being sent ---->",
+    messages.map((message) => message.toOpenAiMessage())
+  );
 
   // Allow the stream to be cancelled
   const controller = new AbortController();
@@ -285,8 +292,11 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const handleStreamingResponse = async (streamResponse: Stream<ChatCompletionChunk>) => {
+    console.log("<----- The stream response being returned ------>", streamResponse);
     for await (const streamChunk of streamResponse) {
       const parsedData = parseOpenAIChunkResponse(streamChunk);
+
+      console.log("<----- The parsed data being returned ------>", parsedData);
       await streamOpenAIResponse(
         parsedData.token,
         parsedData.functionName,
@@ -298,6 +308,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
       await uiRenderPromise;
     }
     const content = buffer.join("");
+    console.log("<----- What is these items -------->", content, functionName, functionArgs);
     return handleOpenAIResponse(content, functionName, functionArgs);
   };
 
@@ -308,16 +319,68 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 
   const handleResponse = streaming ? handleStreamingResponse : handleNonStreamingResponse;
 
-  const responsePromise = openai.chat.completions
-    .create(
-      chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
-      chatCompletionReqOptions
-    )
-    .then(handleResponse)
-    .catch(handleError)
-    .finally(() => {
-      removeEventListener("keydown", handleCancel);
-    });
+  let responsePromise;
+
+  if (useRagModel) {
+    //Handle interaction to the Rag LLM if toggled
+
+    const allMessages = messages.map((message) => message.toOpenAiMessage());
+    //@ts-ignore
+    const question = allMessages[allMessages.length - 1].content[0].text;
+
+    console.log("<------Rag model is being used---->");
+    const handleStreamingResponse = async (response: any) => {
+      const reader = response.body.getReader();
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            if (uiRenderPromise) {
+              await uiRenderPromise;
+            }
+            const content = buffer.join("");
+
+            return handleOpenAIResponse(content, functionName, functionArgs);
+          }
+          const chunk = new TextDecoder().decode(value);
+          await streamOpenAIResponse(chunk, "", "");
+        }
+      } catch (error) {
+        console.error("Error while reading the stream:", error);
+      } finally {
+        reader.releaseLock();
+      }
+    };
+
+    // Set up the responsePromise for the Flask API
+    responsePromise = fetch("http://127.0.0.1:8000/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ question }),
+    })
+      .then((response) => {
+        if (!response.body) {
+          throw new Error("No response body");
+        }
+        return handleStreamingResponse(response);
+      })
+      .catch((error) => {
+        console.error("Error in responsePromise:", error);
+      });
+  } else {
+    responsePromise = openai.chat.completions
+      .create(
+        chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
+        chatCompletionReqOptions
+      )
+      .then(handleResponse)
+      .catch(handleError)
+      .finally(() => {
+        removeEventListener("keydown", handleCancel);
+      });
+  }
 
   return {
     promise: responsePromise,

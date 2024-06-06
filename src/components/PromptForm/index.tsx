@@ -1,4 +1,4 @@
-import { type RefObject } from "react";
+import { type RefObject, Dispatch, SetStateAction } from "react";
 
 import MobilePromptForm from "./MobilePromptForm";
 import DesktopPromptForm from "./DesktopPromptForm";
@@ -9,6 +9,8 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 export type PromptFormProps = {
   chat: ChatCraftChat;
   forkUrl: string;
+  useRag: boolean;
+  setUseRag: Dispatch<SetStateAction<boolean>>;
   onSendClick: (prompt: string) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;

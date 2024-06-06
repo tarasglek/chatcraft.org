@@ -53,6 +53,7 @@ function ChatBase({ chat }: ChatBaseProps) {
     defaultIsOpen: settings.sidebarVisible,
   });
   const [loading, setLoading] = useState(false);
+  const [useRag, setUseRag] = useState(false);
   const { scrollProgress, shouldAutoScroll, setShouldAutoScroll, scrollBottomRef } =
     useAutoScroll();
   const messageListRef = useRef<HTMLDivElement | null>(null);
@@ -277,19 +278,30 @@ function ChatBase({ chat }: ChatBaseProps) {
       try {
         // If the prompt text exist, package it up as a human message and add to the chat
         if (prompt) {
+          console.log("<------- There is Prompt ------>");
+
           // Add this prompt message to the chat
           promptMessage = new ChatCraftHumanMessage({ text: prompt, imageUrls, user });
+          console.log("<------- This is the Prompt Message ------>", promptMessage);
+
           await chat.addMessage(promptMessage);
         } else if (imageUrls?.length) {
+          console.log("<------- There is image url?------>");
+
           // Add only image to the chat
           promptMessage = new ChatCraftHumanMessage({ text: "", imageUrls, user });
           await chat.addMessage(promptMessage);
         } else {
+          console.log("<------- There is no prompt text?------>");
+
           // If there isn't any prompt text, see if the final message in the chat was a human
           // message or a function response. If it was either, we'll allow sending that through
           // again (e.g., if you modified something and want to retry, or want to share the
           // response from the function). Otherwise bail now.
           const finalMessage = chat.messages({ includeAppMessages: false }).at(-1);
+
+          console.log("<------- Final Message------>", finalMessage);
+
           if (
             !(
               finalMessage instanceof ChatCraftHumanMessage ||
@@ -315,6 +327,8 @@ function ChatBase({ chat }: ChatBaseProps) {
         // If the user has specified a single function in this prompt, ask LLM to call it.
         let functionToCall: ChatCraftFunction | undefined;
         if (promptMessage && functions) {
+          console.log("<------- Did the user speficy a function in their prompt? ------>");
+
           const messageFunctions = await promptMessage.functions(onError);
           if (messageFunctions?.length === 1) {
             functionToCall = messageFunctions[0];
@@ -323,18 +337,26 @@ function ChatBase({ chat }: ChatBaseProps) {
 
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
         const messages = chat.messages({ includeAppMessages: false });
+
+        console.log("<------- What is this messages ------>", messages);
         // Clear any previous audio clips
         clearAudioQueue();
-        const response = await callChatApi(messages, {
+
+        // Trigger the api call here
+        //Trigger this to true or false
+        const response = await callChatApi(messages, useRag, {
           functions,
           functionToCall,
         });
+
+        console.log("<------- What is this response ------>", response);
 
         // Add this response message to the chat
         await chat.addMessage(response);
 
         // If it's a function call message, invoke the function
         if (response instanceof ChatCraftFunctionCallMessage) {
+          console.log("<------- Is it an instance of function call message? ------>");
           const func = await ChatCraftFunction.find(response.func.id);
           if (!func) {
             error({
@@ -345,6 +367,7 @@ function ChatBase({ chat }: ChatBaseProps) {
           }
 
           const result = await func.invoke(response.func.params);
+
           // Add this result message to the chat
           await chat.addMessage(result);
 
@@ -367,7 +390,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, chat, setLoading, setShouldAutoScroll, callChatApi, error]
+    [user, chat, setLoading, setShouldAutoScroll, callChatApi, useRag, error]
   );
 
   // Restart auto-scrolling and resume a paused response when Follow Chat is clicked
@@ -409,6 +432,7 @@ function ChatBase({ chat }: ChatBaseProps) {
     }
   }, [onPrefModalOpen, settings.currentProvider, showAlert]);
 
+  console.log("THE USER RAG HELPER", useRag);
   return (
     <Grid
       w="100%"
@@ -492,6 +516,8 @@ function ChatBase({ chat }: ChatBaseProps) {
               forkUrl={`./fork`}
               onSendClick={onPrompt}
               isLoading={loading}
+              useRag={useRag}
+              setUseRag={setUseRag}
               previousMessage={chat.messages().at(-1)?.text}
               inputPromptRef={inputPromptRef}
             />
