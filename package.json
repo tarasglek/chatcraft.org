@@ -92,6 +92,7 @@
     "vitest": "^1.6.0",
     "vitest-environment-miniflare": "^2.14.2",
     "workbox-cacheable-response": "^7.1.0",
+    "workbox-core": "^7.1.0",
     "workbox-expiration": "^7.1.0",
     "workbox-precaching": "^7.1.0",
     "workbox-routing": "^7.1.0",
