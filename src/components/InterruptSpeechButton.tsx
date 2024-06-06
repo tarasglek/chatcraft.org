@@ -1,29 +1,52 @@
-import { Box, Flex, IconButton, Tooltip, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  IconButton,
+  IconButtonProps,
+  Tooltip,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import useAudioPlayer from "../hooks/use-audio-player";
 
 export const AudioPlayingIcon = ({ size }: { size: "sm" | "md" | "lg" }) => {
-  const dimensionsMap: { [key: string]: number } = useMemo(
+  const containerDimensions: { [key: string]: number } = useMemo(
     () => ({
-      sm: 6,
-      md: 8,
-      lg: 10,
+      sm: 8,
+      md: 10,
+      lg: 12,
+    }),
+    []
+  );
+
+  const ballDimensions: { [key: string]: number } = useMemo(
+    () => ({
+      sm: 5,
+      md: 6,
+      lg: 7,
     }),
     []
   );
 
   const animationVariants = {
     bounce: {
-      y: ["0rem", "-0.25rem", "0rem", "0rem", "0rem"],
+      y: ["0rem", "-0.25rem", "0rem"],
     },
+  };
+
+  const ballStyle = {
+    width: ballDimensions[size],
+    height: ballDimensions[size],
+    backgroundColor: useColorModeValue("white", "black"),
+    borderRadius: "50%",
   };
 
   return (
     <Box
       as={Flex}
-      width={dimensionsMap[size]}
-      height={dimensionsMap[size]}
+      width={containerDimensions[size]}
+      height={containerDimensions[size]}
       backgroundColor={useColorModeValue("blue.500", "blue.200")}
       _hover={{ backgroundColor: useColorModeValue("blue.600", "blue.300") }}
       padding={"0.25rem"}
@@ -32,50 +55,38 @@ export const AudioPlayingIcon = ({ size }: { size: "sm" | "md" | "lg" }) => {
       alignItems={"center"}
     >
       {/* Bouncing Balls */}
-      <motion.span
-        variants={animationVariants}
-        animate={"bounce"}
-        style={{
-          width: 5,
-          height: 5,
-          backgroundColor: useColorModeValue("white", "black"),
-          borderRadius: "50%",
-        }}
-        transition={{ duration: 1, ease: "easeInOut", repeat: Infinity, delay: 0 }}
-      ></motion.span>
-      <motion.span
-        variants={animationVariants}
-        animate={"bounce"}
-        style={{
-          width: 5,
-          height: 5,
-          backgroundColor: useColorModeValue("white", "black"),
-          borderRadius: "50%",
-        }}
-        transition={{ duration: 1, ease: "easeInOut", repeat: Infinity, delay: 0.1 }}
-      ></motion.span>
-      <motion.span
-        variants={animationVariants}
-        animate={"bounce"}
-        style={{
-          width: 5,
-          height: 5,
-          backgroundColor: useColorModeValue("white", "black"),
-          borderRadius: "50%",
-        }}
-        transition={{ duration: 1, ease: "easeInOut", repeat: Infinity, delay: 0.2 }}
-      ></motion.span>
+      {[0, 0.1, 0.2].map((delay) => (
+        <motion.span
+          key={delay}
+          variants={animationVariants}
+          animate="bounce"
+          style={ballStyle}
+          transition={{
+            duration: 0.3,
+            ease: "easeInOut",
+            repeatDelay: 0.5,
+            repeat: Infinity,
+            delay,
+          }}
+        />
+      ))}
     </Box>
   );
 };
 
 type InterruptSpeechButtonProps = {
   clearOnly?: boolean;
+  size?: "sm" | "md" | "lg";
+  buttonProps?: Omit<IconButtonProps, "aria-label">;
 };
 
 const TOOLTIP_OPEN_DURATION = 1;
 
-function InterruptSpeechButton({ clearOnly = false }: InterruptSpeechButtonProps) {
+function InterruptSpeechButton({
+  clearOnly = false,
+  size = "sm",
+  buttonProps = {},
+}: InterruptSpeechButtonProps) {
   const { disableAudioQueue, clearAudioQueue, isPlaying } = useAudioPlayer();
 
   const handleInterruptAudioQueue = useCallback(() => {
@@ -105,10 +116,12 @@ function InterruptSpeechButton({ clearOnly = false }: InterruptSpeechButtonProps
       >
         <IconButton
           onClick={handleInterruptAudioQueue}
-          size={"sm"}
-          aria-label="Stop announcing the message"
+          size={size}
+          border={"none"}
           variant={isPlaying ? "solid" : "outline"}
-          icon={<AudioPlayingIcon size={"md"} />}
+          icon={<AudioPlayingIcon size={size} />}
+          {...buttonProps}
+          aria-label="ChatCraft is speaking... Click to stop"
         ></IconButton>
       </Tooltip>
     </Box>
