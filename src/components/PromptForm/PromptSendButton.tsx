@@ -109,7 +109,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
             />
           </Tooltip>
         ) : isTtsSupported ? (
-          <InterruptSpeechButton size={"lg"} clearOnly={!isLoading} />
+          <InterruptSpeechButton variant={"dancingBars"} size={"lg"} clearOnly={!isLoading} />
         ) : null}
         <MenuButton
           as={IconButton}
@@ -303,7 +303,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </Button>
         </Tooltip>
       ) : isTtsSupported ? (
-        <InterruptSpeechButton size={"sm"} clearOnly={!isLoading} />
+        <InterruptSpeechButton variant={"dancingBars"} size={"sm"} clearOnly={!isLoading} />
       ) : null}
       <Menu placement="top-end" strategy="fixed" closeOnSelect={false}>
         <MenuButton
