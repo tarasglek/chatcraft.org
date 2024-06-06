@@ -11,7 +11,9 @@ import { ModelsProvider } from "./hooks/use-models";
 import { CostProvider } from "./hooks/use-cost";
 import { AudioPlayerProvider } from "./hooks/use-audio-player";
 import { WebHandlersProvider } from "./hooks/use-web-handlers";
+import { registerSW } from "virtual:pwa-register";
 
+registerSW({ immediate: true });
 ReactDOM.createRoot(document.querySelector("main") as HTMLElement).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
