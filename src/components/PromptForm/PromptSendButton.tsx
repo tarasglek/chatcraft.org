@@ -119,7 +119,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           title="Choose Model"
           icon={<TbChevronUp />}
         />
-        <MenuList maxHeight={"70vh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
+        <MenuList maxHeight={"85dvh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
           <MenuGroup title="Providers">
             {Object.entries(providersList).map(([providerName, providerObject]) => (
               <MenuItem
@@ -140,7 +140,29 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           </MenuGroup>
           <MenuDivider />
           <MenuGroup title="Models">
-            <InputGroup>
+            <Box maxHeight="40dvh" overflowY="auto">
+              {models
+                .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                .filter((model) =>
+                  model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+                )
+                .map((model) => (
+                  <MenuItem
+                    paddingInline={4}
+                    closeOnSelect={true}
+                    key={model.id}
+                    onClick={() => setSettings({ ...settings, model })}
+                  >
+                    {settings.model.id === model.id ? (
+                      <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                    ) : (
+                      <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
+                    )}
+                    {model.prettyModel}
+                  </MenuItem>
+                ))}
+            </Box>
+            <InputGroup marginTop={2}>
               <InputLeftElement paddingLeft={3} pointerEvents="none">
                 <TbSearch />
               </InputLeftElement>
@@ -158,26 +180,6 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                 }}
               />
             </InputGroup>
-            {models
-              .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
-              .filter((model) =>
-                model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-              )
-              .map((model) => (
-                <MenuItem
-                  paddingInline={4}
-                  closeOnSelect={true}
-                  key={model.id}
-                  onClick={() => setSettings({ ...settings, model })}
-                >
-                  {settings.model.id === model.id ? (
-                    <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                  ) : (
-                    <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
-                  )}
-                  {model.prettyModel}
-                </MenuItem>
-              ))}
           </MenuGroup>
         </MenuList>
       </Menu>

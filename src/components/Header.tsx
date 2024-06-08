@@ -144,7 +144,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
           onClick={toggleColorMode}
         />
 
-        <Box>
+        <Box zIndex={2}>
           <Menu>
             <MenuButton
               as={IconButton}

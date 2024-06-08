@@ -478,7 +478,7 @@ function MessageBase({
               </Flex>
             </Flex>
 
-            <Flex align="center">
+            <Flex align="center" zIndex={1}>
               {isHovering && (
                 <ButtonGroup isAttached display={{ base: "none", md: "block" }}>
                   <IconButton
@@ -688,7 +688,6 @@ function MessageBase({
                   <Flex w="100%" justify="space-between" align="center">
                     <Button
                       hidden={!isLongMessage || editing}
-                      zIndex={10}
                       size="sm"
                       variant="ghost"
                       onClick={() => onToggle()}
