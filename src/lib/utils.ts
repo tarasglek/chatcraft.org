@@ -65,10 +65,7 @@ export const screenshotElement = (element: HTMLElement): Promise<Blob> => {
   return import("html2canvas")
     .then((module) => {
       const html2canvas = module.default;
-      return html2canvas(element, {
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-      });
+      return html2canvas(element, {});
     })
     .then(
       (canvas) =>
