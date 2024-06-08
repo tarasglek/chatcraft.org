@@ -127,6 +127,7 @@ function MessageBase({
   const isNarrowScreen = useMobileBreakpoint();
   const messageForm = useRef<HTMLFormElement>(null);
   const messageContent = useRef<HTMLDivElement>(null);
+  const messageCard = useRef<HTMLDivElement>(null);
   const meta = useMemo(getMetaKey, []);
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
@@ -210,7 +211,7 @@ function MessageBase({
   }, [info, text]);
 
   const handleDownloadImage = useCallback(() => {
-    const elem = messageContent.current;
+    const elem = messageCard.current;
     if (!elem) {
       return;
     }
@@ -230,7 +231,7 @@ function MessageBase({
         message: err.message,
       });
     }
-  }, [messageContent, info, error]);
+  }, [messageCard, info, error]);
 
   const handleDownloadPlainText = useCallback(() => {
     if (messageContent.current) {
@@ -447,7 +448,7 @@ function MessageBase({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <Card>
+      <Card ref={messageCard}>
         <CardHeader p={0} pt={3} pb={2} pr={1}>
           <Flex justify="space-between" align="center" ml={5} mr={2}>
             <Flex gap={3}>
