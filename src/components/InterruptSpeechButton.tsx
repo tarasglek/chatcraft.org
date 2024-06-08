@@ -16,12 +16,12 @@ type AudioPlayingIconSizes = "sm" | "md" | "lg";
 
 type AudioPlayingIconVariants = "bouncingBall" | "dancingBars";
 
-interface Dimension {
+interface Dimensions {
   width: number | string;
   height: number | string;
 }
 
-const NODE_DIMENSIONS: { [key in AudioPlayingIconSizes]: Dimension } = {
+const NODE_DIMENSIONS: { [key in AudioPlayingIconSizes]: Dimensions } = {
   sm: {
     width: 5,
     height: 5,
@@ -96,8 +96,7 @@ export const AudioPlayingIcon = ({
     }, []);
 
   return (
-    <Box
-      as={Flex}
+    <Flex
       width={containerDimensions[size]}
       height={containerDimensions[size]}
       backgroundColor={useColorModeValue("blue.500", "blue.200")}
@@ -120,7 +119,7 @@ export const AudioPlayingIcon = ({
           }}
         />
       ))}
-    </Box>
+    </Flex>
   );
 };
 

@@ -40,7 +40,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { models, isTtsSupported } = useModels();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { clearAudioQueue, isQueueEmpty } = useAudioPlayer();
+  const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
 
   useDebounce(
     () => {
@@ -69,7 +69,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           isLoading={isLoading}
           icon={<TbSend />}
         />
-        {isTtsSupported && isQueueEmpty ? (
+        {isTtsSupported && isAudioQueueEmpty ? (
           <Tooltip
             label={
               settings.textToSpeech.announceMessages
@@ -258,7 +258,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
     }
   };
 
-  const { clearAudioQueue, isQueueEmpty } = useAudioPlayer();
+  const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
 
   const providersList = {
     ...settings.providers,
@@ -270,7 +270,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
         Ask {settings.model.prettyModel}
       </Button>
-      {isTtsSupported && isQueueEmpty ? (
+      {isTtsSupported && isAudioQueueEmpty ? (
         <Tooltip
           label={
             settings.textToSpeech.announceMessages
