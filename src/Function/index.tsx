@@ -16,6 +16,8 @@ import {
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
+import { MdContentCopy } from "react-icons/md";
+import { TbDownload, TbTrash } from "react-icons/tb";
 import debounce from "lodash-es/debounce";
 import { useCallback, useMemo, useRef } from "react";
 import { LuFunctionSquare } from "react-icons/lu";
@@ -162,11 +164,25 @@ export default function Function() {
                         variant="ghost"
                       />
                       <MenuList>
-                        <MenuItem onClick={() => handleCopyFunctionClick()}>Copy</MenuItem>
-                        <MenuItem onClick={() => handleDownloadFunctionClick()}>Download</MenuItem>
+                        <MenuItem
+                          icon={<MdContentCopy />}
+                          onClick={() => handleCopyFunctionClick()}
+                        >
+                          Copy
+                        </MenuItem>
+                        <MenuItem
+                          icon={<TbDownload />}
+                          onClick={() => handleDownloadFunctionClick()}
+                        >
+                          Download
+                        </MenuItem>
 
                         <MenuDivider />
-                        <MenuItem color="red.400" onClick={() => handleDeleteFunctionClick()}>
+                        <MenuItem
+                          icon={<TbTrash />}
+                          color="red.400"
+                          onClick={() => handleDeleteFunctionClick()}
+                        >
                           Delete
                         </MenuItem>
                       </MenuList>
