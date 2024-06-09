@@ -7,6 +7,7 @@ import {
   IconButton,
   Input,
   InputGroup,
+  InputRightElement,
   Link,
   Menu,
   MenuButton,
@@ -116,13 +117,24 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
           <Form action="/s" method="get">
             <InputGroup size="sm" variant="outline">
               <Input
+                fontSize="1rem"
                 type="search"
                 name="q"
                 defaultValue={searchText}
+                borderRadius={4}
                 isRequired
                 placeholder="Search chat history"
               />
-              <IconButton aria-label="Search" variant="ghost" icon={<TbSearch />} type="submit" />
+              <InputRightElement>
+                <IconButton
+                  size="sm"
+                  height="2rem"
+                  aria-label="Search"
+                  variant="ghost"
+                  icon={<TbSearch />}
+                  type="submit"
+                />
+              </InputRightElement>
             </InputGroup>
           </Form>
         )}

@@ -8,6 +8,7 @@ import {
   IconButton,
   Input,
   InputGroup,
+  InputRightElement,
   Text,
   useColorModeValue,
 } from "@chakra-ui/react";
@@ -54,13 +55,24 @@ function SidebarMobile({
           <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
             <InputGroup size="sm" variant="outline">
               <Input
+                fontSize="1rem"
                 type="search"
                 defaultValue={searchText}
                 name="q"
+                borderRadius={4}
                 isRequired
                 placeholder="Search chat history"
               />
-              <IconButton aria-label="Search" variant="ghost" icon={<TbSearch />} type="submit" />
+              <InputRightElement>
+                <IconButton
+                  size="sm"
+                  height="2rem"
+                  aria-label="Search"
+                  variant="ghost"
+                  icon={<TbSearch />}
+                  type="submit"
+                />
+              </InputRightElement>
             </InputGroup>
           </Form>
           <DrawerCloseButton />
