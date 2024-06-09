@@ -2,7 +2,6 @@ import { useCallback, type RefObject } from "react";
 import {
   Avatar,
   Box,
-  ButtonGroup,
   Flex,
   IconButton,
   Input,
@@ -86,7 +85,8 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
   return (
     <Flex
       w="100%"
-      gap={1}
+      h="3rem"
+      gap={3}
       bg={useColorModeValue("white", "gray.700")}
       justify="space-between"
       align="center"
@@ -95,6 +95,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     >
       <Flex pl={1} align="center" gap={2}>
         <IconButton
+          fontSize="1.5rem"
           icon={<BiMenu />}
           variant="ghost"
           aria-label="Toggle Sidebar Menu"
@@ -102,7 +103,11 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
           onClick={onToggleSidebar}
         />
 
-        <Text fontWeight="bold" color={useColorModeValue("blue.600", "blue.200")}>
+        <Text
+          fontWeight="bold"
+          fontSize="1.125rem"
+          color={useColorModeValue("blue.600", "blue.200")}
+        >
           <Link
             href="/"
             _hover={{ textDecoration: "none", color: useColorModeValue("blue.400", "blue.100") }}
@@ -140,8 +145,9 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
         )}
       </Box>
 
-      <ButtonGroup isAttached pr={2} alignItems="center">
+      <Flex pr={2} alignItems="center">
         <IconButton
+          fontSize="1.25rem"
           aria-label={"Copy Shared Chats Feed URL"}
           title={"Copy Shared Chats Feed URL"}
           icon={<FiRss />}
@@ -149,6 +155,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
           onClick={handleOpenFeedUrl}
         />
         <IconButton
+          fontSize="1.25rem"
           aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
           title={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
           icon={useColorModeValue(<BiMoon />, <BiSun />)}
@@ -221,7 +228,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
             </MenuList>
           </Menu>
         </Box>
-      </ButtonGroup>
+      </Flex>
 
       <PreferencesModal
         isOpen={isPrefModalOpen}

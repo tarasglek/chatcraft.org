@@ -314,7 +314,7 @@ function DesktopPromptForm({
 
   return (
     <Flex dir="column" w="100%" h="100%">
-      <Card flex={1} my={4} mx={1}>
+      <Card flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody h="100%" p={6}>
             <VStack w="100%" h="100%" gap={3}>
