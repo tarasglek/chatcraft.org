@@ -92,7 +92,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
           <Box w="100%">
             {isEditing ? (
               <form onSubmit={handleSaveSummary}>
-                <Flex align="center" gap={2}>
+                <Flex align="center" gap={2} px={2} pb={2}>
                   <Input
                     flex={1}
                     defaultValue={chat.summary}
@@ -101,15 +101,16 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                     bg="white"
                     _dark={{ bg: "gray.700" }}
                     size="sm"
+                    fontSize="1rem"
                     w="100%"
                     autoFocus={true}
                     placeholder="Chat Summary"
                   />
                   <ButtonGroup>
-                    <Button variant="outline" size="xs" onClick={() => setIsEditing(false)}>
+                    <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
                       Cancel
                     </Button>
-                    <Button size="xs" type="submit">
+                    <Button size="sm" type="submit">
                       Save
                     </Button>
                   </ButtonGroup>
