@@ -28,7 +28,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import db from "../../lib/db";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import { formatDate, formatNumber } from "../../lib/utils";
+import { formatNumber } from "../../lib/utils";
 import { SharedChatCraftChat } from "../../lib/SharedChatCraftChat";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftFunction } from "../../lib/ChatCraftFunction";
@@ -97,6 +97,21 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
       .finally(() => setIsEditing(false));
   };
 
+  const formattedDate = new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(chat.date);
+
+  const todayDate = new Date();
+
+  const currentMonth =
+    todayDate.getFullYear() === chat.date.getFullYear() &&
+    todayDate.getMonth() === chat.date.getMonth();
+
+  const isToday = currentMonth && todayDate.getDate() === chat.date.getDate();
+  const isYesterday = currentMonth && todayDate.getDate() - 1 === chat.date.getDate();
+
   return (
     <Flex
       p={1}
@@ -114,7 +129,7 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
               <MdOutlineChatBubbleOutline />
             </Box>
             <Text flex={1} fontSize="sm" as="strong">
-              {formatDate(chat.date, true)}
+              {isToday ? "Today" : isYesterday ? "Yesterday" : formattedDate}
             </Text>
           </Flex>
         </Link>
