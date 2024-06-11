@@ -1,6 +1,7 @@
 import { memo } from "react";
 import {
   Avatar,
+  Box,
   Container,
   Divider,
   Flex,
@@ -102,30 +103,30 @@ function SystemPromptVersionsMenu({
         variant="ghost"
         onClick={handleStarredChanged}
       />
-      <Menu placement="bottom-end" isLazy={true}>
-        <MenuButton
-          as={IconButton}
-          size="xs"
-          variant="ghost"
-          icon={<TbChevronDown title={`${prevSystemPrompts.length} Previous System Prompts`} />}
-        />
-        <MenuList>
-          {prevSystemPrompts.map((systemPrompt, idx, arr) => (
-            <MenuItem
-              key={systemPrompt}
-              value={systemPrompt}
-              onClick={() => onChange(systemPrompt)}
-            >
-              <Container>
-                <Text noOfLines={3} title={systemPrompt}>
-                  {systemPrompt}
-                </Text>
-                {idx < arr.length - 1 && <Divider mt={4} />}
-              </Container>
-            </MenuItem>
-          ))}
-        </MenuList>
-      </Menu>
+      {prevSystemPrompts?.length != 0 && (
+        <Menu placement="bottom" isLazy={true}>
+          <MenuButton
+            as={IconButton}
+            size="sm"
+            variant="ghost"
+            icon={<TbChevronDown title={`${prevSystemPrompts.length} Previous System Prompts`} />}
+          />
+          <MenuList zIndex={2}>
+            {prevSystemPrompts.map((systemPrompt, idx, arr) => (
+              <Box key={systemPrompt}>
+                <MenuItem value={systemPrompt} onClick={() => onChange(systemPrompt)}>
+                  <Container>
+                    <Text noOfLines={3} my={2} title={systemPrompt}>
+                      {systemPrompt}
+                    </Text>
+                  </Container>
+                </MenuItem>
+                {idx < arr.length - 1 && <Divider />}
+              </Box>
+            ))}
+          </MenuList>
+        </Menu>
+      )}
     </Flex>
   );
 }

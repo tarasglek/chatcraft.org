@@ -453,7 +453,7 @@ function MessageBase({
   return (
     <Box
       id={id}
-      my={6}
+      my={5}
       flex={1}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -491,7 +491,7 @@ function MessageBase({
 
             <Flex align="center" zIndex={1}>
               {isHovering && (
-                <ButtonGroup isAttached display={{ base: "none", md: "block" }}>
+                <Flex display={{ base: "none", md: "block" }}>
                   <IconButton
                     variant="ghost"
                     icon={<MdContentCopy />}
@@ -517,7 +517,7 @@ function MessageBase({
                       onClick={() => onDeleteClick()}
                     />
                   )}
-                </ButtonGroup>
+                </Flex>
               )}
               <Menu align="end" isDisabled={isLoading}>
                 <MenuItem onClick={handleCopy} icon={<MdContentCopy />}>
@@ -605,15 +605,7 @@ function MessageBase({
         </CardHeader>
         <CardBody p={0}>
           <Flex direction="column" gap={3}>
-            <Box
-              maxWidth="100%"
-              minH="2em"
-              overflow="hidden"
-              // Offset for the extra pixel of padding added to the messageContent box below
-              m={-1}
-              px={6}
-              pb={2}
-            >
+            <Box maxWidth="100%" minH="2em" overflow="hidden" px={5} pb={2}>
               {
                 // only display the button before message if the message is too long and toggled
                 !editing && isLongMessage && isOpen ? (
@@ -638,7 +630,7 @@ function MessageBase({
                       defaultValue={text}
                       autoFocus={true}
                     />
-                    <Flex width="100%" alignItems="center" alignContent="end" gap={2}>
+                    <Flex width="100%" alignItems="center" alignContent="end" gap={2} mb={2}>
                       <Spacer />
                       {!isNarrowScreen && (
                         <Text fontSize="sm" color="gray">
@@ -671,11 +663,7 @@ function MessageBase({
                   </VStack>
                 </form>
               ) : (
-                <Box
-                  ref={messageContent}
-                  // Add a single pixel of offset for rendering to canvas (offset handled above with m=-1)
-                  p={1}
-                >
+                <Box ref={messageContent} p={1}>
                   {imageUrls.map((imageUrl, index) => (
                     <Box key={`${id}-${index}`}>
                       <Image

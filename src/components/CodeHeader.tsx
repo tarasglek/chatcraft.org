@@ -1,7 +1,6 @@
 import { memo, useCallback, useMemo, type ReactNode, useState } from "react";
 import {
   Flex,
-  ButtonGroup,
   IconButton,
   useClipboard,
   useColorModeValue,
@@ -198,7 +197,7 @@ function CodeHeader({
             {language}
           </Text>
         </Box>
-        <ButtonGroup isAttached pr={2}>
+        <Flex pr={2}>
           {shouldShowRunButton && (
             <Menu strategy="fixed">
               <MenuButton
@@ -252,7 +251,7 @@ function CodeHeader({
             variant="ghost"
             onClick={handleCopy}
           />
-        </ButtonGroup>
+        </Flex>
       </Flex>
       {children}
     </>

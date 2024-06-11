@@ -10,7 +10,6 @@ import {
   Center,
   useColorModeValue,
   IconButton,
-  ButtonGroup,
   Input,
   Accordion,
   AccordionItem,
@@ -29,7 +28,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import db from "../../lib/db";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import { formatDate, formatNumber } from "../../lib/utils";
+import { formatNumber } from "../../lib/utils";
 import { SharedChatCraftChat } from "../../lib/SharedChatCraftChat";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftFunction } from "../../lib/ChatCraftFunction";
@@ -98,6 +97,21 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
       .finally(() => setIsEditing(false));
   };
 
+  const formattedDate = new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(chat.date);
+
+  const todayDate = new Date();
+
+  const currentMonth =
+    todayDate.getFullYear() === chat.date.getFullYear() &&
+    todayDate.getMonth() === chat.date.getMonth();
+
+  const isToday = currentMonth && todayDate.getDate() === chat.date.getDate();
+  const isYesterday = currentMonth && todayDate.getDate() - 1 === chat.date.getDate();
+
   return (
     <Flex
       p={1}
@@ -110,15 +124,17 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
     >
       <Flex justify="space-between" align="center" minH="32px" w="100%">
         <Link to={url} style={{ width: "100%" }}>
-          <Flex align="center" gap={2}>
-            <MdOutlineChatBubbleOutline />
+          <Flex align="center">
+            <Box px={2}>
+              <MdOutlineChatBubbleOutline />
+            </Box>
             <Text flex={1} fontSize="sm" as="strong">
-              {formatDate(chat.date, true)}
+              {isToday ? "Today" : isYesterday ? "Yesterday" : formattedDate}
             </Text>
           </Flex>
         </Link>
-        {isSelected && !isEditing ? (
-          <ButtonGroup isAttached>
+        {isSelected && !isEditing && (
+          <Flex>
             {canEdit && (
               <IconButton
                 variant="ghost"
@@ -137,11 +153,7 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
               title="Delete chat"
               onClick={onDelete}
             />
-          </ButtonGroup>
-        ) : (
-          <ButtonGroup>
-            <span>&nbsp;</span>
-          </ButtonGroup>
+          </Flex>
         )}
       </Flex>
 
@@ -153,17 +165,20 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
                 flex={1}
                 defaultValue={chat.summary}
                 type="text"
+                fontSize="1rem"
                 name="summary"
                 bg="white"
                 _dark={{ bg: "gray.700" }}
-                size="xs"
+                size="sm"
+                borderRadius={4}
+                mx={1}
                 w="100%"
                 autoFocus={true}
               />
-              <ButtonGroup isAttached>
+              <Flex>
                 <IconButton
                   variant="ghost"
-                  size="xs"
+                  size="sm"
                   icon={<CgClose />}
                   aria-label="Cancel"
                   title="Cancel"
@@ -172,17 +187,17 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
                 <IconButton
                   type="submit"
                   variant="ghost"
-                  size="xs"
+                  size="sm"
                   icon={<TbCheck />}
                   aria-label="Save"
                   title="Save"
                 />
-              </ButtonGroup>
+              </Flex>
             </Flex>
           </form>
         ) : (
           <Link to={url} style={{ width: "100%" }}>
-            <Text noOfLines={2} fontSize="sm" title={text} w="100%">
+            <Text noOfLines={2} px={2} fontSize="sm" title={text} w="100%">
               {text}
             </Text>
           </Link>
@@ -233,8 +248,10 @@ function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSideba
     >
       <Flex justify="space-between" align="center" minH="32px" w="100%">
         <Link to={url} style={{ width: "100%" }}>
-          <Flex align="center" gap={2}>
-            <LuFunctionSquare />
+          <Flex align="center">
+            <Box px={2}>
+              <LuFunctionSquare />
+            </Box>
             <Text flex={1} fontSize="sm" as="strong">
               {func.prettyName}
             </Text>
@@ -254,7 +271,7 @@ function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSideba
 
       <Box flex={1} maxW="100%" minH="24px">
         <Link to={url} style={{ width: "100%" }}>
-          <Text noOfLines={2} fontSize="sm" title={func.description} w="100%">
+          <Text noOfLines={2} px={2} fontSize="sm" title={func.description} w="100%">
             {func.description}
           </Text>
         </Link>
@@ -360,14 +377,14 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
 
   return (
     <Flex direction="column" h="100%" p={2} gap={4}>
-      <Accordion allowToggle>
+      <Accordion allowToggle defaultIndex={0}>
         <AccordionItem>
-          <AccordionButton p={0} minH={10}>
+          <AccordionButton p={2} minH={10}>
             <Heading as="h3" size="xs">
               Saved Chats ({formatNumber(chatsTotal || 0)})
             </Heading>
 
-            <Button as={Link} to="/c/new" size="xs" variant="ghost">
+            <Button as={Link} to="/c/new" ml={1} size="xs" variant="ghost">
               New
             </Button>
 
@@ -400,7 +417,7 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
         </AccordionItem>
 
         <AccordionItem>
-          <AccordionButton p={0} minH={10}>
+          <AccordionButton p={2} minH={10}>
             <Heading as="h3" size="xs">
               Shared Chats ({formatNumber(sharedChats.length || 0)})
             </Heading>
@@ -418,27 +435,27 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
                 />
               ))
             ) : (
-              <VStack align="left">
+              <VStack px={2} align="left">
                 <Text>You don&apos;t have any shared chats yet.</Text>
                 <Text>
                   Share your first chat by clicking the <strong>Share Chat...</strong> menu option
-                  in the chat header menu. Anyone with this URL will be able to read or duplicate
-                  the chat.
+                  in the chat header menu.
                 </Text>
+                <Text>Anyone with this URL will be able to read or duplicate the chat.</Text>
               </VStack>
             )}
           </AccordionPanel>
         </AccordionItem>
 
         <AccordionItem>
-          <AccordionButton p={0} minH={10}>
+          <AccordionButton p={2} minH={10}>
             <Flex justify="space-between" align="center">
               <Heading as="h3" size="xs">
                 Functions ({formatNumber(functions.length || 0)})
               </Heading>
 
               {functions?.length > 0 && (
-                <Button as={Link} to="/f/new" size="xs" variant="ghost">
+                <Button as={Link} to="/f/new" ml={1} size="xs" variant="ghost">
                   New
                 </Button>
               )}
@@ -457,15 +474,12 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
                 />
               ))
             ) : (
-              <VStack align="left">
+              <VStack px={2} align="left">
                 <Text>You don&apos;t have any functions yet.</Text>
-                <Text>
-                  Functions can be called by some models to perform tasks.{" "}
-                  <Link to="/f/new" target="_blank" style={{ textDecoration: "underline" }}>
-                    Create a function
-                  </Link>
-                  .
-                </Text>
+                <Text>Functions can be called by some models to perform tasks.</Text>
+                <Link to="/f/new" target="_blank" style={{ textDecoration: "underline" }}>
+                  Create a function
+                </Link>
               </VStack>
             )}
           </AccordionPanel>
