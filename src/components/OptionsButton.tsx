@@ -228,7 +228,8 @@ function OptionsButton({
           <IconButton
             aria-label="Options menu"
             isDisabled={isDisabled}
-            size="lg"
+            size="md"
+            fontSize="1.25rem"
             variant="outline"
             icon={<PiGearBold />}
             isRound

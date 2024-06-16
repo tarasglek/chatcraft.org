@@ -101,6 +101,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                     bg="white"
                     _dark={{ bg: "gray.700" }}
                     size="sm"
+                    borderRadius={4}
                     fontSize="1rem"
                     w="100%"
                     autoFocus={true}

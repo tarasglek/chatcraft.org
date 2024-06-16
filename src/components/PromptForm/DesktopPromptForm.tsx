@@ -44,7 +44,7 @@ function KeyboardHint({ isVisible }: KeyboardHintProps) {
   }
 
   return (
-    <Text fontSize="sm" color="gray">
+    <Text fontSize="sm" color="gray" px={2}>
       <span>
         {settings.enterBehaviour === "newline" ? (
           <span>
@@ -316,7 +316,7 @@ function DesktopPromptForm({
     <Flex dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
-          <CardBody h="100%" p={6}>
+          <CardBody h="100%" px={6} py={4}>
             <VStack w="100%" h="100%" gap={3}>
               <InputGroup
                 h="100%"
