@@ -119,9 +119,9 @@ export default function MicIcon({
         variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
         colorScheme={isRecording ? "red" : "blue"}
         aria-label="Record speech"
-        size={isRecording ? "lg" : "md"}
+        size="md"
         transition={"all 150ms ease-in-out"}
-        fontSize="18px"
+        fontSize="1.25rem"
         ref={micIconRef}
         onClick={handleMicToggle}
         onBlur={() => onRecordingCancel()}

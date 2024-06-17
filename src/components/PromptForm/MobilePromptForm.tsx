@@ -163,9 +163,9 @@ function MobilePromptForm({
   };
 
   return (
-    <Box flex={1} w="100%" h="100%" px={1} pt={2} pb={4}>
+    <Box flex={1} w="100%" h="100%" my={1} px={2} py={1}>
       <chakra.form onSubmit={handlePromptSubmit} h="100%">
-        <Flex mt={2} pb={2} px={1} alignItems="end" gap={2}>
+        <Flex alignItems="end" gap={2}>
           <OptionsButton
             chat={chat}
             forkUrl={forkUrl}
@@ -222,7 +222,7 @@ function MobilePromptForm({
               ))}
             </Flex>
             {inputType === "audio" ? (
-              <Box py={2} px={1}>
+              <Box p={2}>
                 <AudioStatus
                   isRecording={isRecording}
                   isTranscribing={isTranscribing}
@@ -241,12 +241,11 @@ function MobilePromptForm({
                 _dark={{ bg: "gray.700" }}
                 overflowY="auto"
                 placeholder="Ask about..."
-                mb={1}
               />
             )}
           </Box>
 
-          {isTranscriptionSupported() && (
+          {isTranscriptionSupported() && !isTranscribing && !prompt && (
             <MicIcon
               isDisabled={isLoading}
               onRecording={handleRecording}
@@ -256,7 +255,7 @@ function MobilePromptForm({
             />
           )}
 
-          <PromptSendButton isLoading={isLoading} />
+          {!isRecording && <PromptSendButton isLoading={isLoading} />}
         </Flex>
       </chakra.form>
     </Box>

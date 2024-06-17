@@ -63,56 +63,20 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
       <Menu placement="top" strategy="fixed" closeOnSelect={false} offset={[-90, 0]}>
         <IconButton
           type="submit"
-          size="lg"
+          size="md"
+          fontSize="1.375rem"
+          width="2.75rem"
           variant="solid"
           isRound
           aria-label="Submit"
           isLoading={isLoading}
           icon={<TbSend />}
         />
-        {isTtsSupported && (
-          <Tooltip
-            label={
-              settings.textToSpeech.announceMessages
-                ? "Text-to-Speech Enabled"
-                : "Text-to-Speech Disabled"
-            }
-          >
-            <IconButton
-              type="button"
-              size="lg"
-              variant="solid"
-              aria-label={
-                settings.textToSpeech.announceMessages
-                  ? "Text-to-Speech Enabled"
-                  : "Text-to-Speech Disabled"
-              }
-              icon={
-                settings.textToSpeech.announceMessages ? (
-                  <MdVolumeUp size={25} />
-                ) : (
-                  <MdVolumeOff size={25} />
-                )
-              }
-              onClick={() => {
-                if (settings.textToSpeech.announceMessages) {
-                  // Flush any remaining audio clips being announced
-                  clearAudioQueue();
-                }
-                setSettings({
-                  ...settings,
-                  textToSpeech: {
-                    ...settings.textToSpeech,
-                    announceMessages: !settings.textToSpeech.announceMessages,
-                  },
-                });
-              }}
-            />
-          </Tooltip>
-        )}
         <MenuButton
           as={IconButton}
-          size="lg"
+          size="md"
+          width="2.75rem"
+          fontSize="1.375rem"
           isRound
           variant="solid"
           aria-label="Choose Model"
@@ -181,6 +145,37 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
               />
             </InputGroup>
           </MenuGroup>
+          {isTtsSupported && (
+            <>
+              <MenuDivider />
+              <MenuItem
+                icon={
+                  settings.textToSpeech.announceMessages ? (
+                    <MdVolumeUp style={{ fontSize: "1.25rem" }} />
+                  ) : (
+                    <MdVolumeOff style={{ fontSize: "1.25rem" }} />
+                  )
+                }
+                onClick={() => {
+                  if (settings.textToSpeech.announceMessages) {
+                    // Flush any remaining audio clips being announced
+                    clearAudioQueue();
+                  }
+                  setSettings({
+                    ...settings,
+                    textToSpeech: {
+                      ...settings.textToSpeech,
+                      announceMessages: !settings.textToSpeech.announceMessages,
+                    },
+                  });
+                }}
+              >
+                {settings.textToSpeech.announceMessages
+                  ? "Text-to-Speech Enabled"
+                  : "Text-to-Speech Disabled"}
+              </MenuItem>
+            </>
+          )}
         </MenuList>
       </Menu>
     </ButtonGroup>
@@ -271,6 +266,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
         <MenuButton
           as={IconButton}
           size="sm"
+          fontSize="1.25rem"
           aria-label="Choose Model"
           title="Choose Model"
           icon={<TbChevronUp />}
