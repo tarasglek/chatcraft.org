@@ -39,6 +39,7 @@ import { WebHandler } from "../lib/WebHandler";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import PreferencesModal from "../components/Preferences/PreferencesModal";
+import { OnPromptFunction, PromptFunctionOptions } from "../lib/OnPromptFunction";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -205,8 +206,10 @@ function ChatBase({ chat }: ChatBaseProps) {
   }, [messageListRef, handleScroll, shouldAutoScroll]);
 
   // Handle prompt form submission
-  const onPrompt = useCallback(
-    async (prompt?: string, imageUrls?: string[]) => {
+  const onPrompt: OnPromptFunction = useCallback(
+    async (options?: PromptFunctionOptions) => {
+      let prompt = options?.prompt;
+      const { imageUrls, retry } = options || {};
       setLoading(true);
 
       // Special-case for "help", to invoke /help command
@@ -275,6 +278,10 @@ function ChatBase({ chat }: ChatBaseProps) {
       // Not a slash command, so pass this prompt to LLM
       let promptMessage: ChatCraftHumanMessage | undefined;
       try {
+        // If retrying, empty the prompt to avoid duplicate message
+        if (retry) {
+          prompt = "";
+        }
         // If the prompt text exist, package it up as a human message and add to the chat
         if (prompt) {
           // Add this prompt message to the chat
