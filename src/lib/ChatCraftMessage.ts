@@ -118,7 +118,7 @@ export class ChatCraftMessage {
       case "ai":
         return { role: "assistant", content: text };
       case "human":
-        return { role: "user", content };
+        return { role: "user", content: this.imageUrls.length ? content : text };
       case "system":
         return { role: "system", content: text };
       case "function":
