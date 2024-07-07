@@ -114,11 +114,15 @@ export class ChatCraftMessage {
       });
     }
 
+    // avoid sending multipart messages if there is only text
+    // this is to expand api provider compatibility
+    const userContent = this.imageUrls.length || content.length > 1 ? content : text;
+
     switch (this.type) {
       case "ai":
         return { role: "assistant", content: text };
       case "human":
-        return { role: "user", content: this.imageUrls.length ? content : text };
+        return { role: "user", content: userContent };
       case "system":
         return { role: "system", content: text };
       case "function":
