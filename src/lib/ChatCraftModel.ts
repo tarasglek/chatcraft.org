@@ -12,9 +12,9 @@ export class ChatCraftModel {
     this.id = model;
     const parts = model.split("/");
     // Default to "openai" if we don't get a vendor name
-    this.vendor = parts.length > 1 ? parts[0] : "openai";
+    this.vendor = parts.at(-2) || "openai";
     // If we get a vendor, use the second part, otherwise the whole thing is the model name
-    this.name = parts.length > 1 ? parts[1] : parts[0];
+    this.name = parts.at(-1) || model;
   }
 
   get logoUrl() {
