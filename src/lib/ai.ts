@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { ChatCompletion, ChatCompletionChunk } from "openai/resources";
+import type { ChatCompletionChunk } from "openai/resources";
 import { Stream } from "openai/streaming";
 import type { Tiktoken } from "tiktoken/lite";
 import { ChatCraftFunction } from "./ChatCraftFunction";
