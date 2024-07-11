@@ -312,12 +312,12 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const handleResponse = streaming ? handleStreamingResponse : handleNonStreamingResponse;
-  const createChatCompletion = openai.chat.completions.create;
+  // const createChatCompletion = openai.chat.completions.create;
   const responsePromise = createWindowAIChatCompletionIterator(
     chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
     chatCompletionReqOptions
   )
-    .then(handleResponse)
+    .then(handleResponse as any)
     .catch(handleError)
     .finally(() => {
       removeEventListener("keydown", handleCancel);
@@ -395,7 +395,9 @@ async function* createWindowAIChatCompletion(
 }
 
 function createWindowAIChatCompletionIterator(
-  body: OpenAI.Chat.ChatCompletionCreateParamsStreaming
+  body: OpenAI.Chat.ChatCompletionCreateParamsStreaming,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _ignore: any
 ): Promise<AsyncIterableIterator<ChatCompletionChunk>> {
   return new Promise((resolve) => {
     resolve(createWindowAIChatCompletion(body));
