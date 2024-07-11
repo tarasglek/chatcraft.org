@@ -1,9 +1,5 @@
 import OpenAI from "openai";
-import type {
-  ChatCompletion,
-  ChatCompletionChunk,
-  ChatCompletionCreateParamsNonStreaming,
-} from "openai/resources";
+import type { ChatCompletion, ChatCompletionChunk } from "openai/resources";
 import { Stream } from "openai/streaming";
 import type { Tiktoken } from "tiktoken/lite";
 import { ChatCraftFunction } from "./ChatCraftFunction";
@@ -93,7 +89,16 @@ export const transcribe = async (audio: File) => {
   return transcription.text;
 };
 
-export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
+export function chatWithLLM(
+  messages: ChatCraftMessage[],
+  options: ChatOptions = {}
+): {
+  promise: Promise<ChatCraftAiMessage | ChatCraftFunctionCallMessage>;
+  cancel: () => void;
+  pause: () => void;
+  resume: () => void;
+  togglePause: () => void;
+} {
   const settings = getSettings();
   const {
     onData,
@@ -246,6 +251,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     throw new Error("Missing API Key");
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { openai, headers } = settings.currentProvider.createClient(
     settings.currentProvider.apiKey
   );
@@ -312,12 +318,12 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const handleResponse = streaming ? handleStreamingResponse : handleNonStreamingResponse;
-  // const createChatCompletion = openai.chat.completions.create;
-  const responsePromise = createWindowAIChatCompletionIterator(
+  const createChatCompletion = createWindowAIChatCompletionIterator as any; //openai.chat.completions.create;
+  const responsePromise = createChatCompletion(
     chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
     chatCompletionReqOptions
   )
-    .then(handleResponse as any)
+    .then(handleResponse)
     .catch(handleError)
     .finally(() => {
       removeEventListener("keydown", handleCancel);
@@ -330,7 +336,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     resume,
     togglePause,
   };
-};
+}
 
 type Message = {
   role: string;
@@ -373,7 +379,7 @@ async function* createWindowAIChatCompletion(
   body: OpenAI.Chat.ChatCompletionCreateParamsStreaming
 ): AsyncIterableIterator<ChatCompletionChunk> {
   const aiConvo = openaiToBrowserAI(body.messages as any);
-  const session = await window.ai.createTextSession();
+  const session = await (window as any).ai.createTextSession();
   const stream = session.promptStreaming(aiConvo);
   let previous = "";
 
@@ -398,13 +404,12 @@ function createWindowAIChatCompletionIterator(
   body: OpenAI.Chat.ChatCompletionCreateParamsStreaming,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _ignore: any
-): Promise<AsyncIterableIterator<ChatCompletionChunk>> {
+): APIPromise<Promise<AsyncIterableIterator<ChatCompletionChunk>>> {
   return new Promise((resolve) => {
     resolve(createWindowAIChatCompletion(body));
-  });
+  }) as any;
 }
 
-// Cache this instance on first use
 let encoding: Tiktoken;
 
 // TODO: If we're using OpenRouter, we have to alter our token counting logic for other models...
