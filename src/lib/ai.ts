@@ -1,5 +1,9 @@
 import OpenAI from "openai";
-import type { ChatCompletionChunk } from "openai/resources";
+import type {
+  ChatCompletion,
+  ChatCompletionChunk,
+  ChatCompletionCreateParamsNonStreaming,
+} from "openai/resources";
 import { Stream } from "openai/streaming";
 import type { Tiktoken } from "tiktoken/lite";
 import { ChatCraftFunction } from "./ChatCraftFunction";
@@ -10,6 +14,7 @@ import {
 } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { TextToSpeechVoices, getSettings } from "./settings";
+import { APIPromise } from "openai/core";
 
 export type ChatOptions = {
   model?: ChatCraftModel;
@@ -307,12 +312,11 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const handleResponse = streaming ? handleStreamingResponse : handleNonStreamingResponse;
-
-  const responsePromise = openai.chat.completions
-    .create(
-      chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
-      chatCompletionReqOptions
-    )
+  const createChatCompletion = openai.chat.completions.create;
+  const responsePromise = createWindowAIChatCompletionIterator(
+    chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
+    chatCompletionReqOptions
+  )
     .then(handleResponse)
     .catch(handleError)
     .finally(() => {
@@ -327,6 +331,76 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     togglePause,
   };
 };
+
+type Message = {
+  role: string;
+  content: string;
+};
+
+function openaiToBrowserAI(messages: Message[]): string {
+  const formattedMessages = messages.map((message, index) => {
+    let formattedMessage = "";
+
+    const content = message.content.trim();
+    if (message.role === "system") {
+      formattedMessage = content;
+    } else if (message.role === "user") {
+      formattedMessage = `User:\n${content}`;
+    } else if (message.role === "assistant") {
+      formattedMessage = `Model:\n${content}`;
+    }
+
+    // Add separator after system messages and Model: replies
+    if (
+      message.role === "system" ||
+      (message.role === "assistant" && index < messages.length - 1)
+    ) {
+      formattedMessage += "<ctrl23>";
+    }
+
+    return formattedMessage;
+  });
+
+  // Ensure the string ends with "Model:"
+  if (!formattedMessages[formattedMessages.length - 1].startsWith("Model:")) {
+    formattedMessages.push("Model:\n");
+  }
+
+  return formattedMessages.join("\n");
+}
+
+async function* createWindowAIChatCompletion(
+  body: OpenAI.Chat.ChatCompletionCreateParamsStreaming
+): AsyncIterableIterator<ChatCompletionChunk> {
+  const aiConvo = openaiToBrowserAI(body.messages as any);
+  const session = await window.ai.createTextSession();
+  const stream = session.promptStreaming(aiConvo);
+  let previous = "";
+
+  try {
+    for await (const chunk of stream) {
+      const incremental = chunk.slice(previous.length);
+      previous = chunk;
+      yield {
+        choices: [{ index: 0, finish_reason: null, delta: { content: incremental } }],
+        id: "",
+        created: 0,
+        model: "",
+        object: "chat.completion.chunk",
+      };
+    }
+  } finally {
+    await session.destroy();
+  }
+}
+
+function createWindowAIChatCompletionIterator(
+  body: OpenAI.Chat.ChatCompletionCreateParamsStreaming
+): Promise<AsyncIterableIterator<ChatCompletionChunk>> {
+  return new Promise((resolve) => {
+    resolve(createWindowAIChatCompletion(body));
+  });
+}
 
 // Cache this instance on first use
 let encoding: Tiktoken;
