@@ -21,7 +21,6 @@ import { TiDeleteOutline } from "react-icons/ti";
 import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
 import { isTranscriptionSupported } from "../../lib/speech-recognition";
-import { useModels } from "../../hooks/use-models";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useLocation } from "react-router-dom";
@@ -81,8 +80,7 @@ function DesktopPromptForm({
   // Has the user started typing?
   const [isDirty, setIsDirty] = useState(false);
   const { error } = useAlert();
-  const { models } = useModels();
-  const { settings, setSettings } = useSettings();
+  const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
@@ -135,16 +133,6 @@ function DesktopPromptForm({
       }
     };
   }, [isRecording, recordingSeconds]);
-
-  // Update model to the supported model when inputImages is not empty
-  useEffect(() => {
-    if (inputImageUrls?.length > 0 && !settings.model.supportsImages) {
-      const visionModel = models.find((model) => model.supportsImages);
-      if (visionModel && visionModel.name != settings.model.name) {
-        setSettings({ ...settings, model: visionModel });
-      }
-    }
-  }, [inputImageUrls, models, settings, setSettings]);
 
   // Attach paste event listener to the textarea
   useEffect(() => {
