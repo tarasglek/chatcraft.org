@@ -11,11 +11,12 @@ import AudioStatus from "./AudioStatus";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { updateImageUrls } from "../../lib/utils";
+import { OnPromptFunction } from "../../lib/OnPromptFunction";
 
 type MobilePromptFormProps = {
   chat: ChatCraftChat;
   forkUrl: string;
-  onSendClick: (prompt: string, imageUrls: string[]) => void;
+  onSendClick: OnPromptFunction;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;
@@ -79,7 +80,7 @@ function MobilePromptForm({
     const textValue = prompt.trim();
     setPrompt("");
     setInputImageUrls([]);
-    onSendClick(textValue, inputImageUrls);
+    onSendClick({ prompt: textValue, imageUrls: inputImageUrls });
   };
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
@@ -140,7 +141,7 @@ function MobilePromptForm({
     setIsTranscribing(false);
 
     // Use this transcript as our prompt
-    onSendClick(transcription, inputImageUrls);
+    onSendClick({ prompt: transcription, imageUrls: inputImageUrls });
     setInputImageUrls([]);
   };
 
