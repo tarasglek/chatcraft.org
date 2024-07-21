@@ -75,16 +75,6 @@ function MobilePromptForm({
     };
   }, [isRecording, recordingSeconds]);
 
-  // Update model to the supported model when inputImages is not empty
-  useEffect(() => {
-    if (inputImageUrls?.length > 0) {
-      const visionModel = models.find((model) => model.supportsImages);
-      if (visionModel && visionModel.name != settings.model.name) {
-        setSettings({ ...settings, model: visionModel });
-      }
-    }
-  }, [inputImageUrls, models, settings, setSettings]);
-
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
