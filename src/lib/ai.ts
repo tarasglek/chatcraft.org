@@ -139,7 +139,7 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   };
 
   // Only stream if we have an onData callback
-  const streaming: boolean = !!onData;
+  const streaming: boolean = false;
 
   // Regular text response from LLM
   const handleTextResponse = async (text: string = "") => {
@@ -242,7 +242,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   }
 
   const { openai, headers } = settings.currentProvider.createClient(
-    settings.currentProvider.apiKey
+    settings.currentProvider.apiKey,
+    `http://localhost/workflows/assistants-chat/api/assistants/<your-assistant-id>`
   );
 
   const chatCompletionParams: OpenAI.Chat.ChatCompletionCreateParams = {
@@ -255,7 +256,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
      * we need to separate the call and result into two parts
      */
     messages: messages.map((message) => message.toOpenAiMessage()),
-    stream: streaming,
+    stream: false,
 
     /**
      * If the user provides functions to use, convert them to a form that
@@ -309,11 +310,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   const handleResponse = streaming ? handleStreamingResponse : handleNonStreamingResponse;
 
   const responsePromise = openai.chat.completions
-    .create(
-      chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
-      chatCompletionReqOptions
-    )
-    .then(handleResponse)
+    .create(chatCompletionParams as any, chatCompletionReqOptions)
+    .then(handleResponse as any)
     .catch(handleError)
     .finally(() => {
       removeEventListener("keydown", handleCancel);

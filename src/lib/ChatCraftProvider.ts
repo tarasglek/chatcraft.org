@@ -29,11 +29,11 @@ export abstract class ChatCraftProvider {
     this.defaultModel = defaultModel;
   }
 
-  createClient(key: string) {
+  createClient(key: string, customUrl?: string) {
     return {
       openai: new OpenAI({
         apiKey: key,
-        baseURL: this.apiUrl,
+        baseURL: customUrl ?? this.apiUrl,
         defaultHeaders: this.clientHeaders,
         dangerouslyAllowBrowser: true,
       }),
