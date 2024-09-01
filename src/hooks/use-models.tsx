@@ -56,7 +56,6 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const models = await settings.currentProvider.queryModels(apiKey).then((models) => {
           return models.map((modelName) => new ChatCraftModel(modelName));
         });
-        models.sort((a, b) => a.prettyModel.localeCompare(b.prettyModel));
         setModels(models);
         setSettings({ ...settings, model: pickDefaultModel(settings.model, models) });
       } catch (err) {

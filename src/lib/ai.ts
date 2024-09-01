@@ -29,6 +29,7 @@ function parseOpenAIChunkResponse(chunk: OpenAI.Chat.ChatCompletionChunk) {
   let functionArgs: string = "";
   let token: string = "";
 
+  const model = chunk.model;
   const chunkDelta = chunk.choices[0]?.delta;
   if (chunkDelta?.content) {
     token = chunkDelta?.content;
@@ -46,7 +47,7 @@ function parseOpenAIChunkResponse(chunk: OpenAI.Chat.ChatCompletionChunk) {
     }
   }
 
-  return { token, functionName, functionArgs };
+  return { model, token, functionName, functionArgs };
 }
 
 function parseOpenAIResponse(response: OpenAI.Chat.ChatCompletion) {
@@ -54,6 +55,7 @@ function parseOpenAIResponse(response: OpenAI.Chat.ChatCompletion) {
   let functionArgs: string = "";
   let content: string = "";
 
+  const model = response.model;
   const responseMsg = response.choices[0]?.message;
   if (responseMsg?.content) {
     content = responseMsg?.content;
@@ -70,7 +72,7 @@ function parseOpenAIResponse(response: OpenAI.Chat.ChatCompletion) {
     }
   }
 
-  return { content, functionName, functionArgs };
+  return { model, content, functionName, functionArgs };
 }
 
 export const transcribe = async (audio: File) => {
@@ -142,8 +144,8 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   const streaming: boolean = !!onData;
 
   // Regular text response from LLM
-  const handleTextResponse = async (text: string = "") => {
-    const response = new ChatCraftAiMessage({ text, model });
+  const handleTextResponse = async (model: string, text: string = "") => {
+    const response = new ChatCraftAiMessage({ text, model: new ChatCraftModel(model) });
 
     if (onFinish) {
       onFinish(response);
@@ -152,7 +154,11 @@ export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions =
   };
 
   // Function invocation request from LLM
-  const handleFunctionCallResponse = async (functionName: string, functionArgs: string) => {
+  const handleFunctionCallResponse = async (
+    model: string,
+    functionName: string,
+    functionArgs: string
+  ) => {
     const func = functions?.find(({ name }) => name === functionName);
     if (!func) {
       throw new Error(`no function found matching ${functionName}`);
@@ -166,7 +172,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 
     return new ChatCraftFunctionCallMessage({
       text,
-      model,
+      model: new ChatCraftModel(model),
       func: {
         id: func.id,
         name: func.name,
@@ -176,16 +182,17 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const handleOpenAIResponse = async (
+    model: string,
     content: string,
     functionName: string,
     functionArgs: string
   ) => {
     if (content.length > 0) {
-      return handleTextResponse(content);
+      return handleTextResponse(model, content);
     }
 
     if (functionName && functionArgs) {
-      return handleFunctionCallResponse(functionName, functionArgs);
+      return handleFunctionCallResponse(model, functionName, functionArgs);
     }
 
     throw new Error("unable to handle OpenAI response (not text or function)");
@@ -285,8 +292,10 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const handleStreamingResponse = async (streamResponse: Stream<ChatCompletionChunk>) => {
+    let model: string | null = null;
     for await (const streamChunk of streamResponse) {
       const parsedData = parseOpenAIChunkResponse(streamChunk);
+      model = parsedData.model;
       await streamOpenAIResponse(
         parsedData.token,
         parsedData.functionName,
@@ -298,12 +307,12 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
       await uiRenderPromise;
     }
     const content = buffer.join("");
-    return handleOpenAIResponse(content, functionName, functionArgs);
+    return handleOpenAIResponse(model || settings.model.id, content, functionName, functionArgs);
   };
 
   const handleNonStreamingResponse = async (response: any) => {
-    const { content, functionName, functionArgs } = parseOpenAIResponse(response);
-    return handleOpenAIResponse(content, functionName, functionArgs);
+    const { model, content, functionName, functionArgs } = parseOpenAIResponse(response);
+    return handleOpenAIResponse(model, content, functionName, functionArgs);
   };
 
   const handleResponse = streaming ? handleStreamingResponse : handleNonStreamingResponse;

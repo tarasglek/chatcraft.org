@@ -1,7 +1,6 @@
 export class ChatCraftModel {
   id: string;
   vendor: string;
-  name: string;
 
   /**
    * @param model The model's name. Different providers give this in different
@@ -13,8 +12,16 @@ export class ChatCraftModel {
     const parts = model.split("/");
     // Default to "openai" if we don't get a vendor name
     this.vendor = parts.at(-2) || "openai";
-    // If we get a vendor, use the second part, otherwise the whole thing is the model name
-    this.name = parts.at(-1) || model;
+  }
+
+  get name() {
+    // Use the model's full id as its name
+    return this.id;
+  }
+
+  get prettyModel(): string {
+    // If we have vendor info in the name, drop it from the "pretty" name to fit better in small UI
+    return this.name.replace(`${this.vendor}/`, "");
   }
 
   get logoUrl() {
@@ -76,10 +83,6 @@ export class ChatCraftModel {
       this.name.startsWith("gpt-4-turbo") ||
       this.name.startsWith("gpt-4o")
     );
-  }
-
-  get prettyModel(): string {
-    return this.name;
   }
 
   toString() {

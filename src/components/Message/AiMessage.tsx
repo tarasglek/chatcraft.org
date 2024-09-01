@@ -119,7 +119,11 @@ function AiMessage(props: AiMessageProps) {
         const aiMessage = await callChatApi(context, { model });
 
         // Update db with new message info, and also add this text as a new version
-        const version = new ChatCraftAiMessageVersion({ date, model, text: aiMessage.text });
+        const version = new ChatCraftAiMessageVersion({
+          date,
+          model: aiMessage.model,
+          text: aiMessage.text,
+        });
         message.addVersion(version);
         message.switchVersion(version.id);
         await message.save(chat.id);
