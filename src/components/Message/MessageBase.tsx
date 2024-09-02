@@ -489,7 +489,7 @@ function MessageBase({
               </Flex>
             </Flex>
 
-            <Flex align="center" zIndex={1}>
+            <Flex align="center">
               {isHovering && (
                 <Flex display={{ base: "none", md: "block" }}>
                   <IconButton
