@@ -1,9 +1,7 @@
-import { Box, IconButton, useColorMode } from "@chakra-ui/react";
+import { IconButton, useColorMode } from "@chakra-ui/react";
 import { Menu as ReactMenu, type MenuProps as ReactMenuProps } from "@szhsin/react-menu";
 import React from "react";
 import { TbDots } from "react-icons/tb";
-
-import theme from "../../theme";
 
 // Stylesheets
 import "@szhsin/react-menu/dist/core.css";
@@ -24,20 +22,18 @@ const Menu: React.FC<MenuProps> = (props) => {
   );
 
   return (
-    <Box zIndex={theme.zIndices.dropdown}>
-      <ReactMenu
-        transition={true}
-        theming={colorMode === "dark" ? "dark" : undefined}
-        {...props}
-        menuButton={menuButton}
-        menuStyle={{
-          minWidth: "225px",
-          ...props.menuStyle,
-        }}
-      >
-        {props.children}
-      </ReactMenu>
-    </Box>
+    <ReactMenu
+      transition={true}
+      theming={colorMode === "dark" ? "dark" : undefined}
+      {...props}
+      menuButton={menuButton}
+      menuStyle={{
+        minWidth: "225px",
+        ...props.menuStyle,
+      }}
+    >
+      {props.children}
+    </ReactMenu>
   );
 };
 
