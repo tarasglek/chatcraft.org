@@ -108,7 +108,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
               {models
                 .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
                 .filter((model) =>
-                  model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+                  model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
                 )
                 .map((model) => (
                   <MenuItem
@@ -122,7 +122,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                     ) : (
                       <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
                     )}
-                    {model.prettyModel}
+                    {model.name}
                   </MenuItem>
                 ))}
             </Box>
@@ -319,7 +319,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
               {models
                 .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
                 .filter((model) =>
-                  model.prettyModel.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+                  model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
                 )
                 .map((model) => (
                   <MenuItem
@@ -333,7 +333,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                     ) : (
                       <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
                     )}
-                    {model.prettyModel}
+                    {model.name}
                   </MenuItem>
                 ))}
             </Box>

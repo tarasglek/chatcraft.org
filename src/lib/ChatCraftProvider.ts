@@ -63,7 +63,8 @@ export abstract class ChatCraftProvider {
         models.push(page);
       }
 
-      return models.map((model: any) => model.id) as string[];
+      const modelList = models.map((model: any) => model.id as string);
+      return modelList.sort((a, b) => a.localeCompare(b));
     } catch (err: any) {
       throw new Error(`error querying models API: ${err.message}`);
     }

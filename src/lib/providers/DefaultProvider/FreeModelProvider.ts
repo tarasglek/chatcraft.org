@@ -26,6 +26,7 @@ export class FreeModelProvider extends ChatCraftProvider {
 
     try {
       const result = await res.json();
+      // Don't sort, since models are already returned in order of usefulness for free provider.
       return result.data.map((model: { id: string }) => model.id) as string[];
     } catch (err: any) {
       throw new Error(`error querying models API: ${err.message}`);

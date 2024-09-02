@@ -431,7 +431,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
         setFocusedProvider(null);
         error({
           title: "Provider not added",
-          message: "Provider is not Open AI compatible.",
+          message: "Provider is not OpenAI compatible.",
         });
         return;
       }
