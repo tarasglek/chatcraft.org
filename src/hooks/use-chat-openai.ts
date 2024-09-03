@@ -43,7 +43,7 @@ function useChatOpenAI() {
     pausedRef.current = paused;
   }, [paused]);
 
-  const { addToAudioQueue } = useAudioPlayer();
+  const { addToAudioQueue, audioQueueDisabledRef, enableAudioQueue } = useAudioPlayer();
   const { error } = useAlert();
 
   const callChatApi = useCallback(
@@ -94,7 +94,11 @@ function useChatOpenAI() {
 
               const { sentences } = tokenize(ttsWordsBuffer);
 
-              if (ttsSupported && settings.textToSpeech.announceMessages) {
+              if (
+                ttsSupported &&
+                settings.textToSpeech.announceMessages &&
+                !audioQueueDisabledRef?.current
+              ) {
                 if (
                   sentences.length > 1 // Has one full sentence
                 ) {
@@ -104,7 +108,7 @@ function useChatOpenAI() {
                   addToAudioQueue(audioClipUri);
 
                   // Update the tts Cursor
-                  ttsCursor += sentences[0].length;
+                  ttsCursor += textToBeProcessed.length;
                 } else if (
                   nlp(ttsWordsBuffer).terms().out("array").length >= TTS_BUFFER_THRESHOLD
                 ) {
@@ -169,7 +173,12 @@ function useChatOpenAI() {
           resetScrollProgress();
           setShouldAutoScroll(false);
 
-          if (ttsSupported && settings.textToSpeech.announceMessages && ttsWordsBuffer.length) {
+          if (
+            ttsSupported &&
+            settings.textToSpeech.announceMessages &&
+            !audioQueueDisabledRef?.current &&
+            ttsWordsBuffer.length
+          ) {
             try {
               // Call TTS for any remaining words
               const audioClipUri = textToSpeech(ttsWordsBuffer, settings.textToSpeech.voice);
@@ -179,6 +188,9 @@ function useChatOpenAI() {
               error({ title: "Error generating audio", message: err.message });
             }
           }
+
+          // In case TTS was temporarily disabled, just for this message
+          enableAudioQueue();
         });
     },
     [
@@ -192,6 +204,8 @@ function useChatOpenAI() {
       addToAudioQueue,
       error,
       incrementCost,
+      audioQueueDisabledRef,
+      enableAudioQueue,
     ]
   );
 
