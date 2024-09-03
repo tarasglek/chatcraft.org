@@ -13,6 +13,7 @@ import {
 import { useSettings } from "../hooks/use-settings";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useAlert } from "../hooks/use-alert";
+import { OnPromptFunction } from "../lib/OnPromptFunction";
 
 type MessagesViewProps = {
   chat: ChatCraftChat;
@@ -22,7 +23,7 @@ type MessagesViewProps = {
   isPaused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
-  onPrompt: (prompt?: string) => void;
+  onPrompt: OnPromptFunction;
 };
 
 function MessagesView({
@@ -99,7 +100,7 @@ function MessagesView({
           isLoading={isLoading}
           onResubmitClick={async (promptText?: string) => {
             await deleteMessages(message.id, "after");
-            onPrompt(promptText);
+            onPrompt({ prompt: promptText, retry: true }); // pass prompt text and true for retry, don't include any imageURLs
           }}
           onDeleteBeforeClick={
             hasMessagesBefore ? () => deleteMessages(message.id, "before") : undefined

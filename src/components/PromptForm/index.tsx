@@ -5,11 +5,12 @@ import DesktopPromptForm from "./DesktopPromptForm";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
+import { OnPromptFunction } from "../../lib/OnPromptFunction";
 
 export type PromptFormProps = {
   chat: ChatCraftChat;
   forkUrl: string;
-  onSendClick: (prompt: string) => void;
+  onSendClick: OnPromptFunction;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
   previousMessage?: string;

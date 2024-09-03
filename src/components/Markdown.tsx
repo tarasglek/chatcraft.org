@@ -18,6 +18,7 @@ import CodeHeader from "./CodeHeader";
 import HtmlPreview from "./HtmlPreview";
 import MermaidPreview from "./MermaidPreview";
 import NomnomlPreview from "./NomnomlPreview";
+import { OnPromptFunction } from "../lib/OnPromptFunction";
 
 const fixLanguageName = (language: string | null) => {
   if (!language) {
@@ -53,7 +54,7 @@ const fixLanguageName = (language: string | null) => {
 type MarkdownProps = {
   previewCode?: boolean;
   isLoading: boolean;
-  onPrompt?: (prompt: string) => void;
+  onPrompt?: OnPromptFunction;
   children: string;
   className?: string;
 };
