@@ -123,15 +123,22 @@ function useChatOpenAI() {
 
             //#endregion
 
-            setStreamingMessage(
-              new ChatCraftAiMessage({
-                id: message.id,
-                date: message.date,
-                model: message.model,
-                text: currentText,
-              })
-            );
-            incrementScrollProgress();
+            // Only set a streaming message, if we are still in the process of streaming it
+            // If the message is `undefined`, that means we have already exited the streaming state
+            // See https://github.com/tarasglek/chatcraft.org/blob/ebd165ed22cd28411cc017646c5a7ec003efb6cd/src/hooks/use-chat-openai.ts#L173
+            // We most probably reached this block due to a race condition with `requestAnimationFrame`
+            // See https://github.com/tarasglek/chatcraft.org/blob/ebd165ed22cd28411cc017646c5a7ec003efb6cd/src/lib/ai.ts#L236
+            if (streamingMessage) {
+              setStreamingMessage(
+                new ChatCraftAiMessage({
+                  id: message.id,
+                  date: message.date,
+                  model: message.model,
+                  text: currentText,
+                })
+              );
+              incrementScrollProgress();
+            }
           }
         },
       });
@@ -164,7 +171,7 @@ function useChatOpenAI() {
           return response;
         })
         .finally(() => {
-          setStreamingMessage(() => undefined);
+          setStreamingMessage(undefined);
           setPaused(false);
           resetScrollProgress();
           setShouldAutoScroll(false);
