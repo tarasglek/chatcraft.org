@@ -330,7 +330,7 @@ function ChatBase({ chat }: ChatBaseProps) {
           functionToCall,
         });
 
-        if (!window.foo) {
+        if (!(window as any).foo) {
           throw new Error("Injecting error");
         }
 
