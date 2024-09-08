@@ -24,6 +24,20 @@ export type ChatOptions = {
   onData?: ({ token, currentText }: { token: string; currentText: string }) => void;
 };
 
+export class ChatCompletionError extends Error {
+  // The partial response that was returned before the error occurred
+  incompleteResponse?: ChatCraftAiMessage;
+
+  constructor(originalError: Error, incompleteResponse?: ChatCraftAiMessage) {
+    super(`API Error: ${originalError.message}`);
+    this.incompleteResponse = incompleteResponse?.clone();
+    // Indicate that this message is incomplete with ellipses
+    if (this.incompleteResponse) {
+      this.incompleteResponse.text += "...";
+    }
+  }
+}
+
 function parseOpenAIChunkResponse(chunk: OpenAI.Chat.ChatCompletionChunk) {
   let functionName: string = "";
   let functionArgs: string = "";
@@ -207,6 +221,10 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     } else if (token) {
       buffer.push(token);
 
+      if (buffer.length > 100) {
+        throw new Error("Hit 100");
+      }
+
       if (onData && !isPaused) {
         pendingTokens.push(token);
 
@@ -230,11 +248,16 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const handleError = async (error: Error) => {
+    const chatCompletionError = new ChatCompletionError(
+      error,
+      buffer.length ? new ChatCraftAiMessage({ model, text: buffer.join("") }) : undefined
+    );
+
     if (onError) {
-      onError(error);
+      onError(chatCompletionError);
     }
 
-    throw new Error(`OpenAI API Returned Error: ${error.message}`);
+    throw chatCompletionError;
   };
 
   if (!settings.currentProvider.apiKey) {

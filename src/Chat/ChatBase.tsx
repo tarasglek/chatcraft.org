@@ -39,6 +39,7 @@ import { WebHandler } from "../lib/WebHandler";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import PreferencesModal from "../components/Preferences/PreferencesModal";
+import { ChatCompletionError } from "../lib/ai";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -356,6 +357,11 @@ function ChatBase({ chat }: ChatBaseProps) {
           forceScroll();
         }
       } catch (err: any) {
+        if (err instanceof ChatCompletionError && err.incompleteResponse) {
+          // Add this partial response to the chat
+          await chat.addMessage(err.incompleteResponse);
+        }
+
         error({
           title: `Response Error`,
           message: err.message,
@@ -367,7 +373,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, chat, setLoading, setShouldAutoScroll, callChatApi, error]
+    [user, chat, streamingMessage, setLoading, setShouldAutoScroll, callChatApi, error]
   );
 
   // Restart auto-scrolling and resume a paused response when Follow Chat is clicked
