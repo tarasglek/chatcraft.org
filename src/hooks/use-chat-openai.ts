@@ -164,7 +164,7 @@ function useChatOpenAI() {
           return response;
         })
         .finally(() => {
-          setStreamingMessage(undefined);
+          // setStreamingMessage(undefined);
           setPaused(false);
           resetScrollProgress();
           setShouldAutoScroll(false);

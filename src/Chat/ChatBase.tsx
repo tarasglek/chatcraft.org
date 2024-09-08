@@ -330,6 +330,10 @@ function ChatBase({ chat }: ChatBaseProps) {
           functionToCall,
         });
 
+        if (!window.foo) {
+          throw new Error("Injecting error");
+        }
+
         // Add this response message to the chat
         await chat.addMessage(response);
 
@@ -360,6 +364,9 @@ function ChatBase({ chat }: ChatBaseProps) {
           title: `Response Error`,
           message: err.message,
         });
+        if (streamingMessage) {
+          await chat.addMessage(streamingMessage);
+        }
         console.error(err);
       } finally {
         setLoading(false);
@@ -469,7 +476,8 @@ function ChatBase({ chat }: ChatBaseProps) {
 
           <MessagesView
             chat={chat}
-            newMessage={streamingMessage}
+            // should be renamed to messageBeingStreamed
+            newMessage={loading ? streamingMessage : undefined}
             isLoading={loading}
             onRemoveMessage={(message) => chat.removeMessage(message.id)}
             isPaused={paused}

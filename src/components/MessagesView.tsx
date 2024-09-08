@@ -147,7 +147,7 @@ function MessagesView({
 
         {instructions}
 
-        {newMessage && (
+        {isLoading && newMessage && (
           <NewMessage
             message={newMessage}
             chatId={chatId}
