@@ -31,10 +31,6 @@ export class ChatCompletionError extends Error {
   constructor(originalError: Error, incompleteResponse?: ChatCraftAiMessage) {
     super(`API Error: ${originalError.message}`);
     this.incompleteResponse = incompleteResponse?.clone();
-    // Indicate that this message is incomplete with ellipses
-    if (this.incompleteResponse) {
-      this.incompleteResponse.text += "...";
-    }
   }
 }
 
