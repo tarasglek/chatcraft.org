@@ -221,10 +221,6 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     } else if (token) {
       buffer.push(token);
 
-      if (buffer.length > 100) {
-        throw new Error("Hit 100");
-      }
-
       if (onData && !isPaused) {
         pendingTokens.push(token);
 
