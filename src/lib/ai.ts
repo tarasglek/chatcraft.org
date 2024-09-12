@@ -213,6 +213,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   let functionName = "";
   let functionArgs = "";
   let uiRenderPromise: Promise<void> | null = null;
+  // Track our animation frames so we we can cancel on error
+  let rafId: number | null = null;
 
   const streamOpenAIResponse = async (token: string, func: string, args: string) => {
     if (func || args) {
@@ -231,13 +233,15 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
         // when the main thread is ready before before proceeding so we don't
         // swamp it with too many concurrent updates.
         if (!uiRenderPromise) {
-          uiRenderPromise = new Promise((resolve) => {
-            requestAnimationFrame(() => {
+          uiRenderPromise = new Promise<void>((resolve) => {
+            rafId = requestAnimationFrame(() => {
               onData({ token: pendingTokens.join(""), currentText: buffer.join("") });
               pendingTokens.length = 0;
-              uiRenderPromise = null;
               resolve();
             });
+          }).finally(() => {
+            uiRenderPromise = null;
+            rafId = null;
           });
         }
       }
@@ -247,6 +251,9 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const handleError = async (error: Error) => {
+    // Cancel any pending requestAnimationFrame on error
+    cancelAnimationFrame(rafId!);
+
     const chatCompletionError = new ChatCompletionError(
       error,
       buffer.length ? new ChatCraftAiMessage({ model, text: buffer.join("") }) : undefined
@@ -340,6 +347,9 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     .then(handleResponse)
     .catch(handleError)
     .finally(() => {
+      // Clean up listeners and RAF
+      cancelAnimationFrame(rafId!);
+      rafId = null;
       removeEventListener("keydown", handleCancel);
     });
 
