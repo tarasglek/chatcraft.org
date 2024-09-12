@@ -252,10 +252,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
 
   const handleError = async (error: Error) => {
     // Cancel any pending requestAnimationFrame on error
-    if (rafId !== null) {
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
+    cancelAnimationFrame(rafId!);
 
     const chatCompletionError = new ChatCompletionError(
       error,
@@ -351,10 +348,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     .catch(handleError)
     .finally(() => {
       // Clean up listeners and RAF
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
+      cancelAnimationFrame(rafId!);
+      rafId = null;
       removeEventListener("keydown", handleCancel);
     });
 
