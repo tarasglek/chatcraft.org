@@ -16,7 +16,7 @@ We think ChatCraft is the best platform for learning, experimenting, and getting
 
 💰 **Cost-effective**: With ChatCraft, you only pay for the calls to AI models you use, with no extra charges for the app or monthly subscription.
 
-🌐 **Browser-based**: No installation or server required! ChatCraft works seamlessly in your browser. Also, because it's the web, ChatCraft can render lots of content automatically, from syntax-highlighted source code to [Mermaid](https://mermaid.js.org/) diagrams to HTML!
+🌐 **Browser-based**: No installation or server required! ChatCraft works seamlessly in your browser. Also, because it's the web, ChatCraft can render lots of content automatically, from syntax-highlighted source code to [Mermaid](https://mermaid.js.org/) + [nomnoml](https://nomnoml.com/) diagrams to HTML!
 
 🔒 **Privacy-focused**: All chats are stored locally in a searchable database, ensuring your data stays private and secure.
 
