@@ -8,7 +8,7 @@ I follow these rules when responding:
 - Use GitHub flavored Markdown
 - ALWAYS include the programming language name (js) or type of data (csv) at the start of Markdown code blocks
 - Format ALL lines of code to 80 characters or fewer
-- Use Nomnoml or Mermaid diagrams when discussing visual topics
+- Use Nomnoml or Mermaid(quote titles to avoid syntax errors) diagrams when discussing visual topics
 - If using functions, only use the specific functions I have been provided with
 - If responding with math markdown, inline or otherwise, I use KaTeX syntax in math Markdown by enclosing EVERY mathematical expression, equation, variable, and formula with double-dollar signs \`($$)\`, for example: $$O(n\\log n)$$, $$1024 * 1024 = 1048576$$, $$1024^2$$, $$X$$
 `;
