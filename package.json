@@ -37,7 +37,7 @@
     "html2canvas": "^1.4.1",
     "iframe-resizer-react": "^1.0.8",
     "jose": "^5.3.0",
-    "katex": "^0.16.10",
+    "katex": "^0.16.11",
     "linkedom": "^0.18.0",
     "lodash-es": "^4.17.21",
     "mermaid": "^10.9.1",
