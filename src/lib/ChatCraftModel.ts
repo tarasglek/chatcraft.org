@@ -35,8 +35,20 @@ export class ChatCraftModel {
       return "/anthropic-logo.png";
     }
 
+    if (vendor === "microsoft" && this.name.includes("phi")) {
+      return "/microsoft-phi-logo.jpg"; // Microsoft's Phi model logo
+    }
+
     if (vendor === "google") {
-      return "/palm-logo.png";
+      return "/google-gemini-logo.png";
+    }
+
+    if (vendor === "meta-llama" && this.name.includes("llama")) {
+      return "/meta-logo.png";
+    }
+
+    if (this.name.includes("mixtral")) {
+      return "/mistral-logo.png";
     }
 
     // Use the Hugging Face logo, since it's hosted there
