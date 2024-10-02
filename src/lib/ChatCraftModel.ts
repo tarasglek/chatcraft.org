@@ -36,7 +36,7 @@ export class ChatCraftModel {
     }
 
     if (vendor === "microsoft" && this.name.includes("phi")) {
-      return "/microsoft-phi-logo.jpg"; // Microsoft's Phi model logo
+      return "/microsoft-phi-logo.png"; // Microsoft's Phi model logo
     }
 
     if (vendor === "google") {
