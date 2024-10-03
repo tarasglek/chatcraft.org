@@ -20,6 +20,7 @@ export type ChatCraftMessageTable = {
   func?: FunctionCallParams | FunctionCallResult;
   text: string;
   imageUrls?: string[];
+  attachmentIds?: string[];
   versions?: { id: string; date: Date; model: string; text: string; imageUrls?: string[] }[];
 };
 
@@ -46,12 +47,20 @@ export type ChatCraftStarredSystemPromptTable = {
   usage: number;
 };
 
+export type ChatCraftAttachmentTable = {
+  id: string;
+  date: Date;
+  name?: string;
+  blob: Blob;
+};
+
 class ChatCraftDatabase extends Dexie {
   chats: Table<ChatCraftChatTable, string>;
   messages: Table<ChatCraftMessageTable, string>;
   shared: Table<SharedChatCraftChatTable, string>;
   functions: Table<ChatCraftFunctionTable, string>;
   starred: Table<ChatCraftStarredSystemPromptTable, string>;
+  attachments: Table<ChatCraftAttachmentTable, string>;
 
   constructor() {
     super("ChatCraftDatabase");
@@ -146,12 +155,47 @@ class ChatCraftDatabase extends Dexie {
     this.version(9).stores({
       messages: "id, date, chatId, type, model, user, text, imageUrls, versions",
     });
+    // Version 10 Migration - add Attachments table, attachmentIds to messages, remove imageUrls
+    this.version(10)
+      .stores({
+        attachments: "id, date",
+        message: "id, date, chatId, type, model, user, text, versions, attachmentIds",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("messages")
+          .where({ type: "human" })
+          .each(async (record: ChatCraftMessageTable) => {
+            const imageUrls = record.imageUrls;
+            if (!imageUrls?.length) {
+              return;
+            }
+
+            // TODO: convert all imageUrls to attachments...
+
+            const starred = await tx.table("starred").get(record.text);
+            if (starred) {
+              const earliestDate = record.date > starred.date ? starred.date : record.date;
+              return await tx
+                .table("starred")
+                .where({ text: starred.text })
+                .modify({ usage: starred.usage + 1, date: earliestDate });
+            }
+            await tx.table("starred").add({
+              text: record.text,
+              date: record.date,
+              usage: 1,
+            });
+          });
+        await tx.table("messages").where({ type: "system" }).modify({ starred: undefined });
+      });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
     this.shared = this.table("shared");
     this.functions = this.table("functions");
     this.starred = this.table("starred");
+    this.attachments = this.table("attachments");
   }
 }
 
