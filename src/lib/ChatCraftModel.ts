@@ -43,7 +43,7 @@ export class ChatCraftModel {
       return "/google-gemini-logo.png";
     }
 
-    if (vendor === "meta-llama" && this.name.includes("llama")) {
+    if (this.name.includes("llama")) {
       return "/meta-logo.png";
     }
 
