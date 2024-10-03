@@ -34,7 +34,7 @@ We think ChatCraft is the best platform for learning, experimenting, and getting
 
 You can begin using ChatCraft today without any installation or account:
 
-1. Got to <https://chatcraft.org/>
+1. Go to: <https://chatcraft.org/>
 2. Choose an **AI provider**: [OpenAI](https://openai.com/) or [OpenRouter](https://openrouter.ai/). OpenAI supports various versions of ChatGPT (`gpt-3.5-turbo`) and GPT-4 models, while OpenRouter adds support for even more models from vendors like Anthropic, Google, and Meta. It's easy to switch providers later, or go back-and-forth.
 3. Enter an **API Key**. No matter which provider you choose, ChatCraft needs an API Key to start making API calls on your behalf. API Keys are never shared, and get stored in your browser's local storage.
 4. Start chatting with AI! Type your question in the textbox at the bottom of the screen and click the **Ask** button to prompt a particular model (switch to a different model whenever you like).
