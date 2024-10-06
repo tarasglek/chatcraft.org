@@ -8,7 +8,7 @@ export type FunctionModule = {
   name: string;
   description: string;
   parameters: object;
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   default: Function;
 };
 
@@ -134,11 +134,11 @@ const parseModule = async (tsCode: string) => {
     }
     // we only use the first function for now
     const firstFunction = functionDeclarations[0];
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     const fn = module[firstFunction.name] as Function;
 
     // convert openai func( {param1:, param2...}) to func(param1, param2...)
-    // eslint-disable-next-line no-inner-declarations
+
     function wrapper(obj: object) {
       const props = Object.values(obj);
       return fn(...props);
