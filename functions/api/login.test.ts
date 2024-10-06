@@ -44,7 +44,6 @@ describe("Production Github /api/login", () => {
     expect(res.status).toBe(302);
     const location = res.headers.get("Location");
     expect(typeof location).toBe("string");
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const params = new URL(location!).searchParams;
     expect(params.get("client_id")).toEqual("client_id_1234");
     expect(params.get("state")).toEqual("provider=github&chat_id=123456");
@@ -251,7 +250,7 @@ describe("Production Google /api/login", () => {
     expect(res.status).toBe(302);
     const location = res.headers.get("Location");
     expect(typeof location).toBe("string");
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     const params = new URL(location!).searchParams;
     expect(params.get("client_id")).toEqual("client_id_1234");
     expect(params.get("state")).toEqual("provider=google&chat_id=123456");
