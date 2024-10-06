@@ -167,6 +167,7 @@ export async function loadShare(user: string, id: string) {
     // Try to parse the response as JSON
     const serialized: SerializedChatCraftChat = JSON.parse(text);
     return ChatCraftChat.fromJSON(serialized);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     // If JSON parsing fails, try to parse as HTML with embedded yaml
   }
