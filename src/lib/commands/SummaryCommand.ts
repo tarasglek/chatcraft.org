@@ -13,7 +13,7 @@ export class SummaryCommand extends ChatCraftCommand {
   }
 
   async execute(chat: ChatCraftChat, user: User | undefined, args?: string[]) {
-    const wordCount = Number(args?.[0]) ?? 500;
+    const wordCount = Number(args?.[0] ?? 500);
 
     const systemChatMessage = new ChatCraftSystemMessage({
       text: `You are an expert at summarizing chat history. You respond ONLY with the summary text and focus on the main content of the chat, NEVER mentioning the process, participants, and DON'T refer to "the chat"; that is, give a content summary and not a statement like "The chat involved..."`,
