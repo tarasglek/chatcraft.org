@@ -159,6 +159,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20240919.0
         version: 4.20241004.0
+      '@eslint/js':
+        specifier: ^9.12.0
+        version: 9.12.0
       '@types/cookie':
         specifier: ^0.6.0
         version: 0.6.0
@@ -200,13 +203,13 @@ importers:
         version: 6.10.0(eslint@9.12.0)
       eslint-plugin-prettier:
         specifier: ^5.2.1
-        version: 5.2.1(eslint-config-prettier@9.1.0(eslint@9.12.0))(eslint@9.12.0)(prettier@3.3.3)
+        version: 5.2.1(@types/eslint@9.6.1)(eslint-config-prettier@9.1.0(eslint@9.12.0))(eslint@9.12.0)(prettier@3.3.3)
       eslint-plugin-react:
         specifier: ^7.37.1
         version: 7.37.1(eslint@9.12.0)
       eslint-plugin-react-hooks:
-        specifier: ^4.6.2
-        version: 4.6.2(eslint@9.12.0)
+        specifier: 5.1.0-rc-1460d67c-20241003
+        version: 5.1.0-rc-1460d67c-20241003(eslint@9.12.0)
       husky:
         specifier: ^9.1.6
         version: 9.1.6
@@ -220,8 +223,11 @@ importers:
         specifier: ^5.12.0
         version: 5.12.0(rollup@2.79.2)
       typescript:
-        specifier: ^5.4.5
+        specifier: ^5.6.2
         version: 5.6.2
+      typescript-eslint:
+        specifier: ^8.8.0
+        version: 8.8.0(eslint@9.12.0)(typescript@5.6.2)
       vite:
         specifier: ^5.4.7
         version: 5.4.8(@types/node@22.7.4)(terser@5.34.1)
@@ -1671,6 +1677,9 @@ packages:
   '@types/debug@4.1.12':
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
 
+  '@types/eslint@9.6.1':
+    resolution: {integrity: sha512-FXx2pKgId/WyYo2jXw63kk7/+TY7u7AziEJxJAnSFzHlqTAS3Ync6SvgYAN/k4/PQpnnVuzoMuVnByKK2qp0ag==}
+
   '@types/estree-jsx@1.0.5':
     resolution: {integrity: sha512-52CcUVNFyfb1A2ALocQw/Dd1BQFNmSdkuC3BkZ6iqhdMfQz7JWOFRuJFloOzjk+6WijU56m9oKXFAXc7o3Towg==}
 
@@ -2829,11 +2838,11 @@ packages:
       eslint-config-prettier:
         optional: true
 
-  eslint-plugin-react-hooks@4.6.2:
-    resolution: {integrity: sha512-QzliNJq4GinDBcD8gPB5v0wh6g8q3SUi6EFF0x8N/BL9PoVs0atuGc47ozMRyOWAKdwaZ5OnbOEa3WR+dSGKuQ==}
+  eslint-plugin-react-hooks@5.1.0-rc-1460d67c-20241003:
+    resolution: {integrity: sha512-6RB5ld4hvk8hDc0JNMyid5/+SQ0ZyRtmmZV2lSvnWAA0zLIANUpSf7QNb7gtPYVop4qSu79hJpBsDGwdtXluig==}
     engines: {node: '>=10'}
     peerDependencies:
-      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
+      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0
 
   eslint-plugin-react@7.37.1:
     resolution: {integrity: sha512-xwTnwDqzbDRA8uJ7BMxPs/EXRB3i8ZfnOIp8BsxEQkT0nHPp+WWceqGgo6rKb9ctNi8GJLDT4Go5HAWELa/WMg==}
@@ -5006,6 +5015,15 @@ packages:
     resolution: {integrity: sha512-/OxDN6OtAk5KBpGb28T+HZc2M+ADtvRxXrKKbUwtsLgdoxgX13hyy7ek6bFRl5+aBs2yZzB0c4CnQfAtVypW/g==}
     engines: {node: '>= 0.4'}
 
+  typescript-eslint@8.8.0:
+    resolution: {integrity: sha512-BjIT/VwJ8+0rVO01ZQ2ZVnjE1svFBiRczcpr1t1Yxt7sT25VSbPfrJtDsQ8uQTy2pilX5nI9gwxhUyLULNentw==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   typescript2openai@1.0.1:
     resolution: {integrity: sha512-5nzOktJ7Yot5cNQH/NDiVFD2u5MT/rUoLCQwvk1c6Ny0ZfWxz3FTYHTXF+oWbfzUr8ZZZVEZEDg2AWdgH6M/tA==}
 
@@ -7065,6 +7083,12 @@ snapshots:
     dependencies:
       '@types/ms': 0.7.34
 
+  '@types/eslint@9.6.1':
+    dependencies:
+      '@types/estree': 1.0.6
+      '@types/json-schema': 7.0.15
+    optional: true
+
   '@types/estree-jsx@1.0.5':
     dependencies:
       '@types/estree': 1.0.6
@@ -8503,16 +8527,17 @@ snapshots:
       safe-regex-test: 1.0.3
       string.prototype.includes: 2.0.0
 
-  eslint-plugin-prettier@5.2.1(eslint-config-prettier@9.1.0(eslint@9.12.0))(eslint@9.12.0)(prettier@3.3.3):
+  eslint-plugin-prettier@5.2.1(@types/eslint@9.6.1)(eslint-config-prettier@9.1.0(eslint@9.12.0))(eslint@9.12.0)(prettier@3.3.3):
     dependencies:
       eslint: 9.12.0
       prettier: 3.3.3
       prettier-linter-helpers: 1.0.0
       synckit: 0.9.1
     optionalDependencies:
+      '@types/eslint': 9.6.1
       eslint-config-prettier: 9.1.0(eslint@9.12.0)
 
-  eslint-plugin-react-hooks@4.6.2(eslint@9.12.0):
+  eslint-plugin-react-hooks@5.1.0-rc-1460d67c-20241003(eslint@9.12.0):
     dependencies:
       eslint: 9.12.0
 
@@ -11202,6 +11227,17 @@ snapshots:
       has-proto: 1.0.3
       is-typed-array: 1.1.13
       possible-typed-array-names: 1.0.0
+
+  typescript-eslint@8.8.0(eslint@9.12.0)(typescript@5.6.2):
+    dependencies:
+      '@typescript-eslint/eslint-plugin': 8.8.0(@typescript-eslint/parser@8.8.0(eslint@9.12.0)(typescript@5.6.2))(eslint@9.12.0)(typescript@5.6.2)
+      '@typescript-eslint/parser': 8.8.0(eslint@9.12.0)(typescript@5.6.2)
+      '@typescript-eslint/utils': 8.8.0(eslint@9.12.0)(typescript@5.6.2)
+    optionalDependencies:
+      typescript: 5.6.2
+    transitivePeerDependencies:
+      - eslint
+      - supports-color
 
   typescript2openai@1.0.1:
     dependencies:
