@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@antonz/runno": "^0.6.1",
-    "@chakra-ui/react": "^2.10.1",
+    "@chakra-ui/react": "^2.8.2",
     "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-yaml": "^6.1.1",
     "@emotion/react": "^11.13.3",
@@ -67,6 +67,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240919.0",
+    "@eslint/js": "^9.12.0",
     "@types/cookie": "^0.6.0",
     "@types/lodash-es": "^4.17.12",
     "@types/react": "^18.3.8",
@@ -76,7 +77,6 @@
     "@typescript-eslint/eslint-plugin": "^8.8.0",
     "@typescript-eslint/parser": "^8.8.0",
     "@vitejs/plugin-react": "^4.3.1",
-    "@eslint/js": "^9.12.0",
     "eslint": "^9.12.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
