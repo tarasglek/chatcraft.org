@@ -217,7 +217,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
         // Invalid key, remove from settings.providers
         delete newProviders[newProvider.name];
       }
-    } catch (err: any) {
+    } catch {
       setIsApiKeyInvalid(true);
       setIsValidating(false);
 

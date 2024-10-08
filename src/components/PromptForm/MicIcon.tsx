@@ -36,7 +36,7 @@ export default function MicIcon({
     // Try to get access to the user's microphone. This may or may not work...
     try {
       await speechRecognitionRef.current.init();
-    } catch (err) {
+    } catch {
       error({
         title: "Audio Transcription",
         message:
