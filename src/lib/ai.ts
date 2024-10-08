@@ -10,6 +10,7 @@ import {
 } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { TextToSpeechVoices, getSettings } from "./settings";
+import { APIPromise } from "openai/core";
 
 export type ChatOptions = {
   model?: ChatCraftModel;
@@ -100,7 +101,16 @@ export const transcribe = async (audio: File) => {
   return transcription.text;
 };
 
-export const chatWithLLM = (messages: ChatCraftMessage[], options: ChatOptions = {}) => {
+export function chatWithLLM(
+  messages: ChatCraftMessage[],
+  options: ChatOptions = {}
+): {
+  promise: Promise<ChatCraftAiMessage | ChatCraftFunctionCallMessage>;
+  cancel: () => void;
+  pause: () => void;
+  resume: () => void;
+  togglePause: () => void;
+} {
   const settings = getSettings();
   const {
     onData,
@@ -270,6 +280,7 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     throw new Error("Missing API Key");
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { openai, headers } = settings.currentProvider.createClient(
     settings.currentProvider.apiKey
   );
@@ -338,12 +349,11 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   };
 
   const handleResponse = streaming ? handleStreamingResponse : handleNonStreamingResponse;
-
-  const responsePromise = openai.chat.completions
-    .create(
-      chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
-      chatCompletionReqOptions
-    )
+  const createChatCompletion = createWindowAIChatCompletionIterator as any; //openai.chat.completions.create;
+  const responsePromise = createChatCompletion(
+    chatCompletionParams as OpenAI.Chat.ChatCompletionCreateParamsStreaming,
+    chatCompletionReqOptions
+  )
     .then(handleResponse)
     .catch(handleError)
     .finally(() => {
@@ -360,9 +370,80 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     resume,
     togglePause,
   };
+}
+
+type Message = {
+  role: string;
+  content: string;
 };
 
-// Cache this instance on first use
+function openaiToBrowserAI(messages: Message[]): string {
+  const formattedMessages = messages.map((message, index) => {
+    let formattedMessage = "";
+
+    const content = message.content.trim();
+    if (message.role === "system") {
+      formattedMessage = content;
+    } else if (message.role === "user") {
+      formattedMessage = `User:\n${content}`;
+    } else if (message.role === "assistant") {
+      formattedMessage = `Model:\n${content}`;
+    }
+
+    // Add separator after system messages and Model: replies
+    if (
+      message.role === "system" ||
+      (message.role === "assistant" && index < messages.length - 1)
+    ) {
+      formattedMessage += "<ctrl23>";
+    }
+
+    return formattedMessage;
+  });
+
+  // Ensure the string ends with "Model:"
+  if (!formattedMessages[formattedMessages.length - 1].startsWith("Model:")) {
+    formattedMessages.push("Model:\n");
+  }
+
+  return formattedMessages.join("\n");
+}
+
+async function* createWindowAIChatCompletion(
+  body: OpenAI.Chat.ChatCompletionCreateParamsStreaming
+): AsyncIterableIterator<ChatCompletionChunk> {
+  const aiConvo = openaiToBrowserAI(body.messages as any);
+  const session = await (window as any).ai.createTextSession();
+  const stream = session.promptStreaming(aiConvo);
+  let previous = "";
+
+  try {
+    for await (const chunk of stream) {
+      const incremental = chunk.slice(previous.length);
+      previous = chunk;
+      yield {
+        choices: [{ index: 0, finish_reason: null, delta: { content: incremental } }],
+        id: "",
+        created: 0,
+        model: "",
+        object: "chat.completion.chunk",
+      };
+    }
+  } finally {
+    await session.destroy();
+  }
+}
+
+function createWindowAIChatCompletionIterator(
+  body: OpenAI.Chat.ChatCompletionCreateParamsStreaming,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _ignore: any
+): APIPromise<Promise<AsyncIterableIterator<ChatCompletionChunk>>> {
+  return new Promise((resolve) => {
+    resolve(createWindowAIChatCompletion(body));
+  }) as any;
+}
+
 let encoding: Tiktoken;
 
 // TODO: If we're using OpenRouter, we have to alter our token counting logic for other models...
