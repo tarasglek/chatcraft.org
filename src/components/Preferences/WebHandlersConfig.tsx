@@ -77,8 +77,7 @@ function WebHandlersConfig() {
         title: "Saved",
         message: "Successfully updated Web Handlers configuration",
       });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err: any) {
+    } catch {
       error({
         title: "Failed to save Handler Config",
         message: "Please enter valid YAML configuration",

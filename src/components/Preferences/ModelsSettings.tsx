@@ -217,8 +217,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
         // Invalid key, remove from settings.providers
         delete newProviders[newProvider.name];
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err: any) {
+    } catch {
       setIsApiKeyInvalid(true);
       setIsValidating(false);
 

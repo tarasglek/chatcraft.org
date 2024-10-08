@@ -84,8 +84,7 @@ function CodeHeader({
     try {
       // val.town returns an empty body when code doesn't return a value, which breaks res.json()
       result = await res.json();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
+    } catch {
       error({
         title: "Server unable to parse code",
         message: "Try rewriting the code as an async function returning a value.",
