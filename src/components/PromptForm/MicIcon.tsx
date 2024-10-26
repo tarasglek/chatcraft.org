@@ -1,3 +1,4 @@
+import { useModels } from "../../hooks/use-models";
 import { IconButton, Tooltip } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { TbMicrophone } from "react-icons/tb";
@@ -6,6 +7,12 @@ import { useAlert } from "../../hooks/use-alert";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { SpeechRecognition } from "../../lib/speech-recognition";
 import useAudioPlayer from "../../hooks/use-audio-player";
+import { usingOfficialOpenAI } from "../../lib/providers";
+
+// Audio Recording and Transcribing depends on a bunch of technologies
+export function isTranscriptionSupported() {
+  return usingOfficialOpenAI() && !!navigator.mediaDevices && !!window.MediaRecorder;
+}
 
 type MicIconProps = {
   onRecording: () => void;
@@ -109,7 +116,9 @@ export default function MicIcon({
       onRecordingStart();
     }
   };
+  const { models } = useModels();
 
+  isDisabled = !isTranscriptionSupported() || isDisabled;
   return (
     <Tooltip label={isRecording ? "Finish Recording" : "Start Recording"}>
       <IconButton
