@@ -7,8 +7,6 @@ import { useAlert } from "../../hooks/use-alert";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { SpeechRecognition } from "../../lib/speech-recognition";
 import useAudioPlayer from "../../hooks/use-audio-player";
-import { usingOfficialOpenAI } from "../../lib/providers";
-import { g } from "vitest/dist/chunks/suite.BMWOKiTe";
 
 /**
  * Checks if browser can record audio and a whisper model is available
