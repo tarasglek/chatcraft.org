@@ -1,11 +1,10 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject } from "react";
-import { Box, chakra, Flex, Image, CloseButton, Spinner } from "@chakra-ui/react";
+import { FormEvent, KeyboardEvent, type RefObject, useEffect, useState } from "react";
+import { Box, chakra, CloseButton, Flex, Image, Spinner } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
 import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
-import { isTranscriptionSupported } from "../../lib/speech-recognition";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
@@ -233,7 +232,7 @@ function MobilePromptForm({
             )}
           </Box>
 
-          {isTranscriptionSupported() && !isTranscribing && !prompt && (
+          {!isTranscribing && !prompt && (
             <MicIcon
               isDisabled={isLoading}
               onRecording={handleRecording}

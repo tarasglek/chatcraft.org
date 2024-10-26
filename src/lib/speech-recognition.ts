@@ -1,10 +1,5 @@
-import { transcribe } from "./ai";
-import { usingOfficialOpenAI } from "./providers";
-
-// Audio Recording and Transcribing depends on a bunch of technologies
-export function isTranscriptionSupported() {
-  return usingOfficialOpenAI() && !!navigator.mediaDevices && !!window.MediaRecorder;
-}
+import OpenAI from "openai";
+import { getSettings } from "./settings";
 
 // We prefer to use webm, but Safari on iOS has to use mp4
 const supportedAudioMimeTypes = ["audio/webm", "audio/mp4"];
@@ -48,13 +43,14 @@ export class SpeechRecognition {
   private _mediaRecorder: MediaRecorder | null = null;
   private _mediaStream: MediaStream | null = null;
   private _mimeType: string | null = null;
+  private _sttModel: string;
+
+  constructor(sttModel: string) {
+    this._sttModel = sttModel;
+  }
 
   // Initialize, creating an audio stream, media recorder, deal with permissions, etc.
   async init() {
-    if (!isTranscriptionSupported()) {
-      return new Error("SpeechRecognition error: audio transcription not supported");
-    }
-
     const stream = await getMediaStream();
     const { mediaRecorder, mimeType } = getCompatibleMediaRecorder(stream);
 
@@ -135,6 +131,21 @@ export class SpeechRecognition {
     }
   }
 
+  async transcribe(audio: File) {
+    const { currentProvider } = getSettings();
+    if (!currentProvider.apiKey) {
+      throw new Error("Missing OpenAI API Key");
+    }
+
+    const { openai } = currentProvider.createClient(currentProvider.apiKey);
+    const transcriptions = new OpenAI.Audio.Transcriptions(openai);
+    const transcription = await transcriptions.create({
+      file: audio,
+      model: this._sttModel,
+    });
+    return transcription.text;
+  }
+
   async stop() {
     if (!this._recordingPromise) {
       throw new Error("SpeechRecognition error: stop() called while no recording in progress");
@@ -147,7 +158,7 @@ export class SpeechRecognition {
 
     // Turn audio into text via OpenAI and Whisper. If we don't have enough audio
     // for the file to contain any data, return null.
-    return file.size > 0 ? transcribe(file) : null;
+    return file.size > 0 ? this.transcribe(file) : null;
   }
 
   cancel() {

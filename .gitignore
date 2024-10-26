@@ -29,3 +29,5 @@ stats.html
 
 # sops
 keys.yaml
+.aider*
+.env

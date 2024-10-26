@@ -1,26 +1,25 @@
-import { FormEvent, KeyboardEvent, useEffect, useState, type RefObject, useMemo } from "react";
+import { FormEvent, KeyboardEvent, type RefObject, useEffect, useMemo, useState } from "react";
 import {
   Box,
-  chakra,
-  Flex,
-  Kbd,
-  Text,
-  InputGroup,
-  VStack,
   Card,
   CardBody,
+  chakra,
+  Flex,
   Image,
+  InputGroup,
+  Kbd,
   Spinner,
   Square,
+  Text,
+  VStack,
 } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import { useSettings } from "../../hooks/use-settings";
-import { getMetaKey, compressImageToBase64, updateImageUrls } from "../../lib/utils";
+import { compressImageToBase64, getMetaKey, updateImageUrls } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
 import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
-import { isTranscriptionSupported } from "../../lib/speech-recognition";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useLocation } from "react-router-dom";
@@ -400,15 +399,13 @@ function DesktopPromptForm({
                         flex={1}
                       />
                     )}
-                    {isTranscriptionSupported() && (
-                      <MicIcon
-                        isDisabled={isLoading}
-                        onRecording={handleRecording}
-                        onTranscribing={handleTranscribing}
-                        onTranscriptionAvailable={handleTranscriptionAvailable}
-                        onCancel={handleRecordingCancel}
-                      />
-                    )}
+                    <MicIcon
+                      isDisabled={isLoading}
+                      onRecording={handleRecording}
+                      onTranscribing={handleTranscribing}
+                      onTranscriptionAvailable={handleTranscriptionAvailable}
+                      onCancel={handleRecordingCancel}
+                    />
                   </Flex>
                 </Flex>
               </InputGroup>
