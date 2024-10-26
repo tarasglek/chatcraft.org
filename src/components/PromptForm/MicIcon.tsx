@@ -48,6 +48,10 @@ export default function MicIcon({
 
   const sttModel = getSpeechToTextModel(models.map((x) => x.id));
 
+  if (!sttModel) {
+    return <></>;
+  }
+
   const onRecordingStart = async () => {
     clearAudioQueue();
     speechRecognitionRef.current = new SpeechRecognition(sttModel);
@@ -129,7 +133,6 @@ export default function MicIcon({
     }
   };
 
-  isDisabled = isDisabled || !sttModel;
   return (
     <Tooltip label={isRecording ? "Finish Recording" : "Start Recording"}>
       <IconButton
