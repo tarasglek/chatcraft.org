@@ -43,6 +43,11 @@ export class SpeechRecognition {
   private _mediaRecorder: MediaRecorder | null = null;
   private _mediaStream: MediaStream | null = null;
   private _mimeType: string | null = null;
+  private _sttModel: string;
+
+  constructor(sttModel: string) {
+    this._sttModel = sttModel;
+  }
 
   // Initialize, creating an audio stream, media recorder, deal with permissions, etc.
   async init() {
@@ -136,7 +141,7 @@ export class SpeechRecognition {
     const transcriptions = new OpenAI.Audio.Transcriptions(openai);
     const transcription = await transcriptions.create({
       file: audio,
-      model: "whisper-1",
+      model: this._sttModel,
     });
     return transcription.text;
   }
