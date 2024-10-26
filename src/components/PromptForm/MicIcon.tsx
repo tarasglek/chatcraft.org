@@ -8,10 +8,18 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { SpeechRecognition } from "../../lib/speech-recognition";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
+import { g } from "vitest/dist/chunks/suite.BMWOKiTe";
 
-// Audio Recording and Transcribing depends on a bunch of technologies
-export function isTranscriptionSupported() {
-  return usingOfficialOpenAI() && !!navigator.mediaDevices && !!window.MediaRecorder;
+/**
+ * Checks if browser can record audio and a whisper model is available
+ * @param models model ids
+ * @returns stt model id | null
+ */
+function getSpeechToTextModel(models: string[]) {
+  if (!(!!navigator.mediaDevices && !!window.MediaRecorder)) {
+    return null;
+  }
+  return models.find((model) => model.includes("whisper"));
 }
 
 type MicIconProps = {
@@ -36,9 +44,13 @@ export default function MicIcon({
   const { error } = useAlert();
   const { clearAudioQueue } = useAudioPlayer();
 
+  const { models } = useModels();
+
+  const sttModel = getSpeechToTextModel(models.map((x) => x.id));
+
   const onRecordingStart = async () => {
     clearAudioQueue();
-    speechRecognitionRef.current = new SpeechRecognition();
+    speechRecognitionRef.current = new SpeechRecognition(sttModel);
 
     // Try to get access to the user's microphone. This may or may not work...
     try {
@@ -116,9 +128,8 @@ export default function MicIcon({
       onRecordingStart();
     }
   };
-  const { models } = useModels();
 
-  isDisabled = !isTranscriptionSupported() || isDisabled;
+  isDisabled = isDisabled || !sttModel;
   return (
     <Tooltip label={isRecording ? "Finish Recording" : "Start Recording"}>
       <IconButton
