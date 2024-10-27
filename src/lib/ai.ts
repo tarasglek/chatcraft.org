@@ -490,3 +490,7 @@ export const generateImage = async ({
     throw new Error(error);
   }
 };
+
+export const isSpeechToTextModel = (model: string) => model.includes("whisper");
+
+export const isTextToSpeechModel = (model: string) => model.includes("tts");
