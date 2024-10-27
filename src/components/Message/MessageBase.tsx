@@ -64,7 +64,6 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { isChatModel, isTextToSpeechModel, textToSpeech } from "../../lib/ai";
-import { usingOfficialOpenAI } from "../../lib/providers";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
 

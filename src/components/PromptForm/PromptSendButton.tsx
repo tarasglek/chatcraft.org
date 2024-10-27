@@ -25,7 +25,6 @@ import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
 import { IoMdCheckmark } from "react-icons/io";
 import { type KeyboardEvent, useMemo, useRef, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
-import { usingOfficialOpenAI } from "../../lib/providers";
 import { useDebounce } from "react-use";
 import { isChatModel, isTextToSpeechModel } from "../../lib/ai";
 
