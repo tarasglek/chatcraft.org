@@ -1,32 +1,33 @@
 import {
+  Box,
   Button,
   ButtonGroup,
   IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Tooltip,
-  MenuDivider,
-  MenuGroup,
   Input,
   InputGroup,
   InputLeftElement,
-  Box,
+  Menu,
+  MenuButton,
+  MenuDivider,
+  MenuGroup,
+  MenuItem,
+  MenuList,
+  Tooltip,
 } from "@chakra-ui/react";
-import { TbChevronUp, TbSend, TbSearch } from "react-icons/tb";
+import { TbChevronUp, TbSearch, TbSend } from "react-icons/tb";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
-import { MdVolumeUp, MdVolumeOff } from "react-icons/md";
+import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
 import { IoMdCheckmark } from "react-icons/io";
-import { useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { type KeyboardEvent, useMemo, useRef, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { usingOfficialOpenAI } from "../../lib/providers";
 import { useDebounce } from "react-use";
+import { isChatModel, isTextToSpeechModel } from "../../lib/ai";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -40,7 +41,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isTtsSupported = useMemo(() => {
-    return !!models.filter((model) => model.id.includes("tts"))?.length;
+    return !!models.find((model) => isTextToSpeechModel(model.id));
   }, [models]);
 
   const { clearAudioQueue } = useAudioPlayer();
@@ -106,7 +107,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           <MenuGroup title="Models">
             <Box maxHeight="40dvh" overflowY="auto">
               {models
-                .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                .filter((model) => isChatModel(model.id))
                 .filter((model) =>
                   model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
                 )
@@ -120,7 +121,12 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                     {settings.model.id === model.id ? (
                       <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
                     ) : (
-                      <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
+                      <span
+                        style={{
+                          paddingLeft: "1.6rem",
+                          display: "inline-block",
+                        }}
+                      />
                     )}
                     {model.name}
                   </MenuItem>
@@ -188,7 +194,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
   const isTtsSupported = useMemo(() => {
-    return !!models.filter((model) => model.id.includes("tts"))?.length;
+    return !!models.find((model) => isTextToSpeechModel(model.id));
   }, [models]);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -317,7 +323,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
             </InputGroup>
             <Box maxHeight="40vh" overflowY="auto">
               {models
-                .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                .filter((model) => isChatModel(model.id))
                 .filter((model) =>
                   model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
                 )
@@ -331,7 +337,12 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                     {settings.model.id === model.id ? (
                       <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
                     ) : (
-                      <span style={{ paddingLeft: "1.6rem", display: "inline-block" }} />
+                      <span
+                        style={{
+                          paddingLeft: "1.6rem",
+                          display: "inline-block",
+                        }}
+                      />
                     )}
                     {model.name}
                   </MenuItem>

@@ -16,21 +16,21 @@ import {
   Tag,
   Text,
   Textarea,
-  VStack,
   useClipboard,
   useDisclosure,
+  VStack,
 } from "@chakra-ui/react";
 import {
+  type FormEvent,
   memo,
+  type MouseEvent,
+  type ReactNode,
   startTransition,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type FormEvent,
-  type MouseEvent,
-  type ReactNode,
 } from "react";
 
 import { AiOutlineEdit } from "react-icons/ai";
@@ -63,7 +63,7 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import { textToSpeech } from "../../lib/ai";
+import { isChatModel, isTextToSpeechModel, textToSpeech } from "../../lib/ai";
 import { usingOfficialOpenAI } from "../../lib/providers";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
@@ -117,7 +117,7 @@ function MessageBase({
   const { id, date, text, imageUrls } = message;
   const { models } = useModels();
   const isTtsSupported = useMemo(() => {
-    return !!models.filter((model) => model.id.includes("tts"))?.length;
+    return !!models.find((model) => isTextToSpeechModel(model.id));
   }, [models]);
   const { onCopy } = useClipboard(text);
   const { info, error, progress, closeToast } = useAlert();
@@ -332,7 +332,10 @@ function MessageBase({
           console.error(err);
 
           closeToast(alertId);
-          error({ title: "Error while downloading audio", message: err.message });
+          error({
+            title: "Error while downloading audio",
+            message: err.message,
+          });
           limit.clearQueue();
         }
       }
@@ -355,7 +358,10 @@ function MessageBase({
       onEditingChange(false);
     },
     onMetaEnter() {
-      const submitEvent = new Event("submit", { cancelable: true, bubbles: true });
+      const submitEvent = new Event("submit", {
+        cancelable: true,
+        bubbles: true,
+      });
       messageForm.current?.dispatchEvent(submitEvent);
     },
   });
@@ -553,7 +559,7 @@ function MessageBase({
                     <MenuDivider />
                     <SubMenu label="Retry with...">
                       {models
-                        .filter((model) => !usingOfficialOpenAI() || model.id.includes("gpt"))
+                        .filter((model) => isChatModel(model.id))
                         .map((model) => (
                           <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
                             {model.prettyModel}
@@ -636,7 +642,7 @@ function MessageBase({
                         <Text fontSize="sm" color="gray">
                           <span>
                             <Kbd>{meta}</Kbd> + <Kbd>Enter</Kbd>
-                            <span> to save</span>
+                            <span>to save</span>
                           </span>
                         </Text>
                       )}

@@ -39,7 +39,7 @@ import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import { ChatCraftProvider, ProviderData } from "../../lib/ChatCraftProvider";
-import { textToSpeech } from "../../lib/ai";
+import { isTextToSpeechModel, textToSpeech } from "../../lib/ai";
 import db from "../../lib/db";
 import { providerFromUrl, supportedProviders } from "../../lib/providers";
 import { CustomProvider } from "../../lib/providers/CustomProvider";
@@ -500,8 +500,9 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
+  // we have multiple isTtsSupported
   const isTtsSupported = useMemo(() => {
-    return !!models.filter((model) => model.id.includes("tts"))?.length;
+    return !!models.find((model) => isTextToSpeechModel(model.id));
   }, [models]);
 
   return (
@@ -848,7 +849,10 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
             <Select
               value={settings.model.id}
               onChange={(e) =>
-                setSettings({ ...settings, model: new ChatCraftModel(e.target.value) })
+                setSettings({
+                  ...settings,
+                  model: new ChatCraftModel(e.target.value),
+                })
               }
             >
               {models
