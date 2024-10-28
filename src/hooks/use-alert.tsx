@@ -21,6 +21,10 @@ function truncateMessage(message?: string): string {
 
   return message;
 }
+
+// Keep track of open error toasts
+const openErrorToasts: ToastId[] = [];
+
 export function useAlert() {
   const toast = useToast();
   const isMobile = useMobileBreakpoint();
@@ -41,8 +45,11 @@ export function useAlert() {
   );
 
   const error = useCallback(
-    ({ id, title, message }: AlertArguments) =>
-      toast({
+    ({ id, title, message }: AlertArguments) => {
+      // Close any open error toasts
+      openErrorToasts.forEach((toastId) => toast.close(toastId));
+
+      const newToastId = toast({
         id,
         title,
         description: truncateMessage(message),
@@ -54,7 +61,19 @@ export function useAlert() {
         containerStyle: {
           width: isMobile ? "90vw" : "initial",
         },
-      }),
+        onCloseComplete() {
+          // Remove the toast if from tracking list
+          openErrorToasts.splice(
+            openErrorToasts.findIndex((id) => id === newToastId),
+            1
+          );
+        },
+      });
+
+      // Keep track of open error toasts
+      openErrorToasts.push(newToastId);
+      return newToastId;
+    },
     [toast, isMobile]
   );
 
