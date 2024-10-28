@@ -10,6 +10,7 @@ import {
 } from "./ChatCraftMessage";
 import { ChatCraftModel } from "./ChatCraftModel";
 import { TextToSpeechVoices, getSettings } from "./settings";
+import { usingOfficialOpenAI } from "./providers";
 
 export type ChatOptions = {
   model?: ChatCraftModel;
@@ -402,7 +403,7 @@ export async function isTtsSupported() {
 
   return (
     (await currentProvider.queryModels(currentProvider.apiKey)).filter((model: string) =>
-      model.includes("tts")
+      isTextToSpeechModel(model)
     )?.length > 0
   );
 }
@@ -448,7 +449,7 @@ export async function isGenerateImageSupported() {
 
   return (
     (await currentProvider.queryModels(currentProvider.apiKey)).filter((model: string) =>
-      model.includes("dall-e-3")
+      isTextToImageModel(model)
     )?.length > 0
   );
 }
@@ -490,3 +491,22 @@ export const generateImage = async ({
     throw new Error(error);
   }
 };
+
+export function isSpeechToTextModel(model: string): boolean {
+  return model.includes("whisper");
+}
+
+export function isTextToSpeechModel(model: string): boolean {
+  return model.includes("tts");
+}
+
+export function isTextToImageModel(model: string): boolean {
+  return model.includes("dall-e");
+}
+
+export function isChatModel(model: string): boolean {
+  return (
+    (usingOfficialOpenAI() && model.includes("gpt")) ||
+    !(isTextToSpeechModel(model) || isSpeechToTextModel(model) || isTextToImageModel(model))
+  );
+}

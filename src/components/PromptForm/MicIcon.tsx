@@ -7,6 +7,7 @@ import { useAlert } from "../../hooks/use-alert";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { SpeechRecognition } from "../../lib/speech-recognition";
 import useAudioPlayer from "../../hooks/use-audio-player";
+import { isSpeechToTextModel } from "../../lib/ai";
 
 /**
  * Checks if browser can record audio and a whisper model is available
@@ -17,7 +18,7 @@ function getSpeechToTextModel(models: string[]) {
   if (!(!!navigator.mediaDevices && !!window.MediaRecorder)) {
     return null;
   }
-  return models.find((model) => model.includes("whisper"));
+  return models.find(isSpeechToTextModel);
 }
 
 type MicIconProps = {
