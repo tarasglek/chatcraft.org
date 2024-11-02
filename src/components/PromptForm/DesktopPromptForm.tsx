@@ -75,9 +75,9 @@ function DesktopPromptForm({
   isLoading,
   previousMessage,
 }: DesktopPromptFormProps) {
+  const [isPromptEmpty, setIsPromptEmpty] = useState(true);
   const { error } = useAlert();
   const { settings } = useSettings();
-  const [isPromptEmpty, setIsPromptEmpty] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
@@ -88,7 +88,6 @@ function DesktopPromptForm({
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
   const location = useLocation();
-
 
   // Focus the prompt form when the user navigates
   useEffect(() => {
