@@ -142,6 +142,9 @@ function DesktopPromptForm({
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
     const textValue = inputPromptRef.current?.value.trim() || "";
+    if (isPromptEmpty) {
+      return;
+    }
     if (inputPromptRef.current) {
       inputPromptRef.current.value = "";
     }
@@ -170,7 +173,7 @@ function DesktopPromptForm({
         if (settings.enterBehaviour === "newline") {
           handleMetaEnter(e);
         } else if (settings.enterBehaviour === "send") {
-          if (!e.shiftKey && inputPromptRef.current?.value.trim().length > 0) {
+          if (!e.shiftKey && !isPromptEmpty) {
             handlePromptSubmit(e);
           }
         }
@@ -379,7 +382,7 @@ function DesktopPromptForm({
                         isDisabled={isLoading}
                         autoFocus={true}
                         onChange={(e) => {
-                          setIsPromptEmpty(e.target.value.length === 0);
+                          setIsPromptEmpty(e.target.value.trim().length === 0);
                         }}
                         bg="white"
                         _dark={{ bg: "gray.700" }}
