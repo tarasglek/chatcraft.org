@@ -142,7 +142,7 @@ function DesktopPromptForm({
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
     const textValue = inputPromptRef.current?.value.trim() || "";
-    if (isPromptEmpty) {
+    if (!textValue) {
       return;
     }
     if (inputPromptRef.current) {
