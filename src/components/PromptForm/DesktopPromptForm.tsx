@@ -167,11 +167,10 @@ function DesktopPromptForm({
 
       // Prevent blank submissions and allow for multiline input.
       case "Enter":
-        // Deal with Enter key based on user preference and state of prompt form
         if (settings.enterBehaviour === "newline") {
           handleMetaEnter(e);
         } else if (settings.enterBehaviour === "send") {
-          if (!e.shiftKey && prompt.length) {
+          if (!e.shiftKey && inputPromptRef.current?.value.trim().length > 0) {
             handlePromptSubmit(e);
           }
         }
@@ -416,7 +415,7 @@ function DesktopPromptForm({
                 />
 
                 <Flex alignItems="center" gap={2}>
-                  <KeyboardHint isVisible={!!prompt.length && !isLoading} />
+                  <KeyboardHint isVisible={!isPromptEmpty && !isLoading} />
                   <PromptSendButton isLoading={isLoading} />
                 </Flex>
               </Flex>
