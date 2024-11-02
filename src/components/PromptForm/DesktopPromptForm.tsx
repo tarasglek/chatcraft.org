@@ -77,7 +77,6 @@ function DesktopPromptForm({
 }: DesktopPromptFormProps) {
   const [prompt, setPrompt] = useState("");
   // Has the user started typing?
-  const [isDirty, setIsDirty] = useState(false);
   const { error } = useAlert();
   const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
@@ -91,12 +90,6 @@ function DesktopPromptForm({
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
   const location = useLocation();
 
-  // If the user clears the prompt, allow up-arrow again
-  useEffect(() => {
-    if (!prompt) {
-      setIsDirty(false);
-    }
-  }, [prompt, setIsDirty]);
 
   // Focus the prompt form when the user navigates
   useEffect(() => {
@@ -164,10 +157,9 @@ function DesktopPromptForm({
     switch (e.key) {
       // Allow the user to cursor-up to repeat last prompt
       case "ArrowUp":
-        if (!isDirty && previousMessage) {
+        if (!prompt && previousMessage) {
           e.preventDefault();
           setPrompt(previousMessage);
-          setIsDirty(true);
         }
         break;
 
@@ -184,7 +176,6 @@ function DesktopPromptForm({
         break;
 
       default:
-        setIsDirty(true);
         return;
     }
   };
