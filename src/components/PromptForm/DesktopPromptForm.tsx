@@ -75,8 +75,6 @@ function DesktopPromptForm({
   isLoading,
   previousMessage,
 }: DesktopPromptFormProps) {
-  const [prompt, setPrompt] = useState("");
-  // Has the user started typing?
   const { error } = useAlert();
   const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
@@ -143,8 +141,11 @@ function DesktopPromptForm({
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const textValue = prompt.trim();
-    setPrompt("");
+    const textValue = inputPromptRef.current?.value.trim() || "";
+    if (inputPromptRef.current) {
+      inputPromptRef.current.value = "";
+    }
+    setIsPromptEmpty(true);
     setInputImageUrls([]);
     onSendClick(textValue, inputImageUrls);
   };
@@ -157,9 +158,10 @@ function DesktopPromptForm({
     switch (e.key) {
       // Allow the user to cursor-up to repeat last prompt
       case "ArrowUp":
-        if (!prompt && previousMessage) {
+        if (isPromptEmpty && previousMessage && inputPromptRef.current) {
           e.preventDefault();
-          setPrompt(previousMessage);
+          inputPromptRef.current.value = previousMessage;
+          setIsPromptEmpty(false);
         }
         break;
 
@@ -377,8 +379,9 @@ function DesktopPromptForm({
                         onKeyDown={handleKeyDown}
                         isDisabled={isLoading}
                         autoFocus={true}
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
+                        onChange={(e) => {
+                          setIsPromptEmpty(e.target.value.length === 0);
+                        }}
                         bg="white"
                         _dark={{ bg: "gray.700" }}
                         placeholder={
