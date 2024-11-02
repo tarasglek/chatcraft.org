@@ -77,6 +77,7 @@ function DesktopPromptForm({
 }: DesktopPromptFormProps) {
   const { error } = useAlert();
   const { settings } = useSettings();
+  const [isPromptEmpty, setIsPromptEmpty] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
