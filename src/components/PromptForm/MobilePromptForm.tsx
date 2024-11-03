@@ -16,7 +16,6 @@ type MobilePromptFormProps = {
   onSendClick: (prompt: string, imageUrls: string[]) => void;
   inputPromptRef: RefObject<HTMLTextAreaElement>;
   isLoading: boolean;
-  previousMessage?: string;
 };
 
 function MobilePromptForm({
@@ -25,9 +24,7 @@ function MobilePromptForm({
   onSendClick,
   inputPromptRef,
   isLoading,
-  previousMessage,
 }: MobilePromptFormProps) {
-  const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
