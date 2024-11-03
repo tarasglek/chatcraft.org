@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, type RefObject, useEffect, useState } from "react";
+import { FormEvent, type RefObject, useEffect, useState } from "react";
 import { Box, chakra, CloseButton, Flex, Image, Spinner } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
@@ -7,7 +7,6 @@ import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
 import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
-import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { updateImageUrls } from "../../lib/utils";
 
@@ -28,9 +27,6 @@ function MobilePromptForm({
   isLoading,
   previousMessage,
 }: MobilePromptFormProps) {
-  const [prompt, setPrompt] = useState("");
-  // Has the user started typing?
-  const [isDirty, setIsDirty] = useState(false);
   const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -38,13 +34,6 @@ function MobilePromptForm({
   const inputType = isRecording || isTranscribing ? "audio" : "text";
   // Base64 images
   const [inputImageUrls, setInputImageUrls] = useState<string[]>([]);
-
-  // If the user clears the prompt, allow up-arrow again
-  useEffect(() => {
-    if (!prompt) {
-      setIsDirty(false);
-    }
-  }, [prompt, setIsDirty]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -75,43 +64,15 @@ function MobilePromptForm({
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const textValue = prompt.trim();
-    setPrompt("");
+    const textValue = inputPromptRef.current?.value.trim() || "";
+    if (!textValue) {
+      return;
+    }
+    if (inputPromptRef.current) {
+      inputPromptRef.current.value = "";
+    }
     setInputImageUrls([]);
     onSendClick(textValue, inputImageUrls);
-  };
-
-  const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
-    onMetaEnter: handlePromptSubmit,
-  });
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    switch (e.key) {
-      // Allow the user to cursor-up to repeat last prompt
-      case "ArrowUp":
-        if (!isDirty && previousMessage) {
-          e.preventDefault();
-          setPrompt(previousMessage);
-          setIsDirty(true);
-        }
-        break;
-
-      // Prevent blank submissions and allow for multiline input.
-      case "Enter":
-        // Deal with Enter key based on user preference and state of prompt form
-        if (settings.enterBehaviour === "newline") {
-          handleMetaEnter(e);
-        } else if (settings.enterBehaviour === "send") {
-          if (!e.shiftKey && prompt.length) {
-            handlePromptSubmit(e);
-          }
-        }
-        break;
-
-      default:
-        setIsDirty(true);
-        return;
-    }
   };
 
   const handleRecording = () => {
@@ -219,11 +180,8 @@ function MobilePromptForm({
             ) : (
               <AutoResizingTextarea
                 ref={inputPromptRef}
-                onKeyDown={handleKeyDown}
                 isDisabled={isLoading}
                 autoFocus={true}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
                 bg="white"
                 _dark={{ bg: "gray.700" }}
                 overflowY="auto"
@@ -232,7 +190,7 @@ function MobilePromptForm({
             )}
           </Box>
 
-          {!isTranscribing && !prompt && (
+          {!isTranscribing && (
             <MicIcon
               isDisabled={isLoading}
               onRecording={handleRecording}
