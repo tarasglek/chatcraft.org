@@ -285,20 +285,6 @@ function ChatBase({ chat }: ChatBaseProps) {
           // Add only image to the chat
           promptMessage = new ChatCraftHumanMessage({ text: "", imageUrls, user });
           await chat.addMessage(promptMessage);
-        } else {
-          // If there isn't any prompt text, see if the final message in the chat was a human
-          // message or a function response. If it was either, we'll allow sending that through
-          // again (e.g., if you modified something and want to retry, or want to share the
-          // response from the function). Otherwise bail now.
-          const finalMessage = chat.messages({ includeAppMessages: false }).at(-1);
-          if (
-            !(
-              finalMessage instanceof ChatCraftHumanMessage ||
-              finalMessage instanceof ChatCraftFunctionResultMessage
-            )
-          ) {
-            return;
-          }
         }
 
         // If there's any problem loading referenced functions, show an error
