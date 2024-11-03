@@ -2,7 +2,6 @@ import { FormEvent, type RefObject, useEffect, useState } from "react";
 import { Box, chakra, CloseButton, Flex, Image, Spinner } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
-import { useSettings } from "../../hooks/use-settings";
 import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
 import PromptSendButton from "./PromptSendButton";
