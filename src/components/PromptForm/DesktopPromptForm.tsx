@@ -75,9 +75,7 @@ function DesktopPromptForm({
   isLoading,
   previousMessage,
 }: DesktopPromptFormProps) {
-  const [prompt, setPrompt] = useState("");
-  // Has the user started typing?
-  const [isDirty, setIsDirty] = useState(false);
+  const [isPromptEmpty, setIsPromptEmpty] = useState(true);
   const { error } = useAlert();
   const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
@@ -90,13 +88,6 @@ function DesktopPromptForm({
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
   const location = useLocation();
-
-  // If the user clears the prompt, allow up-arrow again
-  useEffect(() => {
-    if (!prompt) {
-      setIsDirty(false);
-    }
-  }, [prompt, setIsDirty]);
 
   // Focus the prompt form when the user navigates
   useEffect(() => {
@@ -150,8 +141,14 @@ function DesktopPromptForm({
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const textValue = prompt.trim();
-    setPrompt("");
+    const textValue = inputPromptRef.current?.value.trim() || "";
+    if (!textValue) {
+      return;
+    }
+    if (inputPromptRef.current) {
+      inputPromptRef.current.value = "";
+    }
+    setIsPromptEmpty(true);
     setInputImageUrls([]);
     onSendClick(textValue, inputImageUrls);
   };
@@ -164,27 +161,25 @@ function DesktopPromptForm({
     switch (e.key) {
       // Allow the user to cursor-up to repeat last prompt
       case "ArrowUp":
-        if (!isDirty && previousMessage) {
+        if (isPromptEmpty && previousMessage && inputPromptRef.current) {
           e.preventDefault();
-          setPrompt(previousMessage);
-          setIsDirty(true);
+          inputPromptRef.current.value = previousMessage;
+          setIsPromptEmpty(false);
         }
         break;
 
       // Prevent blank submissions and allow for multiline input.
       case "Enter":
-        // Deal with Enter key based on user preference and state of prompt form
         if (settings.enterBehaviour === "newline") {
           handleMetaEnter(e);
         } else if (settings.enterBehaviour === "send") {
-          if (!e.shiftKey && prompt.length) {
+          if (!e.shiftKey && !isPromptEmpty) {
             handlePromptSubmit(e);
           }
         }
         break;
 
       default:
-        setIsDirty(true);
         return;
     }
   };
@@ -386,8 +381,9 @@ function DesktopPromptForm({
                         onKeyDown={handleKeyDown}
                         isDisabled={isLoading}
                         autoFocus={true}
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
+                        onChange={(e) => {
+                          setIsPromptEmpty(e.target.value.trim().length === 0);
+                        }}
                         bg="white"
                         _dark={{ bg: "gray.700" }}
                         placeholder={
@@ -422,7 +418,7 @@ function DesktopPromptForm({
                 />
 
                 <Flex alignItems="center" gap={2}>
-                  <KeyboardHint isVisible={!!prompt.length && !isLoading} />
+                  <KeyboardHint isVisible={!isPromptEmpty && !isLoading} />
                   <PromptSendButton isLoading={isLoading} />
                 </Flex>
               </Flex>
