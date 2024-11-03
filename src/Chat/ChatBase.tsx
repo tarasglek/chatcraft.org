@@ -30,11 +30,7 @@ import { useUser } from "../hooks/use-user";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftCommand } from "../lib/ChatCraftCommand";
 import { ChatCraftFunction } from "../lib/ChatCraftFunction";
-import {
-  ChatCraftFunctionCallMessage,
-  ChatCraftFunctionResultMessage,
-  ChatCraftHumanMessage,
-} from "../lib/ChatCraftMessage";
+import { ChatCraftFunctionCallMessage, ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
 import { WebHandler } from "../lib/WebHandler";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
