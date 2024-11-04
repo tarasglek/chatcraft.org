@@ -709,11 +709,22 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                         <Td fontSize="xs">{provider.name}</Td>
                         <Td fontSize="xs">
                           <Tooltip
-                            label={provider.apiUrl}
+                            label={`Click to copy: ${provider.apiUrl}`}
                             placement="top-start"
                             sx={{ fontSize: "0.65rem" }}
                           >
-                            <Text cursor="pointer">{extractDomain(provider.apiUrl)}</Text>
+                            <Text 
+                              cursor="pointer" 
+                              onClick={() => {
+                                navigator.clipboard.writeText(provider.apiUrl);
+                                success({
+                                  title: "Copied",
+                                  message: "API URL copied to clipboard",
+                                });
+                              }}
+                            >
+                              {extractDomain(provider.apiUrl)}
+                            </Text>
                           </Tooltip>
                         </Td>
                         <Td>
