@@ -713,8 +713,8 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                             placement="top-start"
                             sx={{ fontSize: "0.65rem" }}
                           >
-                            <Text 
-                              cursor="pointer" 
+                            <Text
+                              cursor="pointer"
                               onClick={() => {
                                 navigator.clipboard.writeText(provider.apiUrl);
                                 success({
