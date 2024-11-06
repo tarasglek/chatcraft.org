@@ -25,9 +25,10 @@ export class ChatCraftModel {
   }
 
   get logoUrl() {
-    const vendor = this.vendor;
+    const vendor = this.vendor.toLowerCase();
+    const modelName = this.name.toLowerCase();
 
-    if (vendor === "openai" && this.name.includes("gpt")) {
+    if (vendor === "openai" && modelName.includes("gpt")) {
       return "/openai-logo.png";
     }
 
@@ -35,7 +36,7 @@ export class ChatCraftModel {
       return "/anthropic-logo.png";
     }
 
-    if (vendor === "microsoft" && this.name.includes("phi")) {
+    if (vendor === "microsoft" && modelName.includes("phi")) {
       return "/microsoft-phi-logo.png"; // Microsoft's Phi model logo
     }
 
@@ -43,11 +44,11 @@ export class ChatCraftModel {
       return "/google-gemini-logo.png";
     }
 
-    if (this.name.includes("llama")) {
+    if (modelName.includes("llama")) {
       return "/meta-logo.png";
     }
 
-    if (this.name.includes("mixtral")) {
+    if (modelName.includes("mixtral")) {
       return "/mistral-logo.png";
     }
 
