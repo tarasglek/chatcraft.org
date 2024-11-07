@@ -23,10 +23,10 @@ import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
 import { IoMdCheckmark } from "react-icons/io";
-import { type KeyboardEvent, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent, useRef, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { useDebounce } from "react-use";
-import { isChatModel, isTextToSpeechModel } from "../../lib/ai";
+import { isChatModel } from "../../lib/ai";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -36,12 +36,8 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
-  const { models } = useModels();
+  const { models, isTtsSupported } = useModels();
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const isTtsSupported = useMemo(() => {
-    return !!models.find((model) => isTextToSpeechModel(model.id));
-  }, [models]);
 
   const { clearAudioQueue } = useAudioPlayer();
 
@@ -191,10 +187,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
-  const { models } = useModels();
-  const isTtsSupported = useMemo(() => {
-    return !!models.find((model) => isTextToSpeechModel(model.id));
-  }, [models]);
+  const { models, isTtsSupported } = useModels();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useDebounce(

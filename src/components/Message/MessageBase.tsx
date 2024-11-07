@@ -63,7 +63,7 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import { isChatModel, isTextToSpeechModel, textToSpeech } from "../../lib/ai";
+import { isChatModel, textToSpeech } from "../../lib/ai";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
 
@@ -114,10 +114,7 @@ function MessageBase({
 }: MessageBaseProps) {
   const [, copyToClipboard] = useCopyToClipboard();
   const { id, date, text, imageUrls } = message;
-  const { models } = useModels();
-  const isTtsSupported = useMemo(() => {
-    return !!models.find((model) => isTextToSpeechModel(model.id));
-  }, [models]);
+  const { models, isTtsSupported } = useModels();
   const { onCopy } = useClipboard(text);
   const { info, error, progress, closeToast } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
