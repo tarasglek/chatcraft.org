@@ -180,7 +180,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         </Flex>
         {!isSmallViewport && <Divider />}
         <ModalBody p={0} display="flex" h="95vh">
-          <Flex flexDirection={isSmallViewport ? "column" : "row"}>
+          <Flex flexDirection={isSmallViewport ? "column" : "row"} w="100%">
             {isSmallViewport ? <MobileSettingsAccordion /> : <DesktopSettingsList />}
             <Box overflowY="auto" px={8} py={3}>
               {selectedSetting.name === "Models" && <ModelsSettings isOpen={isOpen} />}
