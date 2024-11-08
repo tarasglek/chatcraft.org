@@ -12,8 +12,10 @@ import { useUser } from "../hooks/use-user";
 import { useAlert } from "../hooks/use-alert";
 import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
-import { download, compressImageToBase64 } from "../lib/utils";
+import { download } from "../lib/utils";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
+import { type JinjaReaderResponse } from "../lib/ai";
+import { importFiles } from "../lib/file";
 
 function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
   const supportsWebShare = !!navigator.share;
@@ -66,8 +68,7 @@ type OptionsButtonProps = {
   forkUrl?: string;
   variant?: "outline" | "solid" | "ghost";
   iconOnly?: boolean;
-  // Optional until we support on mobile...
-  onFileSelected?: (base64: string) => void;
+  onFileSelected?: (selected: File, contents: string | JinjaReaderResponse) => void;
   isDisabled?: boolean;
 };
 
@@ -80,53 +81,42 @@ function OptionsButton({
   isDisabled = false,
 }: OptionsButtonProps) {
   const fetcher = useFetcher();
-  const { info, error } = useAlert();
+  const { info, error, progress, closeToast } = useAlert();
   const [, copyToClipboard] = useCopyToClipboard();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { settings } = useSettings();
 
   const handleFileChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!onFileSelected) {
         return;
       }
 
       const files = event.target.files;
-
-      if (files) {
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          if (file.type.startsWith("image/")) {
-            onFileSelected("");
-            compressImageToBase64(file, {
-              compressionFactor: settings.compressionFactor,
-              maxSizeMB: settings.maxCompressedFileSizeMB,
-              maxWidthOrHeight: settings.maxImageDimension,
-            })
-              .then((base64) => onFileSelected(base64))
-              .catch((err) => {
-                console.error(err);
-                error({ title: "Error processing images", message: err.message });
-              });
-          } else {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              onFileSelected(e.target?.result as string);
-            };
-            reader.readAsDataURL(file);
-          }
-        }
-        // Reset the input value after file read
-        event.target.value = "";
+      if (!files?.length) {
+        return;
       }
+
+      const progressId = progress({
+        title: `Processing file${files.length > 1 ? "" : "s"}`,
+        progressPercentage: 0,
+      });
+
+      await importFiles(files, {
+        onFile: onFileSelected,
+        onProgress: (value) =>
+          progress({
+            id: progressId,
+            title: `Processing file${files.length > 1 ? "" : "s"}`,
+            progressPercentage: value,
+            updateOnly: true,
+          }),
+        onError: (_file, err) => error({ title: "Unable to import file", message: err.message }),
+      });
+
+      closeToast(progressId);
     },
-    [
-      error,
-      onFileSelected,
-      settings.compressionFactor,
-      settings.maxCompressedFileSizeMB,
-      settings.maxImageDimension,
-    ]
+    [error, onFileSelected, progress, closeToast]
   );
 
   const handleAttachFiles = useCallback(() => {
@@ -285,7 +275,7 @@ function OptionsButton({
             ref={fileInputRef}
             hidden
             onChange={handleFileChange}
-            accept="image/*"
+            accept="image/*,text/*,.pdf,application/pdf,.json,application/json,application/markdown"
           />
           <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
             Attach Files...

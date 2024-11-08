@@ -1,4 +1,12 @@
-import { FormEvent, KeyboardEvent, type RefObject, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  KeyboardEvent,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Box,
   Card,
@@ -11,9 +19,11 @@ import {
   Spinner,
   Square,
   Text,
+  useColorModeValue,
   VStack,
 } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
+import { useDropzone } from "react-dropzone";
 
 import { useSettings } from "../../hooks/use-settings";
 import { compressImageToBase64, getMetaKey, updateImageUrls } from "../../lib/utils";
@@ -27,6 +37,9 @@ import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import { useAlert } from "../../hooks/use-alert";
 import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
+import { ChatCraftHumanMessage } from "../../lib/ChatCraftMessage";
+import { JinjaReaderResponse } from "../../lib/ai";
+import { importFiles } from "../../lib/file";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -76,7 +89,7 @@ function DesktopPromptForm({
   previousMessage,
 }: DesktopPromptFormProps) {
   const [isPromptEmpty, setIsPromptEmpty] = useState(true);
-  const { error } = useAlert();
+  const { error, progress, closeToast } = useAlert();
   const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -88,6 +101,79 @@ function DesktopPromptForm({
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
   const location = useLocation();
+
+  const onImportFile = useCallback(
+    (file: File, contents: string | JinjaReaderResponse) => {
+      if (file.type === "application/pdf") {
+        const document = (contents as JinjaReaderResponse).data;
+        // TODO: should we handle the title, URL, description here too?
+        chat.addMessage(new ChatCraftHumanMessage({ text: `${document.content}\n` }));
+      } else if (
+        file.type.startsWith("text/") ||
+        file.type === "application.json" ||
+        file.type === "application/markdown"
+      ) {
+        const document = contents as string;
+        chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
+      } else if (file.type.startsWith("image/")) {
+        const base64 = contents as string;
+        updateImageUrls(base64, setInputImageUrls);
+      } else {
+        error({
+          title: "Unsupported file type",
+          message: `The file ${file.name} could not be read`,
+        });
+      }
+    },
+    [chat, error]
+  );
+
+  /**
+   * When we drag-and-drop or click "Attach Files" and import files
+   */
+  const onImportFiles = useCallback(
+    async (files: File[]) => {
+      if (!files?.length) {
+        return;
+      }
+
+      const progressId = progress({
+        title: `Processing file${files.length > 1 ? "" : "s"}`,
+        progressPercentage: 0,
+      });
+
+      try {
+        await importFiles(files, {
+          onFile: onImportFile,
+          onProgress: (value: number) =>
+            progress({
+              id: progressId,
+              title: `Processing file${files.length > 1 ? "" : "s"}`,
+              progressPercentage: value,
+              updateOnly: true,
+            }),
+          onError: (_file, err) => error({ title: "Unable to import file", message: err.message }),
+        });
+      } catch (err: any) {
+        console.error(err);
+        error({ title: "Error processing file", message: err.message });
+      } finally {
+        closeToast(progressId);
+      }
+    },
+    [closeToast, error, progress, onImportFile]
+  );
+  const { getRootProps, isDragActive } = useDropzone({
+    onDrop: onImportFiles,
+    multiple: true,
+    accept: {
+      "image/*": [],
+      "application/pdf": [".pdf"],
+      "application/json": [],
+      "application/markdown": [],
+      "text/*": [],
+    },
+  });
 
   // Focus the prompt form when the user navigates
   useEffect(() => {
@@ -236,13 +322,6 @@ function DesktopPromptForm({
       });
   };
 
-  const handleDropImage = (e: React.DragEvent) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-    processImages(imageFiles);
-  };
-
   const handleDeleteImage = (index: number) => {
     const updatedImageUrls = [...inputImageUrls];
     updatedImageUrls.splice(index, 1);
@@ -291,19 +370,23 @@ function DesktopPromptForm({
     // Otherwise, let the default paste handling happen
   };
 
+  const activeBorder = useColorModeValue("green.100", "green.600");
+
   return (
     <Flex dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
-          <CardBody h="100%" px={6} py={4}>
+          <CardBody
+            h="100%"
+            px={6}
+            py={4}
+            transition="background-color 0.2 ease"
+            _hover={{ borderColor: activeBorder }}
+            borderColor={isDragActive ? activeBorder : "inherit"}
+            {...getRootProps()}
+          >
             <VStack w="100%" h="100%" gap={3}>
-              <InputGroup
-                h="100%"
-                bg="white"
-                _dark={{ bg: "gray.700" }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDropImage}
-              >
+              <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }}>
                 <Flex w="100%" h="100%" direction="column">
                   <Flex flexWrap="wrap">
                     {inputImageUrls.map((imageUrl, index) => (
@@ -409,9 +492,7 @@ function DesktopPromptForm({
                   forkUrl={forkUrl}
                   variant="outline"
                   isDisabled={isLoading}
-                  onFileSelected={(base64String) => {
-                    updateImageUrls(base64String, setInputImageUrls);
-                  }}
+                  onFileSelected={onImportFile}
                 />
 
                 <Flex alignItems="center" gap={2}>

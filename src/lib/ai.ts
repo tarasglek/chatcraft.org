@@ -510,3 +510,67 @@ export function isChatModel(model: string): boolean {
     !(isTextToSpeechModel(model) || isSpeechToTextModel(model) || isTextToImageModel(model))
   );
 }
+
+export type JinjaReaderResponse = {
+  code: number;
+  status: number;
+  data: {
+    content: string;
+    description?: string;
+    title?: string;
+    url?: string;
+  };
+  usage: {
+    tokens: number;
+  };
+};
+
+/**
+ * Parse a PDF to Markdown using https://jina.ai/reader/
+ * @param file a PDF file to parse
+ * @returns
+ */
+export async function pdfToMarkdown(file: File): Promise<JinjaReaderResponse> {
+  try {
+    const base64String = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result !== "string") {
+          throw new Error("Unable to read PDF file");
+        }
+        const base64 = reader.result.split(",")[1];
+        if (typeof base64 === "string") {
+          resolve(base64);
+        } else {
+          reject(new Error("Unable to read PDF file"));
+        }
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+
+    // TODO: add support for passing an API key
+    const res = await fetch("https://r.jina.ai/", {
+      method: "POST",
+      body: JSON.stringify({
+        pdf: base64String,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`Error converting PDF with Jinja.ai Reader: ${error}`);
+    }
+    const result: JinjaReaderResponse = await res.json();
+    if (result.code !== 200) {
+      throw new Error(`Error converting PDF with Jinja.ai Reader: got code ${result.code}`);
+    }
+    return result;
+  } catch (err) {
+    console.error("Error converting PDF to markdown", err);
+    throw err;
+  }
+}

@@ -1,4 +1,4 @@
-import { FormEvent, type RefObject, useEffect, useState } from "react";
+import { FormEvent, type RefObject, useCallback, useEffect, useState } from "react";
 import { Box, chakra, CloseButton, Flex, Image, Spinner } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
@@ -8,6 +8,9 @@ import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { updateImageUrls } from "../../lib/utils";
+import { JinjaReaderResponse } from "../../lib/ai";
+import { ChatCraftHumanMessage } from "../../lib/ChatCraftMessage";
+import { useAlert } from "../../hooks/use-alert";
 
 type MobilePromptFormProps = {
   chat: ChatCraftChat;
@@ -24,12 +27,39 @@ function MobilePromptForm({
   inputPromptRef,
   isLoading,
 }: MobilePromptFormProps) {
+  const { error } = useAlert();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const inputType = isRecording || isTranscribing ? "audio" : "text";
   // Base64 images
   const [inputImageUrls, setInputImageUrls] = useState<string[]>([]);
+
+  const onImportFile = useCallback(
+    (file: File, contents: string | JinjaReaderResponse) => {
+      if (file.type === "application/pdf") {
+        const document = (contents as JinjaReaderResponse).data;
+        // TODO: should we handle the title, URL, description here too?
+        chat.addMessage(new ChatCraftHumanMessage({ text: `${document.content}\n` }));
+      } else if (
+        file.type.startsWith("text/") ||
+        file.type === "application.json" ||
+        file.type === "application/markdown"
+      ) {
+        const document = contents as string;
+        chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
+      } else if (file.type.startsWith("image/")) {
+        const base64 = contents as string;
+        updateImageUrls(base64, setInputImageUrls);
+      } else {
+        error({
+          title: "Unsupported file type",
+          message: `The file ${file.name} could not be read`,
+        });
+      }
+    },
+    [chat, error]
+  );
 
   useEffect(() => {
     if (!isLoading) {
@@ -115,9 +145,7 @@ function MobilePromptForm({
             forkUrl={forkUrl}
             variant="outline"
             iconOnly
-            onFileSelected={(base64String) => {
-              updateImageUrls(base64String, setInputImageUrls);
-            }}
+            onFileSelected={onImportFile}
           />
 
           <Box flex={1}>
