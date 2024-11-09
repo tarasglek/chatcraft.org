@@ -14,8 +14,6 @@ import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
 import { download } from "../lib/utils";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
-import { type JinjaReaderResponse } from "../lib/ai";
-import { importFiles } from "../lib/file";
 
 function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
   const supportsWebShare = !!navigator.share;
@@ -68,7 +66,7 @@ type OptionsButtonProps = {
   forkUrl?: string;
   variant?: "outline" | "solid" | "ghost";
   iconOnly?: boolean;
-  onFileSelected?: (selected: File, contents: string | JinjaReaderResponse) => void;
+  onAttachFiles?: (files: File[]) => Promise<void>;
   isDisabled?: boolean;
 };
 
@@ -76,47 +74,26 @@ function OptionsButton({
   chat,
   forkUrl,
   variant = "outline",
-  onFileSelected,
+  onAttachFiles,
   iconOnly = false,
   isDisabled = false,
 }: OptionsButtonProps) {
   const fetcher = useFetcher();
-  const { info, error, progress, closeToast } = useAlert();
+  const { info, error } = useAlert();
   const [, copyToClipboard] = useCopyToClipboard();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { settings } = useSettings();
 
   const handleFileChange = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (!onFileSelected) {
+      if (!onAttachFiles || !event.target.files?.length) {
         return;
       }
-
-      const files = event.target.files;
-      if (!files?.length) {
-        return;
-      }
-
-      const progressId = progress({
-        title: `Processing file${files.length > 1 ? "" : "s"}`,
-        progressPercentage: 0,
-      });
-
-      await importFiles(files, {
-        onFile: onFileSelected,
-        onProgress: (value) =>
-          progress({
-            id: progressId,
-            title: `Processing file${files.length > 1 ? "" : "s"}`,
-            progressPercentage: value,
-            updateOnly: true,
-          }),
-        onError: (_file, err) => error({ title: "Unable to import file", message: err.message }),
-      });
-
-      closeToast(progressId);
+      await onAttachFiles(Array.from(event.target.files)).catch((err) =>
+        error({ title: "Unable to Attach Files", message: err.message })
+      );
     },
-    [error, onFileSelected, progress, closeToast]
+    [onAttachFiles, error]
   );
 
   const handleAttachFiles = useCallback(() => {
@@ -267,7 +244,7 @@ function OptionsButton({
       </SubMenu>
       <ShareMenuItem chat={chat} />
       <MenuDivider />
-      {!!onFileSelected && (
+      {!!onAttachFiles && (
         <>
           <Input
             multiple
