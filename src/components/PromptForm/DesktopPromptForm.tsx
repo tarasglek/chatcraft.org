@@ -18,7 +18,7 @@ import AutoResizingTextarea from "../AutoResizingTextarea";
 import { useDropzone } from "react-dropzone";
 
 import { useSettings } from "../../hooks/use-settings";
-import { compressImageToBase64, getMetaKey, updateImageUrls } from "../../lib/utils";
+import { getMetaKey, updateImageUrls } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
 import OptionsButton from "../OptionsButton";
 import MicIcon from "./MicIcon";
@@ -26,7 +26,6 @@ import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { useLocation } from "react-router-dom";
 import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
-import { useAlert } from "../../hooks/use-alert";
 import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
@@ -79,7 +78,6 @@ function DesktopPromptForm({
   previousMessage,
 }: DesktopPromptFormProps) {
   const [isPromptEmpty, setIsPromptEmpty] = useState(true);
-  const { error } = useAlert();
   const { settings } = useSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -224,38 +222,6 @@ function DesktopPromptForm({
     setInputImageUrls([]);
   };
 
-  const processImages = (imageFiles: File[]) => {
-    setInputImageUrls((prevImageUrls) => [...prevImageUrls, ...imageFiles.map(() => "")]);
-    Promise.all(
-      imageFiles.map((file) =>
-        compressImageToBase64(file, {
-          compressionFactor: settings.compressionFactor,
-          maxSizeMB: settings.maxCompressedFileSizeMB,
-          maxWidthOrHeight: settings.maxImageDimension,
-        })
-      )
-    )
-      .then((base64Strings) => {
-        setInputImageUrls((prevImageUrls) => {
-          const newImageUrls = [...prevImageUrls];
-          base64Strings.forEach((base64, idx) => {
-            const placeholderIndex = newImageUrls.indexOf("", idx);
-            if (placeholderIndex !== -1) {
-              newImageUrls[placeholderIndex] = base64;
-            }
-          });
-          return newImageUrls;
-        });
-      })
-      .catch((err) => {
-        console.warn("Error processing images", err);
-        error({
-          title: "Error Processing Images",
-          message: err.message,
-        });
-      });
-  };
-
   const handleDeleteImage = (index: number) => {
     const updatedImageUrls = [...inputImageUrls];
     updatedImageUrls.splice(index, 1);
@@ -288,17 +254,15 @@ function DesktopPromptForm({
       return;
     }
 
-    // Maybe there is an image we can use
+    // Maybe there are files we can import...
     const items = Array.from(clipboardData?.items || []);
-    const imageFiles = items
-      .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+    const files = items
+      .filter((item) => item.kind === "file")
       .map((item) => item.getAsFile())
       .filter((file): file is File => file != null);
-
-    if (imageFiles.length) {
-      // Handle the clipboard contents here instead, creating image URLs
+    if (files.length) {
       e.preventDefault();
-      processImages(imageFiles);
+      importFiles(files);
     }
 
     // Otherwise, let the default paste handling happen
