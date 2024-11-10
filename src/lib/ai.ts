@@ -511,7 +511,7 @@ export function isChatModel(model: string): boolean {
   );
 }
 
-export type JinjaReaderResponse = {
+export type JinaAiReaderResponse = {
   code: number;
   status: number;
   data: {
@@ -531,7 +531,7 @@ export type JinjaReaderResponse = {
 async function convertToMarkdownWithJina(
   file: File | string,
   type: "pdf" | "html"
-): Promise<JinjaReaderResponse> {
+): Promise<JinaAiReaderResponse> {
   try {
     let contents: string;
     if ((type === "pdf" || type === "html") && file instanceof File) {
@@ -585,13 +585,11 @@ async function convertToMarkdownWithJina(
     });
     if (!res.ok) {
       const error = await res.json();
-      throw new Error(`Error converting ${type} file with Jinja.ai Reader: ${error}`);
+      throw new Error(`Error converting ${type} file with Jina.ai Reader: ${error}`);
     }
-    const result: JinjaReaderResponse = await res.json();
+    const result: JinaAiReaderResponse = await res.json();
     if (result.code !== 200) {
-      throw new Error(
-        `Error converting ${type} file with Jinja.ai Reader: got code ${result.code}`
-      );
+      throw new Error(`Error converting ${type} file with Jina.ai Reader: got code ${result.code}`);
     }
     return result;
   } catch (err) {
@@ -604,7 +602,7 @@ async function convertToMarkdownWithJina(
  * Parse a PDF to Markdown using https://jina.ai/reader/
  * @param file a PDF file to parse
  */
-export async function pdfToMarkdown(file: File): Promise<JinjaReaderResponse> {
+export async function pdfToMarkdown(file: File): Promise<JinaAiReaderResponse> {
   return convertToMarkdownWithJina(file, "pdf");
 }
 
@@ -612,7 +610,7 @@ export async function pdfToMarkdown(file: File): Promise<JinjaReaderResponse> {
  * Parse an HTML to Markdown using https://jina.ai/reader/
  * @param file an HTML file to parse
  */
-export async function htmlToMarkdown(html: File | string): Promise<JinjaReaderResponse> {
+export async function htmlToMarkdown(html: File | string): Promise<JinaAiReaderResponse> {
   // TODO: jina.ai is not returning the expected result for HTML, not sure why...
   return convertToMarkdownWithJina(html, "html");
 }

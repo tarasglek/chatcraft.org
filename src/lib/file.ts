@@ -1,6 +1,6 @@
 import { compressImageToBase64, formatAsCodeBlock } from "./utils";
 import { getSettings } from "./settings";
-import { JinjaReaderResponse, pdfToMarkdown } from "./ai";
+import { JinaAiReaderResponse, pdfToMarkdown } from "./ai";
 
 function readTextFile(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -96,7 +96,7 @@ export function textFileToMarkdownCodeBlock(
 }
 
 type ImportFilesOptions = {
-  onFile: (file: File, contents: string | JinjaReaderResponse) => void;
+  onFile: (file: File, contents: string | JinaAiReaderResponse) => void;
   onProgress?: (progress: number) => void;
   onError?: (file: File, err: Error) => void;
 };

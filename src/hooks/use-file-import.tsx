@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAlert } from "./use-alert";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
-import { JinjaReaderResponse, pdfToMarkdown } from "../lib/ai";
+import { JinaAiReaderResponse, pdfToMarkdown } from "../lib/ai";
 import { compressImageToBase64, formatAsCodeBlock } from "../lib/utils";
 import { getSettings } from "../lib/settings";
 
@@ -133,7 +133,7 @@ function formatTextContent(filename: string, type: string, content: string): str
 async function processFile(
   file: File,
   settings: ReturnType<typeof getSettings>
-): Promise<string | JinjaReaderResponse> {
+): Promise<string | JinaAiReaderResponse> {
   if (file.type.startsWith("image/")) {
     return await compressImageToBase64(file, {
       compressionFactor: settings.compressionFactor,
@@ -173,18 +173,18 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
   const settings = getSettings();
 
   const importFile = useCallback(
-    (file: File, contents: string | JinjaReaderResponse) => {
+    (file: File, contents: string | JinaAiReaderResponse) => {
       if (file.type.startsWith("image/")) {
         const base64 = contents as string;
         onImageImport(base64);
       } else if (file.type === "application/pdf") {
-        const document = (contents as JinjaReaderResponse).data;
+        const document = (contents as JinaAiReaderResponse).data;
         chat.addMessage(new ChatCraftHumanMessage({ text: `${document.content}\n` }));
       } else if (
         file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       ) {
         // TODO: need to get HTML -> Markdown working
-        // const document = (contents as JinjaReaderResponse).data;
+        // const document = (contents as JinaAiReaderResponse).data;
         console.log("contents", contents);
         const document = contents as string;
         chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
