@@ -63,9 +63,10 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import { isChatModel, textToSpeech } from "../../lib/ai";
+import { isChatModel } from "../../lib/ai";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
+import { useTextToSpeech } from "../../hooks/use-text-to-speech";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -114,7 +115,7 @@ function MessageBase({
 }: MessageBaseProps) {
   const [, copyToClipboard] = useCopyToClipboard();
   const { id, date, text, imageUrls } = message;
-  const { models, isTtsSupported } = useModels();
+  const { models } = useModels();
   const { onCopy } = useClipboard(text);
   const { info, error, progress, closeToast } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
@@ -429,6 +430,7 @@ function MessageBase({
   const closeModal = () => setImageModalOpen(false);
 
   const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
+  const { isTextToSpeechSupported, textToSpeech } = useTextToSpeech();
 
   const handleSpeakMessage = useCallback(
     async (messageContent: string) => {
@@ -528,7 +530,7 @@ function MessageBase({
                 <SubMenu label="Export" icon={<TbDownload />}>
                   <MenuItem onClick={handleDownloadMarkdown}>Export as Markdown</MenuItem>
                   <MenuItem onClick={handleDownloadPlainText}>Export as Text</MenuItem>
-                  {isTtsSupported && (
+                  {isTextToSpeechSupported && (
                     <MenuItem onClick={handleDownloadAudio}>Export as Audio</MenuItem>
                   )}
                   <MenuItem
@@ -538,7 +540,7 @@ function MessageBase({
                     Export as Image
                   </MenuItem>
                 </SubMenu>
-                {isTtsSupported && (
+                {isTextToSpeechSupported && (
                   <MenuItem
                     onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
                   >

@@ -75,4 +75,12 @@ export abstract class ChatCraftProvider {
   defaultModelForProvider(): ChatCraftModel {
     return new ChatCraftModel(this.defaultModel);
   }
+
+  static areSameProviders(p1: ChatCraftProvider, p2: ChatCraftProvider) {
+    return p1.apiUrl === p2.apiUrl && p1.apiKey === p2.apiKey;
+  }
 }
+
+export type ChatCraftProviderWithModels = ChatCraftProvider & {
+  models: ChatCraftModel[];
+};

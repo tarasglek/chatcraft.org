@@ -8,14 +8,14 @@ import {
   ChatCraftMessage,
 } from "../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { calculateTokenCost, chatWithLLM, countTokensInMessages, textToSpeech } from "../lib/ai";
+import { calculateTokenCost, chatWithLLM, countTokensInMessages } from "../lib/ai";
 import { tokenize } from "../lib/summarize";
 import useAudioPlayer from "./use-audio-player";
 import { useAutoScroll } from "./use-autoscroll";
 import { useCost } from "./use-cost";
 import { useSettings } from "./use-settings";
 import { useAlert } from "./use-alert";
-import { useModels } from "./use-models";
+import { useTextToSpeech } from "./use-text-to-speech";
 
 const noop = () => {};
 
@@ -41,7 +41,7 @@ function useChatOpenAI() {
   const { addToAudioQueue, audioQueueDisabledRef, enableAudioQueue } = useAudioPlayer();
   const { error } = useAlert();
 
-  const { isTtsSupported } = useModels();
+  const { isTextToSpeechSupported, textToSpeech } = useTextToSpeech();
 
   const callChatApi = useCallback(
     async (
@@ -91,7 +91,7 @@ function useChatOpenAI() {
               const { sentences } = tokenize(ttsWordsBuffer);
 
               if (
-                isTtsSupported &&
+                isTextToSpeechSupported &&
                 settings.textToSpeech.announceMessages &&
                 !audioQueueDisabledRef?.current
               ) {
@@ -170,7 +170,7 @@ function useChatOpenAI() {
           setShouldAutoScroll(false);
 
           if (
-            isTtsSupported &&
+            isTextToSpeechSupported &&
             settings.textToSpeech.announceMessages &&
             !audioQueueDisabledRef?.current &&
             ttsWordsBuffer.length
@@ -194,15 +194,15 @@ function useChatOpenAI() {
       settings.textToSpeech.announceMessages,
       settings.textToSpeech.voice,
       settings.countTokens,
-      setStreamingMessage,
       setShouldAutoScroll,
       resetScrollProgress,
       incrementScrollProgress,
-      isTtsSupported,
+      isTextToSpeechSupported,
+      audioQueueDisabledRef,
+      textToSpeech,
       addToAudioQueue,
       error,
       incrementCost,
-      audioQueueDisabledRef,
       enableAudioQueue,
     ]
   );

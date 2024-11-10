@@ -39,7 +39,6 @@ import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import { ChatCraftProvider, ProviderData } from "../../lib/ChatCraftProvider";
-import { textToSpeech } from "../../lib/ai";
 import db from "../../lib/db";
 import { providerFromUrl, supportedProviders } from "../../lib/providers";
 import { CustomProvider } from "../../lib/providers/CustomProvider";
@@ -49,6 +48,7 @@ import { OpenRouterProvider } from "../../lib/providers/OpenRouterProvider";
 import { TextToSpeechVoices } from "../../lib/settings";
 import { download } from "../../lib/utils";
 import PasswordInput from "../PasswordInput";
+import { useTextToSpeech } from "../../hooks/use-text-to-speech";
 
 interface ModelsSettingsProps {
   isOpen: boolean;
@@ -69,7 +69,7 @@ interface ModelsSettingsProps {
 
 function ModelsSettings(isOpen: ModelsSettingsProps) {
   const { settings, setSettings } = useSettings();
-  const { models, isTtsSupported } = useModels();
+  const { models } = useModels();
 
   // Whether our db is being persisted
   const [isPersisted, setIsPersisted] = useState(false);
@@ -170,6 +170,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
   );
 
   const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
+  const { isTextToSpeechSupported, textToSpeech } = useTextToSpeech();
 
   const handlePlayAudioPreview = useCallback(async () => {
     try {
@@ -918,7 +919,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
             </FormHelperText>
           </FormControl>
 
-          {isTtsSupported && (
+          {isTextToSpeechSupported && (
             <FormControl>
               <FormLabel>Select Voice</FormLabel>
 
