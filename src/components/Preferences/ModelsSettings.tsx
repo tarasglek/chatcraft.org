@@ -28,7 +28,7 @@ import {
   Tr,
   VStack,
 } from "@chakra-ui/react";
-import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { capitalize } from "lodash-es";
 import { FaCheck } from "react-icons/fa";
@@ -39,7 +39,7 @@ import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import { ChatCraftProvider, ProviderData } from "../../lib/ChatCraftProvider";
-import { isTextToSpeechModel, textToSpeech } from "../../lib/ai";
+import { textToSpeech } from "../../lib/ai";
 import db from "../../lib/db";
 import { providerFromUrl, supportedProviders } from "../../lib/providers";
 import { CustomProvider } from "../../lib/providers/CustomProvider";
@@ -69,7 +69,7 @@ interface ModelsSettingsProps {
 
 function ModelsSettings(isOpen: ModelsSettingsProps) {
   const { settings, setSettings } = useSettings();
-  const { models } = useModels();
+  const { models, isTtsSupported } = useModels();
 
   // Whether our db is being persisted
   const [isPersisted, setIsPersisted] = useState(false);
@@ -499,11 +499,6 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
-
-  // we have multiple isTtsSupported
-  const isTtsSupported = useMemo(() => {
-    return !!models.find((model) => isTextToSpeechModel(model.id));
-  }, [models]);
 
   return (
     <Box my={3}>

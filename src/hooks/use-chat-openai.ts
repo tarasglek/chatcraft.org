@@ -8,19 +8,14 @@ import {
   ChatCraftMessage,
 } from "../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import {
-  calculateTokenCost,
-  chatWithLLM,
-  countTokensInMessages,
-  isTtsSupported,
-  textToSpeech,
-} from "../lib/ai";
+import { calculateTokenCost, chatWithLLM, countTokensInMessages, textToSpeech } from "../lib/ai";
 import { tokenize } from "../lib/summarize";
 import useAudioPlayer from "./use-audio-player";
 import { useAutoScroll } from "./use-autoscroll";
 import { useCost } from "./use-cost";
 import { useSettings } from "./use-settings";
 import { useAlert } from "./use-alert";
+import { useModels } from "./use-models";
 
 const noop = () => {};
 
@@ -46,6 +41,8 @@ function useChatOpenAI() {
   const { addToAudioQueue } = useAudioPlayer();
   const { error } = useAlert();
 
+  const { isTtsSupported } = useModels();
+
   const callChatApi = useCallback(
     async (
       messages: ChatCraftMessage[],
@@ -66,7 +63,6 @@ function useChatOpenAI() {
       setShouldAutoScroll(true);
       resetScrollProgress();
 
-      const ttsSupported = await isTtsSupported();
       // Set a maximum words in a sentence that we need to wait for.
       // This reduces latency and number of TTS api calls
       const TTS_BUFFER_THRESHOLD = 25;
@@ -94,7 +90,7 @@ function useChatOpenAI() {
 
               const { sentences } = tokenize(ttsWordsBuffer);
 
-              if (ttsSupported && settings.textToSpeech.announceMessages) {
+              if (isTtsSupported && settings.textToSpeech.announceMessages) {
                 if (
                   sentences.length > 1 // Has one full sentence
                 ) {
@@ -169,7 +165,7 @@ function useChatOpenAI() {
           resetScrollProgress();
           setShouldAutoScroll(false);
 
-          if (ttsSupported && settings.textToSpeech.announceMessages && ttsWordsBuffer.length) {
+          if (isTtsSupported && settings.textToSpeech.announceMessages && ttsWordsBuffer.length) {
             try {
               // Call TTS for any remaining words
               const audioClipUri = textToSpeech(ttsWordsBuffer, settings.textToSpeech.voice);
@@ -190,6 +186,7 @@ function useChatOpenAI() {
       setShouldAutoScroll,
       resetScrollProgress,
       incrementScrollProgress,
+      isTtsSupported,
       addToAudioQueue,
       error,
       incrementCost,

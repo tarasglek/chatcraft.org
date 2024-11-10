@@ -6,21 +6,25 @@ import {
   useRef,
   type ReactNode,
   type FC,
+  useMemo,
 } from "react";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { getSettings } from "../lib/settings";
 import { useSettings } from "./use-settings";
+import { isTextToSpeechModel } from "../lib/ai";
 
 const defaultModels = [getSettings().currentProvider.defaultModelForProvider()];
 
 type ModelsContextType = {
   models: ChatCraftModel[];
   error: Error | null;
+  isTtsSupported: boolean;
 };
 
 const ModelsContext = createContext<ModelsContextType>({
   models: defaultModels,
   error: null,
+  isTtsSupported: false,
 });
 
 export const useModels = () => useContext(ModelsContext);
@@ -43,6 +47,11 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [error, setError] = useState<Error | null>(null);
   const isFetching = useRef(false);
   const { settings, setSettings } = useSettings();
+
+  const isTtsSupported = useMemo(() => {
+    const availableModels = models || defaultModels;
+    return !!availableModels.some((model) => isTextToSpeechModel(model.id));
+  }, [models]);
 
   useEffect(() => {
     const apiKey = settings.currentProvider.apiKey;
@@ -74,6 +83,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const value = {
     models: models || defaultModels,
     error,
+    isTtsSupported,
   };
 
   return <ModelsContext.Provider value={value}>{children}</ModelsContext.Provider>;
