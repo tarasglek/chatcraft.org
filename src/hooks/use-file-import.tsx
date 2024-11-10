@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAlert } from "./use-alert";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
-import { JinaAiReaderResponse, pdfToMarkdown } from "../lib/ai";
+import { type JinaAiReaderResponse, pdfToMarkdown } from "../lib/ai";
 import { compressImageToBase64, formatAsCodeBlock } from "../lib/utils";
 import { getSettings } from "../lib/settings";
 
@@ -40,26 +40,11 @@ async function readWordDocx(docx: File) {
   try {
     const mammoth = await import("mammoth");
     const arrayBuffer = await readBinaryFile(docx);
-    console.log({ arrayBuffer });
-    const result = await mammoth.convertToHtml(
-      { arrayBuffer },
-      {
-        // TODO: how should we handle inline images?  Strip them out for now (too many tokens)
-        // https://github.com/mwilliamson/mammoth.js/?tab=readme-ov-file#image-converters
-        convertImage: mammoth.images.imgElement(async () => ({
-          src: "",
-        })),
-      }
-    );
-    console.log({ result });
-    const html = result.value;
-
-    // TODO: this isn't working, not sure why...
-    // const markdown = await htmlToMarkdown(html);
-    // return markdown;
-
-    // TODO: return the HTML until we can get proper Markdown
-    return html;
+    // NOTE: we can also extract an HTML version, but it produces more tokens for not
+    // much benefit. We could try to pass the HTML through a parser to produce Markdown
+    // but so far that hasn't worked. See mammoth.convertToHtml().
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
   } catch (err: any) {
     console.error("Error reading DOCX", err);
     throw new Error("Unable to parse DOCX file: " + err.message);

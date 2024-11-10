@@ -526,57 +526,34 @@ export type JinaAiReaderResponse = {
 };
 
 /**
- * Parse a PDF or HTML doc to Markdown using https://jina.ai/reader/
+ * Parse a PDF to Markdown using https://jina.ai/reader/
  */
-async function convertToMarkdownWithJina(
-  file: File | string,
-  type: "pdf" | "html"
-): Promise<JinaAiReaderResponse> {
+export async function pdfToMarkdown(file: File): Promise<JinaAiReaderResponse> {
   try {
-    let contents: string;
-    if ((type === "pdf" || type === "html") && file instanceof File) {
-      contents = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          if (typeof result !== "string") {
-            throw new Error("Unable to read file");
-          }
-
-          if (type === "pdf") {
-            const base64 = result.split(",")[1];
-            if (typeof base64 === "string") {
-              resolve(base64);
-            } else {
-              reject(new Error("Unable to read PDF file"));
-            }
-          } else {
-            // Return the bare HTML string
-            resolve(result);
-          }
-        };
-        reader.onerror = (error) => reject(error);
-
-        if (type === "pdf") {
-          reader.readAsDataURL(file);
-        } else {
-          reader.readAsText(file, "utf-8");
+    const base64String = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result !== "string") {
+          throw new Error("Unable to read file");
         }
-      });
-    } else if (type === "html" && typeof file === "string") {
-      // HTML file is already a string
-      contents = file;
-    } else {
-      throw new Error(`Invalid file for type ${type}`);
-    }
 
-    console.log("jina.ai", { type, contents });
+        const base64 = result.split(",")[1];
+        if (typeof base64 === "string") {
+          resolve(base64);
+        } else {
+          reject(new Error("Unable to read PDF file"));
+        }
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
 
     // TODO: add support for passing an API key
     const res = await fetch("https://r.jina.ai/", {
       method: "POST",
       body: JSON.stringify({
-        [type]: contents,
+        pdf: base64String,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -585,32 +562,15 @@ async function convertToMarkdownWithJina(
     });
     if (!res.ok) {
       const error = await res.json();
-      throw new Error(`Error converting ${type} file with Jina.ai Reader: ${error}`);
+      throw new Error(`Error converting PDF file with Jina.ai Reader: ${error}`);
     }
     const result: JinaAiReaderResponse = await res.json();
     if (result.code !== 200) {
-      throw new Error(`Error converting ${type} file with Jina.ai Reader: got code ${result.code}`);
+      throw new Error(`Error converting PDF file with Jina.ai Reader: got code ${result.code}`);
     }
     return result;
   } catch (err) {
-    console.error(`Error converting ${type} to markdown`, err);
+    console.error(`Error converting PDF to markdown`, err);
     throw err;
   }
-}
-
-/**
- * Parse a PDF to Markdown using https://jina.ai/reader/
- * @param file a PDF file to parse
- */
-export async function pdfToMarkdown(file: File): Promise<JinaAiReaderResponse> {
-  return convertToMarkdownWithJina(file, "pdf");
-}
-
-/**
- * Parse an HTML to Markdown using https://jina.ai/reader/
- * @param file an HTML file to parse
- */
-export async function htmlToMarkdown(html: File | string): Promise<JinaAiReaderResponse> {
-  // TODO: jina.ai is not returning the expected result for HTML, not sure why...
-  return convertToMarkdownWithJina(html, "html");
 }
