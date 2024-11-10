@@ -304,7 +304,7 @@ function DesktopPromptForm({
     // Otherwise, let the default paste handling happen
   };
 
-  const activeBorder = useColorModeValue("green.100", "green.600");
+  const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
 
   return (
     <Flex dir="column" w="100%" h="100%">
@@ -314,9 +314,9 @@ function DesktopPromptForm({
             h="100%"
             px={6}
             py={4}
-            transition="background-color 0.2 ease"
-            _hover={{ borderColor: activeBorder }}
-            borderColor={isDragActive ? activeBorder : "inherit"}
+            border={"4px solid"}
+            borderColor={isDragActive ? dragDropBorderColor : "transparent"}
+            borderRadius={".375rem"}
             {...getRootProps()}
           >
             <VStack w="100%" h="100%" gap={3}>
