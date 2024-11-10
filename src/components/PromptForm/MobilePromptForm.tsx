@@ -8,6 +8,7 @@ import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { updateImageUrls } from "../../lib/utils";
+import { useFileImport } from "../../hooks/use-file-import";
 
 type MobilePromptFormProps = {
   chat: ChatCraftChat;
@@ -30,6 +31,10 @@ function MobilePromptForm({
   const inputType = isRecording || isTranscribing ? "audio" : "text";
   // Base64 images
   const [inputImageUrls, setInputImageUrls] = useState<string[]>([]);
+  const importFiles = useFileImport({
+    chat,
+    onImageImport: (base64) => updateImageUrls(base64, setInputImageUrls),
+  });
 
   useEffect(() => {
     if (!isLoading) {
@@ -115,9 +120,7 @@ function MobilePromptForm({
             forkUrl={forkUrl}
             variant="outline"
             iconOnly
-            onFileSelected={(base64String) => {
-              updateImageUrls(base64String, setInputImageUrls);
-            }}
+            onAttachFiles={importFiles}
           />
 
           <Box flex={1}>

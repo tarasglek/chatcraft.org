@@ -12,7 +12,7 @@ import { useUser } from "../hooks/use-user";
 import { useAlert } from "../hooks/use-alert";
 import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
-import { download, compressImageToBase64 } from "../lib/utils";
+import { download } from "../lib/utils";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
 
 function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
@@ -66,8 +66,7 @@ type OptionsButtonProps = {
   forkUrl?: string;
   variant?: "outline" | "solid" | "ghost";
   iconOnly?: boolean;
-  // Optional until we support on mobile...
-  onFileSelected?: (base64: string) => void;
+  onAttachFiles?: (files: File[]) => Promise<void>;
   isDisabled?: boolean;
 };
 
@@ -75,7 +74,7 @@ function OptionsButton({
   chat,
   forkUrl,
   variant = "outline",
-  onFileSelected,
+  onAttachFiles,
   iconOnly = false,
   isDisabled = false,
 }: OptionsButtonProps) {
@@ -86,47 +85,15 @@ function OptionsButton({
   const { settings } = useSettings();
 
   const handleFileChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (!onFileSelected) {
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!onAttachFiles || !event.target.files?.length) {
         return;
       }
-
-      const files = event.target.files;
-
-      if (files) {
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          if (file.type.startsWith("image/")) {
-            onFileSelected("");
-            compressImageToBase64(file, {
-              compressionFactor: settings.compressionFactor,
-              maxSizeMB: settings.maxCompressedFileSizeMB,
-              maxWidthOrHeight: settings.maxImageDimension,
-            })
-              .then((base64) => onFileSelected(base64))
-              .catch((err) => {
-                console.error(err);
-                error({ title: "Error processing images", message: err.message });
-              });
-          } else {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              onFileSelected(e.target?.result as string);
-            };
-            reader.readAsDataURL(file);
-          }
-        }
-        // Reset the input value after file read
-        event.target.value = "";
-      }
+      await onAttachFiles(Array.from(event.target.files)).catch((err) =>
+        error({ title: "Unable to Attach Files", message: err.message })
+      );
     },
-    [
-      error,
-      onFileSelected,
-      settings.compressionFactor,
-      settings.maxCompressedFileSizeMB,
-      settings.maxImageDimension,
-    ]
+    [onAttachFiles, error]
   );
 
   const handleAttachFiles = useCallback(() => {
@@ -277,7 +244,7 @@ function OptionsButton({
       </SubMenu>
       <ShareMenuItem chat={chat} />
       <MenuDivider />
-      {!!onFileSelected && (
+      {!!onAttachFiles && (
         <>
           <Input
             multiple
@@ -285,7 +252,7 @@ function OptionsButton({
             ref={fileInputRef}
             hidden
             onChange={handleFileChange}
-            accept="image/*"
+            accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
           />
           <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
             Attach Files...

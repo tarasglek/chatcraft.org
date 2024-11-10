@@ -11,9 +11,11 @@ import {
   Spinner,
   Square,
   Text,
+  useColorModeValue,
   VStack,
 } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
+import { useDropzone } from "react-dropzone";
 
 import { useSettings } from "../../hooks/use-settings";
 import { compressImageToBase64, getMetaKey, updateImageUrls } from "../../lib/utils";
@@ -27,6 +29,7 @@ import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import { useAlert } from "../../hooks/use-alert";
 import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
+import { useFileImport } from "../../hooks/use-file-import";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -88,6 +91,23 @@ function DesktopPromptForm({
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
   const location = useLocation();
+  const importFiles = useFileImport({
+    chat,
+    onImageImport: (base64) => updateImageUrls(base64, setInputImageUrls),
+  });
+
+  const { getRootProps, isDragActive } = useDropzone({
+    onDrop: importFiles,
+    multiple: true,
+    accept: {
+      "image/*": [],
+      "application/pdf": [".pdf"],
+      "application/json": [],
+      "application/markdown": [],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [],
+      "text/*": [],
+    },
+  });
 
   // Focus the prompt form when the user navigates
   useEffect(() => {
@@ -236,13 +256,6 @@ function DesktopPromptForm({
       });
   };
 
-  const handleDropImage = (e: React.DragEvent) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-    processImages(imageFiles);
-  };
-
   const handleDeleteImage = (index: number) => {
     const updatedImageUrls = [...inputImageUrls];
     updatedImageUrls.splice(index, 1);
@@ -291,19 +304,23 @@ function DesktopPromptForm({
     // Otherwise, let the default paste handling happen
   };
 
+  const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
+
   return (
     <Flex dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
-          <CardBody h="100%" px={6} py={4}>
+          <CardBody
+            h="100%"
+            px={6}
+            py={4}
+            border={"4px solid"}
+            borderColor={isDragActive ? dragDropBorderColor : "transparent"}
+            borderRadius={".375rem"}
+            {...getRootProps()}
+          >
             <VStack w="100%" h="100%" gap={3}>
-              <InputGroup
-                h="100%"
-                bg="white"
-                _dark={{ bg: "gray.700" }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDropImage}
-              >
+              <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }}>
                 <Flex w="100%" h="100%" direction="column">
                   <Flex flexWrap="wrap">
                     {inputImageUrls.map((imageUrl, index) => (
@@ -409,9 +426,7 @@ function DesktopPromptForm({
                   forkUrl={forkUrl}
                   variant="outline"
                   isDisabled={isLoading}
-                  onFileSelected={(base64String) => {
-                    updateImageUrls(base64String, setInputImageUrls);
-                  }}
+                  onAttachFiles={importFiles}
                 />
 
                 <Flex alignItems="center" gap={2}>
