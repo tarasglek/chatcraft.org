@@ -43,9 +43,9 @@ export default function MicIcon({
   const { error } = useAlert();
   const { clearAudioQueue } = useAudioPlayer();
 
-  const { models } = useModels();
+  const { allAvailableModels, getSpeechToTextClient } = useModels();
 
-  const sttModel = getSpeechToTextModel(models.map((x) => x.id));
+  const sttModel = getSpeechToTextModel(allAvailableModels.map((x) => x.id));
 
   if (!sttModel) {
     return <></>;
@@ -53,7 +53,14 @@ export default function MicIcon({
 
   const onRecordingStart = async () => {
     clearAudioQueue();
-    speechRecognitionRef.current = new SpeechRecognition(sttModel);
+
+    const sttClient = await getSpeechToTextClient(sttModel);
+
+    if (!sttClient) {
+      throw new Error(`No configured provider supports STT with model "${sttModel}"`);
+    }
+
+    speechRecognitionRef.current = new SpeechRecognition(sttModel, sttClient);
 
     // Try to get access to the user's microphone. This may or may not work...
     try {

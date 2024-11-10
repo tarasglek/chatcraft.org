@@ -7,27 +7,33 @@ import {
   type ReactNode,
   type FC,
   useMemo,
+  useCallback,
 } from "react";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { getSettings } from "../lib/settings";
 import { useSettings } from "./use-settings";
 import { isSpeechToTextModel } from "../lib/ai";
-import { ChatCraftProviderWithModels } from "../lib/ChatCraftProvider";
+import { ChatCraftProvider, ChatCraftProviderWithModels } from "../lib/ChatCraftProvider";
+import OpenAI from "openai";
 
 const defaultModels = [getSettings().currentProvider.defaultModelForProvider()];
 
 type ModelsContextType = {
   models: ChatCraftModel[];
+  allAvailableModels: ChatCraftModel[];
   allProvidersWithModels: ChatCraftProviderWithModels[];
   error: Error | null;
   isSpeechToTextSupported: boolean;
+  getSpeechToTextClient: (preferredModel?: string) => OpenAI | null;
 };
 
 const ModelsContext = createContext<ModelsContextType>({
   models: defaultModels,
+  allAvailableModels: [],
   allProvidersWithModels: [],
   error: null,
   isSpeechToTextSupported: false,
+  getSpeechToTextClient: () => null,
 });
 
 export const useModels = () => useContext(ModelsContext);
@@ -96,12 +102,57 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     fetchModelsForAllProviders();
   }, [settings.providers]);
 
+  const allAvailableModels = useMemo(() => {
+    return allProvidersWithModels.map((provider) => provider.models).flat();
+  }, [allProvidersWithModels]);
+
   const isSpeechToTextSupported = useMemo(() => {
     return allProvidersWithModels
       .map((p) => p.models)
       .flat()
       .some((model) => isSpeechToTextModel(model.name));
   }, [allProvidersWithModels]);
+
+  const getSpeechToTextClient = useCallback(
+    (preferredModel?: string) => {
+      let supported = false;
+      const acceptableModel = (model: ChatCraftModel) =>
+        preferredModel ? model.name === preferredModel : isSpeechToTextModel(model.name);
+
+      // Check if the current provider supports TTS
+      const currentProvider = allProvidersWithModels.find((provider) =>
+        ChatCraftProvider.areSameProviders(provider, settings.currentProvider)
+      );
+      if (currentProvider) {
+        supported = currentProvider.models.some(acceptableModel);
+
+        if (supported && currentProvider.apiKey) {
+          return new OpenAI({
+            apiKey: currentProvider.apiKey,
+            baseURL: currentProvider.apiUrl,
+            dangerouslyAllowBrowser: true,
+          });
+        }
+      }
+
+      // Check rest of the providers
+      const otherProviders = allProvidersWithModels.filter((p) => p.id !== currentProvider?.id);
+      for (const provider of otherProviders) {
+        supported = provider.models.some(acceptableModel);
+
+        if (supported && provider.apiKey) {
+          return new OpenAI({
+            apiKey: provider.apiKey,
+            baseURL: provider.apiUrl,
+            dangerouslyAllowBrowser: true,
+          });
+        }
+      }
+
+      return null;
+    },
+    [allProvidersWithModels, settings.currentProvider]
+  );
 
   useEffect(() => {
     const apiKey = settings.currentProvider.apiKey;
@@ -133,8 +184,10 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const value = {
     models: models || defaultModels,
     allProvidersWithModels,
+    allAvailableModels,
     error,
     isSpeechToTextSupported,
+    getSpeechToTextClient,
   };
 
   return <ModelsContext.Provider value={value}>{children}</ModelsContext.Provider>;
