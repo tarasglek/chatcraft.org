@@ -104,6 +104,7 @@ function DesktopPromptForm({
       "application/pdf": [".pdf"],
       "application/json": [],
       "application/markdown": [],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [],
       "text/*": [],
     },
   });

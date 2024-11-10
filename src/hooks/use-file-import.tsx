@@ -21,6 +21,51 @@ function readTextFile(file: File) {
   });
 }
 
+function readBinaryFile(file: File) {
+  return new Promise<ArrayBuffer>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (result instanceof ArrayBuffer) {
+        resolve(result);
+      } else {
+        reject(new Error(`Unable to read binary file ${file.name}`));
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function readWordDocx(docx: File) {
+  try {
+    const mammoth = await import("mammoth");
+    const arrayBuffer = await readBinaryFile(docx);
+    console.log({ arrayBuffer });
+    const result = await mammoth.convertToHtml(
+      { arrayBuffer },
+      {
+        // TODO: how should we handle inline images?  Strip them out for now (too many tokens)
+        // https://github.com/mwilliamson/mammoth.js/?tab=readme-ov-file#image-converters
+        convertImage: mammoth.images.imgElement(async () => ({
+          src: "",
+        })),
+      }
+    );
+    console.log({ result });
+    const html = result.value;
+
+    // TODO: this isn't working, not sure why...
+    // const markdown = await htmlToMarkdown(html);
+    // return markdown;
+
+    // TODO: return the HTML until we can get proper Markdown
+    return html;
+  } catch (err: any) {
+    console.error("Error reading DOCX", err);
+    throw new Error("Unable to parse DOCX file: " + err.message);
+  }
+}
+
 const FILE_EXTENSIONS: Record<string, string> = {
   ts: "typescript",
   tsx: "typescript",
@@ -50,7 +95,6 @@ const FILE_EXTENSIONS: Record<string, string> = {
   xml: "xml",
 };
 
-// MIME type mappings for common programming languages
 const MIME_TYPES: Record<string, string> = {
   "text/typescript": "typescript",
   "application/typescript": "typescript",
@@ -103,12 +147,16 @@ async function processFile(
   }
 
   if (file.type === "application/markdown" || file.type === "text/markdown") {
-    return await readTextFile(file);
+    return readTextFile(file);
   }
 
   if (file.type.startsWith("text/") || file.type === "application/json") {
     const text = await readTextFile(file);
     return formatTextContent(file.name, file.type, text);
+  }
+
+  if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+    return readWordDocx(file);
   }
 
   throw new Error(`Unsupported file type: ${file.name} (${file.type})`);
@@ -132,6 +180,14 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
       } else if (file.type === "application/pdf") {
         const document = (contents as JinjaReaderResponse).data;
         chat.addMessage(new ChatCraftHumanMessage({ text: `${document.content}\n` }));
+      } else if (
+        file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) {
+        // TODO: need to get HTML -> Markdown working
+        // const document = (contents as JinjaReaderResponse).data;
+        console.log("contents", contents);
+        const document = contents as string;
+        chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
       } else {
         const document = contents as string;
         chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));

@@ -42,6 +42,7 @@
     "katex": "^0.16.11",
     "linkedom": "^0.18.5",
     "lodash-es": "^4.17.21",
+    "mammoth": "^1.8.0",
     "mermaid": "^10.9.1",
     "nanoid": "^5.0.7",
     "nomnoml": "^1.6.2",
