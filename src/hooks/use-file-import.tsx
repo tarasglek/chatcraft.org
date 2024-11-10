@@ -78,6 +78,8 @@ const FILE_EXTENSIONS: Record<string, string> = {
   yml: "yaml",
   json: "json",
   xml: "xml",
+  r: "r",
+  csv: "csv",
 };
 
 const MIME_TYPES: Record<string, string> = {
@@ -115,6 +117,19 @@ function formatTextContent(filename: string, type: string, content: string): str
   return formatAsCodeBlock(content, language);
 }
 
+// Makes sure that the contents are non-empty
+function assertContents(contents: string | JinaAiReaderResponse) {
+  if (typeof contents === "string") {
+    if (!contents.trim().length) {
+      throw new Error("Empty contents", { cause: { code: "EmptyFile" } });
+    }
+  } else {
+    if (!contents.data.content.trim().length) {
+      throw new Error("Empty contents", { cause: { code: "EmptyFile" } });
+    }
+  }
+}
+
 async function processFile(
   file: File,
   settings: ReturnType<typeof getSettings>
@@ -128,20 +143,27 @@ async function processFile(
   }
 
   if (file.type === "application/pdf") {
-    return await pdfToMarkdown(file);
+    const contents = await pdfToMarkdown(file);
+    assertContents(contents);
+    return contents;
   }
 
   if (file.type === "application/markdown" || file.type === "text/markdown") {
-    return readTextFile(file);
+    const contents = await readTextFile(file);
+    assertContents(contents);
+    return contents;
   }
 
   if (file.type.startsWith("text/") || file.type === "application/json") {
     const text = await readTextFile(file);
+    assertContents(text);
     return formatTextContent(file.name, file.type, text);
   }
 
   if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-    return readWordDocx(file);
+    const contents = await readWordDocx(file);
+    assertContents(contents);
+    return contents;
   }
 
   throw new Error(`Unsupported file type: ${file.name} (${file.type})`);
@@ -154,7 +176,7 @@ type UseFileImportOptions = {
 };
 
 export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
-  const { error, progress, closeToast } = useAlert();
+  const { info, error, progress, closeToast } = useAlert();
   const settings = getSettings();
 
   const importFile = useCallback(
@@ -168,9 +190,6 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
       } else if (
         file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       ) {
-        // TODO: need to get HTML -> Markdown working
-        // const document = (contents as JinaAiReaderResponse).data;
-        console.log("contents", contents);
         const document = contents as string;
         chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
       } else {
@@ -199,7 +218,14 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
             const contents = await processFile(file, settings);
             importFile(file, contents);
           } catch (err: any) {
-            error({ title: "Unable to import file", message: err.message });
+            if (err.cause.code === "EmptyFile") {
+              info({
+                title: "Warning: empty file",
+                message: `The file ${file.name} was empty after processing, skipping import.`,
+              });
+            } else {
+              error({ title: "Unable to import file", message: err.message });
+            }
           } finally {
             progress({
               id: progressId,
@@ -213,7 +239,7 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
         closeToast(progressId);
       }
     },
-    [closeToast, error, progress, importFile, settings]
+    [closeToast, info, error, progress, importFile, settings]
   );
 
   return importFiles;
