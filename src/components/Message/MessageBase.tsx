@@ -35,7 +35,7 @@ import {
 
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
-import { TbDownload, TbShare2, TbTrash } from "react-icons/tb";
+import { TbDownload, TbShare3, TbTrash } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
 import ResizeTextarea from "react-textarea-autosize";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "../Menu";
@@ -565,7 +565,7 @@ function MessageBase({
                   </>
                 )}
                 <MenuDivider />
-                <MenuItem onClick={() => handleShareMessage()} icon={<TbShare2 />}>
+                <MenuItem onClick={() => handleShareMessage()} icon={<TbShare3 />}>
                   Share Message
                 </MenuItem>
                 {(!disableEdit || shouldShowDeleteMenu) && <MenuDivider />}
