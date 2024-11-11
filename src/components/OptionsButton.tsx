@@ -1,6 +1,6 @@
 import { Button, IconButton, Input, useDisclosure } from "@chakra-ui/react";
 import { useFetcher } from "react-router-dom";
-import { TbShare2, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
+import { TbShare3, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
 import { PiGearBold } from "react-icons/pi";
 import { BsPaperclip } from "react-icons/bs";
 import { useCallback, useRef } from "react";
@@ -8,52 +8,18 @@ import { useCopyToClipboard } from "react-use";
 import * as yaml from "yaml";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { useUser } from "../hooks/use-user";
 import { useAlert } from "../hooks/use-alert";
 import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
 import { download } from "../lib/utils";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
 
-function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
-  const supportsWebShare = !!navigator.share;
-  const { user } = useUser();
-  const { error } = useAlert();
+function ShareMenuItem({ chat }: { chat: ChatCraftChat }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const handleWebShare = useCallback(async () => {
-    if (!chat || !user) {
-      return;
-    }
-
-    try {
-      const { url } = await chat.share(user);
-      if (!url) {
-        throw new Error("Unable to create share URL for chat");
-      }
-
-      navigator.share({ title: "ChatCraft Chat", text: chat.summary, url });
-    } catch (err: any) {
-      console.error(err);
-      error({ title: "Unable to share chat", message: err.message });
-    }
-  }, [chat, user, error]);
-
-  // Nothing to share, disable the menu item
-  if (!chat) {
-    return (
-      <>
-        <MenuDivider />
-        <MenuItem icon={<TbShare2 />} isDisabled={true}>
-          Share
-        </MenuItem>
-      </>
-    );
-  }
 
   return (
     <>
-      <MenuItem icon={<TbShare2 />} onClick={supportsWebShare ? handleWebShare : onOpen}>
+      <MenuItem icon={<TbShare3 />} onClick={onOpen}>
         Share
       </MenuItem>
       <ShareModal chat={chat} isOpen={isOpen} onClose={onClose} />
@@ -242,7 +208,7 @@ function OptionsButton({
           Export as YAML
         </MenuItem>
       </SubMenu>
-      <ShareMenuItem chat={chat} />
+      {!!chat && <ShareMenuItem chat={chat} />}
       <MenuDivider />
       {!!onAttachFiles && (
         <>
