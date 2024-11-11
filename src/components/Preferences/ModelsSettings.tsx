@@ -183,7 +183,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
       console.error(err);
       error({ title: "Error while generating Audio", message: err.message });
     }
-  }, [addToAudioQueue, clearAudioQueue, error, settings.textToSpeech]);
+  }, [addToAudioQueue, clearAudioQueue, error, settings.textToSpeech, textToSpeech]);
 
   const handleApiKeyChange = async (provider: ChatCraftProvider, apiKey: string) => {
     const newProvider = providerFromUrl(

@@ -128,6 +128,8 @@ function MessageBase({
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
+  const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
+  const { isTextToSpeechSupported, textToSpeech } = useTextToSpeech();
   const isSystemMessage = message instanceof ChatCraftSystemMessage;
   const isLongMessage =
     text.length > 5000 || (isSystemMessage && summaryText && text.length > summaryText.length);
@@ -344,6 +346,7 @@ function MessageBase({
     progress,
     settings.currentProvider.name,
     settings.textToSpeech.voice,
+    textToSpeech,
   ]);
 
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
@@ -429,9 +432,6 @@ function MessageBase({
   };
   const closeModal = () => setImageModalOpen(false);
 
-  const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
-  const { isTextToSpeechSupported, textToSpeech } = useTextToSpeech();
-
   const handleSpeakMessage = useCallback(
     async (messageContent: string) => {
       try {
@@ -451,7 +451,7 @@ function MessageBase({
         error({ title: "Error while generating Audio", message: err.message });
       }
     },
-    [clearAudioQueue, settings.textToSpeech, addToAudioQueue, error]
+    [clearAudioQueue, settings.textToSpeech, addToAudioQueue, textToSpeech, error]
   );
 
   return (
