@@ -15,6 +15,7 @@ import { useSettings } from "./use-settings";
 import { isSpeechToTextModel } from "../lib/ai";
 import { ChatCraftProvider, ChatCraftProviderWithModels } from "../lib/ChatCraftProvider";
 import OpenAI from "openai";
+import { supportedProviders } from "../lib/providers";
 
 const defaultModels = [getSettings().currentProvider.defaultModelForProvider()];
 
@@ -64,7 +65,18 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const isFetchingAllProvidersWithModels = useRef(false);
 
   useEffect(() => {
-    const providers = Object.values(settings.providers); // Get all providers
+    const defaultSupportedProviders = Object.values(supportedProviders);
+    const settingsProviders = Object.values(settings.providers);
+
+    // Merge default and settings providers
+    const availableProviders = [
+      ...defaultSupportedProviders.filter(
+        // Make sure we do not repeat providers that are in settings too
+        (provider) =>
+          !settingsProviders.some((p) => ChatCraftProvider.areSameProviders(p, provider))
+      ),
+      ...settingsProviders,
+    ];
 
     if (isFetchingAllProvidersWithModels.current) {
       return; // Return early if we're already fetching
@@ -74,7 +86,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       isFetchingAllProvidersWithModels.current = true;
       try {
         // Fetch models for all providers concurrently
-        const fetchPromises = providers.map((provider) => {
+        const fetchPromises = availableProviders.map((provider) => {
           // Skip providers without an apiKey
           if (!provider.apiKey) return Promise.resolve([]);
 
