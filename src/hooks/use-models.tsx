@@ -67,7 +67,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const providers = Object.values(settings.providers); // Get all providers
 
     if (isFetchingAllProvidersWithModels.current) {
-      return; // Return early if there's no API key or we're already fetching
+      return; // Return early if we're already fetching
     }
 
     const fetchModelsForAllProviders = async () => {
@@ -75,7 +75,8 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
       try {
         // Fetch models for all providers concurrently
         const fetchPromises = providers.map((provider) => {
-          if (!provider.apiKey) return Promise.resolve([]); // Skip providers without an apiKey
+          // Skip providers without an apiKey
+          if (!provider.apiKey) return Promise.resolve([]);
 
           return provider.queryModels(provider.apiKey).then((models) => {
             return {
