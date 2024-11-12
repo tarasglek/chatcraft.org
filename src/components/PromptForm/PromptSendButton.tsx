@@ -79,7 +79,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           >
             <IconButton
               type="button"
-              size="lg"
+              size="md"
               variant="solid"
               aria-label={
                 settings.textToSpeech.announceMessages
