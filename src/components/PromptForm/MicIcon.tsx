@@ -9,18 +9,6 @@ import { SpeechRecognition } from "../../lib/speech-recognition";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { isSpeechToTextModel } from "../../lib/ai";
 
-/**
- * Checks if browser can record audio and a whisper model is available
- * @param models model ids
- * @returns stt model id | null
- */
-function getSpeechToTextModel(models: string[]) {
-  if (!(!!navigator.mediaDevices && !!window.MediaRecorder)) {
-    return null;
-  }
-  return models.find(isSpeechToTextModel);
-}
-
 type MicIconProps = {
   onRecording: () => void;
   onTranscribing: () => void;
@@ -43,21 +31,27 @@ export default function MicIcon({
   const { error } = useAlert();
   const { clearAudioQueue } = useAudioPlayer();
 
-  const { allAvailableModels, getSpeechToTextClient } = useModels();
+  const { getSpeechToTextClient, isSpeechToTextSupported, allProvidersWithModels } = useModels();
 
-  const sttModel = getSpeechToTextModel(allAvailableModels.map((x) => x.id));
-
-  if (!sttModel) {
+  if (!isSpeechToTextSupported) {
     return <></>;
   }
 
   const onRecordingStart = async () => {
     clearAudioQueue();
 
-    const sttClient = await getSpeechToTextClient(sttModel);
+    const sttClient = await getSpeechToTextClient();
 
     if (!sttClient) {
-      throw new Error(`No configured provider supports STT with model "${sttModel}"`);
+      throw new Error(`No configured provider supports STT`);
+    }
+
+    // Find which model to use based on the provider selected by STT client
+    const sttProvider = allProvidersWithModels.find((p) => p.apiUrl === sttClient.baseURL);
+    const sttModel = sttProvider?.models.find((model) => isSpeechToTextModel(model.name))?.name;
+
+    if (!sttModel) {
+      throw new Error(`Can't find "${sttModel}" in "${sttProvider?.name}"'s models list`);
     }
 
     speechRecognitionRef.current = new SpeechRecognition(sttModel, sttClient);
