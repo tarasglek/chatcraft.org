@@ -90,16 +90,23 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
           // Skip providers without an apiKey
           if (!provider.apiKey) return Promise.resolve([]);
 
-          return provider.queryModels(provider.apiKey).then((models) => {
-            return {
-              ...provider,
-              models: models.map((modelName) => new ChatCraftModel(modelName)),
-            } as ChatCraftProviderWithModels;
-          });
+          return provider
+            .queryModels(provider.apiKey)
+            .then((models) => {
+              return {
+                ...provider,
+                models: models.map((modelName) => new ChatCraftModel(modelName)),
+              } as ChatCraftProviderWithModels;
+            })
+            .catch((error: any) => {
+              console.warn(`Couldn't fetch models from provider "${provider.name}"`, error);
+            });
         });
 
         // Wait for all promises to resolve
-        const allModelsData = await Promise.all(fetchPromises);
+        const allModelsData = (await Promise.all(fetchPromises))
+          // Some results might be `undefined` if provider's endpoint fails
+          .filter((data) => !!data);
 
         // Flatten the models and update the state
         setAllProvidersWithModels(allModelsData.flat());
