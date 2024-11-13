@@ -28,6 +28,7 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import { useDebounce } from "react-use";
 import { isChatModel } from "../../lib/ai";
 import InterruptSpeechButton from "../InterruptSpeechButton";
+import { useTextToSpeech } from "../../hooks/use-text-to-speech";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -37,10 +38,11 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
-  const { models, isTtsSupported } = useModels();
+  const { models } = useModels();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
+  const { isTextToSpeechSupported } = useTextToSpeech();
 
   useDebounce(
     () => {
@@ -69,7 +71,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           isLoading={isLoading}
           icon={<TbSend />}
         />
-        {isTtsSupported && isAudioQueueEmpty ? (
+        {isTextToSpeechSupported && isAudioQueueEmpty ? (
           <Tooltip
             label={
               settings.textToSpeech.announceMessages
@@ -108,7 +110,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
               }}
             />
           </Tooltip>
-        ) : isTtsSupported ? (
+        ) : isTextToSpeechSupported ? (
           <InterruptSpeechButton variant={"dancingBars"} size={"lg"} clearOnly={!isLoading} />
         ) : null}
         <MenuButton
@@ -189,7 +191,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
               />
             </InputGroup>
           </MenuGroup>
-          {isTtsSupported && (
+          {isTextToSpeechSupported && (
             <>
               <MenuDivider />
               <MenuItem
@@ -230,7 +232,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
-  const { models, isTtsSupported } = useModels();
+  const { models } = useModels();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useDebounce(
@@ -259,6 +261,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   };
 
   const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
+  const { isTextToSpeechSupported } = useTextToSpeech();
 
   const providersList = {
     ...settings.providers,
@@ -270,7 +273,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
         Ask {settings.model.prettyModel}
       </Button>
-      {isTtsSupported && isAudioQueueEmpty ? (
+      {isTextToSpeechSupported && isAudioQueueEmpty ? (
         <Tooltip
           label={
             settings.textToSpeech.announceMessages
@@ -302,7 +305,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
             )}
           </Button>
         </Tooltip>
-      ) : isTtsSupported ? (
+      ) : isTextToSpeechSupported ? (
         <InterruptSpeechButton variant={"dancingBars"} size={"sm"} clearOnly={!isLoading} />
       ) : null}
       <Menu placement="top-end" strategy="fixed" closeOnSelect={false}>

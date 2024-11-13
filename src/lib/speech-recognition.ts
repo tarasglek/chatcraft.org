@@ -1,5 +1,4 @@
 import OpenAI from "openai";
-import { getSettings } from "./settings";
 
 // We prefer to use webm, but Safari on iOS has to use mp4
 const supportedAudioMimeTypes = ["audio/webm", "audio/mp4"];
@@ -44,9 +43,11 @@ export class SpeechRecognition {
   private _mediaStream: MediaStream | null = null;
   private _mimeType: string | null = null;
   private _sttModel: string;
+  private _openai: OpenAI;
 
-  constructor(sttModel: string) {
+  constructor(sttModel: string, openai: OpenAI) {
     this._sttModel = sttModel;
+    this._openai = openai;
   }
 
   // Initialize, creating an audio stream, media recorder, deal with permissions, etc.
@@ -132,13 +133,7 @@ export class SpeechRecognition {
   }
 
   async transcribe(audio: File) {
-    const { currentProvider } = getSettings();
-    if (!currentProvider.apiKey) {
-      throw new Error("Missing OpenAI API Key");
-    }
-
-    const { openai } = currentProvider.createClient(currentProvider.apiKey);
-    const transcriptions = new OpenAI.Audio.Transcriptions(openai);
+    const transcriptions = new OpenAI.Audio.Transcriptions(this._openai);
     const transcription = await transcriptions.create({
       file: audio,
       model: this._sttModel,
