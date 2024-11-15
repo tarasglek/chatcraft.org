@@ -1,6 +1,6 @@
 import { Button, IconButton, Input, useDisclosure } from "@chakra-ui/react";
 import { useFetcher } from "react-router-dom";
-import { TbShare2, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
+import { TbShare3, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
 import { PiGearBold } from "react-icons/pi";
 import { BsPaperclip } from "react-icons/bs";
 import { useCallback, useRef } from "react";
@@ -8,52 +8,18 @@ import { useCopyToClipboard } from "react-use";
 import * as yaml from "yaml";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { useUser } from "../hooks/use-user";
 import { useAlert } from "../hooks/use-alert";
 import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
-import { download, compressImageToBase64 } from "../lib/utils";
+import { download } from "../lib/utils";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
 
-function ShareMenuItem({ chat }: { chat?: ChatCraftChat }) {
-  const supportsWebShare = !!navigator.share;
-  const { user } = useUser();
-  const { error } = useAlert();
+function ShareMenuItem({ chat }: { chat: ChatCraftChat }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const handleWebShare = useCallback(async () => {
-    if (!chat || !user) {
-      return;
-    }
-
-    try {
-      const { url } = await chat.share(user);
-      if (!url) {
-        throw new Error("Unable to create share URL for chat");
-      }
-
-      navigator.share({ title: "ChatCraft Chat", text: chat.summary, url });
-    } catch (err: any) {
-      console.error(err);
-      error({ title: "Unable to share chat", message: err.message });
-    }
-  }, [chat, user, error]);
-
-  // Nothing to share, disable the menu item
-  if (!chat) {
-    return (
-      <>
-        <MenuDivider />
-        <MenuItem icon={<TbShare2 />} isDisabled={true}>
-          Share
-        </MenuItem>
-      </>
-    );
-  }
 
   return (
     <>
-      <MenuItem icon={<TbShare2 />} onClick={supportsWebShare ? handleWebShare : onOpen}>
+      <MenuItem icon={<TbShare3 />} onClick={onOpen}>
         Share
       </MenuItem>
       <ShareModal chat={chat} isOpen={isOpen} onClose={onClose} />
@@ -66,8 +32,7 @@ type OptionsButtonProps = {
   forkUrl?: string;
   variant?: "outline" | "solid" | "ghost";
   iconOnly?: boolean;
-  // Optional until we support on mobile...
-  onFileSelected?: (base64: string) => void;
+  onAttachFiles?: (files: File[]) => Promise<void>;
   isDisabled?: boolean;
 };
 
@@ -75,7 +40,7 @@ function OptionsButton({
   chat,
   forkUrl,
   variant = "outline",
-  onFileSelected,
+  onAttachFiles,
   iconOnly = false,
   isDisabled = false,
 }: OptionsButtonProps) {
@@ -86,47 +51,15 @@ function OptionsButton({
   const { settings } = useSettings();
 
   const handleFileChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (!onFileSelected) {
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!onAttachFiles || !event.target.files?.length) {
         return;
       }
-
-      const files = event.target.files;
-
-      if (files) {
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          if (file.type.startsWith("image/")) {
-            onFileSelected("");
-            compressImageToBase64(file, {
-              compressionFactor: settings.compressionFactor,
-              maxSizeMB: settings.maxCompressedFileSizeMB,
-              maxWidthOrHeight: settings.maxImageDimension,
-            })
-              .then((base64) => onFileSelected(base64))
-              .catch((err) => {
-                console.error(err);
-                error({ title: "Error processing images", message: err.message });
-              });
-          } else {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              onFileSelected(e.target?.result as string);
-            };
-            reader.readAsDataURL(file);
-          }
-        }
-        // Reset the input value after file read
-        event.target.value = "";
-      }
+      await onAttachFiles(Array.from(event.target.files)).catch((err) =>
+        error({ title: "Unable to Attach Files", message: err.message })
+      );
     },
-    [
-      error,
-      onFileSelected,
-      settings.compressionFactor,
-      settings.maxCompressedFileSizeMB,
-      settings.maxImageDimension,
-    ]
+    [onAttachFiles, error]
   );
 
   const handleAttachFiles = useCallback(() => {
@@ -275,9 +208,9 @@ function OptionsButton({
           Export as YAML
         </MenuItem>
       </SubMenu>
-      <ShareMenuItem chat={chat} />
+      {!!chat && <ShareMenuItem chat={chat} />}
       <MenuDivider />
-      {!!onFileSelected && (
+      {!!onAttachFiles && (
         <>
           <Input
             multiple
@@ -285,7 +218,7 @@ function OptionsButton({
             ref={fileInputRef}
             hidden
             onChange={handleFileChange}
-            accept="image/*"
+            accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
           />
           <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
             Attach Files...

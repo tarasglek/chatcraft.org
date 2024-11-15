@@ -18,6 +18,7 @@ import { ScrollRestoration } from "react-router-dom";
 import Header from "../components/Header";
 import MessagesView from "../components/MessagesView";
 import OptionsButton from "../components/OptionsButton";
+import PreferencesModal from "../components/Preferences/PreferencesModal";
 import PromptForm from "../components/PromptForm";
 import Sidebar from "../components/Sidebar";
 import { useAlert } from "../hooks/use-alert";
@@ -34,7 +35,6 @@ import { ChatCraftFunctionCallMessage, ChatCraftHumanMessage } from "../lib/Chat
 import { WebHandler } from "../lib/WebHandler";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
-import PreferencesModal from "../components/Preferences/PreferencesModal";
 import { ChatCompletionError } from "../lib/ai";
 
 type ChatBaseProps = {
@@ -306,8 +306,10 @@ function ChatBase({ chat }: ChatBaseProps) {
 
         // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
         const messages = chat.messages({ includeAppMessages: false });
+
         // Clear any previous audio clips
         clearAudioQueue();
+
         const response = await callChatApi(messages, {
           functions,
           functionToCall,
@@ -395,7 +397,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         </Alert>
       );
     }
-  }, [onPrefModalOpen, settings.currentProvider, showAlert]);
+  }, [onPrefModalOpen, showAlert]);
 
   return (
     <Grid

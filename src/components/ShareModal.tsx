@@ -22,7 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { useCopyToClipboard } from "react-use";
 import { BsGithub } from "react-icons/bs";
-import { TbCopy } from "react-icons/tb";
+import { TbCopy, TbShare3 } from "react-icons/tb";
 
 import { useUser } from "../hooks/use-user";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
@@ -45,6 +45,7 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
   const [isSharing, setIsSharing] = useState(false);
   const [, copyToClipboard] = useCopyToClipboard();
   const { callChatApi } = useChatOpenAI();
+  const supportsWebShare = !!navigator.share;
 
   const handleShareClick = async () => {
     setIsSharing(true);
@@ -112,17 +113,25 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
     copyToClipboard(feedUrl);
   }, [feedUrl, copyToClipboard]);
 
+  const handleShareUrl = async (url: string) => {
+    await navigator
+      .share({ title: "ChatCraft Chat", text: chat.summary, url })
+      .catch(console.error);
+  };
+
   return (
     <VStack gap={2}>
       <FormControl>
         <FormLabel>Summary</FormLabel>
-        <Textarea value={summary} onChange={(e) => setSummary(e.target.value)}></Textarea>
+        <Textarea value={summary} onChange={(e) => setSummary(e.target.value)}>
+          {chat.summary}
+        </Textarea>
       </FormControl>
 
       <FormControl>
         <FormLabel>
-          Use your own <strong>Title</strong> and <strong>Summary</strong>, or click{" "}
-          <strong>Summarize</strong> to generate them automatically using GPT 3.5.
+          Enter your own <strong>Summary</strong>, or click <strong>Summarize</strong> to generate
+          one automatically.
         </FormLabel>
         <ButtonGroup w="100%" justifyContent="space-between">
           <Button
@@ -148,6 +157,14 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
             <FormLabel>Public Share URL</FormLabel>
             <Flex gap={1}>
               <Input autoFocus={false} type="url" defaultValue={url} readOnly flex={1} />{" "}
+              {supportsWebShare && (
+                <IconButton
+                  icon={<TbShare3 />}
+                  aria-label="Share URL"
+                  variant="ghost"
+                  onClick={() => handleShareUrl(url)}
+                />
+              )}
               <IconButton
                 icon={<TbCopy />}
                 aria-label="Copy URL"
@@ -161,6 +178,14 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
             <FormLabel>Public Shared Chats Feed URL</FormLabel>
             <Flex gap={1}>
               <Input autoFocus={false} type="url" defaultValue={feedUrl} readOnly flex={1} />{" "}
+              {supportsWebShare && (
+                <IconButton
+                  icon={<TbShare3 />}
+                  aria-label="Share Feed URL"
+                  variant="ghost"
+                  onClick={() => handleShareUrl(feedUrl)}
+                />
+              )}
               <IconButton
                 icon={<TbCopy />}
                 aria-label="Copy URL"

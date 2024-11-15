@@ -8,6 +8,7 @@ import PromptSendButton from "./PromptSendButton";
 import AudioStatus from "./AudioStatus";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { updateImageUrls } from "../../lib/utils";
+import { useFileImport } from "../../hooks/use-file-import";
 
 type MobilePromptFormProps = {
   chat: ChatCraftChat;
@@ -30,6 +31,10 @@ function MobilePromptForm({
   const inputType = isRecording || isTranscribing ? "audio" : "text";
   // Base64 images
   const [inputImageUrls, setInputImageUrls] = useState<string[]>([]);
+  const importFiles = useFileImport({
+    chat,
+    onImageImport: (base64) => updateImageUrls(base64, setInputImageUrls),
+  });
 
   useEffect(() => {
     if (!isLoading) {
@@ -70,6 +75,54 @@ function MobilePromptForm({
     setInputImageUrls([]);
     onSendClick(textValue, inputImageUrls);
   };
+
+  const handlePaste = (e: ClipboardEvent) => {
+    const { clipboardData } = e;
+    if (!clipboardData) {
+      return;
+    }
+
+    // See if we have meaningful text. Some apps will place multiple versions in
+    // the clipboard. For example, MS Word will include text/plain, text/html,
+    // text/rtf, and finally image/png. Each is a different version that tries to
+    // preserve formatting (the image is a bitmap of the formatted text). If we
+    // have a usable text version, but also an image, we should prefer the text
+    // over images. The most common are text, html, or uri-list.
+    if (
+      clipboardData.getData("text/plain") !== "" ||
+      clipboardData.getData("text/html") !== "" ||
+      clipboardData.getData("text/uri-list") !== ""
+    ) {
+      return;
+    }
+
+    // Maybe there are files we can import...
+    const items = Array.from(clipboardData?.items || []);
+    const files = items
+      .filter((item) => item.kind === "file")
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => file != null);
+    if (files.length) {
+      e.preventDefault();
+      importFiles(files);
+    }
+
+    // Otherwise, let the default paste handling happen
+  };
+
+  // Attach paste event listener to the textarea
+  useEffect(() => {
+    const textAreaElement = inputPromptRef.current;
+    if (textAreaElement) {
+      textAreaElement.addEventListener("paste", handlePaste);
+    }
+    return () => {
+      if (textAreaElement) {
+        textAreaElement.removeEventListener("paste", handlePaste);
+      }
+    };
+    // eslint-disable-next-line
+  }, []);
 
   const handleRecording = () => {
     // Audio recording has begun
@@ -115,9 +168,7 @@ function MobilePromptForm({
             forkUrl={forkUrl}
             variant="outline"
             iconOnly
-            onFileSelected={(base64String) => {
-              updateImageUrls(base64String, setInputImageUrls);
-            }}
+            onAttachFiles={importFiles}
           />
 
           <Box flex={1}>

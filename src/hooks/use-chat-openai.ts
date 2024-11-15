@@ -8,19 +8,14 @@ import {
   ChatCraftMessage,
 } from "../lib/ChatCraftMessage";
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import {
-  calculateTokenCost,
-  chatWithLLM,
-  countTokensInMessages,
-  isTtsSupported,
-  textToSpeech,
-} from "../lib/ai";
+import { calculateTokenCost, chatWithLLM, countTokensInMessages } from "../lib/ai";
 import { tokenize } from "../lib/summarize";
 import useAudioPlayer from "./use-audio-player";
 import { useAutoScroll } from "./use-autoscroll";
 import { useCost } from "./use-cost";
 import { useSettings } from "./use-settings";
 import { useAlert } from "./use-alert";
+import { useTextToSpeech } from "./use-text-to-speech";
 
 const noop = () => {};
 
@@ -43,8 +38,10 @@ function useChatOpenAI() {
     pausedRef.current = paused;
   }, [paused]);
 
-  const { addToAudioQueue } = useAudioPlayer();
+  const { addToAudioQueue, audioQueueDisabledRef, enableAudioQueue } = useAudioPlayer();
   const { error } = useAlert();
+
+  const { isTextToSpeechSupported, textToSpeech } = useTextToSpeech();
 
   const callChatApi = useCallback(
     async (
@@ -66,7 +63,6 @@ function useChatOpenAI() {
       setShouldAutoScroll(true);
       resetScrollProgress();
 
-      const ttsSupported = await isTtsSupported();
       // Set a maximum words in a sentence that we need to wait for.
       // This reduces latency and number of TTS api calls
       const TTS_BUFFER_THRESHOLD = 25;
@@ -94,7 +90,11 @@ function useChatOpenAI() {
 
               const { sentences } = tokenize(ttsWordsBuffer);
 
-              if (ttsSupported && settings.textToSpeech.announceMessages) {
+              if (
+                isTextToSpeechSupported &&
+                settings.textToSpeech.announceMessages &&
+                !audioQueueDisabledRef?.current
+              ) {
                 if (
                   sentences.length > 1 // Has one full sentence
                 ) {
@@ -104,7 +104,7 @@ function useChatOpenAI() {
                   addToAudioQueue(audioClipUri);
 
                   // Update the tts Cursor
-                  ttsCursor += sentences[0].length;
+                  ttsCursor += textToBeProcessed.length;
                 } else if (
                   nlp(ttsWordsBuffer).terms().out("array").length >= TTS_BUFFER_THRESHOLD
                 ) {
@@ -169,7 +169,12 @@ function useChatOpenAI() {
           resetScrollProgress();
           setShouldAutoScroll(false);
 
-          if (ttsSupported && settings.textToSpeech.announceMessages && ttsWordsBuffer.length) {
+          if (
+            isTextToSpeechSupported &&
+            settings.textToSpeech.announceMessages &&
+            !audioQueueDisabledRef?.current &&
+            ttsWordsBuffer.length
+          ) {
             try {
               // Call TTS for any remaining words
               const audioClipUri = textToSpeech(ttsWordsBuffer, settings.textToSpeech.voice);
@@ -179,6 +184,9 @@ function useChatOpenAI() {
               error({ title: "Error generating audio", message: err.message });
             }
           }
+
+          // In case TTS was temporarily disabled, just for this message
+          enableAudioQueue();
         });
     },
     [
@@ -186,13 +194,16 @@ function useChatOpenAI() {
       settings.textToSpeech.announceMessages,
       settings.textToSpeech.voice,
       settings.countTokens,
-      setStreamingMessage,
       setShouldAutoScroll,
       resetScrollProgress,
       incrementScrollProgress,
+      isTextToSpeechSupported,
+      audioQueueDisabledRef,
+      textToSpeech,
       addToAudioQueue,
       error,
       incrementCost,
+      enableAudioQueue,
     ]
   );
 

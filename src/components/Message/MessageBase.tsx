@@ -37,7 +37,7 @@ import {
 
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
-import { TbDownload, TbShare2, TbTrash } from "react-icons/tb";
+import { TbDownload, TbShare3, TbTrash } from "react-icons/tb";
 import { Link as ReactRouterLink } from "react-router-dom";
 import ResizeTextarea from "react-textarea-autosize";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "../Menu";
@@ -65,10 +65,11 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import { isChatModel, isTextToSpeechModel, textToSpeech } from "../../lib/ai";
+import { isChatModel } from "../../lib/ai";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
 import ModelProviderMenu from "../Menu/ModelProviderMenu";
+import { useTextToSpeech } from "../../hooks/use-text-to-speech";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -119,9 +120,6 @@ function MessageBase({
   const [, copyToClipboard] = useCopyToClipboard();
   const { id, date, text, imageUrls } = message;
   const { models } = useModels();
-  const isTtsSupported = useMemo(() => {
-    return !!models.find((model) => isTextToSpeechModel(model.id));
-  }, [models]);
   const { onCopy } = useClipboard(text);
   const { info, error, progress, closeToast } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
@@ -134,6 +132,8 @@ function MessageBase({
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const { isOpen, onToggle: originalOnToggle } = useDisclosure();
+  const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
+  const { isTextToSpeechSupported, textToSpeech } = useTextToSpeech();
   const isSystemMessage = message instanceof ChatCraftSystemMessage;
   const isLongMessage =
     text.length > 5000 || (isSystemMessage && summaryText && text.length > summaryText.length);
@@ -350,6 +350,7 @@ function MessageBase({
     progress,
     settings.currentProvider.name,
     settings.textToSpeech.voice,
+    textToSpeech,
   ]);
 
   const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
@@ -435,8 +436,6 @@ function MessageBase({
   };
   const closeModal = () => setImageModalOpen(false);
 
-  const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
-
   const handleSpeakMessage = useCallback(
     async (messageContent: string) => {
       try {
@@ -456,7 +455,7 @@ function MessageBase({
         error({ title: "Error while generating Audio", message: err.message });
       }
     },
-    [clearAudioQueue, settings.textToSpeech, addToAudioQueue, error]
+    [clearAudioQueue, settings.textToSpeech, addToAudioQueue, textToSpeech, error]
   );
   const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
     // Check if the inputRef is current and the input is not already focused
@@ -552,7 +551,7 @@ function MessageBase({
                 <SubMenu label="Export" icon={<TbDownload />}>
                   <MenuItem onClick={handleDownloadMarkdown}>Export as Markdown</MenuItem>
                   <MenuItem onClick={handleDownloadPlainText}>Export as Text</MenuItem>
-                  {isTtsSupported && (
+                  {isTextToSpeechSupported && (
                     <MenuItem onClick={handleDownloadAudio}>Export as Audio</MenuItem>
                   )}
                   <MenuItem
@@ -562,7 +561,7 @@ function MessageBase({
                     Export as Image
                   </MenuItem>
                 </SubMenu>
-                {isTtsSupported && (
+                {isTextToSpeechSupported && (
                   <MenuItem
                     onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
                   >
@@ -588,7 +587,7 @@ function MessageBase({
                   </>
                 )}
                 <MenuDivider />
-                <MenuItem onClick={() => handleShareMessage()} icon={<TbShare2 />}>
+                <MenuItem onClick={() => handleShareMessage()} icon={<TbShare3 />}>
                   Share Message
                 </MenuItem>
                 {(!disableEdit || shouldShowDeleteMenu) && <MenuDivider />}

@@ -23,10 +23,12 @@ import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
 import { IoMdCheckmark } from "react-icons/io";
-import { type KeyboardEvent, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent, useRef, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { useDebounce } from "react-use";
-import { isChatModel, isTextToSpeechModel } from "../../lib/ai";
+import { isChatModel } from "../../lib/ai";
+import InterruptSpeechButton from "../InterruptSpeechButton";
+import { useTextToSpeech } from "../../hooks/use-text-to-speech";
 import ModelProviderMenu from "../Menu/ModelProviderMenu";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 
@@ -41,11 +43,8 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { models } = useModels();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isTtsSupported = useMemo(() => {
-    return !!models.find((model) => isTextToSpeechModel(model.id));
-  }, [models]);
-
-  const { clearAudioQueue } = useAudioPlayer();
+  const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
+  const { isTextToSpeechSupported } = useTextToSpeech();
 
   useDebounce(
     () => {
@@ -74,6 +73,48 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           isLoading={isLoading}
           icon={<TbSend />}
         />
+        {isTextToSpeechSupported && isAudioQueueEmpty ? (
+          <Tooltip
+            label={
+              settings.textToSpeech.announceMessages
+                ? "Text-to-Speech Enabled"
+                : "Text-to-Speech Disabled"
+            }
+          >
+            <IconButton
+              type="button"
+              size="md"
+              variant="solid"
+              aria-label={
+                settings.textToSpeech.announceMessages
+                  ? "Text-to-Speech Enabled"
+                  : "Text-to-Speech Disabled"
+              }
+              icon={
+                settings.textToSpeech.announceMessages ? (
+                  <MdVolumeUp size={25} />
+                ) : (
+                  <MdVolumeOff size={25} />
+                )
+              }
+              onClick={() => {
+                if (settings.textToSpeech.announceMessages) {
+                  // Flush any remaining audio clips being announced
+                  clearAudioQueue();
+                }
+                setSettings({
+                  ...settings,
+                  textToSpeech: {
+                    ...settings.textToSpeech,
+                    announceMessages: !settings.textToSpeech.announceMessages,
+                  },
+                });
+              }}
+            />
+          </Tooltip>
+        ) : isTextToSpeechSupported ? (
+          <InterruptSpeechButton variant={"dancingBars"} size={"lg"} clearOnly={!isLoading} />
+        ) : null}
         <MenuButton
           as={IconButton}
           size="md"
@@ -152,7 +193,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
               />
             </InputGroup>
           </MenuGroup>
-          {isTtsSupported && (
+          {isTextToSpeechSupported && (
             <>
               <MenuDivider />
               <MenuItem
@@ -194,9 +235,6 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const isTtsSupported = useMemo(() => {
-    return !!models.find((model) => isTextToSpeechModel(model.id));
-  }, [models]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useDebounce(
@@ -224,7 +262,8 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
     }
   };
 
-  const { clearAudioQueue } = useAudioPlayer();
+  const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
+  const { isTextToSpeechSupported } = useTextToSpeech();
 
   const providersList = {
     ...settings.providers,
@@ -242,7 +281,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       >
         Ask {settings.model.prettyModel}
       </Button>
-      {isTtsSupported && (
+      {isTextToSpeechSupported && isAudioQueueEmpty ? (
         <Tooltip
           label={
             settings.textToSpeech.announceMessages
@@ -275,7 +314,9 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
             )}
           </Button>
         </Tooltip>
-      )}
+      ) : isTextToSpeechSupported ? (
+        <InterruptSpeechButton variant={"dancingBars"} size={"sm"} clearOnly={!isLoading} />
+      ) : null}
       {
         <Box>
           <ModelProviderMenu
