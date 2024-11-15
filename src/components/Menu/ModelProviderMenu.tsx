@@ -104,17 +104,16 @@ const ModelProviderMenu: React.FC<ModelProviderMenuProps> = ({
         />
       )}
       <MenuList
-        maxHeight="80vh"
+        maxHeight={isMobile ? "60vh" : "80vh"}
         overflowY="auto"
         zIndex={theme.zIndices.dropdown}
         onKeyDownCapture={onStartTyping}
         onMouseEnter={adjustedOpenOnHover ? onOpen : undefined}
         onMouseLeave={adjustedOpenOnHover ? onClose : undefined}
         sx={{
-          // Prevent menu from overflowing horizontally
           maxWidth: "90vw",
           margin: "0 auto",
-          left: isMobile ? "5%" : undefined, // Center-align for mobile
+          left: isMobile ? "5%" : undefined,
           right: isMobile ? "5%" : undefined,
         }}
       >
