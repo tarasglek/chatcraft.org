@@ -23,14 +23,13 @@ import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
 import { IoMdCheckmark } from "react-icons/io";
-import { type KeyboardEvent, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { useDebounce } from "react-use";
 import { isChatModel } from "../../lib/ai";
 import InterruptSpeechButton from "../InterruptSpeechButton";
 import { useTextToSpeech } from "../../hooks/use-text-to-speech";
 import ModelProviderMenu from "../Menu/ModelProviderMenu";
-import { ChatCraftModel } from "../../lib/ChatCraftModel";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -231,44 +230,11 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 }
 
 function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useDebounce(
-    () => {
-      setDebouncedSearchQuery(searchQuery);
-    },
-    250,
-    [searchQuery]
-  );
-
-  const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
-    // Check if the inputRef is current and the input is not already focused
-    if (inputRef.current && document.activeElement !== inputRef.current) {
-      if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "Enter") {
-        return;
-      }
-      // Don't handle the keydown event more than once
-      e.preventDefault();
-      // Ignore control keys
-      const char = e.key.length === 1 ? e.key : "";
-      // Set the initial character in the input so we don't lose it
-      setSearchQuery(searchQuery + char);
-      // Make sure we are focused on the input element
-      inputRef.current.focus();
-    }
-  };
 
   const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
   const { isTextToSpeechSupported } = useTextToSpeech();
-
-  const providersList = {
-    ...settings.providers,
-    "Free AI Models": new FreeModelProvider(),
-  };
 
   return (
     <ButtonGroup isAttached>

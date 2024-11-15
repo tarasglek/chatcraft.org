@@ -12,7 +12,6 @@ import {
   Image,
   Kbd,
   Link,
-  MenuList,
   Spacer,
   Tag,
   Text,
@@ -32,7 +31,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type KeyboardEvent,
 } from "react";
 
 import { AiOutlineEdit } from "react-icons/ai";
@@ -65,7 +63,6 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import { isChatModel } from "../../lib/ai";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
 import ModelProviderMenu from "../Menu/ModelProviderMenu";
@@ -116,7 +113,6 @@ function MessageBase({
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [, copyToClipboard] = useCopyToClipboard();
   const { id, date, text, imageUrls } = message;
   const { models } = useModels();
@@ -457,23 +453,6 @@ function MessageBase({
     },
     [clearAudioQueue, settings.textToSpeech, addToAudioQueue, textToSpeech, error]
   );
-  const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
-    // Check if the inputRef is current and the input is not already focused
-    if (inputRef.current && document.activeElement !== inputRef.current) {
-      if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "Enter") {
-        return;
-      }
-      // Don't handle the keydown event more than once
-      e.preventDefault();
-      // Ignore control keys
-      const char = e.key.length === 1 ? e.key : "";
-      // Set the initial character in the input so we don't lose it
-      // setSearchQuery(searchQuery + char);
-      console.log(char);
-      // Make sure we are focused on the input element
-      inputRef.current.focus();
-    }
-  };
 
   return (
     <Box
