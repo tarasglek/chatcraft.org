@@ -104,7 +104,7 @@ const ModelProviderMenu: React.FC<ModelProviderMenuProps> = ({
         />
       )}
       <MenuList
-        maxHeight={isMobile ? "60vh" : "80vh"}
+        maxHeight={isMobile ? "50vh" : "80vh"}
         overflowY="auto"
         zIndex={theme.zIndices.dropdown}
         onKeyDownCapture={onStartTyping}
