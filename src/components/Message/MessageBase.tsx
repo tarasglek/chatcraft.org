@@ -12,6 +12,7 @@ import {
   Image,
   Kbd,
   Link,
+  MenuList,
   Spacer,
   Tag,
   Text,
@@ -31,6 +32,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type KeyboardEvent,
 } from "react";
 
 import { AiOutlineEdit } from "react-icons/ai";
@@ -66,6 +68,7 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { isChatModel, isTextToSpeechModel, textToSpeech } from "../../lib/ai";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
+import ModelProviderMenu from "../Menu/ModelProviderMenu";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -112,6 +115,7 @@ function MessageBase({
   disableFork,
   disableEdit,
 }: MessageBaseProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const [, copyToClipboard] = useCopyToClipboard();
   const { id, date, text, imageUrls } = message;
   const { models } = useModels();
@@ -454,6 +458,23 @@ function MessageBase({
     },
     [clearAudioQueue, settings.textToSpeech, addToAudioQueue, error]
   );
+  const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
+    // Check if the inputRef is current and the input is not already focused
+    if (inputRef.current && document.activeElement !== inputRef.current) {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "Enter") {
+        return;
+      }
+      // Don't handle the keydown event more than once
+      e.preventDefault();
+      // Ignore control keys
+      const char = e.key.length === 1 ? e.key : "";
+      // Set the initial character in the input so we don't lose it
+      // setSearchQuery(searchQuery + char);
+      console.log(char);
+      // Make sure we are focused on the input element
+      inputRef.current.focus();
+    }
+  };
 
   return (
     <Box
@@ -556,15 +577,14 @@ function MessageBase({
                 {onRetryClick && (
                   <>
                     <MenuDivider />
-                    <SubMenu label="Retry with...">
-                      {models
-                        .filter((model) => isChatModel(model.id))
-                        .map((model) => (
-                          <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
-                            {model.prettyModel}
-                          </MenuItem>
-                        ))}
-                    </SubMenu>
+                    <ModelProviderMenu
+                      onItemSelect={(modelId) => {
+                        const model = models.find((m) => m.id === modelId);
+                        if (model) onRetryClick(model);
+                      }}
+                      openOnHover={true}
+                      menuButtonLabel={<SubMenu label="Retry with ..." />}
+                    />
                   </>
                 )}
                 <MenuDivider />
