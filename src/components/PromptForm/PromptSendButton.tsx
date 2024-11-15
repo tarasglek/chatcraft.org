@@ -27,6 +27,8 @@ import { type KeyboardEvent, useMemo, useRef, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { useDebounce } from "react-use";
 import { isChatModel, isTextToSpeechModel } from "../../lib/ai";
+import ModelProviderMenu from "../Menu/ModelProviderMenu";
+import { ChatCraftModel } from "../../lib/ChatCraftModel";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
@@ -60,7 +62,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
 
   return (
     <ButtonGroup variant="outline" isAttached>
-      <Menu placement="top" strategy="fixed" closeOnSelect={false} offset={[-90, 0]}>
+      <Menu placement="top" strategy="absolute" closeOnSelect={false} offset={[-90, 0]}>
         <IconButton
           type="submit"
           size="md"
@@ -231,7 +233,13 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
 
   return (
     <ButtonGroup isAttached>
-      <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
+      <Button
+        type="submit"
+        size="sm"
+        isLoading={isLoading}
+        loadingText="Sending"
+        borderRightRadius="0"
+      >
         Ask {settings.model.prettyModel}
       </Button>
       {isTtsSupported && (
@@ -243,6 +251,7 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           }
         >
           <Button
+            borderRightRadius="0"
             type="button"
             size="sm"
             onClick={() => {
@@ -267,89 +276,16 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           </Button>
         </Tooltip>
       )}
-      <Menu placement="top-end" strategy="fixed" closeOnSelect={false}>
-        <MenuButton
-          as={IconButton}
-          size="sm"
-          fontSize="1.25rem"
-          aria-label="Choose Model"
-          title="Choose Model"
-          icon={<TbChevronUp />}
-        />
-        <MenuList
-          maxHeight={"80vh"}
-          overflowY={"auto"}
-          zIndex={theme.zIndices.dropdown}
-          onKeyDownCapture={onStartTyping}
-        >
-          <MenuGroup title="Providers">
-            {Object.entries(providersList).map(([providerName, providerObject]) => (
-              <MenuItem
-                paddingInline={4}
-                key={providerName}
-                onClick={() => {
-                  setSettings({ ...settings, currentProvider: providerObject });
-                }}
-              >
-                {settings.currentProvider.name === providerName ? (
-                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                ) : (
-                  <span style={{ width: "1.6rem", display: "inline-block" }} />
-                )}
-                {providerName}
-              </MenuItem>
-            ))}
-          </MenuGroup>
-          <MenuDivider />
-          <MenuGroup title="Models">
-            <InputGroup>
-              <InputLeftElement paddingLeft={3} pointerEvents="none">
-                <TbSearch />
-              </InputLeftElement>
-              <Input
-                marginInline={2}
-                marginBottom={1}
-                ref={inputRef}
-                type="text"
-                variant="outline"
-                placeholder="Search models..."
-                value={searchQuery}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setSearchQuery(e.target.value);
-                }}
-              />
-            </InputGroup>
-            <Box maxHeight="40vh" overflowY="auto">
-              {models
-                .filter((model) => isChatModel(model.id))
-                .filter((model) =>
-                  model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-                )
-                .map((model) => (
-                  <MenuItem
-                    paddingInline={4}
-                    closeOnSelect={true}
-                    key={model.id}
-                    onClick={() => setSettings({ ...settings, model })}
-                  >
-                    {settings.model.id === model.id ? (
-                      <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                    ) : (
-                      <span
-                        style={{
-                          paddingLeft: "1.6rem",
-                          display: "inline-block",
-                        }}
-                      />
-                    )}
-                    {model.name}
-                  </MenuItem>
-                ))}
-            </Box>
-          </MenuGroup>
-        </MenuList>
-      </Menu>
+      {
+        <Box>
+          <ModelProviderMenu
+            onItemSelect={(modelId) => {
+              const model = models.find((m) => m.id === modelId);
+              if (model) setSettings({ ...settings, model });
+            }}
+          />
+        </Box>
+      }
     </ButtonGroup>
   );
 }
