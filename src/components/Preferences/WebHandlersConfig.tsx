@@ -127,6 +127,7 @@ function WebHandlersConfig() {
             theme={colorMode}
             height={editorHeight}
             onChange={handleConfigValueChange}
+            style={{ fontSize: "16px" }}
           />
         </CodeHeader>
       </Box>

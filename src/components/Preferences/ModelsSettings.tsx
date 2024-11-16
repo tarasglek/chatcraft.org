@@ -609,7 +609,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                         <InputGroup size="sm">
                           <Input
                             pl="0.4rem"
-                            fontSize="xs"
+                            fontSize="md"
                             placeholder="Name"
                             value={newCustomProvider.name}
                             onChange={(e) => {
@@ -632,7 +632,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                         <InputGroup size="sm">
                           <Input
                             pl="0.4rem"
-                            fontSize="xs"
+                            fontSize="md"
                             placeholder="API URL"
                             value={newCustomProvider.apiUrl}
                             onChange={(e) => {
@@ -657,7 +657,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                           buttonSize="xs"
                           paddingRight={"2rem"}
                           paddingLeft={"0.5rem"}
-                          fontSize="xs"
+                          fontSize="md"
                           value={newCustomProvider.apiKey || ""}
                           onChange={(e) => {
                             setNewCustomProvider(
@@ -743,7 +743,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                                 buttonSize="xs"
                                 paddingRight={"2rem"}
                                 paddingLeft={"0.5rem"}
-                                fontSize="xs"
+                                fontSize="md"
                                 value={provider.apiKey || ""}
                                 onChange={(e) => handleApiKeyChange(provider, e.target.value)}
                                 onFocus={() => setFocusedProvider(provider)}

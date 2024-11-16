@@ -171,6 +171,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       size={isSmallViewport ? "full" : "xl"}
       finalFocusRef={finalFocusRef}
       scrollBehavior="inside"
+      allowPinchZoom={true}
+      blockScrollOnMount={false}
     >
       <ModalOverlay />
       <ModalContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem" maxHeight="90vh">
