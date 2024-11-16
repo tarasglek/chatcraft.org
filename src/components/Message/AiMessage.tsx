@@ -89,6 +89,7 @@ function AiMessage(props: AiMessageProps) {
   const [message, setMessage] = useState(props.message);
   const [retrying, setRetrying] = useState(false);
   const { settings } = useSettings();
+  const { error } = useAlert();
 
   useEffect(() => {
     setMessage(props.message);
@@ -127,8 +128,11 @@ function AiMessage(props: AiMessageProps) {
         message.addVersion(version);
         message.switchVersion(version.id);
         await message.save(chat.id);
-      } catch (err) {
-        // TODO: UI error handling
+      } catch (err: any) {
+        error({
+          title: `Response Error`,
+          message: err.message,
+        });
         console.warn("Unable to retry message", { model, err });
       } finally {
         setRetrying(false);
