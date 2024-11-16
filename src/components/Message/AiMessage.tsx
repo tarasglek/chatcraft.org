@@ -130,7 +130,7 @@ function AiMessage(props: AiMessageProps) {
         await message.save(chat.id);
       } catch (err: any) {
         error({
-          title: `Response Error`,
+          title: `Retry Error`,
           message: err.message,
         });
         console.warn("Unable to retry message", { model, err });
@@ -138,7 +138,7 @@ function AiMessage(props: AiMessageProps) {
         setRetrying(false);
       }
     },
-    [props.chatId, settings.currentProvider.apiKey, message, callChatApi]
+    [props.chatId, settings.currentProvider.apiKey, message, callChatApi, error]
   );
 
   // While we're streaming in a new version, use a different display
