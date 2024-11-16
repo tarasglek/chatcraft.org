@@ -5,6 +5,8 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeExternalLinks from "rehype-external-links";
 import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import "katex/dist/katex.min.css";
 
 // Use highlight.js (via lowlight) vs. prism.js (via refractor) due to
@@ -73,6 +75,10 @@ function Markdown({
       children={children}
       remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
       rehypePlugins={[
+        // Allow HTML in Markdown
+        rehypeRaw,
+        // But sanitize it so it's safe to render
+        rehypeSanitize,
         // Open links in new tab
         [rehypeExternalLinks, { target: "_blank" }],
         rehypeKatex,
