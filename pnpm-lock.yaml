@@ -45,14 +45,14 @@ importers:
         specifier: ^0.6.0
         version: 0.6.0
       dexie:
-        specifier: ^3.2.4
-        version: 3.2.7
+        specifier: ^4.0.10
+        version: 4.0.10
       dexie-export-import:
-        specifier: ^4.1.2
-        version: 4.1.2(dexie@3.2.7)
+        specifier: ^4.1.4
+        version: 4.1.4(dexie@4.0.10)
       dexie-react-hooks:
         specifier: ^1.1.7
-        version: 1.1.7(@types/react@18.3.11)(dexie@3.2.7)(react@18.3.1)
+        version: 1.1.7(@types/react@18.3.11)(dexie@4.0.10)(react@18.3.1)
       esbuild-wasm:
         specifier: ^0.23.1
         version: 0.23.1
@@ -3082,10 +3082,10 @@ packages:
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
 
-  dexie-export-import@4.1.2:
-    resolution: {integrity: sha512-dWIkkajX+CsEJ19xMnvyqUDlldIl7jW/G49hy3pXZeIgCei9fPeGSjteoh7BeTujexIM3XZ+uAGCEwgCx2HAsQ==}
+  dexie-export-import@4.1.4:
+    resolution: {integrity: sha512-3bw171qUuOTWSYLXI7C/0M6p1X65Rho3tu1IvD9By8jn0+3t3dLSkDlZ1BC6MbABl3kRlhtGigzC+SF+qcS5Og==}
     peerDependencies:
-      dexie: ^2.0.4 || ^3.0.0 || ^4.0.1-alpha.5
+      dexie: ^2.0.4 || ^3.0.0 || ^4.0.1
 
   dexie-react-hooks@1.1.7:
     resolution: {integrity: sha512-Lwv5W0Hk+uOW3kGnsU9GZoR1er1B7WQ5DSdonoNG+focTNeJbHW6vi6nBoX534VKI3/uwHebYzSw1fwY6a7mTw==}
@@ -3094,9 +3094,8 @@ packages:
       dexie: ^3.2 || ^4.0.1-alpha
       react: '>=16'
 
-  dexie@3.2.7:
-    resolution: {integrity: sha512-2a+BXvVhY5op+smDRLxeBAivE7YcYaneXJ1la3HOkUfX9zKkE/AJ8CNgjiXbtXepFyFmJNGSbmjOwqbT749r/w==}
-    engines: {node: '>=6.0'}
+  dexie@4.0.10:
+    resolution: {integrity: sha512-eM2RzuR3i+M046r2Q0Optl3pS31qTWf8aFuA7H9wnsHTwl8EPvroVLwvQene/6paAs39Tbk6fWZcn2aZaHkc/w==}
 
   diff@5.2.0:
     resolution: {integrity: sha512-uIFDxqpRZGZ6ThOk84hEfqWoHx2devRFvpTZcTHur85vImfaxUbTW9Ryh4CpCuDnToOP1CEtXKIgytHBPVff5A==}
@@ -9353,17 +9352,17 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
-  dexie-export-import@4.1.2(dexie@3.2.7):
+  dexie-export-import@4.1.4(dexie@4.0.10):
     dependencies:
-      dexie: 3.2.7
+      dexie: 4.0.10
 
-  dexie-react-hooks@1.1.7(@types/react@18.3.11)(dexie@3.2.7)(react@18.3.1):
+  dexie-react-hooks@1.1.7(@types/react@18.3.11)(dexie@4.0.10)(react@18.3.1):
     dependencies:
       '@types/react': 18.3.11
-      dexie: 3.2.7
+      dexie: 4.0.10
       react: 18.3.1
 
-  dexie@3.2.7: {}
+  dexie@4.0.10: {}
 
   diff@5.2.0: {}
 
