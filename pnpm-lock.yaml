@@ -66,8 +66,8 @@ importers:
         specifier: ^11.5.6
         version: 11.11.1(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       get-video-id:
-        specifier: ^3.6.5
-        version: 3.7.0
+        specifier: ^4.1.7
+        version: 4.1.7
       globals:
         specifier: ^15.10.0
         version: 15.10.0
@@ -3588,9 +3588,9 @@ packages:
     resolution: {integrity: sha512-g0QYk1dZBxGwk+Ngc+ltRH2IBp2f7zBkBMBJZCDerh6EhlhSR6+9irMCuT/09zD6qkarHUSn529sK/yL4S27mg==}
     engines: {node: '>= 0.4'}
 
-  get-video-id@3.7.0:
-    resolution: {integrity: sha512-hU5pnODTo87slfs9MUFO3vpJr23AESJHmF20T3ivqQJZ/Wz0W5TxjSrGoyB6X538Shyi6tCCpQSeBoV88F9NYA==}
-    engines: {node: '>=10'}
+  get-video-id@4.1.7:
+    resolution: {integrity: sha512-bYHXe3BTbFbiViuNFyfFnZPnSDVWBu5N06p35LW7dD/ul4O1sdPSs3Brw8U/m5JlQUnkj3tht3luSz0k05vEYg==}
+    engines: {node: '>=16'}
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -9999,7 +9999,9 @@ snapshots:
       es-errors: 1.3.0
       get-intrinsic: 1.2.4
 
-  get-video-id@3.7.0: {}
+  get-video-id@4.1.7:
+    dependencies:
+      '@babel/runtime': 7.25.7
 
   glob-parent@5.1.2:
     dependencies:
