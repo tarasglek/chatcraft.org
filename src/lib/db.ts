@@ -146,6 +146,20 @@ class ChatCraftDatabase extends Dexie {
     this.version(9).stores({
       messages: "id, date, chatId, type, model, user, text, imageUrls, versions",
     });
+    // Version 10 Migration - address schema warning, fix table consistency
+    this.version(10)
+      .stores({
+        messages: "id, date, chatId, type, model, user, text, imageUrls, versions",
+      })
+      .upgrade(async (tx) => {
+        // Clean up any lingering starred properties from messages
+        await tx
+          .table("messages")
+          .toCollection()
+          .modify((message) => {
+            delete message.starred;
+          });
+      });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
