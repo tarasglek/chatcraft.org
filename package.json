@@ -43,7 +43,7 @@
     "linkedom": "^0.18.5",
     "lodash-es": "^4.17.21",
     "mammoth": "^1.8.0",
-    "mermaid": "^10.9.1",
+    "mermaid": "^11.4.0",
     "nanoid": "^5.0.7",
     "nomnoml": "^1.6.2",
     "openai": "^4.47.1",
