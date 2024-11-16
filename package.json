@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241106.0",
-    "@eslint/js": "^9.15.0",
+    "@eslint/js": "9.14.0",
     "@types/lodash-es": "^4.17.12",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
@@ -77,7 +77,7 @@
     "@typescript-eslint/eslint-plugin": "^8.14.0",
     "@typescript-eslint/parser": "^8.14.0",
     "@vitejs/plugin-react": "^4.3.3",
-    "eslint": "^9.15.0",
+    "eslint": "9.14.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
