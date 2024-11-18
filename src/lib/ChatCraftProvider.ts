@@ -84,3 +84,20 @@ export abstract class ChatCraftProvider {
 export type ChatCraftProviderWithModels = ChatCraftProvider & {
   models: ChatCraftModel[];
 };
+
+export abstract class NonLLMProviders {
+  id: string;
+  name: string;
+  apiUrl: string;
+  apiKey?: string;
+  constructor(name: string, url: string, key?: string) {
+    this.id = nanoid();
+    this.name = name;
+    this.apiUrl = url;
+    this.apiKey = key;
+  }
+  abstract validateApiKey(key: string): Promise<boolean>;
+  get clientHeaders() {
+    return {};
+  }
+}
