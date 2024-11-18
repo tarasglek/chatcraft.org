@@ -29,6 +29,9 @@ importers:
       '@eslint/compat':
         specifier: ^1.2.3
         version: 1.2.3(eslint@9.14.0)
+      '@iframe-resizer/child':
+        specifier: ^5.3.2
+        version: 5.3.2
       '@iframe-resizer/react':
         specifier: ^5.3.2
         version: 5.3.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1851,6 +1854,9 @@ packages:
 
   '@iconify/utils@2.1.33':
     resolution: {integrity: sha512-jP9h6v/g0BIZx0p7XGJJVtkVnydtbgTgt9mVNcGDYwaa7UhdHdI9dvoq+gKj9sijMSJKxUPEG2JyjsgXjxL7Kw==}
+
+  '@iframe-resizer/child@5.3.2':
+    resolution: {integrity: sha512-y4uX26NzdAU1XRURiFCQCNTuLI04WTGUFQNcG4hfNZGvWO/BnfQ3fiVokQwZjnaQH7mzbGE2SLJqYUb1JIqF1Q==}
 
   '@iframe-resizer/core@5.3.2':
     resolution: {integrity: sha512-is6VXW1m/9y7ZUwyjUuHu5101TPFa69Rv8jNY0HrT5svwb1ICPZKeaoVzDw0TTBBa5eE7XfEFcXCeiP6UR9W3w==}
@@ -8040,6 +8046,8 @@ snapshots:
       mlly: 1.7.3
     transitivePeerDependencies:
       - supports-color
+
+  '@iframe-resizer/child@5.3.2': {}
 
   '@iframe-resizer/core@5.3.2': {}
 

@@ -22,6 +22,7 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@eslint/compat": "^1.2.3",
+    "@iframe-resizer/child": "^5.3.2",
     "@iframe-resizer/react": "^5.3.2",
     "@szhsin/react-menu": "^4.2.2",
     "@uiw/react-codemirror": "^4.23.6",

@@ -19,7 +19,10 @@ const HtmlPreview = ({ children, isLoading = false }: HtmlPreviewProps) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(String(children), "text/html");
     const scriptElement = document.createElement("script");
-    scriptElement.src = new URL("/js/iframeResizer.contentWindow.min.js", import.meta.url).href;
+    scriptElement.src = new URL(
+      "/node_modules/@iframe-resizer/child/index.umd.js",
+      import.meta.url
+    ).href;
     doc.body.appendChild(scriptElement);
     const html = `<!DOCTYPE html>${doc.documentElement.innerHTML}`;
     return toUrl(html);
