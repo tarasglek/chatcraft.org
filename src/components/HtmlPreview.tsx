@@ -2,7 +2,7 @@ import { lazy, memo, useMemo, type ReactNode } from "react";
 import { Card, CardBody, IconButton } from "@chakra-ui/react";
 import { TbExternalLink } from "react-icons/tb";
 
-const IframeResizer = lazy(() => import("iframe-resizer-react"));
+const IframeResizer = lazy(() => import("@iframe-resizer/react"));
 
 type HtmlPreviewProps = {
   children: ReactNode & ReactNode[];
@@ -45,10 +45,10 @@ const HtmlPreview = ({ children, isLoading = false }: HtmlPreviewProps) => {
       />
       <CardBody mt={10} p={2}>
         <IframeResizer
+          license="GPLv3"
           checkOrigin={false}
           src={url}
           style={{ width: "1px", minWidth: "100%" }}
-          heightCalculationMethod={"max"}
         />
       </CardBody>
     </Card>
