@@ -38,13 +38,19 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
-import { ChatCraftProvider, ProviderData } from "../../lib/ChatCraftProvider";
+import {
+  ChatCraftProvider,
+  NonLLMProviders,
+  ProviderData,
+  NonLLMProviderData,
+} from "../../lib/ChatCraftProvider";
 import db from "../../lib/db";
 import { providerFromUrl, supportedProviders } from "../../lib/providers";
 import { CustomProvider } from "../../lib/providers/CustomProvider";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 import { OpenAiProvider } from "../../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../../lib/providers/OpenRouterProvider";
+import { JinaAIProvider } from "../../lib/providers/JinaAIProvider";
 import { TextToSpeechVoices } from "../../lib/settings";
 import { download } from "../../lib/utils";
 import PasswordInput from "../PasswordInput";
@@ -83,11 +89,15 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
 
   // Stores the list of providers we are displaying in providers table
   const [tableProviders, setTableProviders] = useState<ProviderData>({});
+  const [nonLLMProviders, setNonLLMProviders] = useState<NonLLMProviderData>({});
 
   // Stores the provider that has its api key field currently actively selected
   const [focusedProvider, setFocusedProvider] = useState<ChatCraftProvider | null>(
     settings.currentProvider
   );
+
+  const [isNonLLMValidating, setIsNonLLMValidating] = useState(false);
+  const [isNonLLMInvalid, setIsNonLLMInvalid] = useState(false);
 
   useEffect(() => {
     isStoragePersisted()
@@ -202,6 +212,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
 
     // Api key validation
     try {
+      // maybe this could be encapsulated into a single function
       setIsApiKeyInvalid(false);
       setIsValidating(true);
 
@@ -237,6 +248,47 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
     }
 
     setApiKeySaved(true);
+  };
+  const handleNonLLMApiKeyChange = async (apiKey: string) => {
+    const newProvider = new JinaAIProvider(apiKey);
+
+    // Api key validation
+    try {
+      setIsNonLLMInvalid(false);
+      setIsNonLLMValidating(true);
+
+      const result = await newProvider.validateApiKey(apiKey);
+
+      setIsNonLLMInvalid(!result);
+      setIsNonLLMValidating(false);
+
+      // Valid key, update in nonLLMProviders
+      if (result) {
+        setNonLLMProviders({
+          ...nonLLMProviders,
+          [newProvider.name]: newProvider,
+        });
+        setApiKeySaved(true);
+      } else {
+        // Invalid key, remove from nonLLMProviders
+        const updatedProviders = { ...nonLLMProviders };
+        delete updatedProviders[newProvider.name];
+        setNonLLMProviders(updatedProviders);
+      }
+    } catch {
+      setIsNonLLMInvalid(true);
+      setIsNonLLMValidating(false);
+
+      // Invalid key, remove from nonLLMProviders
+      const updatedProviders = { ...nonLLMProviders };
+      delete updatedProviders[newProvider.name];
+      setNonLLMProviders(updatedProviders);
+    }
+
+    setSettings({
+      ...settings,
+      nonLLMProviders: nonLLMProviders,
+    });
   };
 
   const handleSetCurrentProvider = async () => {
@@ -802,301 +854,53 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
               </FormHelperText>
             )}
           </FormControl>
-          {/* this is where my changes would be stored here */}
           <FormControl>
             <FormLabel>
-              Other AI Providers
-              <ButtonGroup ml={3}>
-                <Button size="xs" onClick={handleAddProvider}>
-                  Add
-                </Button>
-                <Button
-                  size="xs"
-                  colorScheme="red"
-                  onClick={handleDeleteCustomProvider}
-                  isDisabled={!selectedProvider}
-                >
-                  Delete
-                </Button>
-                <Button
-                  size="xs"
-                  colorScheme="blue"
-                  onClick={handleSetCurrentProvider}
-                  isDisabled={!selectedProvider}
-                  variant="outline"
-                >
-                  Set as Current Provider
-                </Button>
-              </ButtonGroup>
-              <FormHelperText fontSize="xs">
-                Advanced option for use with other OpenAI-compatible APIs
-              </FormHelperText>
+              Non LLM Providers
+              <FormHelperText fontSize="xs">Non LLM API services</FormHelperText>
             </FormLabel>
-            <Table
-              size="sm"
-              variant="simple"
-              sx={{
-                "th:nth-of-type(2), td:nth-of-type(2), th:nth-of-type(3), td:nth-of-type(3)": {
-                  width: "30%",
-                },
-                "th, td": {
-                  pl: "0.4rem",
-                  pr: "0.4rem",
-                },
-                "th:nth-of-type(1), td:nth-of-type(1)": {
-                  width: "5%",
-                },
-                "th:nth-of-type(4), td:nth-of-type()": {
-                  width: "12%",
-                },
-                "th:last-child, td:last-child": {
-                  width: "11%",
-                },
-              }}
-            >
+            <Table size="sm" variant="simple">
               <Thead>
                 <Tr>
-                  <Th></Th>
-                  <Th>Name</Th>
-                  <Th>API URL</Th>
+                  <Th>Provider</Th>
                   <Th>API Key</Th>
-                  <Th sx={{ textAlign: "center" }}>In Use</Th>
+                  <Th>Status</Th>
                 </Tr>
               </Thead>
               <Tbody>
-                {newCustomProvider && (
-                  <Tr>
-                    <Td>
-                      <IconButton
-                        aria-label="Cancel adding new provider"
-                        icon={<MdCancel />}
-                        size={"xs"}
-                        onClick={() => setNewCustomProvider(null)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            setNewCustomProvider(null);
-                          }
-                        }}
-                        variant="outline"
-                        tabIndex={0}
-                        color={"grey"}
-                        border={"none"}
-                        p={0}
-                        fontSize={16}
-                        borderRadius={"50%"}
-                        _hover={{
-                          borderColor: "gray.400",
-                          color: "gray.400",
-                        }}
-                        _focus={{
-                          _focus: {
-                            outline: "none",
-                            boxShadow: "0 0 0 3px rgba(66, 153, 225, 0.6)",
-                            borderColor: "blue.300",
-                          },
-                        }}
-                        _active={{
-                          backgroundColor: "none",
-                        }}
+                <Tr>
+                  <Td>Jina AI</Td>
+                  <Td>
+                    <FormControl isInvalid={isNonLLMInvalid}>
+                      <PasswordInput
+                        size="sm"
+                        value={nonLLMProviders["Jina AI"]?.apiKey || ""}
+                        onChange={(e) => handleNonLLMApiKeyChange(e.target.value)}
+                        placeholder="Optional - for larger files"
                       />
-                    </Td>
-                    <Td>
-                      <FormControl isInvalid={!newCustomProvider.name}>
-                        <InputGroup size="sm">
-                          <Input
-                            pl="0.4rem"
-                            fontSize="xs"
-                            placeholder="Name"
-                            value={newCustomProvider.name}
-                            onChange={(e) => {
-                              setNewCustomProvider(
-                                new CustomProvider(
-                                  e.target.value,
-                                  newCustomProvider.apiUrl,
-                                  "",
-                                  newCustomProvider.apiKey
-                                )
-                              );
-                            }}
-                          />
-                        </InputGroup>
-                        <FormErrorMessage fontSize="xs">Name is required.</FormErrorMessage>
-                      </FormControl>
-                    </Td>
-                    <Td>
-                      <FormControl isInvalid={!newCustomProvider.apiUrl}>
-                        <InputGroup size="sm">
-                          <Input
-                            pl="0.4rem"
-                            fontSize="xs"
-                            placeholder="API URL"
-                            value={newCustomProvider.apiUrl}
-                            onChange={(e) => {
-                              setNewCustomProvider(
-                                new CustomProvider(
-                                  newCustomProvider.name,
-                                  e.target.value,
-                                  "",
-                                  newCustomProvider.apiKey
-                                )
-                              );
-                            }}
-                          />
-                        </InputGroup>
-                        <FormErrorMessage fontSize="xs">API URL is required.</FormErrorMessage>
-                      </FormControl>
-                    </Td>
-                    <Td>
-                      <FormControl isInvalid={!newCustomProvider.apiKey}>
-                        <PasswordInput
-                          size="sm"
-                          buttonSize="xs"
-                          paddingRight={"2rem"}
-                          paddingLeft={"0.5rem"}
-                          fontSize="xs"
-                          value={newCustomProvider.apiKey || ""}
-                          onChange={(e) => {
-                            setNewCustomProvider(
-                              new CustomProvider(
-                                newCustomProvider.name,
-                                newCustomProvider.apiUrl,
-                                "",
-                                e.target.value
-                              )
-                            );
-                          }}
-                        />
-                        <FormErrorMessage fontSize="xs">API Key is required.</FormErrorMessage>
-                      </FormControl>
-                    </Td>
-                    <Td sx={{ textAlign: "center" }}>
-                      <Flex alignItems="center" justifyContent="center">
-                        <Button
-                          size="xs"
-                          colorScheme="blue"
-                          onClick={handleSaveNewCustomProvider}
-                          isLoading={
-                            focusedProvider?.name === newCustomProvider.name && isValidating
-                          }
-                        >
-                          Save
-                        </Button>
-                      </Flex>
-                    </Td>
-                  </Tr>
-                )}
-                {[...Object.values(tableProviders)] // copy of the array
-                  .reverse() // reverse the array so new provider is at top
-                  .map((provider) => {
-                    return (
-                      <Tr key={provider.name}>
-                        <Td>
-                          <Flex width={6} justifyContent={"center"}>
-                            <Checkbox
-                              onChange={() => handleSelectedProviderChange(provider)}
-                              isChecked={selectedProvider?.name === provider.name}
-                            />
-                          </Flex>
-                        </Td>
-                        <Td fontSize="xs">{provider.name}</Td>
-                        <Td fontSize="xs">
-                          <Tooltip
-                            label={`Click to copy: ${provider.apiUrl}`}
-                            placement="top-start"
-                            sx={{ fontSize: "0.65rem" }}
-                          >
-                            <Text
-                              cursor="pointer"
-                              onClick={() => {
-                                navigator.clipboard.writeText(provider.apiUrl);
-                                success({
-                                  title: "Copied",
-                                  message: "API URL copied to clipboard",
-                                });
-                              }}
-                            >
-                              {extractDomain(provider.apiUrl)}
-                            </Text>
-                          </Tooltip>
-                        </Td>
-                        <Td>
-                          {provider.name === "Free AI Models" ? (
-                            <InputGroup size="sm">
-                              <Input disabled fontSize="xs" value="N/A" />
-                            </InputGroup>
-                          ) : (
-                            <FormControl
-                              isInvalid={
-                                !!(
-                                  !isValidating &&
-                                  focusedProvider?.name === provider.name &&
-                                  isApiKeyInvalid
-                                )
-                              }
-                            >
-                              <PasswordInput
-                                size="sm"
-                                buttonSize="xs"
-                                paddingRight={"2rem"}
-                                paddingLeft={"0.5rem"}
-                                fontSize="xs"
-                                value={provider.apiKey || ""}
-                                onChange={(e) => handleApiKeyChange(provider, e.target.value)}
-                                onFocus={() => setFocusedProvider(provider)}
-                                isDisabled={provider instanceof FreeModelProvider}
-                                isInvalid={
-                                  !!(
-                                    !isValidating &&
-                                    focusedProvider?.name === provider.name &&
-                                    isApiKeyInvalid
-                                  )
-                                }
-                              />
-                              {focusedProvider?.name === provider.name && isValidating ? (
-                                <Flex mt={2}>
-                                  <Spinner size="xs" />
-                                  <Text ml={2} fontSize="xs">
-                                    Validating...
-                                  </Text>{" "}
-                                </Flex>
-                              ) : (
-                                <FormErrorMessage fontSize="xs">
-                                  {provider.apiKey
-                                    ? "Unable to verify key."
-                                    : "API Key is required."}
-                                </FormErrorMessage>
-                              )}
-                              {provider instanceof OpenRouterProvider &&
-                                provider.name === focusedProvider?.name &&
-                                !provider.apiKey && (
-                                  <Button
-                                    mt="3"
-                                    size="xs"
-                                    onClick={provider.openRouterPkceRedirect}
-                                  >
-                                    Get OpenRouter key{" "}
-                                  </Button>
-                                )}
-                            </FormControl>
-                          )}
-                        </Td>
-                        <Td sx={{ textAlign: "center" }}>
-                          <Flex alignItems="center" justifyContent="center">
-                            {settings.currentProvider.name === provider.name && (
-                              <FaCheck style={{ color: "green" }} />
-                            )}
-                          </Flex>
-                        </Td>
-                      </Tr>
-                    );
-                  })}
+                      {isNonLLMValidating && (
+                        <Flex mt={2}>
+                          <Spinner size="xs" />
+                          <Text ml={2} fontSize="xs">
+                            Validating...
+                          </Text>
+                        </Flex>
+                      )}
+                      {isNonLLMInvalid && (
+                        <FormErrorMessage fontSize="xs">Unable to verify API key</FormErrorMessage>
+                      )}
+                    </FormControl>
+                  </Td>
+                  <Td>
+                    {nonLLMProviders["Jina AI"]?.apiKey ? (
+                      <FaCheck color="green" />
+                    ) : (
+                      "Using Free Tier"
+                    )}
+                  </Td>
+                </Tr>
               </Tbody>
             </Table>
-            {apiKeySaved && (
-              <FormHelperText fontSize="xs">
-                Your API Key(s) are stored in browser storage
-              </FormHelperText>
-            )}
           </FormControl>
           <FormControl>
             <FormLabel>
