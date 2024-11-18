@@ -1,6 +1,7 @@
 import { compressImageToBase64, formatAsCodeBlock } from "./utils";
 import { getSettings } from "./settings";
-import { JinaAiReaderResponse, pdfToMarkdown } from "./ai";
+import { JinaAiReaderResponse } from "./ai";
+import { JinaAIProvider } from "./providers/JinaAIProvider";
 
 function readTextFile(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -119,7 +120,9 @@ export async function importFiles(
         });
         onFile(file, base64);
       } else if (file.type === "application/pdf") {
-        const markdown = await pdfToMarkdown(file);
+        const jinaAIProvider =
+          (settings.nonLLMProviders["Jina AI"] as JinaAIProvider) || new JinaAIProvider();
+        const markdown = await jinaAIProvider.pdfToMarkdown(file);
         onFile(file, markdown);
       } else if (file.type === "application/markdown" || file.type === "text/markdown") {
         const markdown = await readTextFile(file);

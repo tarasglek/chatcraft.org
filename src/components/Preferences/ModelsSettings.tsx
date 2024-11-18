@@ -38,12 +38,7 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
-import {
-  ChatCraftProvider,
-  NonLLMProviders,
-  ProviderData,
-  NonLLMProviderData,
-} from "../../lib/ChatCraftProvider";
+import { ChatCraftProvider, ProviderData, NonLLMProviderData } from "../../lib/ChatCraftProvider";
 import db from "../../lib/db";
 import { providerFromUrl, supportedProviders } from "../../lib/providers";
 import { CustomProvider } from "../../lib/providers/CustomProvider";
