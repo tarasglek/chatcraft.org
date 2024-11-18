@@ -22,7 +22,8 @@ export class JinaAIProvider extends NonLLMProviders {
   }
   async validateApiKey(key: string) {
     try {
-      const response = await fetch("https://api.jina.ai/v1/embeddings", {
+      const response = await fetch("https://r.jina.ai/https://example.com", {
+        method: "GET",
         headers: {
           Authorization: `Bearer ${key}`,
         },

@@ -2,9 +2,10 @@ import { useCallback } from "react";
 import { useAlert } from "./use-alert";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
-import { type JinaAiReaderResponse, pdfToMarkdown } from "../lib/ai";
+import { type JinaAiReaderResponse } from "../lib/ai";
 import { compressImageToBase64, formatAsCodeBlock } from "../lib/utils";
 import { getSettings } from "../lib/settings";
+import { JinaAIProvider } from "../lib/providers/JinaAIProvider";
 
 function readTextFile(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -143,7 +144,9 @@ async function processFile(
   }
 
   if (file.type === "application/pdf") {
-    const contents = await pdfToMarkdown(file);
+    const jinaAIProvider =
+      (settings.nonLLMProviders["Jina AI"] as JinaAIProvider) || new JinaAIProvider();
+    const contents = await jinaAIProvider.pdfToMarkdown(file);
     assertContents(contents);
     return contents;
   }

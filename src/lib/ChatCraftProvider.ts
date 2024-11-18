@@ -5,6 +5,9 @@ import { ChatCraftModel } from "./ChatCraftModel";
 export interface ProviderData {
   [key: string]: ChatCraftProvider;
 }
+export interface NonLLMProviderData {
+  [key: string]: NonLLMProviders;
+}
 
 export type SerializedChatCraftProvider = {
   id: string;

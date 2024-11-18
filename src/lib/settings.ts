@@ -6,7 +6,7 @@
  * when you only need to read something.
  */
 import { ChatCraftModel } from "../lib/ChatCraftModel";
-import { ChatCraftProvider, ProviderData } from "../lib/ChatCraftProvider";
+import { ChatCraftProvider, NonLLMProviderData, ProviderData } from "../lib/ChatCraftProvider";
 import { providerFromJSON, providerFromUrl } from "./providers";
 import { FreeModelProvider } from "./providers/DefaultProvider/FreeModelProvider";
 /**
@@ -38,6 +38,7 @@ export type Settings = {
   customSystemPrompt?: string;
   textToSpeech: TextToSpeechSettings;
   providers: ProviderData;
+  nonLLMProviders: NonLLMProviderData;
   currentProvider: ChatCraftProvider;
   compressionFactor: number;
   maxCompressedFileSizeMB: number;
@@ -58,6 +59,7 @@ export const defaults: Settings = {
     voice: TextToSpeechVoices.ALLOY,
   },
   providers: {},
+  nonLLMProviders: {},
   currentProvider: new FreeModelProvider(),
   compressionFactor: 1,
   maxCompressedFileSizeMB: 20,
