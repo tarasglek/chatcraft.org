@@ -183,7 +183,8 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
     functionName: string,
     functionArgs: string
   ) => {
-    if (content.length > 0) {
+    // TODO: need to deal with Cohere returning different data for tokens...
+    if (content.length >= 0) {
       return handleTextResponse(model, content);
     }
 
@@ -297,6 +298,9 @@ ${func.name}(${JSON.stringify(data, null, 2)})\n\`\`\`\n`;
   const chatCompletionReqOptions = {
     headers: headers,
     signal: controller.signal,
+    // TODO: cohere's chat endpoint is different from openai, see:
+    // https://docs.cohere.com/reference/chat-stream
+    path: "/chat",
   };
 
   const handleStreamingResponse = async (streamResponse: Stream<ChatCompletionChunk>) => {
