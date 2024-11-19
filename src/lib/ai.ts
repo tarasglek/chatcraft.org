@@ -464,6 +464,42 @@ export function isChatModel(model: string): boolean {
   );
 }
 
+export type OpenAISpeechToTextResponse = {
+  text: string;
+};
+
+/**
+ * Convert an audio file to text using https://platform.openai.com/docs/api-reference/audio/createTranscription?lang=node
+ */
+export async function audioToText(file: File): Promise<OpenAISpeechToTextResponse> {
+  try {
+    const { currentProvider } = getSettings();
+    if (!currentProvider.apiKey) {
+      throw new Error("Missing OpenAI API Key");
+    }
+
+    const { openai } = currentProvider.createClient(currentProvider.apiKey);
+
+    const response = await openai.audio.transcriptions.create({
+      file,
+      model: "whisper-1",
+    });
+
+    if (!response.text) {
+      throw new Error("Error: No transcription text returned by OpenAI.");
+    }
+
+    const result: OpenAISpeechToTextResponse = {
+      text: response.text,
+    };
+
+    return result;
+  } catch (err) {
+    console.error("Error converting audio to text", err);
+    throw err;
+  }
+}
+
 export type JinaAiReaderResponse = {
   code: number;
   status: number;
