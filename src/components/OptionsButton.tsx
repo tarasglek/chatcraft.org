@@ -218,7 +218,7 @@ function OptionsButton({
             ref={fileInputRef}
             hidden
             onChange={handleFileChange}
-            accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
+            accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown, audio/*"
           />
           <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
             Attach Files...
