@@ -132,7 +132,7 @@ export class SpeechRecognition {
     }
   }
 
-  async transcribe(audio: File) {
+  async transcribe(audio: File): Promise<string> {
     const transcriptions = new OpenAI.Audio.Transcriptions(this._openai);
     const transcription = await transcriptions.create({
       file: audio,
