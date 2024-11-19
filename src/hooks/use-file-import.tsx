@@ -5,7 +5,7 @@ import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
 import {
   audioToText,
   type JinaAiReaderResponse,
-  OpenAISpeechToTextResponse,
+  type OpenAISpeechToTextResponse,
   pdfToMarkdown,
 } from "../lib/ai";
 import { compressImageToBase64, formatAsCodeBlock } from "../lib/utils";
