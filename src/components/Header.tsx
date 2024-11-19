@@ -60,28 +60,6 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
 
   const isMobile = useMobileBreakpoint();
 
-  const handleOpenFeedUrl = useCallback(async () => {
-    if (!user) {
-      error({
-        title: "Failed to Open Feed",
-        message: "Can't open feed because user is not logged in",
-      });
-      return;
-    }
-    try {
-      const currentUrl = window.location.href;
-      const parsedUrl = new URL(currentUrl);
-      const userFeedUrl = `${parsedUrl.origin}/api/share/${user.username}/feed.atom`;
-      window.open(userFeedUrl, "_blank");
-    } catch (err) {
-      console.error(err);
-      error({
-        title: "Failed to Open Shared Chats Feed URL",
-        message: "An error occurred while trying to open shared chats feed URL.",
-      });
-    }
-  }, [user, error]);
-
   return (
     <Flex
       w="100%"
@@ -146,14 +124,6 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       </Box>
 
       <Flex pr={2} alignItems="center">
-        <IconButton
-          fontSize="1.25rem"
-          aria-label={"Copy Shared Chats Feed URL"}
-          title={"Copy Shared Chats Feed URL"}
-          icon={<FiRss />}
-          variant="ghost"
-          onClick={handleOpenFeedUrl}
-        />
         <IconButton
           fontSize="1.25rem"
           aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
