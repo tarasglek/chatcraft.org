@@ -2,7 +2,12 @@ import { useCallback } from "react";
 import { useAlert } from "./use-alert";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
-import { type JinaAiReaderResponse, pdfToMarkdown } from "../lib/ai";
+import {
+  audioToText,
+  type JinaAiReaderResponse,
+  OpenAISpeechToTextResponse,
+  pdfToMarkdown,
+} from "../lib/ai";
 import { compressImageToBase64, formatAsCodeBlock } from "../lib/utils";
 import { getSettings } from "../lib/settings";
 
@@ -118,28 +123,40 @@ function formatTextContent(filename: string, type: string, content: string): str
 }
 
 // Makes sure that the contents are non-empty
-function assertContents(contents: string | JinaAiReaderResponse) {
+function assertContents(contents: string | JinaAiReaderResponse | OpenAISpeechToTextResponse) {
   if (typeof contents === "string") {
     if (!contents.trim().length) {
       throw new Error("Empty contents", { cause: { code: "EmptyFile" } });
     }
-  } else {
+  } else if ("data" in contents && "content" in contents.data) {
     if (!contents.data.content.trim().length) {
       throw new Error("Empty contents", { cause: { code: "EmptyFile" } });
     }
+  } else if ("text" in contents) {
+    if (!contents.text.trim().length) {
+      throw new Error("Empty contents", { cause: { code: "EmptyFile" } });
+    }
+  } else {
+    throw new Error("Unknown content type", { cause: { code: "InvalidContentType" } });
   }
 }
 
 async function processFile(
   file: File,
   settings: ReturnType<typeof getSettings>
-): Promise<string | JinaAiReaderResponse> {
+): Promise<string | JinaAiReaderResponse | OpenAISpeechToTextResponse> {
   if (file.type.startsWith("image/")) {
     return await compressImageToBase64(file, {
       compressionFactor: settings.compressionFactor,
       maxSizeMB: settings.maxCompressedFileSizeMB,
       maxWidthOrHeight: settings.maxImageDimension,
     });
+  }
+
+  if (file.type.startsWith("audio/")) {
+    const contents = await audioToText(file);
+    assertContents(contents);
+    return contents;
   }
 
   if (file.type === "application/pdf") {
@@ -180,13 +197,16 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
   const settings = getSettings();
 
   const importFile = useCallback(
-    (file: File, contents: string | JinaAiReaderResponse) => {
+    async (file: File, contents: string | JinaAiReaderResponse | OpenAISpeechToTextResponse) => {
       if (file.type.startsWith("image/")) {
         const base64 = contents as string;
         onImageImport(base64);
       } else if (file.type === "application/pdf") {
         const document = (contents as JinaAiReaderResponse).data;
         chat.addMessage(new ChatCraftHumanMessage({ text: `${document.content}\n` }));
+      } else if (file.type.startsWith("audio/")) {
+        const document = (contents as OpenAISpeechToTextResponse).text;
+        chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
       } else if (
         file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       ) {
