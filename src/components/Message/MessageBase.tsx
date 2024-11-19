@@ -65,8 +65,8 @@ import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
-import ModelProviderMenu from "../Menu/ModelProviderMenu";
 import { useTextToSpeech } from "../../hooks/use-text-to-speech";
+import ModelSelectionMenuList from "../Menu/ModelSelectionMenuList";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -555,14 +555,14 @@ function MessageBase({
                 {onRetryClick && (
                   <>
                     <MenuDivider />
-                    <ModelProviderMenu
-                      onItemSelect={(modelId) => {
-                        const model = models.find((m) => m.id === modelId);
-                        if (model) onRetryClick(model);
-                      }}
-                      openOnHover={true}
-                      menuButtonLabel={<SubMenu label="Retry with ..." />}
-                    />
+                    <SubMenu label="Retry with...">
+                      <ModelSelectionMenuList
+                        onItemSelect={(modelId) => {
+                          const model = models.find((m) => m.id === modelId);
+                          if (model) onRetryClick(model);
+                        }}
+                      />
+                    </SubMenu>
                   </>
                 )}
                 <MenuDivider />
