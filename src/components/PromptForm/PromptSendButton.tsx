@@ -1,272 +1,133 @@
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  IconButton,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuGroup,
-  MenuItem,
-  MenuList,
-  Tooltip,
-} from "@chakra-ui/react";
-import { TbChevronUp, TbSearch, TbSend } from "react-icons/tb";
-import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
-
+import { Button, ButtonGroup, IconButton, Tooltip } from "@chakra-ui/react";
+import { TbChevronUp, TbSend } from "react-icons/tb";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
 import theme from "../../theme";
 import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
-import { IoMdCheckmark } from "react-icons/io";
-import { type KeyboardEvent, useRef, useState } from "react";
 import useAudioPlayer from "../../hooks/use-audio-player";
-import { useDebounce } from "react-use";
-import { isChatModel } from "../../lib/ai";
 import InterruptSpeechButton from "../InterruptSpeechButton";
 import { useTextToSpeech } from "../../hooks/use-text-to-speech";
+import ModelSelectionMenuList from "../Menu/ModelSelectionMenuList";
+import { Menu, MenuDivider } from "../Menu";
 
 type PromptSendButtonProps = {
   isLoading: boolean;
 };
 
 function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const inputRef = useRef<HTMLInputElement>(null);
-
   const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
   const { isTextToSpeechSupported } = useTextToSpeech();
-
-  useDebounce(
-    () => {
-      setDebouncedSearchQuery(searchQuery);
-    },
-    600,
-    [searchQuery]
-  );
-
-  const providersList = {
-    ...settings.providers,
-    "Free AI Models": new FreeModelProvider(),
-  };
-
   return (
     <ButtonGroup variant="outline" isAttached>
-      <Menu placement="top" strategy="fixed" closeOnSelect={false} offset={[-90, 0]}>
-        <IconButton
-          type="submit"
-          size="md"
-          fontSize="1.375rem"
-          width="2.75rem"
-          variant="solid"
-          isRound
-          aria-label="Submit"
-          isLoading={isLoading}
-          icon={<TbSend />}
-        />
-        {isTextToSpeechSupported && isAudioQueueEmpty ? (
-          <Tooltip
-            label={
+      <IconButton
+        type="submit"
+        size="md"
+        fontSize="1.375rem"
+        width="2.75rem"
+        variant="solid"
+        isRound
+        aria-label="Submit"
+        isLoading={isLoading}
+        icon={<TbSend />}
+      />
+      {isTextToSpeechSupported && isAudioQueueEmpty ? (
+        <Tooltip
+          label={
+            settings.textToSpeech.announceMessages
+              ? "Text-to-Speech Enabled"
+              : "Text-to-Speech Disabled"
+          }
+        >
+          <IconButton
+            type="button"
+            size="md"
+            variant="solid"
+            aria-label={
               settings.textToSpeech.announceMessages
                 ? "Text-to-Speech Enabled"
                 : "Text-to-Speech Disabled"
             }
+            icon={
+              settings.textToSpeech.announceMessages ? (
+                <MdVolumeUp size={25} />
+              ) : (
+                <MdVolumeOff size={25} />
+              )
+            }
+            onClick={() => {
+              if (settings.textToSpeech.announceMessages) {
+                // Flush any remaining audio clips being announced
+                clearAudioQueue();
+              }
+              setSettings({
+                ...settings,
+                textToSpeech: {
+                  ...settings.textToSpeech,
+                  announceMessages: !settings.textToSpeech.announceMessages,
+                },
+              });
+            }}
+          />
+        </Tooltip>
+      ) : isTextToSpeechSupported ? (
+        <InterruptSpeechButton variant={"dancingBars"} size={"lg"} clearOnly={!isLoading} />
+      ) : null}
+      <Menu
+        position="anchor"
+        align="center"
+        viewScroll="initial" // Equivalent to Chakra's `strategy="fixed"`
+        onItemClick={(e) => {
+          e.keepOpen = false; // Prevents the menu from closing automatically
+        }}
+        menuStyle={{
+          maxHeight: "85dvh", // Sets the maximum height
+          overflowY: "auto", // Enables vertical scrolling
+          zIndex: theme.zIndices.dropdown,
+          marginTop: "-90px",
+        }}
+        menuButton={({ open }) => (
+          <button
+            style={{
+              width: "2.5rem",
+              height: "2.5rem",
+              fontSize: "1.25rem",
+              borderRadius: "0 50% 50% 0", // Makes it round
+              backgroundColor: open ? "#2c5282" : "#3182ce", // Dynamic color for 'solid' variant
+              color: "white", // Icon color
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center", // Centers the icon
+              transition: "background-color 0.2s", // Smooth hover effect
+            }}
+            aria-label="Choose Model"
+            title="Choose Model"
           >
-            <IconButton
-              type="button"
-              size="md"
-              variant="solid"
-              aria-label={
-                settings.textToSpeech.announceMessages
-                  ? "Text-to-Speech Enabled"
-                  : "Text-to-Speech Disabled"
-              }
-              icon={
-                settings.textToSpeech.announceMessages ? (
-                  <MdVolumeUp size={25} />
-                ) : (
-                  <MdVolumeOff size={25} />
-                )
-              }
-              onClick={() => {
-                if (settings.textToSpeech.announceMessages) {
-                  // Flush any remaining audio clips being announced
-                  clearAudioQueue();
-                }
-                setSettings({
-                  ...settings,
-                  textToSpeech: {
-                    ...settings.textToSpeech,
-                    announceMessages: !settings.textToSpeech.announceMessages,
-                  },
-                });
-              }}
-            />
-          </Tooltip>
-        ) : isTextToSpeechSupported ? (
-          <InterruptSpeechButton variant={"dancingBars"} size={"lg"} clearOnly={!isLoading} />
-        ) : null}
-        <MenuButton
-          as={IconButton}
-          size="md"
-          width="2.75rem"
-          fontSize="1.375rem"
-          isRound
-          variant="solid"
-          aria-label="Choose Model"
-          title="Choose Model"
-          icon={<TbChevronUp />}
+            <TbChevronUp />
+          </button>
+        )}
+      >
+        <ModelSelectionMenuList
+          onItemSelect={(modelId) => {
+            const model = models.find((m) => m.id === modelId);
+            if (model) setSettings({ ...settings, model });
+          }}
         />
-        <MenuList maxHeight={"85dvh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          <MenuGroup title="Providers">
-            {Object.entries(providersList).map(([providerName, providerObject]) => (
-              <MenuItem
-                paddingInline={4}
-                key={providerName}
-                onClick={() => {
-                  setSettings({ ...settings, currentProvider: providerObject });
-                }}
-              >
-                {settings.currentProvider.name === providerName ? (
-                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                ) : (
-                  <span style={{ width: "1.6rem", display: "inline-block" }} />
-                )}
-                {providerName}
-              </MenuItem>
-            ))}
-          </MenuGroup>
-          <MenuDivider />
-          <MenuGroup title="Models">
-            <Box maxHeight="40dvh" overflowY="auto">
-              {models
-                .filter((model) => isChatModel(model.id))
-                .filter((model) =>
-                  model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-                )
-                .map((model) => (
-                  <MenuItem
-                    paddingInline={4}
-                    closeOnSelect={true}
-                    key={model.id}
-                    onClick={() => setSettings({ ...settings, model })}
-                  >
-                    {settings.model.id === model.id ? (
-                      <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                    ) : (
-                      <span
-                        style={{
-                          paddingLeft: "1.6rem",
-                          display: "inline-block",
-                        }}
-                      />
-                    )}
-                    {model.name}
-                  </MenuItem>
-                ))}
-            </Box>
-            <InputGroup marginTop={2}>
-              <InputLeftElement paddingLeft={3} pointerEvents="none">
-                <TbSearch />
-              </InputLeftElement>
-              <Input
-                marginInline={2}
-                marginBottom={1}
-                ref={inputRef}
-                type="text"
-                variant="outline"
-                placeholder="Search models..."
-                value={searchQuery}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setSearchQuery(e.target.value);
-                }}
-              />
-            </InputGroup>
-          </MenuGroup>
-          {isTextToSpeechSupported && (
-            <>
-              <MenuDivider />
-              <MenuItem
-                icon={
-                  settings.textToSpeech.announceMessages ? (
-                    <MdVolumeUp style={{ fontSize: "1.25rem" }} />
-                  ) : (
-                    <MdVolumeOff style={{ fontSize: "1.25rem" }} />
-                  )
-                }
-                onClick={() => {
-                  if (settings.textToSpeech.announceMessages) {
-                    // Flush any remaining audio clips being announced
-                    clearAudioQueue();
-                  }
-                  setSettings({
-                    ...settings,
-                    textToSpeech: {
-                      ...settings.textToSpeech,
-                      announceMessages: !settings.textToSpeech.announceMessages,
-                    },
-                  });
-                }}
-              >
-                {settings.textToSpeech.announceMessages
-                  ? "Text-to-Speech Enabled"
-                  : "Text-to-Speech Disabled"}
-              </MenuItem>
-            </>
-          )}
-        </MenuList>
       </Menu>
     </ButtonGroup>
   );
 }
 
 function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useDebounce(
-    () => {
-      setDebouncedSearchQuery(searchQuery);
-    },
-    250,
-    [searchQuery]
-  );
-
-  const onStartTyping = (e: KeyboardEvent<HTMLElement>) => {
-    // Check if the inputRef is current and the input is not already focused
-    if (inputRef.current && document.activeElement !== inputRef.current) {
-      if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "Enter") {
-        return;
-      }
-      // Don't handle the keydown event more than once
-      e.preventDefault();
-      // Ignore control keys
-      const char = e.key.length === 1 ? e.key : "";
-      // Set the initial character in the input so we don't lose it
-      setSearchQuery(searchQuery + char);
-      // Make sure we are focused on the input element
-      inputRef.current.focus();
-    }
-  };
 
   const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
   const { isTextToSpeechSupported } = useTextToSpeech();
-
-  const providersList = {
-    ...settings.providers,
-    "Free AI Models": new FreeModelProvider(),
-  };
 
   return (
     <ButtonGroup isAttached>
@@ -308,88 +169,49 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
       ) : isTextToSpeechSupported ? (
         <InterruptSpeechButton variant={"dancingBars"} size={"sm"} clearOnly={!isLoading} />
       ) : null}
-      <Menu placement="top-end" strategy="fixed" closeOnSelect={false}>
-        <MenuButton
-          as={IconButton}
-          size="sm"
-          fontSize="1.25rem"
-          aria-label="Choose Model"
-          title="Choose Model"
-          icon={<TbChevronUp />}
+      <Menu
+        position="anchor" // Position relative to the button
+        align="end" // Aligns the menu to the end of the trigger (top-end behavior)
+        viewScroll="initial" // Mimics Chakra's `strategy="fixed"`
+        onItemClick={(e) => {
+          e.keepOpen = false; // Keeps the menu open after selection (closeOnSelect={false})
+        }}
+        menuStyle={{
+          zIndex: theme.zIndices.dropdown, // Ensures proper layering
+          marginTop: "-90px",
+          overflowY: "auto",
+          maxHeight: "80dvh",
+        }}
+        menuButton={({ open }) => (
+          <button
+            type="button"
+            style={{
+              width: "2rem", // Matches `size="sm"`
+              height: "2rem",
+              fontSize: "1.25rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: open ? "#2c5282" : "#3182ce", // Chakra's solid button color
+              color: "white",
+              border: "none",
+              borderRadius: "0 25% 25% 0", // Fully round button
+              cursor: "pointer",
+            }}
+            aria-label="Choose Model"
+            title="Choose Model"
+          >
+            <TbChevronUp />
+          </button>
+        )}
+      >
+        <ModelSelectionMenuList
+          onItemSelect={(modelId) => {
+            const model = models.find((m) => m.id === modelId);
+            if (model) setSettings({ ...settings, model });
+          }}
         />
-        <MenuList
-          maxHeight={"80vh"}
-          overflowY={"auto"}
-          zIndex={theme.zIndices.dropdown}
-          onKeyDownCapture={onStartTyping}
-        >
-          <MenuGroup title="Providers">
-            {Object.entries(providersList).map(([providerName, providerObject]) => (
-              <MenuItem
-                paddingInline={4}
-                key={providerName}
-                onClick={() => {
-                  setSettings({ ...settings, currentProvider: providerObject });
-                }}
-              >
-                {settings.currentProvider.name === providerName ? (
-                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                ) : (
-                  <span style={{ width: "1.6rem", display: "inline-block" }} />
-                )}
-                {providerName}
-              </MenuItem>
-            ))}
-          </MenuGroup>
-          <MenuDivider />
-          <MenuGroup title="Models">
-            <InputGroup>
-              <InputLeftElement paddingLeft={3} pointerEvents="none">
-                <TbSearch />
-              </InputLeftElement>
-              <Input
-                marginInline={2}
-                marginBottom={1}
-                ref={inputRef}
-                type="text"
-                variant="outline"
-                placeholder="Search models..."
-                value={searchQuery}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setSearchQuery(e.target.value);
-                }}
-              />
-            </InputGroup>
-            <Box maxHeight="40vh" overflowY="auto">
-              {models
-                .filter((model) => isChatModel(model.id))
-                .filter((model) =>
-                  model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-                )
-                .map((model) => (
-                  <MenuItem
-                    paddingInline={4}
-                    closeOnSelect={true}
-                    key={model.id}
-                    onClick={() => setSettings({ ...settings, model })}
-                  >
-                    {settings.model.id === model.id ? (
-                      <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                    ) : (
-                      <span
-                        style={{
-                          paddingLeft: "1.6rem",
-                          display: "inline-block",
-                        }}
-                      />
-                    )}
-                    {model.name}
-                  </MenuItem>
-                ))}
-            </Box>
-          </MenuGroup>
-        </MenuList>
+        <MenuDivider />
       </Menu>
     </ButtonGroup>
   );

@@ -63,10 +63,10 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
-import { isChatModel } from "../../lib/ai";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
 import { useTextToSpeech } from "../../hooks/use-text-to-speech";
+import ModelSelectionMenuList from "../Menu/ModelSelectionMenuList";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -556,13 +556,12 @@ function MessageBase({
                   <>
                     <MenuDivider />
                     <SubMenu label="Retry with...">
-                      {models
-                        .filter((model) => isChatModel(model.id))
-                        .map((model) => (
-                          <MenuItem key={model.id} onClick={() => onRetryClick(model)}>
-                            {model.prettyModel}
-                          </MenuItem>
-                        ))}
+                      <ModelSelectionMenuList
+                        onItemSelect={(modelId) => {
+                          const model = models.find((m) => m.id === modelId);
+                          if (model) onRetryClick(model);
+                        }}
+                      />
                     </SubMenu>
                   </>
                 )}
