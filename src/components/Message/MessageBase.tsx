@@ -468,21 +468,29 @@ function MessageBase({
             <Flex gap={3}>
               <Box>{avatar}</Box>
               <Flex direction="column" justify="center">
-                <Flex h="100%" align="center" gap={2}>
-                  <Heading as="h2" size="xs" minW="fit-content">
-                    {heading}
-                  </Heading>
-                  <Text
-                    as="span"
-                    fontSize="sm"
-                    minW="fit-content"
-                    color="gray.500"
-                    _dark={{ color: "gray.300" }}
+                <Flex h="100%" align="center" gap={2} alignItems="flex-start">
+                  <Flex
+                    direction={{ base: "column", sm: "row" }} // Stack on mobile, row on larger screens
+                    align={{ base: "flex-start", sm: "center" }} // Align items properly for both views
+                    justify="space-between"
+                    w="100%"
+                    gap={2}
                   >
-                    <Link as={ReactRouterLink} to={`/c/${chatId}#${id}`}>
-                      {formatDate(date, isNarrowScreen)}
-                    </Link>
-                  </Text>
+                    <Heading as="h2" size="xs" minW="fit-content">
+                      {heading}
+                    </Heading>
+                    <Text
+                      as="span"
+                      fontSize="sm"
+                      minW="fit-content"
+                      color="gray.500"
+                      _dark={{ color: "gray.300" }}
+                    >
+                      <Link as={ReactRouterLink} to={`/c/${chatId}#${id}`}>
+                        {formatDate(date, isNarrowScreen)}
+                      </Link>
+                    </Text>
+                  </Flex>
                   {headingMenu}
                   {!isLoading && settings.countTokens && !!tokens && (
                     <Tag size="sm" variant="outline" colorScheme="gray">
