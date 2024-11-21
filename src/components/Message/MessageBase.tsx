@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Group as ButtonGroup,
-  Card,
   Flex,
   Heading,
   IconButton,
@@ -15,6 +14,10 @@ import {
   useClipboard,
   useDisclosure,
   VStack,
+  CardRoot,
+  CardBody,
+  CardFooter,
+  CardHeader,
 } from "@chakra-ui/react";
 import {
   type FormEvent,
@@ -124,13 +127,13 @@ function MessageBase({
   const meta = useMemo(getMetaKey, []);
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
-  const { isOpen, onToggle: originalOnToggle } = useDisclosure();
+  const { open, onToggle: originalOnToggle } = useDisclosure();
   const { clearAudioQueue, addToAudioQueue } = useAudioPlayer();
   const { isTextToSpeechSupported, textToSpeech } = useTextToSpeech();
   const isSystemMessage = message instanceof ChatCraftSystemMessage;
   const isLongMessage =
     text.length > 5000 || (isSystemMessage && summaryText && text.length > summaryText.length);
-  const displaySummaryText = !isOpen && (summaryText || isLongMessage);
+  const displaySummaryText = !open && (summaryText || isLongMessage);
   const shouldShowDeleteMenu =
     Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick) && !disableEdit;
   const chat = useLiveQuery(() => ChatCraftChat.find(chatId), [chatId]);
@@ -180,7 +183,7 @@ function MessageBase({
 
   // If last message is collapsed, auto expand for better view
   useEffect(() => {
-    if (!hasMessagesAfter && !isOpen && !(message instanceof ChatCraftSystemMessage)) {
+    if (!hasMessagesAfter && !open && !(message instanceof ChatCraftSystemMessage)) {
       onToggle();
     }
 
@@ -459,8 +462,8 @@ function MessageBase({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <Card.Root>
-        <Card.Header p={0} pt={3} pb={2} pr={1}>
+      <CardRoot>
+        <CardHeader p={0} pt={3} pb={2} pr={1}>
           <Flex justify="space-between" align="center" ml={5} mr={2}>
             <Flex gap={3}>
               <Box>{avatar}</Box>
@@ -606,13 +609,13 @@ function MessageBase({
               </Menu>
             </Flex>
           </Flex>
-        </Card.Header>
-        <Card.Body p={0}>
+        </CardHeader>
+        <CardBody p={0}>
           <Flex direction="column" gap={3}>
             <Box maxWidth="100%" minH="2em" overflow="hidden" px={5} pb={2}>
               {
                 // only display the button before message if the message is too long and toggled
-                !editing && isLongMessage && isOpen ? (
+                !editing && isLongMessage && open ? (
                   <Button size="sm" variant="ghost" onClick={() => onToggle()}>
                     {"Show Less"}
                   </Button>
@@ -689,34 +692,36 @@ function MessageBase({
                     {displaySummaryText ? summaryText || text.slice(0, 500).trim() : text}
                   </Markdown>
                   <Flex w="100%" justify="space-between" align="center">
-                    <Button
-                      hidden={!isLongMessage || editing}
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onToggle()}
-                    >
-                      {isOpen ? "Show Less" : "Show More..."}
-                    </Button>
-                    <Button
-                      hidden={!!disableEdit || !isSystemMessage}
-                      size="sm"
-                      variant="ghost"
-                      ml="auto"
-                      onClick={() => onEditingChange(true)}
-                    >
-                      <Text fontSize="xs" as="em">
-                        Edit to customize
-                      </Text>
-                    </Button>
+                    <>
+                      <Button
+                        hidden={!isLongMessage || editing}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onToggle()}
+                      >
+                        {open ? "Show Less" : "Show More..."}
+                      </Button>
+                      <Button
+                        hidden={!!disableEdit || !isSystemMessage}
+                        size="sm"
+                        variant="ghost"
+                        ml="auto"
+                        onClick={() => onEditingChange(true)}
+                      >
+                        <Text fontSize="xs" as="em">
+                          Edit to customize
+                        </Text>
+                      </Button>
+                    </>
                   </Flex>
                 </Box>
               )}
             </Box>
             <ImageModal isOpen={imageModalOpen} onClose={closeModal} imageSrc={selectedImage} />
           </Flex>
-        </Card.Body>
-        {footer && <Card.Footer py={2}>{footer}</Card.Footer>}
-      </Card.Root>
+        </CardBody>
+        {footer && <CardFooter py={2}>{footer}</CardFooter>}
+      </CardRoot>
     </Box>
   );
 }

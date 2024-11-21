@@ -45,8 +45,10 @@ function MessageVersionsMenu({
     <MenuRoot>
       <MenuTrigger asChild>
         <Button as={IconButton} size="xs" variant="ghost" disabled={isDisabled}>
-          <TbChevronDown title={`${versions.length} Versions`} />
-          Versions
+          <>
+            <TbChevronDown title={`${versions.length} Versions`} />
+            Versions
+          </>
         </Button>
       </MenuTrigger>
 

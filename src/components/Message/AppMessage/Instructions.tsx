@@ -176,18 +176,20 @@ function Instructions(props: MessageBaseProps) {
               errorText={`Unable to verify API Key with ${selectedProvider.name}.`}
             >
               <Flex gap={4} align="center">
-                <PasswordInput
-                  flex="1"
-                  size={"md"}
-                  bg="white"
-                  _dark={{ bg: "gray.700" }}
-                  disabled={selectedProvider instanceof FreeModelProvider}
-                  value={selectedProvider.apiKey || ""}
-                  onChange={handleApiKeyChange}
-                />
-                <Button type="submit" size="sm" loading={isValidating}>
-                  Save
-                </Button>
+                <>
+                  <PasswordInput
+                    flex="1"
+                    size={"md"}
+                    bg="white"
+                    _dark={{ bg: "gray.700" }}
+                    disabled={selectedProvider instanceof FreeModelProvider}
+                    value={selectedProvider.apiKey || ""}
+                    onChange={handleApiKeyChange}
+                  />
+                  <Button type="submit" size="sm" loading={isValidating}>
+                    Save
+                  </Button>
+                </>
               </Flex>
               {selectedProvider instanceof OpenRouterProvider && (
                 <Button mt="3" size="sm" onClick={selectedProvider.openRouterPkceRedirect}>

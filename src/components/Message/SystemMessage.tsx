@@ -1,23 +1,13 @@
+import db from "../../lib/db";
+import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { memo } from "react";
-import {
-  Avatar,
-  Box,
-  Container,
-  Divider,
-  Flex,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Container, Separator as Divider, Flex, IconButton, Text } from "@chakra-ui/react";
+import { MenuRoot, MenuItem, MenuItemGroup } from "../ui/menu";
+import { Button } from "../ui/button";
+import { Avatar } from "../ui/avatar";
 import { useLiveQuery } from "dexie-react-hooks";
 import { TbChevronDown, TbStar, TbStarFilled } from "react-icons/tb";
-
-import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { createSystemPromptSummary, defaultSystemPrompt } from "../../lib/system-prompt";
-import db from "../../lib/db";
 import { ChatCraftSystemMessage } from "../../lib/ChatCraftMessage";
 import { ChatCraftStarredSystemPrompt } from "../../lib/ChatCraftStarredSystemPrompt";
 import { useAlert } from "../../hooks/use-alert";
@@ -99,24 +89,22 @@ function SystemPromptVersionsMenu({
         size="sm"
         aria-label={title}
         title={title}
-        icon={isStarredSystemPrompt ? <TbStarFilled /> : <TbStar />}
         variant="ghost"
         onClick={handleStarredChanged}
-      />
+      >
+        {isStarredSystemPrompt ? <TbStarFilled /> : <TbStar />}
+      </IconButton>
       {prevSystemPrompts?.length != 0 && (
-        <Menu placement="bottom" isLazy={true}>
-          <MenuButton
-            as={IconButton}
-            size="sm"
-            variant="ghost"
-            icon={<TbChevronDown title={`${prevSystemPrompts.length} Previous System Prompts`} />}
-          />
-          <MenuList zIndex={2}>
+        <MenuRoot>
+          <Button as={IconButton} size="sm" variant="ghost">
+            <TbChevronDown title={`${prevSystemPrompts.length} Previous System Prompts`} />
+          </Button>
+          <MenuItemGroup zIndex={2} position={"bottom"}>
             {prevSystemPrompts.map((systemPrompt, idx, arr) => (
               <Box key={systemPrompt}>
                 <MenuItem value={systemPrompt} onClick={() => onChange(systemPrompt)}>
                   <Container>
-                    <Text noOfLines={3} my={2} title={systemPrompt}>
+                    <Text lineClamp={3} my={2} title={systemPrompt}>
                       {systemPrompt}
                     </Text>
                   </Container>
@@ -124,8 +112,8 @@ function SystemPromptVersionsMenu({
                 {idx < arr.length - 1 && <Divider />}
               </Box>
             ))}
-          </MenuList>
-        </Menu>
+          </MenuItemGroup>
+        </MenuRoot>
       )}
     </Flex>
   );
@@ -145,7 +133,7 @@ function SystemMessage(props: SystemMessageProps) {
       size="sm"
       src="/apple-touch-icon.png"
       title="ChatCraft"
-      showBorder
+      border={1}
       borderColor="gray.100"
       _dark={{ borderColor: "gray.600" }}
     />

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Avatar } from "@chakra-ui/react";
+import { Avatar } from "../ui/avatar";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
 
@@ -14,7 +14,7 @@ function HumanMessage(props: HumanMessageProps) {
       size="sm"
       src={avatarUrl}
       title={name}
-      showBorder
+      border="1px solid"
       borderColor="gray.100"
       _dark={{ borderColor: "gray.600" }}
     />
