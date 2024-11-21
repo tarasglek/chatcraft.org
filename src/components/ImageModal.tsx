@@ -1,14 +1,6 @@
 import React from "react";
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalCloseButton,
-  ModalBody,
-  Image,
-  Flex,
-  Link,
-} from "@chakra-ui/react";
+import { Image, Flex, Link } from "@chakra-ui/react";
+import * as Dialog from "./ui/dialog";
 
 interface ImageModalProps {
   isOpen: boolean;
@@ -17,13 +9,13 @@ interface ImageModalProps {
 }
 
 const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageSrc }) => (
-  <Modal isOpen={isOpen} onClose={onClose} size="2xl" isCentered>
-    <ModalOverlay />
-    <ModalContent maxW="90vw" maxHeight="90vh">
-      <ModalCloseButton />
-      <ModalBody>
+  <Dialog.DialogRoot open={isOpen} size="xl">
+    <Dialog.DialogBackdrop />
+    <Dialog.DialogContent maxW="90vw" maxHeight="90vh">
+      <Dialog.DialogCloseTrigger />
+      <Dialog.DialogBody>
         <Flex height={"100%"} justifyContent={"center"} alignItems={"center"}>
-          <Link href={imageSrc} isExternal>
+          <Link href={imageSrc}>
             <Image
               maxWidth="100%"
               maxHeight="70vh"
@@ -35,9 +27,9 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageSrc }) =>
             />
           </Link>
         </Flex>
-      </ModalBody>
-    </ModalContent>
-  </Modal>
+      </Dialog.DialogBody>
+    </Dialog.DialogContent>
+  </Dialog.DialogRoot>
 );
 
 export default ImageModal;
