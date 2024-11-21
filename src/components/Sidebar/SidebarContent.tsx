@@ -6,17 +6,13 @@ import {
   VStack,
   Heading,
   Text,
-  Button,
   Center,
-  useColorModeValue,
+  //useColorModeValue,
   IconButton,
   Input,
-  Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionIcon,
-  AccordionPanel,
 } from "@chakra-ui/react";
+import { AccordionItem, AccordionItemContent, AccordionRoot } from "../ui/accordion";
+import { Button } from "../ui/button";
 import { useLiveQuery } from "dexie-react-hooks";
 import { MdOutlineChatBubbleOutline } from "react-icons/md";
 import { TbCheck, TbTrash } from "react-icons/tb";
@@ -25,7 +21,6 @@ import { AiOutlineEdit } from "react-icons/ai";
 import { LuFunctionSquare } from "react-icons/lu";
 import { useKey } from "react-use";
 import { Link, useNavigate } from "react-router-dom";
-
 import db from "../../lib/db";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { formatNumber } from "../../lib/utils";
@@ -34,6 +29,7 @@ import { useUser } from "../../hooks/use-user";
 import { ChatCraftFunction } from "../../lib/ChatCraftFunction";
 import { useAlert } from "../../hooks/use-alert";
 import { convertToShareUrl } from "../../lib/share";
+import { useTheme } from "next-themes";
 
 /**
  * Chat Sidebar Items
@@ -48,14 +44,17 @@ type ChatSidebarItemProps = {
 
 function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSidebarItemProps) {
   const text = chat.summary || "(no messages)";
-  const bg = useColorModeValue(
-    isSelected ? "gray.200" : undefined,
-    isSelected ? "gray.800" : undefined
-  );
-  const borderColor = useColorModeValue(
-    isSelected ? "gray.300" : "gray.100",
-    isSelected ? "gray.900" : "gray.600"
-  );
+  const { theme } = useTheme();
+  const bg =
+    theme === "light" ? (isSelected ? "gray.200" : undefined) : isSelected ? "gray.800" : undefined;
+  const borderColor =
+    theme === "light"
+      ? isSelected
+        ? "gray.300"
+        : "gray.100"
+      : isSelected
+        ? "gray.900"
+        : "gray.600";
   const { error } = useAlert();
   const [isEditing, setIsEditing] = useState(false);
   useKey("Escape", () => setIsEditing(false), { event: "keydown" }, [setIsEditing]);
@@ -139,20 +138,22 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
               <IconButton
                 variant="ghost"
                 size="sm"
-                icon={<AiOutlineEdit />}
                 aria-label="Edit summary"
                 title="Edit summary"
                 onClick={() => setIsEditing(true)}
-              />
+              >
+                <AiOutlineEdit />
+              </IconButton>
             )}
             <IconButton
               variant="ghost"
               size="sm"
-              icon={<TbTrash />}
               aria-label="Delete chat"
               title="Delete chat"
               onClick={onDelete}
-            />
+            >
+              <TbTrash />
+            </IconButton>
           </Flex>
         )}
       </Flex>
@@ -179,25 +180,21 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
                 <IconButton
                   variant="ghost"
                   size="sm"
-                  icon={<CgClose />}
                   aria-label="Cancel"
                   title="Cancel"
                   onClick={() => setIsEditing(false)}
-                />
-                <IconButton
-                  type="submit"
-                  variant="ghost"
-                  size="sm"
-                  icon={<TbCheck />}
-                  aria-label="Save"
-                  title="Save"
-                />
+                >
+                  <CgClose />
+                </IconButton>
+                <IconButton type="submit" variant="ghost" size="sm" aria-label="Save" title="Save">
+                  <TbCheck />
+                </IconButton>
               </Flex>
             </Flex>
           </form>
         ) : (
           <Link to={url} style={{ width: "100%" }}>
-            <Text noOfLines={2} px={2} fontSize="sm" title={text} w="100%">
+            <Text lineClamp={2} px={2} fontSize="sm" title={text} w="100%">
               {text}
             </Text>
           </Link>
@@ -219,14 +216,19 @@ type FunctionSidebarItemProps = {
 };
 
 function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSidebarItemProps) {
-  const bg = useColorModeValue(
-    isSelected ? "gray.200" : undefined,
-    isSelected ? "gray.800" : undefined
-  );
-  const borderColor = useColorModeValue(
-    isSelected ? "gray.300" : "gray.100",
-    isSelected ? "gray.900" : "gray.600"
-  );
+  const { theme } = useTheme();
+
+  const bg =
+    theme === "light" ? (isSelected ? "gray.200" : undefined) : isSelected ? "gray.800" : undefined;
+
+  const borderColor =
+    theme === "light"
+      ? isSelected
+        ? "gray.300"
+        : "gray.100"
+      : isSelected
+        ? "gray.900"
+        : "gray.600";
   const selectedRef = useRef<HTMLDivElement>(null);
 
   // Scroll this item into view if selected
@@ -261,17 +263,18 @@ function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSideba
           <IconButton
             variant="ghost"
             size="sm"
-            icon={<TbTrash />}
             aria-label="Delete function"
             title="Delete function"
             onClick={onDelete}
-          />
+          >
+            <TbTrash />
+          </IconButton>
         )}
       </Flex>
 
       <Box flex={1} maxW="100%" minH="24px">
         <Link to={url} style={{ width: "100%" }}>
-          <Text noOfLines={2} px={2} fontSize="sm" title={func.description} w="100%">
+          <Text lineClamp={2} px={2} fontSize="sm" title={func.description} w="100%">
             {func.description}
           </Text>
         </Link>
@@ -377,21 +380,27 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
 
   return (
     <Flex direction="column" h="100%" p={2} gap={4}>
-      <Accordion allowToggle defaultIndex={0}>
-        <AccordionItem>
-          <AccordionButton p={2} minH={10}>
-            <Heading as="h3" size="xs">
-              Saved Chats ({formatNumber(chatsTotal || 0)})
-            </Heading>
+      <AccordionRoot collapsible>
+        <AccordionItem asChild value="save-chat">
+          <Button p={2} minH={10}>
+            <>
+              <Heading as="h3" size="xs">
+                Saved Chats ({formatNumber(chatsTotal || 0)})
+              </Heading>
 
-            <Button as={Link} to="/c/new" ml={1} size="xs" variant="ghost">
-              New
-            </Button>
+              <Button as={Link} ml={1} size="xs" variant="ghost">
+                <Link to="/c/new" style={{ textDecoration: "underline" }}>
+                  New
+                </Link>
+              </Button>
+              {/**
+               * AccordionIcon ml="auto" />
+               * finding replacement for accordion button
+               */}
+            </>
+          </Button>
 
-            <AccordionIcon ml="auto" />
-          </AccordionButton>
-
-          <AccordionPanel p={0} pb={4}>
+          <AccordionItemContent p={0} pb={4}>
             <Flex direction="column" gap={2}>
               {recentChats?.length > 0 &&
                 recentChats.map((chat) => (
@@ -413,17 +422,20 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
                 </Button>
               </Center>
             )}
-          </AccordionPanel>
+          </AccordionItemContent>
         </AccordionItem>
 
-        <AccordionItem>
-          <AccordionButton p={2} minH={10}>
+        <AccordionItem asChild value="shared-chat">
+          <Button p={2} minH={10}>
             <Heading as="h3" size="xs">
               Shared Chats ({formatNumber(sharedChats.length || 0)})
             </Heading>
-            <AccordionIcon ml="auto" />
-          </AccordionButton>
-          <AccordionPanel p={0} pb={4}>
+            {/**
+             * AccordionIcon ml="auto" />
+             * finding replacement for accordion button
+             */}
+          </Button>
+          <AccordionItemContent p={0} pb={4}>
             {sharedChats?.length ? (
               sharedChats.map((shared) => (
                 <ChatSidebarItem
@@ -444,25 +456,30 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
                 <Text>Anyone with this URL will be able to read or duplicate the chat.</Text>
               </VStack>
             )}
-          </AccordionPanel>
+          </AccordionItemContent>
         </AccordionItem>
 
-        <AccordionItem>
-          <AccordionButton p={2} minH={10}>
-            <Flex justify="space-between" align="center">
-              <Heading as="h3" size="xs">
-                Functions ({formatNumber(functions.length || 0)})
-              </Heading>
+        <AccordionItem asChild value="functions">
+          <Button p={2} minH={10}>
+            <>
+              <Flex justify="space-between" align="center">
+                <Heading as="h3" size="xs">
+                  Functions ({formatNumber(functions.length || 0)})
+                </Heading>
 
-              {functions?.length > 0 && (
-                <Button as={Link} to="/f/new" ml={1} size="xs" variant="ghost">
-                  New
-                </Button>
-              )}
-            </Flex>
-            <AccordionIcon ml="auto" />
-          </AccordionButton>
-          <AccordionPanel p={0} pb={4}>
+                {functions?.length > 0 && (
+                  <Button ml={1} size="xs" variant="ghost">
+                    <Link to="/f/new">New</Link>
+                  </Button>
+                )}
+              </Flex>
+              {/**
+               * AccordionIcon ml="auto" />
+               * finding replacement for accordion button
+               */}
+            </>
+          </Button>
+          <AccordionItemContent p={0} pb={4}>
             {functions?.length ? (
               functions.map((func) => (
                 <FunctionSidebarItem
@@ -482,9 +499,9 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
                 </Link>
               </VStack>
             )}
-          </AccordionPanel>
+          </AccordionItemContent>
         </AccordionItem>
-      </Accordion>
+      </AccordionRoot>
     </Flex>
   );
 }

@@ -1,19 +1,17 @@
+import { HStack, IconButton, Input, Text } from "@chakra-ui/react";
+import { TbSearch } from "react-icons/tb";
 import {
-  Drawer,
+  DrawerBackdrop,
   DrawerBody,
-  DrawerCloseButton,
+  DrawerCloseTrigger,
   DrawerContent,
   DrawerHeader,
-  DrawerOverlay,
-  IconButton,
-  Input,
-  InputGroup,
-  InputRightElement,
-  Text,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import { TbSearch } from "react-icons/tb";
+  DrawerRoot,
+  DrawerTrigger,
+} from "../ui/drawer";
+import { InputGroup } from "../ui/input-group";
 import { Form } from "react-router-dom";
+import { useTheme } from "next-themes";
 import SidebarContent, { SidebarContentProps } from "./SidebarContent";
 
 type SidebarMobileProps = SidebarContentProps & {
@@ -29,60 +27,55 @@ function SidebarMobile({
   selectedChat,
   selectedFunction,
 }: SidebarMobileProps) {
-  const brandColor = useColorModeValue("blue.600", "blue.200");
+  const { theme } = useTheme();
+  const brandColor = theme === "light" ? "blue.600" : "blue.200";
 
   return (
-    <Drawer
-      autoFocus={false}
-      isOpen={isSidebarVisible}
-      onClose={handleToggleSidebarVisible}
-      placement="left"
-    >
-      <DrawerOverlay />
+    <DrawerRoot open={isSidebarVisible} placement={"start"}>
+      <DrawerBackdrop />
       <DrawerContent>
-        <DrawerHeader mt={2} p={2}>
-          <Text
-            position={"relative"}
-            top={-1}
-            ml={2}
-            mb={2}
-            fontSize="lg"
-            fontWeight="bold"
-            color={brandColor}
-          >
-            &lt;ChatCraft /&gt;
-          </Text>
-          <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
-            <InputGroup size="sm" variant="outline">
+        <DrawerTrigger asChild>
+          <DrawerHeader mt={2} p={2}>
+            <Text
+              position={"relative"}
+              top={-1}
+              ml={2}
+              mb={2}
+              fontSize="lg"
+              fontWeight="bold"
+              color={brandColor}
+            >
+              &lt;ChatCraft /&gt;
+            </Text>
+          </DrawerHeader>
+        </DrawerTrigger>
+
+        <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
+          <HStack>
+            <InputGroup>
               <Input
                 fontSize="1rem"
                 type="search"
                 defaultValue={searchText}
                 name="q"
                 borderRadius={4}
-                isRequired
+                required
                 placeholder="Search chat history"
               />
-              <InputRightElement>
-                <IconButton
-                  size="sm"
-                  height="2rem"
-                  aria-label="Search"
-                  variant="ghost"
-                  icon={<TbSearch />}
-                  type="submit"
-                />
-              </InputRightElement>
             </InputGroup>
-          </Form>
-          <DrawerCloseButton />
-        </DrawerHeader>
-
+            <InputGroup>
+              <IconButton size="sm" height="2rem" aria-label="Search" variant="ghost" type="submit">
+                <TbSearch />
+              </IconButton>
+            </InputGroup>
+          </HStack>
+        </Form>
+        <DrawerCloseTrigger onClick={handleToggleSidebarVisible} />
         <DrawerBody m={0} p={0}>
           <SidebarContent selectedChat={selectedChat} selectedFunction={selectedFunction} />
         </DrawerBody>
       </DrawerContent>
-    </Drawer>
+    </DrawerRoot>
   );
 }
 
