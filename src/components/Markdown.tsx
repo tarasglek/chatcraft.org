@@ -1,5 +1,6 @@
 import { memo } from "react";
-import { Box, useColorModeValue } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
+import { useTheme } from "next-themes";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -67,7 +68,13 @@ function Markdown({
   children,
   className = "message-text",
 }: MarkdownProps) {
-  const style = useColorModeValue(oneLight, oneDark);
+  //const style = useColorModeValue(oneLight, oneDark);
+  const { theme } = useTheme();
+  const bgColor = theme === "light" ? "white" : "gray.900; border-color: gray.700";
+  const syntaxHighlightThemes = {
+    light: oneLight,
+    dark: oneDark,
+  };
 
   return (
     <ReactMarkdown
@@ -129,11 +136,7 @@ function Markdown({
                 border="1px"
                 borderRadius="5px"
                 borderColor="gray.200"
-                bg="gray.50"
-                _dark={{
-                  bg: "gray.800",
-                  borderColor: "gray.600",
-                }}
+                bg={bgColor}
                 pb={1}
               >
                 <SyntaxHighlighter
@@ -148,7 +151,7 @@ function Markdown({
                       onPrompt={onPrompt}
                     />
                   )}
-                  style={style}
+                  style={syntaxHighlightThemes}
                   showLineNumbers={true}
                   showInlineLineNumbers={true}
                   wrapLines={true}
