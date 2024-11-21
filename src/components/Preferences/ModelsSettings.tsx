@@ -1,34 +1,27 @@
 import {
   Box,
   Button,
-  ButtonGroup,
   Checkbox,
   Flex,
-  FormControl,
-  FormErrorMessage,
-  FormHelperText,
-  FormLabel,
   IconButton,
   Input,
-  InputGroup,
   Link,
   Select,
   Slider,
-  SliderFilledTrack,
   SliderThumb,
   SliderTrack,
   Spinner,
   Table,
-  Tbody,
-  Td,
+  TableBody as Tbody,
+  TableCell as Td,
   Text,
-  Th,
-  Thead,
+  TableHeader as Th,
   Tooltip,
-  Tr,
+  TableRow as Tr,
   VStack,
 } from "@chakra-ui/react";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { InputGroup } from "../ui/input-group";
 
 import { capitalize } from "lodash-es";
 import { FaCheck } from "react-icons/fa";
@@ -518,7 +511,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                   size="xs"
                   colorScheme="red"
                   onClick={handleDeleteCustomProvider}
-                  isDisabled={!selectedProvider}
+                  disabled={!selectedProvider}
                 >
                   Delete
                 </Button>
@@ -526,7 +519,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                   size="xs"
                   colorScheme="blue"
                   onClick={handleSetCurrentProvider}
-                  isDisabled={!selectedProvider}
+                  disabled={!selectedProvider}
                   variant="outline"
                 >
                   Set as Current Provider

@@ -1,21 +1,9 @@
-import {
-  FormControl,
-  FormLabel,
-  Stack,
-  Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
-  FormErrorMessage,
-  FormHelperText,
-  Kbd,
-  RadioGroup,
-  Radio,
-  Checkbox,
-  Box,
-  VStack,
-} from "@chakra-ui/react";
+import { Fieldset, Stack, Kbd, Box, RadioGroup, VStack } from "@chakra-ui/react";
+import { Field } from "../ui/field";
 import { isMac } from "../../lib/utils";
+import { Radio } from "../ui/radio";
+import { Slider } from "../ui/slider";
+import { Checkbox } from "../ui/checkbox";
 import { useSettings } from "../../hooks/use-settings";
 
 function CustomizationSettings() {
@@ -23,13 +11,11 @@ function CustomizationSettings() {
 
   return (
     <VStack gap={6} my={3}>
-      <FormControl>
-        <FormLabel>
-          When writing a prompt, press <Kbd>Enter</Kbd> to...
-        </FormLabel>
-        <RadioGroup
-          value={settings.enterBehaviour}
-          onChange={(nextValue) =>
+      <Fieldset.Root>
+        <Field label={`When writing a prompt, press ${(<Kbd>Enter</Kbd>)} to...`} />
+        <RadioGroup.Root
+          defaultValue={settings.enterBehaviour}
+          onValueChange={(nextValue: any) =>
             setSettings({ ...settings, enterBehaviour: nextValue as EnterBehaviour })
           }
         >
@@ -40,96 +26,85 @@ function CustomizationSettings() {
               <Kbd>Enter</Kbd> to send)
             </Radio>
           </Stack>
-        </RadioGroup>
-      </FormControl>
+        </RadioGroup.Root>
+      </Fieldset.Root>
 
-      <FormControl>
+      <Field>
         <Checkbox
-          isChecked={settings.countTokens}
-          onChange={(e) => setSettings({ ...settings, countTokens: e.target.checked })}
+          checked={settings.countTokens}
+          onCheckedChange={(e) => setSettings({ ...settings, countTokens: !!e.checked })}
         >
           Track and Display Token Count and Cost
         </Checkbox>
-      </FormControl>
+      </Field>
 
-      <FormControl as="fieldset">
-        <FormLabel as="legend">Image Compression</FormLabel>
+      <Fieldset.Root>
+        <Fieldset.Legend>
+          Maximum file size after compression: {settings.maxCompressedFileSizeMB} MB
+        </Fieldset.Legend>
         <Stack>
           <Box px="6">
-            <FormControl>
-              <FormLabel>
-                Maximum file size after compression: {settings.maxCompressedFileSizeMB} (MB)
-              </FormLabel>
-              <Slider
-                id="max-compressed-file-size"
-                value={settings.maxCompressedFileSizeMB}
-                onChange={(value) => setSettings({ ...settings, maxCompressedFileSizeMB: value })}
-                min={1}
-                max={20}
-                step={1}
-              >
-                <SliderTrack>
-                  <SliderFilledTrack />
-                </SliderTrack>
-                <SliderThumb />
-              </Slider>
-              <FormErrorMessage>Maximum file size must be between 1 and 20 MB.</FormErrorMessage>
-              <FormHelperText>
-                After compression, each attached image will be under your chosen maximum file size
-                (1-20 MB).
-              </FormHelperText>
-            </FormControl>
+            <Field
+              label={`Maximum file size after compression: ${settings.maxCompressedFileSizeMB} (MB)`}
+              errorText="Maximum file size must be between 1 and 20 MB."
+              helperText="After compression, each attached image will be under your chosen maximum file size
+              (1-20 MB)."
+            />
+            <Slider
+              id="max-compressed-file-size"
+              defaultValue={[settings.maxCompressedFileSizeMB]}
+              onValueChange={({ value }) => {
+                const [newValue] = value;
+                setSettings({ ...settings, maxCompressedFileSizeMB: newValue });
+              }}
+              min={1}
+              max={20}
+              thumbSize={{ width: 16, height: 16 }}
+              step={1}
+            />
           </Box>
           <Box px="6">
-            <FormControl>
-              <FormLabel>Maximum image dimension: {settings.maxImageDimension} (px)</FormLabel>
+            <Field
+              label={`Maximum image dimension: ${settings.maxImageDimension} px`}
+              errorText="Maximum image dimension must be between 16 and 2048 px."
+              helperText="Your compressed image's maximum width or height will be within the dimension you choose (16-2048 pixels)."
+            >
               <Slider
                 id="max-image-dimension"
-                value={settings.maxImageDimension}
-                onChange={(value) => setSettings({ ...settings, maxImageDimension: value })}
+                defaultValue={[settings.maxImageDimension]}
+                onValueChange={({ value }) => {
+                  const [newValue] = value;
+                  setSettings({ ...settings, maxImageDimension: newValue });
+                }}
                 min={16}
                 max={2048}
                 step={16}
-              >
-                <SliderTrack>
-                  <SliderFilledTrack />
-                </SliderTrack>
-                <SliderThumb />
-              </Slider>
-              <FormErrorMessage>
-                Maximum Image dimension must be between 16 and 2048
-              </FormErrorMessage>
-              <FormHelperText>
-                Your compressed image&apos;s maximum width or height will be within the dimension
-                you choose (16-2048 pixels).
-              </FormHelperText>
-            </FormControl>
+                thumbSize={{ width: 16, height: 16 }}
+              />
+            </Field>
           </Box>
           <Box px="6">
-            <FormControl>
-              <FormLabel>Compression factor: {settings.compressionFactor}</FormLabel>
+            <Field
+              label={`Compression factor: ${settings.compressionFactor}`}
+              errorText="Compression factor must be between 0.1 and 1.0."
+              helperText="Set the maximum file size based on the original size multiplied by the factor you choose (0.1-1.0)."
+            >
               <Slider
                 id="compression-factor"
-                value={settings.compressionFactor}
-                onChange={(value) => setSettings({ ...settings, compressionFactor: value })}
+                defaultValue={[settings.compressionFactor]}
+                onValueChange={({ value }) => {
+                  const [newValue] = value;
+                  setSettings({ ...settings, compressionFactor: newValue });
+                }}
                 min={0.1}
                 max={1}
+                thumbSize={{ width: 16, height: 16 }}
                 step={0.1}
-              >
-                <SliderTrack>
-                  <SliderFilledTrack />
-                </SliderTrack>
-                <SliderThumb />
-              </Slider>
-              <FormErrorMessage>Compression factor must be between 0.1 and 1.0</FormErrorMessage>
-              <FormHelperText>
-                Set the maximum file size based on the original size multiplied by the factor you
-                choose (0.1-1.0).
-              </FormHelperText>
-            </FormControl>
+              />
+            </Field>
           </Box>
         </Stack>
-      </FormControl>
+      </Fieldset.Root>
     </VStack>
   );
 }

@@ -1,6 +1,6 @@
-import { Box, Button, Heading, Text, VStack, useColorMode } from "@chakra-ui/react";
+import { Box, Button, Heading, Text, VStack } from "@chakra-ui/react";
 import { useCallback, useEffect, useState } from "react";
-
+import { useTheme } from "next-themes";
 import ReactCodeMirror from "@uiw/react-codemirror";
 import { MdSave } from "react-icons/md";
 import YAML from "yaml";
@@ -86,7 +86,9 @@ function WebHandlersConfig() {
   }, [error, registerHandlers, success, webHandlerConfig]);
 
   const configDownloadFilename = "WebHandlersConfig.yaml";
-  const { colorMode } = useColorMode();
+  const { theme } = useTheme();
+  const boxBgColor = theme === "light" ? "gray.50" : "gray.800";
+  const boxBorderColor = theme === "light" ? "gray.200" : "gray.600";
   const editorHeight = "350px";
   const isMobile = useMobileBreakpoint();
 
@@ -106,8 +108,8 @@ function WebHandlersConfig() {
         w={"100%"}
         border="1px"
         borderRadius="5px"
-        borderColor="gray.200"
-        bg="gray.50"
+        borderColor={boxBorderColor}
+        bg={boxBgColor}
         _dark={{
           bg: "gray.800",
           borderColor: "gray.600",
@@ -124,14 +126,15 @@ function WebHandlersConfig() {
           <ReactCodeMirror
             value={webHandlerConfig}
             extensions={[yaml()]}
-            theme={colorMode}
+            theme={theme === "light" ? "light" : "dark"}
             height={editorHeight}
             onChange={handleConfigValueChange}
           />
         </CodeHeader>
       </Box>
-      <Button size="sm" alignSelf="flex-end" rightIcon={<MdSave />} onClick={onSaveConfig}>
+      <Button size="sm" alignSelf="flex-end" onClick={onSaveConfig}>
         Save
+        <MdSave />
       </Button>
     </VStack>
   );

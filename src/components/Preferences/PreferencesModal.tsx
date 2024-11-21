@@ -1,24 +1,19 @@
+import { Box, Flex, Separator as Divider, List, useMediaQuery, Button } from "@chakra-ui/react";
+
+import { AccordionItemTrigger, AccordionRoot } from "../ui/accordion";
+
 import {
-  Box,
-  Flex,
-  Modal,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
-  Divider,
-  ListItem,
-  List,
-  useColorMode,
-  useMediaQuery,
-  Accordion,
-  AccordionIcon,
-  AccordionButton,
-  AccordionItem,
-  AccordionPanel,
-  Button,
-  ModalBody,
-} from "@chakra-ui/react";
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogRoot,
+  DialogTrigger,
+  DialogBackdrop,
+} from "../ui/dialog";
+
+import { useTheme } from "next-themes";
+
 import { RefObject, useState } from "react";
 import ModelsSettings from "./ModelsSettings";
 import WebHandlersConfig from "./WebHandlersConfig";
@@ -41,8 +36,9 @@ interface Setting {
 }
 
 function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalProps) {
-  const isDarkMode = useColorMode().colorMode === "dark";
-
+  const { theme } = useTheme();
+  const bgDark = theme === "dark" ? "gray.800" : "white";
+  const bgBlue = theme === "dark" ? "blue.200" : "blue.500";
   const [selectedSetting, setSelectedSetting] = useState<Setting>({
     name: "Models",
     icon: FaRobot,
@@ -62,16 +58,16 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   const getHoverStyle = (setting: Setting) => {
     if (selectedSetting.name !== setting.name) {
       return {
-        bg: isDarkMode ? "gray.600" : "gray.200",
+        bg: bgDark,
       };
     } else {
-      return { bg: isDarkMode ? "blue.200" : "blue.500" };
+      return { bg: bgBlue };
     }
   };
 
   const getColorStyle = (setting: Setting) => {
     if (selectedSetting.name === setting.name) {
-      return isDarkMode ? "black" : "white";
+      return bgDark;
     } else {
       return "inherit";
     }
@@ -79,64 +75,71 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
   const getBackgroundStyle = (setting: Setting) => {
     if (selectedSetting.name === setting.name) {
-      return isDarkMode ? "blue.200" : "blue.500";
+      return bgBlue;
     } else {
       return "inherit";
     }
   };
 
-  const [isSmallViewport] = useMediaQuery("(max-width: 600px)");
+  const [isSmallViewport] = useMediaQuery(["(max-width: 600px)"], {
+    ssr: false,
+  });
 
   const MobileSettingsAccordion = () => {
     return (
-      <Accordion allowToggle>
-        <AccordionItem px="0.25rem" py="0.75rem">
-          <AccordionButton
-            pl="1.25rem"
-            justifyContent={"space-between"}
-            _hover={{ bg: isDarkMode ? "grey.500" : "white" }}
-          >
-            <Flex alignItems="center">
-              <Box mr={4}>
-                <selectedSetting.icon />
-              </Box>
-              {selectedSetting.name}
-            </Flex>
-            <AccordionIcon boxSize="1.5rem" />
-          </AccordionButton>
-          <AccordionPanel pb="0.25rem">
-            <List spacing={1}>
-              {settings.map((setting, index) => (
-                <ListItem key={index} cursor="pointer" p={0.75}>
-                  <AccordionButton
-                    borderRadius="md"
-                    _hover={getHoverStyle(setting)}
-                    color={getColorStyle(setting)}
-                    bg={getBackgroundStyle(setting)}
-                    onClick={() => handleSettingClick(setting)}
-                  >
-                    <Flex alignItems="center">
-                      <Box mr={4}>
-                        <setting.icon />
-                      </Box>
-                      {setting.name}
-                    </Flex>
-                  </AccordionButton>
-                </ListItem>
-              ))}
-            </List>
-          </AccordionPanel>
-        </AccordionItem>
-      </Accordion>
+      <AccordionRoot collapsible px="0.25rem" py="0.75rem">
+        <AccordionItemTrigger indicatorPlacement="start">
+          <Box>
+            <Button pl="1.25rem" justifyContent={"space-between"} _hover={{ bg: bgDark }}>
+              <Flex alignItems="center">
+                <Box mr={4}>
+                  <selectedSetting.icon />
+                </Box>
+                {selectedSetting.name}
+              </Flex>
+            </Button>
+          </Box>
+        </AccordionItemTrigger>
+        <List.Root
+          css={{
+            spaceX: 1,
+            spaceY: 1,
+          }}
+        >
+          {settings.map((setting, index) => (
+            <List.Item key={index} cursor="pointer" p={0.75}>
+              <Button
+                borderRadius="md"
+                _hover={getHoverStyle(setting)}
+                color={getColorStyle(setting)}
+                bg={getBackgroundStyle(setting)}
+                onClick={() => handleSettingClick(setting)}
+              >
+                <Flex alignItems="center">
+                  <Box mr={4}>
+                    <setting.icon />
+                  </Box>
+                  {setting.name}
+                </Flex>
+              </Button>
+            </List.Item>
+          ))}
+        </List.Root>
+      </AccordionRoot>
     );
   };
 
   const DesktopSettingsList = () => {
     return (
       <Box p={4} pr="0" fontSize="m" minWidth="14rem">
-        <List spacing={1}>
+        <List.Root
+          css={{
+            spaceX: 1,
+            spaceY: 1,
+          }}
+        >
           {settings.map((setting, index) => (
-            <ListItem key={index} cursor="pointer" p={0.75}>
+            <List.Item key={index} cursor="pointer" p={0.75}>
               <Button
                 borderRadius="md"
                 fontWeight="400"
@@ -147,7 +150,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 bg={getBackgroundStyle(setting)}
                 onClick={() => handleSettingClick(setting)}
                 _active={{
-                  bg: isDarkMode ? "grey.500" : "grey.200",
+                  bg: bgDark,
                 }}
               >
                 <Flex alignItems="center">
@@ -157,29 +160,26 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   {setting.name}
                 </Flex>
               </Button>
-            </ListItem>
+            </List.Item>
           ))}
-        </List>
+        </List.Root>
       </Box>
     );
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      size={isSmallViewport ? "full" : "xl"}
-      finalFocusRef={finalFocusRef}
-      scrollBehavior="inside"
-    >
-      <ModalOverlay />
-      <ModalContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem" maxHeight="90vh">
+    <DialogRoot>
+      <DialogTrigger>
+        <Button size={isSmallViewport ? "md" : "xl"}>Open User Settings</Button>
+      </DialogTrigger>
+      <DialogBackdrop />
+      <DialogContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem" maxHeight="90vh">
         <Flex alignItems="center" justifyContent="space-between" width="100%">
-          <ModalHeader whiteSpace="nowrap">User Settings</ModalHeader>
-          <ModalCloseButton position="relative" top={0} right={0} mx="1rem" />
+          <DialogHeader whiteSpace="nowrap">User Settings</DialogHeader>
+          <DialogCloseTrigger position="relative" top={0} right={0} mx="1rem" />
         </Flex>
         {!isSmallViewport && <Divider />}
-        <ModalBody p={0} display="flex" h="95vh">
+        <DialogBody p={0} display="flex" h="95vh">
           <Flex flexDirection={isSmallViewport ? "column" : "row"} w="100%">
             {isSmallViewport ? <MobileSettingsAccordion /> : <DesktopSettingsList />}
             <Box overflowY="auto" px={8} py={3}>
@@ -189,9 +189,9 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               {selectedSetting.name === "Customization" && <CustomizationSettings />}
             </Box>
           </Flex>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+        </DialogBody>
+      </DialogContent>
+    </DialogRoot>
   );
 }
 

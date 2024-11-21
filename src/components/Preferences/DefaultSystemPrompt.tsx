@@ -1,14 +1,7 @@
 import { useState } from "react";
-import {
-  Button,
-  Flex,
-  FormControl,
-  VStack,
-  Text,
-  Textarea,
-  Tooltip,
-  Heading,
-} from "@chakra-ui/react";
+import { Button, Flex, VStack, Text, Textarea, Heading } from "@chakra-ui/react";
+import { Field } from "../ui/field";
+import { Tooltip } from "../ui/tooltip";
 import debounce from "lodash-es/debounce";
 
 import { useSettings } from "../../hooks/use-settings";
@@ -51,15 +44,15 @@ function DefaultSystemPrompt() {
       <Heading size={"md"} width={"100%"} fontWeight={"normal"}>
         Default System Prompt
       </Heading>
-      <FormControl>
+      <Field>
         <Textarea
           autoFocus
-          variant="filled"
+          variant={"flushed"}
           rows={16}
           value={prompt}
           onChange={(e) => handleUpdate(e.target.value)}
         />
-      </FormControl>
+      </Field>
       <Flex w="100%" justifyContent="flex-end">
         <Tooltip hasArrow placement="left" label="Reset to the default ChatCraft system prompt">
           <Button size="sm" colorScheme="red" onClick={() => handleReset()}>
