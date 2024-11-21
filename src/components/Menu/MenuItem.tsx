@@ -43,7 +43,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
             {icon}
           </Box>
         )}
-        {children}
+        {children as ReactNode}
       </Box>
     </ReactMenuItem>
   );
