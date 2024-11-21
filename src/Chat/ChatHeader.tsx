@@ -1,24 +1,23 @@
 import { FormEvent, useEffect, useState } from "react";
 import {
   Box,
-  Button,
-  ButtonGroup,
-  Card,
+  Group as ButtonGroup,
+  CardRoot as Card,
   CardBody,
   CardFooter,
   Flex,
   IconButton,
   Input,
   Link,
-  Tag,
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
+import { Button } from "../components/ui/button";
+import { Tag } from "../components/ui/tag";
 import { Link as ReactRouterLink } from "react-router-dom";
 import { MdOutlineChatBubbleOutline } from "react-icons/md";
 import { AiOutlineEdit } from "react-icons/ai";
 import { useKey } from "react-use";
-
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { formatCurrency, formatDate, formatNumber } from "../lib/utils";
 import ShareModal from "../components/ShareModal";
@@ -32,7 +31,7 @@ type ChatHeaderProps = {
 };
 
 function ChatHeader({ chat }: ChatHeaderProps) {
-  const { isOpen, onClose } = useDisclosure();
+  const { open, onClose } = useDisclosure();
   const [tokens, setTokens] = useState<number | null>(null);
   const { cost } = useCost();
   const [isEditing, setIsEditing] = useState(false);
@@ -77,7 +76,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   return (
     <>
       <Card
-        variant="filled"
+        variant={"elevated"}
         bg="gray.200"
         size="sm"
         border="1px solid"
@@ -122,8 +121,8 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                 <Box>
                   <MdOutlineChatBubbleOutline />
                 </Box>
-                <Text fontSize="md" fontWeight="bold" noOfLines={1} title={title}>
-                  <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
+                <Text fontSize="md" fontWeight="bold" lineClamp={1} title={title}>
+                  <Link as={ReactRouterLink} href={`/c/${chat.id}`}>
                     {title}
                   </Link>
                 </Text>
@@ -131,11 +130,12 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                   <IconButton
                     variant="ghost"
                     size="sm"
-                    icon={<AiOutlineEdit />}
                     aria-label="Edit summary"
                     title="Edit summary"
                     onClick={() => setIsEditing(true)}
-                  />
+                  >
+                    <AiOutlineEdit />
+                  </IconButton>
                 )}
               </Flex>
             )}
@@ -143,7 +143,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
         </CardBody>
         <CardFooter pt={0}>
           <Flex w="100%" gap={4} color="gray.500" _dark={{ color: "gray.400" }}>
-            <Link as={ReactRouterLink} to={`/c/${chat.id}`}>
+            <Link as={ReactRouterLink} href={`/c/${chat.id}`}>
               <Text fontSize="sm" ml={6}>
                 {formatDate(chat.date)}
               </Text>
@@ -161,8 +161,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
           </Flex>
         </CardFooter>
       </Card>
-
-      <ShareModal chat={chat} isOpen={isOpen} onClose={onClose} />
+      <ShareModal chat={chat} isOpen={open} onClose={onClose} />
     </>
   );
 }

@@ -1,20 +1,9 @@
-import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  Box,
-  Button,
-  CloseButton,
-  Flex,
-  Grid,
-  GridItem,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Box, Button, Flex, Grid, GridItem, Text, useDisclosure } from "@chakra-ui/react";
+import { Alert } from "../components/ui/alert";
+import { CloseButton } from "../components/ui/close-button";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CgArrowDownO } from "react-icons/cg";
 import { ScrollRestoration } from "react-router-dom";
-
 import Header from "../components/Header";
 import MessagesView from "../components/MessagesView";
 import OptionsButton from "../components/OptionsButton";
@@ -46,8 +35,8 @@ function ChatBase({ chat }: ChatBaseProps) {
   // When chatting with OpenAI, a streaming message is returned during loading
   const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
   const { settings, setSettings } = useSettings();
-  const { isOpen: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
-    defaultIsOpen: settings.sidebarVisible,
+  const { open: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
+    defaultOpen: settings.sidebarVisible,
   });
   const [loading, setLoading] = useState(false);
   const { scrollProgress, shouldAutoScroll, setShouldAutoScroll, scrollBottomRef } =
@@ -59,7 +48,7 @@ function ChatBase({ chat }: ChatBaseProps) {
   const { clearAudioQueue } = useAudioPlayer();
   const [showAlert, setShowAlert] = useState(false);
   const {
-    isOpen: isPrefModalOpen,
+    open: isPrefModalOpen,
     onOpen: onPrefModalOpen,
     onClose: onPrefModalClose,
   } = useDisclosure();
@@ -373,25 +362,25 @@ function ChatBase({ chat }: ChatBaseProps) {
         <Alert
           status="info"
           variant="solid"
-          sx={{ py: 1 }}
+          css={{ py: 1 }}
           display="flex"
           justifyContent="space-between"
+          title='
+          You are using the default free AI Provider, which has limited features.{" "}
+          '
         >
           <Box display="flex" alignItems="center">
-            <AlertIcon boxSize="4" />
-            <AlertDescription fontSize="sm">
-              You are using the default free AI Provider, which has limited features.{" "}
-              <Text
-                as="span"
-                cursor="pointer"
-                fontSize="sm"
-                textDecoration="underline"
-                onClick={onPrefModalOpen}
-              >
-                Click here
-              </Text>{" "}
-              to add other AI providers.
-            </AlertDescription>
+            {/* <AlertIcon boxSize="4" /> */}
+            <Text
+              as="span"
+              cursor="pointer"
+              fontSize="sm"
+              textDecoration="underline"
+              onClick={onPrefModalOpen}
+            >
+              Click here
+            </Text>{" "}
+            to add other AI providers.
           </Box>
           <CloseButton size="sm" onClick={() => setShowAlert(false)} />
         </Alert>
@@ -446,8 +435,10 @@ function ChatBase({ chat }: ChatBaseProps) {
                 zIndex="500"
               >
                 <Button onClick={() => handleFollowChatClick()}>
-                  <CgArrowDownO />
-                  <Text ml={2}>Follow Chat</Text>
+                  <>
+                    <CgArrowDownO />
+                    <Text ml={2}>Follow Chat</Text>
+                  </>
                 </Button>
               </Flex>
             )
