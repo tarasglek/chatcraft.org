@@ -1,5 +1,6 @@
-import { Flex, useTheme, IconProps } from "@chakra-ui/react";
+import { Flex, IconProps } from "@chakra-ui/react";
 import { SubMenu as ReactMenuSubMenu, type SubMenuProps } from "@szhsin/react-menu";
+import { useTheme } from "next-themes";
 import React, { type ReactElement } from "react";
 
 type ReactSubMenuProps = Omit<SubMenuProps, "label"> & {
@@ -9,7 +10,7 @@ type ReactSubMenuProps = Omit<SubMenuProps, "label"> & {
 };
 
 const SubMenu: React.FC<ReactSubMenuProps> = ({ color, label, icon, iconSpacing, ...props }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   const toCssColor = (colorValue?: string) => {
     if (!colorValue) {
@@ -22,7 +23,7 @@ const SubMenu: React.FC<ReactSubMenuProps> = ({ color, label, icon, iconSpacing,
     }
 
     const [color, shade] = colorValue.split(".");
-    return theme.colors[color]?.[shade];
+    return theme === "light" ? `${color}.${shade}` : `${color}.${parseInt(shade) + 200}`;
   };
   return (
     <ReactMenuSubMenu

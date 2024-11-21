@@ -1,5 +1,6 @@
-import { IconButton, useColorMode } from "@chakra-ui/react";
+import { IconButton } from "@chakra-ui/react";
 import { Menu as ReactMenu, type MenuProps as ReactMenuProps } from "@szhsin/react-menu";
+import { useTheme } from "next-themes";
 import React from "react";
 import { TbDots } from "react-icons/tb";
 
@@ -16,15 +17,18 @@ export type MenuProps = Omit<ReactMenuProps, "menuButton" | "theming" | "transit
 };
 
 const Menu: React.FC<MenuProps> = (props) => {
-  const { colorMode } = useColorMode();
+  //const { colorMode } = useColorMode();
+  const { theme } = useTheme();
   const menuButton = props.menuButton ?? (
-    <IconButton aria-label="Menu" icon={<TbDots />} variant="ghost" isDisabled={props.isDisabled} />
+    <IconButton aria-label="Menu" variant="ghost" disabled={props.isDisabled}>
+      <TbDots />
+    </IconButton>
   );
 
   return (
     <ReactMenu
       transition={true}
-      theming={colorMode === "dark" ? "dark" : undefined}
+      theming={theme === "dark" ? "dark" : undefined}
       {...props}
       menuButton={menuButton}
       menuStyle={{

@@ -4,7 +4,7 @@ import {
   type MenuItemProps as ReactMenuItemProps,
 } from "@szhsin/react-menu";
 import { Box } from "@chakra-ui/react";
-import { useTheme } from "@chakra-ui/react";
+import { useTheme } from "next-themes";
 
 export type MenuItemProps = Omit<ReactMenuItemProps, "disabled"> & {
   icon?: ReactNode;
@@ -19,7 +19,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   children,
   ...props
 }) => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   const toCssColor = (colorValue?: string) => {
     if (!colorValue) {
@@ -32,19 +32,19 @@ const MenuItem: React.FC<MenuItemProps> = ({
     }
 
     const [color, shade] = colorValue.split(".");
-    return theme.colors[color]?.[shade];
+    return theme === "light" ? `${color}.${shade}` : `${color}.${parseInt(shade) + 200}`;
   };
 
   return (
     <ReactMenuItem {...props} disabled={!!isDisabled} style={{ color: toCssColor(props.color) }}>
-      <>
+      <Box>
         {icon && (
           <Box marginRight={iconSpacing} as={"span"} color={props.color}>
             {icon}
           </Box>
         )}
         {children}
-      </>
+      </Box>
     </ReactMenuItem>
   );
 };
