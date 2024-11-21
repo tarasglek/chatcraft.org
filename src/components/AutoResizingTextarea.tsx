@@ -12,7 +12,7 @@ const AutoResizingTextarea = forwardRef<HTMLTextAreaElement, TextareaProps>((pro
       maxH="36vh"
       resize="none"
       ref={ref}
-      minRows={1}
+      rows={1}
       as={ResizeTextarea}
       {...props}
     />

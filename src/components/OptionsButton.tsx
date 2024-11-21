@@ -1,4 +1,5 @@
-import { Button, IconButton, Input, useDisclosure } from "@chakra-ui/react";
+import { IconButton, Input, useDisclosure } from "@chakra-ui/react";
+import { Button } from "./ui/button";
 import { useFetcher } from "react-router-dom";
 import { TbShare3, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
 import { PiGearBold } from "react-icons/pi";
@@ -15,14 +16,14 @@ import { download } from "../lib/utils";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
 
 function ShareMenuItem({ chat }: { chat: ChatCraftChat }) {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open, onOpen, onClose } = useDisclosure();
 
   return (
     <>
       <MenuItem icon={<TbShare3 />} onClick={onOpen}>
         Share
       </MenuItem>
-      <ShareModal chat={chat} isOpen={isOpen} onClose={onClose} />
+      <ShareModal chat={chat} isOpen={open} onClose={onClose} />
     </>
   );
 }
@@ -160,17 +161,20 @@ function OptionsButton({
         iconOnly ? (
           <IconButton
             aria-label="Options menu"
-            isDisabled={isDisabled}
+            disabled={isDisabled}
             size="md"
             fontSize="1.25rem"
             variant="outline"
-            icon={<PiGearBold />}
             isRound
-          />
+          >
+            <PiGearBold />
+          </IconButton>
         ) : (
-          <Button isDisabled={isDisabled} size="sm" variant={variant} leftIcon={<PiGearBold />}>
-            Options
-          </Button>
+          <>
+            <Button disabled={isDisabled} size="sm" variant={variant}>
+              <>Options leftIcon={<PiGearBold />}</>
+            </Button>
+          </>
         )
       }
     >

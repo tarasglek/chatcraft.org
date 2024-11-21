@@ -12,7 +12,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, imageSrc }) =>
   <Dialog.DialogRoot open={isOpen} size="xl">
     <Dialog.DialogBackdrop />
     <Dialog.DialogContent maxW="90vw" maxHeight="90vh">
-      <Dialog.DialogCloseTrigger />
+      <Dialog.DialogCloseTrigger onClick={onClose} />
       <Dialog.DialogBody>
         <Flex height={"100%"} justifyContent={"center"} alignItems={"center"}>
           <Link href={imageSrc}>

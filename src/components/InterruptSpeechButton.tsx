@@ -1,12 +1,7 @@
-import {
-  Box,
-  Flex,
-  IconButton,
-  IconButtonProps,
-  Tooltip,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { Box, Flex, IconButton, IconButtonProps } from "@chakra-ui/react";
+import { Tooltip } from "./ui/tooltip";
 import { motion, AnimationProps, MotionProps } from "framer-motion";
+import { useTheme } from "next-themes";
 import { useCallback, useMemo, useState } from "react";
 import useAudioPlayer from "../hooks/use-audio-player";
 
@@ -47,6 +42,8 @@ export const AudioPlayingIcon = ({
   variant = "bouncingBall",
   playAnimation = true,
 }: AudioPlayingIconProps) => {
+  const { theme } = useTheme();
+
   const containerDimensions: { [key: string]: number } = useMemo(
     () => ({
       sm: 8,
@@ -72,13 +69,13 @@ export const AudioPlayingIcon = ({
     bouncingBall: {
       width: NODE_DIMENSIONS[size].width,
       height: NODE_DIMENSIONS[size].height,
-      backgroundColor: useColorModeValue("white", "black"),
+      backgroundColor: theme === "light" ? "black" : "white",
       borderRadius: "50%",
     },
     dancingBars: {
       width: NODE_DIMENSIONS[size].width,
       height: NODE_DIMENSIONS[size].height,
-      backgroundColor: useColorModeValue("white", "black"),
+      backgroundColor: theme === "dark" ? "white" : "black",
       borderRadius: "10% / 50%",
     },
   };
@@ -99,8 +96,8 @@ export const AudioPlayingIcon = ({
     <Flex
       width={containerDimensions[size]}
       height={containerDimensions[size]}
-      backgroundColor={useColorModeValue("blue.500", "blue.200")}
-      _hover={{ backgroundColor: useColorModeValue("blue.600", "blue.300") }}
+      backgroundColor={theme === "light" ? "blue.500" : "blue.200"}
+      _hover={{ backgroundColor: theme === "light" ? "blue.600" : "blue.300" }}
       padding={"0.25rem"}
       border={"none"}
       justifyContent={"space-around"}
@@ -155,26 +152,32 @@ function InterruptSpeechButton({
   return (
     <Box
       as={motion.div}
-      exit={{
+      _closed={{
         scale: 0,
       }}
     >
       <Tooltip
-        label={"ChatCraft is speaking... Click to stop"}
+        content={"ChatCraft is speaking... Click to stop"}
         openDelay={tooltipOpenedOnce ? 0 : TOOLTIP_OPEN_DURATION}
-        onMouseOver={() => setTooltipOpenedOnce(true)}
-        placement="top"
-        defaultIsOpen={true}
-        offset={[-50, 5]}
+        showArrow
+        onOpenChange={() => setTooltipOpenedOnce(true)}
+        positioning={{
+          placement: "top",
+          offset: { mainAxis: -50, crossAxis: 5 },
+        }}
+        defaultOpen={true}
       >
-        <IconButton
-          onClick={handleInterruptAudioQueue}
-          size={size}
-          border={"none"}
-          icon={<AudioPlayingIcon playAnimation={isPlaying} variant={variant} size={size} />}
-          {...buttonProps}
-          aria-label="ChatCraft is speaking... Click to stop"
-        ></IconButton>
+        <>
+          <IconButton
+            onClick={handleInterruptAudioQueue}
+            size={size}
+            border={"none"}
+            {...buttonProps}
+            aria-label="ChatCraft is speaking... Click to stop"
+          >
+            {<AudioPlayingIcon playAnimation={isPlaying} variant={variant} size={size} />}
+          </IconButton>
+        </>
       </Tooltip>
     </Box>
   );

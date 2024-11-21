@@ -21,20 +21,22 @@ function PasswordInput({
   return (
     <HStack>
       <InputGroup boxSize={size} flex="1">
-        <Field label="Password">
-          <Input
-            size={size}
-            borderBlockColor={isInvalid ? "red.300" : "blue.500"}
-            borderColor={isInvalid ? "red.300" : "gray.200"}
-            paddingRight={paddingRight}
-            _invalid={isInvalid}
-            {...props}
-            type="text"
-            css={{
-              WebkitTextSecurity: show ? "none" : "disc",
-            }}
-          />
-        </Field>
+        <>
+          <Field label="Password">
+            <Input
+              size={size}
+              borderBlockColor={isInvalid ? "red.300" : "blue.500"}
+              borderColor={isInvalid ? "red.300" : "gray.200"}
+              paddingRight={paddingRight}
+              onInvalid={isInvalid ? () => {} : undefined}
+              {...props}
+              type="text"
+              css={{
+                WebkitTextSecurity: show ? "none" : "disc",
+              }}
+            />
+          </Field>
+        </>
       </InputGroup>
       <InputGroup flex="1">
         <IconButton

@@ -171,17 +171,19 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
               title="User Settings"
               variant="ghost"
             >
-              {user ? (
-                <Avatar size="xs" src={user.avatarUrl} title={user.username} />
-              ) : (
-                <Avatar
-                  size="xs"
-                  bg="gray.500"
-                  borderColor="gray.400"
-                  _dark={{ bg: "gray.600", borderColor: "gray.500" }}
-                  border={1}
-                />
-              )}
+              <>
+                {user ? (
+                  <Avatar size="xs" src={user.avatarUrl} title={user.username} />
+                ) : (
+                  <Avatar
+                    size="xs"
+                    bg="gray.500"
+                    borderColor="gray.400"
+                    _dark={{ bg: "gray.600", borderColor: "gray.500" }}
+                    border={1}
+                  />
+                )}
+              </>
             </Button>
             <MenuContent>
               <MenuItem asChild value="Settings...">
@@ -200,26 +202,30 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
               ) : (
                 <>
                   <MenuItem asChild value="githubLogin">
-                    <BsGithub />{" "}
-                    <Text
-                      ml={2}
-                      onClick={() => {
-                        handleLoginLogout("github");
-                      }}
-                    >
-                      Sign in with GitHub
-                    </Text>
+                    <>
+                      <BsGithub />{" "}
+                      <Text
+                        ml={2}
+                        onClick={() => {
+                          handleLoginLogout("github");
+                        }}
+                      >
+                        Sign in with GitHub
+                      </Text>
+                    </>
                   </MenuItem>
                   <MenuItem asChild value="googleLogin">
-                    <FcGoogle />{" "}
-                    <Text
-                      ml={2}
-                      onClick={() => {
-                        handleLoginLogout("google");
-                      }}
-                    >
-                      Sign in with Google
-                    </Text>
+                    <>
+                      <FcGoogle />{" "}
+                      <Text
+                        ml={2}
+                        onClick={() => {
+                          handleLoginLogout("google");
+                        }}
+                      >
+                        Sign in with Google
+                      </Text>
+                    </>
                   </MenuItem>
                 </>
               )}

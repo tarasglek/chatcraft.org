@@ -1,6 +1,7 @@
 import { lazy, memo, useMemo, type ReactNode } from "react";
-import { Card, CardBody, IconButton } from "@chakra-ui/react";
+import { CardRoot, CardBody, IconButton } from "@chakra-ui/react";
 import { TbExternalLink } from "react-icons/tb";
+import { LinkButton } from "./ui/link-button";
 
 const IframeResizer = lazy(() => import("iframe-resizer-react"));
 
@@ -26,8 +27,8 @@ const HtmlPreview = ({ children, isLoading = false }: HtmlPreviewProps) => {
   }, [children, isLoading]);
 
   return (
-    <Card variant="outline" position="relative" mt={2} minHeight="12em" resize="vertical">
-      <IconButton
+    <CardRoot variant="outline" position="relative" mt={2} minHeight="12em" resize="vertical">
+      <LinkButton
         position="absolute"
         right={1}
         top={1}
@@ -38,11 +39,13 @@ const HtmlPreview = ({ children, isLoading = false }: HtmlPreviewProps) => {
         rel="noopener noreferrer"
         aria-label="Open HTML Preview in New Window"
         title="Open HTML Preview in New Window"
-        icon={<TbExternalLink />}
         color="gray.600"
         _dark={{ color: "gray.300" }}
         variant="ghost"
-      />
+      >
+        <IconButton as={TbExternalLink} />
+      </LinkButton>
+
       <CardBody mt={10} p={2}>
         <IframeResizer
           checkOrigin={false}
@@ -51,7 +54,7 @@ const HtmlPreview = ({ children, isLoading = false }: HtmlPreviewProps) => {
           heightCalculationMethod={"max"}
         />
       </CardBody>
-    </Card>
+    </CardRoot>
   );
 };
 

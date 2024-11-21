@@ -1,4 +1,4 @@
-import { Avatar } from "@chakra-ui/react";
+import { Avatar } from "./ui/avatar";
 
 import { ChatCraftModel } from "../lib/ChatCraftModel";
 
@@ -16,7 +16,7 @@ export default function ModelAvatar({ model, size }: { model: ChatCraftModel; si
     <Avatar
       size={size}
       bg={logoBg}
-      showBorder
+      border={1}
       borderColor="gray.100"
       _dark={{ borderColor: "gray.600" }}
       src={logoUrl}

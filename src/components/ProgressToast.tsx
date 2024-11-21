@@ -1,5 +1,6 @@
-import { Box, ProgressCircle, Flex, IconButton, Progress, Text } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Progress, Text } from "@chakra-ui/react";
 import { AlertArguments } from "../hooks/use-alert";
+import { ProgressCircleRing, ProgressCircleRoot } from "./ui/progress-circle";
 import { RxCross2 } from "react-icons/rx";
 import { useTheme } from "next-themes";
 
@@ -46,14 +47,19 @@ function ProgressToast({
           onClick={onClose}
           _active={{}} // remove active effects
           size={"sm"}
-          icon={<RxCross2 />}
-        ></IconButton>
+        >
+          <RxCross2 />
+        </IconButton>
       )}
 
       <Flex alignItems={"center"} gap={5}>
-        <ProgressCircle.Root thickness={5} color="black">
-          <ProgressCircle.Circle />
-        </ProgressCircle.Root>
+        <ProgressCircleRoot color="black">
+          <ProgressCircleRing
+            css={{
+              "--thickness": "5px",
+            }}
+          />
+        </ProgressCircleRoot>
 
         <Box>
           <Text as={"h2"} fontSize={"md"} fontWeight={"bold"}>
@@ -66,7 +72,7 @@ function ProgressToast({
       {/* The 'css' hack is to animate the progress bar as value changes */}
       <Flex alignItems={"center"} gap={2}>
         {showPercentage && <Text>{progressPercentage}%</Text>}
-        <Progress.Root
+        <ProgressCircleRoot
           flexGrow={1}
           value={progressPercentage}
           size="xs"
@@ -78,7 +84,7 @@ function ProgressToast({
           }}
         >
           <Progress.Track />
-        </Progress.Root>
+        </ProgressCircleRoot>
       </Flex>
     </Flex>
   );

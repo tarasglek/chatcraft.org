@@ -1,5 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo } from "react";
-import { Box, useColorMode } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
+import { useTheme } from "next-themes";
 import mermaid from "mermaid";
 
 import Message from "./Message";
@@ -35,7 +36,9 @@ function MessagesView({
   onCancel,
   onPrompt,
 }: MessagesViewProps) {
-  const { colorMode } = useColorMode();
+  //const { colorMode } = useColorMode();
+  const { theme } = useTheme();
+  const darkTheme = theme === "dark" ? "dark" : "default";
   const { settings } = useSettings();
   const { error } = useAlert();
   const messages = chat.messages();
@@ -46,10 +49,10 @@ function MessagesView({
   useLayoutEffect(() => {
     mermaid.initialize({
       startOnLoad: false,
-      theme: colorMode === "dark" ? "dark" : "default",
+      theme: darkTheme,
       securityLevel: "loose",
     });
-  }, [colorMode]);
+  }, [theme]);
 
   // Memoize the onRemoveMessage callback to reduce re-renders
   const memoizedOnRemoveMessage = useCallback(onRemoveMessage, [onRemoveMessage]);

@@ -1,29 +1,28 @@
 import { useCallback, useState } from "react";
 import {
-  Button,
-  FormControl,
   Flex,
-  FormLabel,
-  FormHelperText,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
   VStack,
   Text,
   Input,
-  FormErrorMessage,
   Textarea,
-  ButtonGroup,
+  Group as ButtonGroup,
   IconButton,
 } from "@chakra-ui/react";
 import { useCopyToClipboard } from "react-use";
+import { Field } from "./ui/field";
+import { Button } from "./ui/button";
+import {
+  DialogBackdrop,
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogRoot,
+  DialogTrigger,
+} from "./ui/dialog";
 import { BsGithub } from "react-icons/bs";
 import { TbCopy, TbShare3 } from "react-icons/tb";
-
 import { useUser } from "../hooks/use-user";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useSettings } from "../hooks/use-settings";
@@ -121,80 +120,77 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
 
   return (
     <VStack gap={2}>
-      <FormControl>
-        <FormLabel>Summary</FormLabel>
+      <Field label="Summary">
         <Textarea value={summary} onChange={(e) => setSummary(e.target.value)}>
           {chat.summary}
         </Textarea>
-      </FormControl>
+      </Field>
 
-      <FormControl>
-        <FormLabel>
-          Enter your own <strong>Summary</strong>, or click <strong>Summarize</strong> to generate
-          one automatically.
-        </FormLabel>
+      <Field
+        label={` Enter your own ${(<strong>Summary</strong>)}, or click ${(<strong>Summarize</strong>)} to generate
+          one automatically.`}
+        errorText={error}
+      >
         <ButtonGroup w="100%" justifyContent="space-between">
           <Button
             variant="outline"
             onClick={() => handleSummarizeClick()}
-            isDisabled={!settings.currentProvider.apiKey}
-            isLoading={isSummarizing}
+            disabled={!settings.currentProvider.apiKey}
+            loading={isSummarizing}
             loadingText="Summarizing..."
           >
             Summarize
           </Button>
-          <Button onClick={() => handleShareClick()} isLoading={isSharing} loadingText="Sharing...">
+          <Button onClick={() => handleShareClick()} loading={isSharing} loadingText="Sharing...">
             Share Chat
           </Button>
         </ButtonGroup>
-
-        {error && <FormErrorMessage>{error}</FormErrorMessage>}
-      </FormControl>
+      </Field>
 
       {url && (
         <>
-          <FormControl>
-            <FormLabel>Public Share URL</FormLabel>
+          <Field label="Public Share URL" helperText="Anyone can access the chat using this URL.">
             <Flex gap={1}>
               <Input autoFocus={false} type="url" defaultValue={url} readOnly flex={1} />{" "}
               {supportsWebShare && (
                 <IconButton
-                  icon={<TbShare3 />}
                   aria-label="Share URL"
                   variant="ghost"
                   onClick={() => handleShareUrl(url)}
-                />
+                >
+                  <TbShare3 />
+                </IconButton>
               )}
-              <IconButton
-                icon={<TbCopy />}
-                aria-label="Copy URL"
-                variant="ghost"
-                onClick={() => handleCopyClick()}
-              />
+              <IconButton aria-label="Copy URL" variant="ghost" onClick={() => handleCopyClick()}>
+                <TbCopy />
+              </IconButton>
             </Flex>
-            <FormHelperText>Anyone can access the chat using this URL.</FormHelperText>
-          </FormControl>
-          <FormControl mt={4}>
-            <FormLabel>Public Shared Chats Feed URL</FormLabel>
+          </Field>
+          <Field
+            mt={4}
+            label="Public Shared Chats Feed URL"
+            helperText="Anyone can access the shared chats feed using this URL."
+          >
             <Flex gap={1}>
               <Input autoFocus={false} type="url" defaultValue={feedUrl} readOnly flex={1} />{" "}
               {supportsWebShare && (
                 <IconButton
-                  icon={<TbShare3 />}
                   aria-label="Share Feed URL"
                   variant="ghost"
                   onClick={() => handleShareUrl(feedUrl)}
-                />
+                >
+                  <TbShare3 />
+                </IconButton>
               )}
               <IconButton
-                icon={<TbCopy />}
                 aria-label="Copy URL"
                 variant="ghost"
                 onClick={() => handleCopyFeedClick()}
-              />
+              >
+                <TbCopy />
+              </IconButton>
             </Flex>
-            <FormHelperText>Anyone can access the shared chats feed using this URL.</FormHelperText>
-          </FormControl>
+          </Field>
         </>
       )}
     </VStack>
@@ -204,16 +200,15 @@ function AuthenticatedForm({ chat, user }: AuthenticatedForm) {
 function UnauthenticatedForm({ onLoginClick }: { onLoginClick: () => void }) {
   return (
     <VStack gap={2}>
-      <FormControl>
-        <FormLabel>Create Public URL</FormLabel>
+      <Field
+        label="Create Public URL"
+        helperText="To avoid abuse and spam, we ask that users authenticate with an existing GitHub account
+          before creating public URLs."
+      >
         <Button onClick={() => onLoginClick()}>
           <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
         </Button>
-        <FormHelperText>
-          To avoid abuse and spam, we ask that users authenticate with an existing GitHub account
-          before creating public URLs.
-        </FormHelperText>
-      </FormControl>
+      </Field>
     </VStack>
   );
 }
@@ -226,23 +221,24 @@ type ShareModalProps = {
 
 function ShareModal({ chat, isOpen, onClose }: ShareModalProps) {
   const { user, login } = useUser();
-
+  //closeOnEscape={onClose}
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Sharing</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
+    <DialogRoot open={isOpen} size="lg">
+      <DialogBackdrop />
+      <DialogTrigger asChild></DialogTrigger>
+      <DialogContent>
+        <DialogHeader>Sharing</DialogHeader>
+        <DialogCloseTrigger />
+        <DialogBody>
           {user ? (
             <AuthenticatedForm chat={chat} user={user} />
           ) : (
             <UnauthenticatedForm onLoginClick={() => login(chat.id)} />
           )}
-        </ModalBody>
-        <ModalFooter></ModalFooter>
-      </ModalContent>
-    </Modal>
+        </DialogBody>
+        <DialogFooter></DialogFooter>
+      </DialogContent>
+    </DialogRoot>
   );
 }
 

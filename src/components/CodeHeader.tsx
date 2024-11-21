@@ -5,11 +5,10 @@ import {
   useClipboard,
   Text,
   Box,
-  Menu,
   Button as MenuButton,
-  MenuItem,
   Spinner,
 } from "@chakra-ui/react";
+import { MenuItem, MenuItemGroup, MenuRoot } from "./ui/menu";
 import { TbCopy, TbDownload, TbRun, TbExternalLink } from "react-icons/tb";
 
 import { download, formatAsCodeBlock } from "../lib/utils";
@@ -196,7 +195,11 @@ function CodeHeader({
         </Box>
         <Flex pr={2}>
           {shouldShowRunButton && (
-            <Menu.Root strategy="fixed">
+            <MenuRoot
+              positioning={{
+                strategy: "fixed",
+              }}
+            >
               <MenuButton
                 as={IconButton}
                 size="sm"
@@ -210,16 +213,16 @@ function CodeHeader({
                 {isRunning ? <Spinner size="xs" /> : <TbRun />}
               </MenuButton>
               {shouldShowRunMenuList && (
-                <Menu.ItemGroup>
-                  <MenuItem>
+                <MenuItemGroup>
+                  <MenuItem asChild value="run-in-browser">
                     <Text onClick={handleRunBrowser}>Run in Browser</Text>
                   </MenuItem>
-                  <MenuItem>
+                  <MenuItem asChild value="run-on-server">
                     <Text onClick={handleRunRemote}>Run on Server</Text>
                   </MenuItem>
-                </Menu.ItemGroup>
+                </MenuItemGroup>
               )}
-            </Menu.Root>
+            </MenuRoot>
           )}
           <IconButton
             size="sm"
