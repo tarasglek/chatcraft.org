@@ -4,7 +4,7 @@ import {
   GridItem,
   Heading,
   Center,
-  Card,
+  CardRoot,
   CardBody,
   CardHeader,
   Text,
@@ -40,7 +40,7 @@ export default function AppError() {
       <GridItem>
         <Flex direction="column" h="100%" maxH="100%" px={1}>
           <Center h="100%">
-            <Card size="md">
+            <CardRoot size="md">
               <CardHeader>
                 <Flex align="center" gap={2} ml={4}>
                   <Icon as={MdErrorOutline} boxSize={5} />
@@ -88,7 +88,7 @@ export default function AppError() {
                   </Button>
                 </Box>
               </CardFooter>
-            </Card>
+            </CardRoot>
           </Center>
         </Flex>
       </GridItem>
