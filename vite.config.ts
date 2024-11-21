@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 import react from "@vitejs/plugin-react";
 import wasm from "vite-plugin-wasm";
 import { VitePWA } from "vite-plugin-pwa";
@@ -42,6 +43,7 @@ export default defineConfig({
     // See generated stats.html file for visualization of bundle sizes
     visualizer(),
     react(),
+    tsconfigPaths(),
     wasm(),
     // https://vite-pwa-org.netlify.app/guide/
     VitePWA({

@@ -10,12 +10,13 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vitest-environment-miniflare/globals", "vitest/importMeta"]
+    "types": ["vitest-environment-miniflare/globals", "vitest/importMeta"],
+    "customConditions": ["source"]
   },
   "include": ["src", "types/**/*"],
   "exclude": ["functions/**/*"],
