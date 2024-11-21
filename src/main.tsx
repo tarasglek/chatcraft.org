@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
+//import { ColorModeScript } from "@chakra-ui/react";
 import { RouterProvider } from "react-router-dom";
-
+import { Provider } from "./components/ui/provider";
 import router from "./router";
 import theme from "./theme";
 import { SettingsProvider } from "./hooks/use-settings";
@@ -14,14 +14,14 @@ import { WebHandlersProvider } from "./hooks/use-web-handlers";
 
 ReactDOM.createRoot(document.querySelector("main") as HTMLElement).render(
   <React.StrictMode>
-    <ChakraProvider theme={theme}>
+    <Provider>
       <WebHandlersProvider>
         <AudioPlayerProvider>
           <SettingsProvider>
             <CostProvider>
               <ModelsProvider>
                 <UserProvider>
-                  <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+                  {/* <ColorModeScript initialColorMode={theme.config.initialColorMode} /> */}
                   <RouterProvider router={router} />
                 </UserProvider>
               </ModelsProvider>
@@ -29,6 +29,6 @@ ReactDOM.createRoot(document.querySelector("main") as HTMLElement).render(
           </SettingsProvider>
         </AudioPlayerProvider>
       </WebHandlersProvider>
-    </ChakraProvider>
+    </Provider>
   </React.StrictMode>
 );
