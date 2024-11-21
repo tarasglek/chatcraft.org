@@ -40,7 +40,7 @@ type HeaderProps = {
 function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
   const {
-    isOpen: isPrefModalOpen,
+    open: isPrefModalOpen,
     onOpen: onPrefModalOpen,
     onClose: onPrefModalClose,
   } = useDisclosure();
@@ -96,12 +96,13 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       <Flex pl={1} align="center" gap={2}>
         <IconButton
           fontSize="1.5rem"
-          icon={<BiMenu />}
           variant="ghost"
           aria-label="Toggle Sidebar Menu"
           title="Toggle Sidebar Menu"
           onClick={onToggleSidebar}
-        />
+        >
+          <BiMenu />
+        </IconButton>
 
         <Text
           fontWeight="bold"

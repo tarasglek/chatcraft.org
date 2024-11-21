@@ -61,8 +61,8 @@ export default function Search() {
   const chatIds = messages ? [...new Set(messages.map((message) => message.chatId))] : [];
   const hasResults = !!messages?.length;
   const { settings, setSettings } = useSettings();
-  const { isOpen: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
-    defaultIsOpen: settings.sidebarVisible,
+  const { open: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
+    defaultOpen: settings.sidebarVisible,
   });
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
@@ -106,8 +106,8 @@ export default function Search() {
         <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
           {hasResults ? (
             <>
-              <Card
-                variant="filled"
+              <Card.Root
+                variant="elevated"
                 bg="gray.100"
                 size="sm"
                 border="1px solid"
@@ -128,7 +128,7 @@ export default function Search() {
                     </Flex>
                   </Heading>
                 </CardBody>
-              </Card>
+              </Card.Root>
 
               <Box flex={1}>
                 {messages.map((message) => (

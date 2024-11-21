@@ -1,14 +1,7 @@
-import {
-  Box,
-  CircularProgress,
-  Flex,
-  IconButton,
-  Progress,
-  Text,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { Box, ProgressCircle, Flex, IconButton, Progress, Text } from "@chakra-ui/react";
 import { AlertArguments } from "../hooks/use-alert";
 import { RxCross2 } from "react-icons/rx";
+import { useTheme } from "next-themes";
 
 type ProgressAlertArguements = AlertArguments & {
   progressPercentage: number;
@@ -23,10 +16,16 @@ function ProgressToast({
   showPercentage,
   onClose,
 }: ProgressAlertArguements) {
+  const { theme } = useTheme();
+
+  const bgColor = theme === "light" ? "blue.600" : "blue.200";
+  const color = theme === "light" ? "white" : "black";
+  const colorScheme = theme === "light" ? "whatsapp" : "gray";
+
   return (
     <Flex
-      bgColor={useColorModeValue("blue.600", "blue.200")}
-      color={useColorModeValue("white", "black")}
+      bgColor={bgColor}
+      color={color}
       p={3}
       gap={5}
       flexDirection={"column"}
@@ -52,7 +51,9 @@ function ProgressToast({
       )}
 
       <Flex alignItems={"center"} gap={5}>
-        <CircularProgress isIndeterminate thickness={5} color="black" />
+        <ProgressCircle.Root thickness={5} color="black">
+          <ProgressCircle.Circle />
+        </ProgressCircle.Root>
 
         <Box>
           <Text as={"h2"} fontSize={"md"} fontWeight={"bold"}>
@@ -65,17 +66,19 @@ function ProgressToast({
       {/* The 'css' hack is to animate the progress bar as value changes */}
       <Flex alignItems={"center"} gap={2}>
         {showPercentage && <Text>{progressPercentage}%</Text>}
-        <Progress
+        <Progress.Root
           flexGrow={1}
           value={progressPercentage}
           size="xs"
-          colorScheme={useColorModeValue("whatsapp", "gray")}
+          colorScheme={colorScheme}
           css={{
             "> div:first-of-type": {
               transition: "width 500ms ease-in-out",
             },
           }}
-        />
+        >
+          <Progress.Track />
+        </Progress.Root>
       </Flex>
     </Flex>
   );

@@ -3,19 +3,18 @@ import {
   Flex,
   IconButton,
   useClipboard,
-  useColorModeValue,
   Text,
   Box,
   Menu,
-  MenuButton,
+  Button as MenuButton,
   MenuItem,
-  MenuList,
   Spinner,
 } from "@chakra-ui/react";
 import { TbCopy, TbDownload, TbRun, TbExternalLink } from "react-icons/tb";
 
 import { download, formatAsCodeBlock } from "../lib/utils";
 import { useAlert } from "../hooks/use-alert";
+import { useTheme } from "next-themes";
 import { isRunnableInBrowser, isRunnableOnServer, runCode } from "../lib/run-code";
 
 type PreHeaderProps = {
@@ -36,12 +35,16 @@ function CodeHeader({
   codeDownloadFilename,
 }: PreHeaderProps) {
   const { onCopy } = useClipboard(code);
+  const { theme } = useTheme();
+
   const { info, error } = useAlert();
   const [isRunning, setIsRunning] = useState(false);
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
   const shouldShowRunButton =
     (isRunnableInBrowser(language) || isRunnableOnServer(language)) && onPrompt;
   const shouldShowRunMenuList = isRunnableOnServer(language) && onPrompt;
+  const bgColor = theme === "light" ? "gray.200" : "gray.600";
+  const iconButtonColor = theme === "light" ? "gray.600" : "gray.300";
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -185,13 +188,7 @@ function CodeHeader({
 
   return (
     <>
-      <Flex
-        bg={useColorModeValue("gray.200", "gray.600")}
-        alignItems="center"
-        justify="space-between"
-        align="center"
-        mb={2}
-      >
+      <Flex bg={bgColor} alignItems="center" justify="space-between" align="center" mb={2}>
         <Box pl={2}>
           <Text as="code" fontSize="xs">
             {language}
@@ -199,58 +196,62 @@ function CodeHeader({
         </Box>
         <Flex pr={2}>
           {shouldShowRunButton && (
-            <Menu strategy="fixed">
+            <Menu.Root strategy="fixed">
               <MenuButton
                 as={IconButton}
                 size="sm"
                 aria-label="Run code"
                 title="Run code"
-                icon={isRunning ? <Spinner size="xs" /> : <TbRun />}
-                color="gray.600"
-                _dark={{ color: "gray.300" }}
+                color={iconButtonColor}
                 variant="ghost"
-                isDisabled={isLoading}
+                disabled={isLoading}
                 onClick={shouldShowRunMenuList ? undefined : handleRunBrowser}
-              />
+              >
+                {isRunning ? <Spinner size="xs" /> : <TbRun />}
+              </MenuButton>
               {shouldShowRunMenuList && (
-                <MenuList>
-                  <MenuItem onClick={handleRunBrowser}>Run in Browser</MenuItem>
-                  <MenuItem onClick={handleRunRemote}>Run on Server</MenuItem>
-                </MenuList>
+                <Menu.ItemGroup>
+                  <MenuItem>
+                    <Text onClick={handleRunBrowser}>Run in Browser</Text>
+                  </MenuItem>
+                  <MenuItem>
+                    <Text onClick={handleRunRemote}>Run on Server</Text>
+                  </MenuItem>
+                </Menu.ItemGroup>
               )}
-            </Menu>
+            </Menu.Root>
           )}
           <IconButton
             size="sm"
             aria-label="Open Code in New Window"
             title="Open Code in New Window"
-            icon={<TbExternalLink />}
-            color="gray.600"
-            _dark={{ color: "gray.300" }}
+            color={iconButtonColor}
             variant="ghost"
-            isDisabled={isLoading}
+            disabled={isLoading}
             onClick={handlePreviewCode}
-          />
+          >
+            <TbExternalLink />
+          </IconButton>
           <IconButton
             size="sm"
             aria-label="Download code"
             title="Download code"
-            icon={<TbDownload />}
-            color="gray.600"
-            _dark={{ color: "gray.300" }}
+            color={iconButtonColor}
             variant="ghost"
             onClick={handleDownload}
-          />
+          >
+            <TbDownload />
+          </IconButton>
           <IconButton
             size="sm"
             aria-label="Copy to Clipboard"
             title="Copy to Clipboard"
-            icon={<TbCopy />}
-            color="gray.600"
-            _dark={{ color: "gray.300" }}
+            color={iconButtonColor}
             variant="ghost"
             onClick={handleCopy}
-          />
+          >
+            <TbCopy />
+          </IconButton>
         </Flex>
       </Flex>
       {children}
