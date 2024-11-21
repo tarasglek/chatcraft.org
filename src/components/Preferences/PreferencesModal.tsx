@@ -26,7 +26,7 @@ import { FaRobot } from "react-icons/fa";
 
 type PreferencesModalProps = {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   finalFocusRef?: RefObject<HTMLTextAreaElement>;
 };
 
@@ -91,12 +91,14 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
         <AccordionItemTrigger indicatorPlacement="start">
           <Box>
             <Button pl="1.25rem" justifyContent={"space-between"} _hover={{ bg: bgDark }}>
-              <Flex alignItems="center">
-                <Box mr={4}>
-                  <selectedSetting.icon />
-                </Box>
-                {selectedSetting.name}
-              </Flex>
+              <>
+                <Flex alignItems="center">
+                  <Box mr={4}>
+                    <selectedSetting.icon />
+                  </Box>
+                  {selectedSetting.name}
+                </Flex>
+              </>
             </Button>
           </Box>
         </AccordionItemTrigger>
@@ -115,12 +117,14 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                 bg={getBackgroundStyle(setting)}
                 onClick={() => handleSettingClick(setting)}
               >
-                <Flex alignItems="center">
-                  <Box mr={4}>
-                    <setting.icon />
-                  </Box>
-                  {setting.name}
-                </Flex>
+                <>
+                  <Flex alignItems="center">
+                    <Box mr={4}>
+                      <setting.icon />
+                    </Box>
+                    {setting.name}
+                  </Flex>
+                </>
               </Button>
             </List.Item>
           ))}
@@ -153,12 +157,14 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
                   bg: bgDark,
                 }}
               >
-                <Flex alignItems="center">
-                  <Box mr={4}>
-                    <setting.icon />
-                  </Box>
-                  {setting.name}
-                </Flex>
+                <>
+                  <Flex alignItems="center">
+                    <Box mr={4}>
+                      <setting.icon />
+                    </Box>
+                    {setting.name}
+                  </Flex>
+                </>
               </Button>
             </List.Item>
           ))}
@@ -176,7 +182,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
       <DialogContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem" maxHeight="90vh">
         <Flex alignItems="center" justifyContent="space-between" width="100%">
           <DialogHeader whiteSpace="nowrap">User Settings</DialogHeader>
-          <DialogCloseTrigger position="relative" top={0} right={0} mx="1rem" />
+          <DialogCloseTrigger position="relative" top={0} right={0} mx="1rem" onClick={onClose} />
         </Flex>
         {!isSmallViewport && <Divider />}
         <DialogBody p={0} display="flex" h="95vh">
