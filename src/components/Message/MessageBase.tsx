@@ -1,11 +1,8 @@
 import {
   Box,
   Button,
-  ButtonGroup,
+  Group as ButtonGroup,
   Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
   Flex,
   Heading,
   IconButton,
@@ -13,7 +10,6 @@ import {
   Kbd,
   Link,
   Spacer,
-  Tag,
   Text,
   Textarea,
   useClipboard,
@@ -32,6 +28,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Tag } from "../ui/tag";
 
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
@@ -462,8 +459,8 @@ function MessageBase({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <Card>
-        <CardHeader p={0} pt={3} pb={2} pr={1}>
+      <Card.Root>
+        <Card.Header p={0} pt={3} pb={2} pr={1}>
           <Flex justify="space-between" align="center" ml={5} mr={2}>
             <Flex gap={3}>
               <Box>{avatar}</Box>
@@ -479,7 +476,7 @@ function MessageBase({
                     color="gray.500"
                     _dark={{ color: "gray.300" }}
                   >
-                    <Link as={ReactRouterLink} to={`/c/${chatId}#${id}`}>
+                    <Link as={ReactRouterLink} href={`/c/${chatId}#${id}`}>
                       {formatDate(date, isNarrowScreen)}
                     </Link>
                   </Text>
@@ -498,28 +495,31 @@ function MessageBase({
                 <Flex display={{ base: "none", md: "block" }}>
                   <IconButton
                     variant="ghost"
-                    icon={<MdContentCopy />}
                     aria-label="Copy message to clipboard"
                     title="Copy message to clipboard"
                     onClick={() => handleCopy()}
-                  />
+                  >
+                    <MdContentCopy />
+                  </IconButton>
                   {!disableEdit && !editing && (
                     <IconButton
                       variant="ghost"
-                      icon={<AiOutlineEdit />}
                       aria-label="Edit message"
                       title="Edit message"
                       onClick={() => onEditingChange(!editing)}
-                    />
+                    >
+                      <AiOutlineEdit />
+                    </IconButton>
                   )}
                   {!disableEdit && onDeleteClick && (
                     <IconButton
                       variant="ghost"
-                      icon={<TbTrash />}
                       aria-label="Delete message"
                       title="Delete message"
                       onClick={() => onDeleteClick()}
-                    />
+                    >
+                      <TbTrash />
+                    </IconButton>
                   )}
                 </Flex>
               )}
@@ -606,8 +606,8 @@ function MessageBase({
               </Menu>
             </Flex>
           </Flex>
-        </CardHeader>
-        <CardBody p={0}>
+        </Card.Header>
+        <Card.Body p={0}>
           <Flex direction="column" gap={3}>
             <Box maxWidth="100%" minH="2em" overflow="hidden" px={5} pb={2}>
               {
@@ -630,7 +630,7 @@ function MessageBase({
                       w="100%"
                       maxH="30vh"
                       resize="vertical"
-                      minRows={1}
+                      rows={1}
                       defaultValue={text}
                       autoFocus={true}
                     />
@@ -714,9 +714,9 @@ function MessageBase({
             </Box>
             <ImageModal isOpen={imageModalOpen} onClose={closeModal} imageSrc={selectedImage} />
           </Flex>
-        </CardBody>
-        {footer && <CardFooter py={2}>{footer}</CardFooter>}
-      </Card>
+        </Card.Body>
+        {footer && <Card.Footer py={2}>{footer}</Card.Footer>}
+      </Card.Root>
     </Box>
   );
 }

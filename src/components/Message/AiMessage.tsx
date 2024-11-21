@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useState } from "react";
-import { Box, HStack, IconButton, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import { Box, HStack, IconButton, Button, Group } from "@chakra-ui/react";
 import { TbChevronDown } from "react-icons/tb";
+import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "../ui/menu";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
@@ -41,41 +42,37 @@ function MessageVersionsMenu({
   };
 
   return (
-    <Menu placement="bottom-end">
-      <MenuButton
-        as={IconButton}
-        size="xs"
-        variant="ghost"
-        isDisabled={isDisabled}
-        icon={<TbChevronDown title={`${versions.length} Versions`} />}
-      >
-        Versions
-      </MenuButton>
-      <MenuList>
-        {versions
-          .sort((a, b) => b.date.getTime() - a.date.getTime())
-          .map((version) => {
-            const { id, model, date } = version;
+    <MenuRoot>
+      <MenuTrigger asChild>
+        <Button as={IconButton} size="xs" variant="ghost" disabled={isDisabled}>
+          <TbChevronDown title={`${versions.length} Versions`} />
+          Versions
+        </Button>
+      </MenuTrigger>
 
-            return (
-              <MenuItem
-                key={id}
-                value={id}
-                onClick={() => handleVersionChange(id)}
-                icon={<ModelAvatar model={model} size="xs" />}
-              >
-                <HStack>
-                  <Box>
-                    <strong>{model.prettyModel}</strong>
-                  </Box>
-                  <Box>{formatDate(date)}</Box>
-                  <Box>{message.currentVersion?.id === id ? <strong>✓</strong> : " "}</Box>
-                </HStack>
-              </MenuItem>
-            );
-          })}
-      </MenuList>
-    </Menu>
+      <MenuContent>
+        <Group>
+          {versions
+            .sort((a, b) => b.date.getTime() - a.date.getTime())
+            .map((version) => {
+              const { id, model, date } = version;
+
+              return (
+                <MenuItem asChild value="version-select" key={id}>
+                  <HStack>
+                    <Box key={id} onClick={() => handleVersionChange(id)}>
+                      <ModelAvatar model={model} size="xs" />
+                      <strong>{model.prettyModel}</strong>
+                    </Box>
+                    <Box>{formatDate(date)}</Box>
+                    <Box>{message.currentVersion?.id === id ? <strong>✓</strong> : " "}</Box>
+                  </HStack>
+                </MenuItem>
+              );
+            })}
+        </Group>
+      </MenuContent>
+    </MenuRoot>
   );
 }
 

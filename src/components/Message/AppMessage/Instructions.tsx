@@ -1,15 +1,16 @@
 import { FormEvent, memo, useState, useEffect } from "react";
+import { Box, Container, Flex, VStack, createListCollection } from "@chakra-ui/react";
+import { Field } from "../../ui/field";
 import {
-  Button,
-  Box,
-  Container,
-  Flex,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Select,
-  VStack,
-} from "@chakra-ui/react";
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "../../ui/select";
+
+import { Button } from "../../ui/button";
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
@@ -67,6 +68,14 @@ function Instructions(props: MessageBaseProps) {
     ...supportedProviders,
     ...settings.providers,
   };
+
+  const providerListsFramework = createListCollection({
+    items: Object.keys(providersList).map((providerKey) => ({
+      label: providersList[providerKey].name,
+      value: providerKey,
+      apiUrl: providersList[providerKey].apiUrl,
+    })),
+  });
 
   // Override the text of the message
   const message = new ChatCraftAppMessage({ ...props.message, text: ApiKeyInstructionsText });
@@ -134,42 +143,49 @@ function Instructions(props: MessageBaseProps) {
   // Provide a form to enter and process the api key when entered
   const apiKeyForm = (
     <Container pb={6}>
-      {!providersList ? (
+      {!providersList && providerListsFramework ? (
         <Box>Loading providers...</Box>
       ) : (
         <form onSubmit={handleApiKeySubmit}>
           <VStack gap={4}>
-            <FormControl>
-              <FormLabel>Provider API URL</FormLabel>
-
-              <Select
-                value={selectedProvider.name}
-                onChange={(e) => {
-                  setSelectedProvider(providersList[e.target.value]);
+            <Field label="Provider API URL">
+              <SelectRoot
+                collection={providerListsFramework}
+                onValueChange={({ value }) => {
+                  setSelectedProvider(providersList[value]);
                   setIsInvalid(false);
                 }}
               >
-                {Object.values(providersList).map((provider) => (
-                  <option key={provider.name} value={provider.name}>
-                    {provider.name} ({provider.apiUrl})
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
+                <SelectLabel>Provider API URL</SelectLabel>
+                <SelectTrigger>
+                  <SelectValueText placeholder="Select provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  {providerListsFramework.items.map((item) => (
+                    <SelectItem key={item.value} item={item}>
+                      {item.label} {item.apiUrl}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </SelectRoot>
+            </Field>
 
-            <FormControl isInvalid={isInvalid}>
-              <FormLabel>{selectedProvider.name} API Key </FormLabel>
+            <Field
+              invalid={isInvalid}
+              label={`${selectedProvider.name} API Key`}
+              errorText={`Unable to verify API Key with ${selectedProvider.name}.`}
+            >
               <Flex gap={4} align="center">
                 <PasswordInput
                   flex="1"
                   size={"md"}
                   bg="white"
                   _dark={{ bg: "gray.700" }}
-                  isDisabled={selectedProvider instanceof FreeModelProvider}
+                  disabled={selectedProvider instanceof FreeModelProvider}
                   value={selectedProvider.apiKey || ""}
                   onChange={handleApiKeyChange}
                 />
-                <Button type="submit" size="sm" isLoading={isValidating}>
+                <Button type="submit" size="sm" loading={isValidating}>
                   Save
                 </Button>
               </Flex>
@@ -178,10 +194,7 @@ function Instructions(props: MessageBaseProps) {
                   Get API key from OpenRouter{" "}
                 </Button>
               )}
-              <FormErrorMessage>
-                Unable to verify API Key with {selectedProvider.name}.
-              </FormErrorMessage>
-            </FormControl>
+            </Field>
           </VStack>
         </form>
       )}

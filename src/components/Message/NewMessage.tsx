@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, IconButton } from "@chakra-ui/react";
+import { Box, Button, Group as ButtonGroup, IconButton } from "@chakra-ui/react";
 import { CgClose } from "react-icons/cg";
 import { TbPlayerPlay, TbPlayerPause } from "react-icons/tb";
 
@@ -23,30 +23,33 @@ function MobileButtons({ isPaused, onTogglePause, onCancel }: ControlButtonsProp
       <IconButton
         variant="outline"
         size="lg"
-        isRound
+        rounded={"md"}
         aria-label="Cancel"
         onClick={() => onCancel()}
-        icon={<CgClose />}
-      />
+      >
+        <CgClose />
+      </IconButton>
 
       {isPaused ? (
         <IconButton
           key="resume"
           size="lg"
-          isRound
+          rounded={"md"}
           aria-label="Resume"
           onClick={() => onTogglePause()}
-          icon={<TbPlayerPlay />}
-        />
+        >
+          <TbPlayerPlay />
+        </IconButton>
       ) : (
         <IconButton
           key="pause"
           size="lg"
-          isRound
+          rounded={"md"}
           aria-label="Pause"
           onClick={() => onTogglePause()}
-          icon={<TbPlayerPause />}
-        />
+        >
+          <TbPlayerPause />
+        </IconButton>
       )}
     </ButtonGroup>
   );
