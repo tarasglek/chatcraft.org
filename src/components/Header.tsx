@@ -1,34 +1,30 @@
 import { useCallback, type RefObject } from "react";
 import {
-  Avatar,
   Box,
   Flex,
   IconButton,
   Input,
-  InputGroup,
-  InputRightElement,
   Link,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuItem,
-  MenuList,
+  Button,
+  Separator as Divider,
   Text,
-  useColorMode,
-  useColorModeValue,
   useDisclosure,
+  HStack,
 } from "@chakra-ui/react";
+import { InputGroup } from "./ui/input-group";
+import { MenuRoot, MenuItem, MenuContent } from "./ui/menu";
+import { Avatar } from "./ui/avatar";
 import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { TbSearch } from "react-icons/tb";
 import { FiRss } from "react-icons/fi";
 import { Form } from "react-router-dom";
-
-import PreferencesModal from "./Preferences/PreferencesModal";
+import { useTheme } from "next-themes";
 import { useUser } from "../hooks/use-user";
-import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
 import { useAlert } from "../hooks/use-alert";
+import PreferencesModal from "./Preferences/PreferencesModal";
+import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
 
 type HeaderProps = {
   chatId?: string;
@@ -38,7 +34,12 @@ type HeaderProps = {
 };
 
 function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderProps) {
-  const { toggleColorMode } = useColorMode();
+  //const { toggleColorMode } = useColorMode();
+  const { theme, setTheme } = useTheme();
+  const bgcolor = theme === "light" ? "white" : "gray.700";
+  const borderColor = theme === "light" ? "gray.50" : "gray.600";
+  const textColor = theme === "light" ? "blue.600" : "blue.200";
+  const linkColor = theme === "light" ? "blue.400" : "blue.100";
   const {
     open: isPrefModalOpen,
     onOpen: onPrefModalOpen,
@@ -87,11 +88,11 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       w="100%"
       h="3rem"
       gap={3}
-      bg={useColorModeValue("white", "gray.700")}
+      bg={bgcolor}
       justify="space-between"
       align="center"
       borderBottom="2px"
-      borderColor={useColorModeValue("gray.50", "gray.600")}
+      borderColor={borderColor}
     >
       <Flex pl={1} align="center" gap={2}>
         <IconButton
@@ -104,15 +105,8 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
           <BiMenu />
         </IconButton>
 
-        <Text
-          fontWeight="bold"
-          fontSize="1.125rem"
-          color={useColorModeValue("blue.600", "blue.200")}
-        >
-          <Link
-            href="/"
-            _hover={{ textDecoration: "none", color: useColorModeValue("blue.400", "blue.100") }}
-          >
+        <Text fontWeight="bold" fontSize="1.125rem" color={textColor}>
+          <Link href="/" _hover={{ textDecoration: "none", color: linkColor }}>
             &lt;ChatCraft /&gt;
           </Link>
         </Text>
@@ -120,29 +114,32 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
 
       <Box flex={1} maxW="500px">
         {!isMobile && (
-          <Form action="/s" method="get">
-            <InputGroup size="sm" variant="outline">
-              <Input
-                fontSize="1rem"
-                type="search"
-                name="q"
-                defaultValue={searchText}
-                borderRadius={4}
-                isRequired
-                placeholder="Search chat history"
-              />
-              <InputRightElement>
+          <HStack gap="10" width="full">
+            <Form action="/s" method="get">
+              <InputGroup flex="1">
+                <Input
+                  fontSize="1rem"
+                  type="search"
+                  name="q"
+                  defaultValue={searchText}
+                  borderRadius={4}
+                  required
+                  placeholder="Search chat history"
+                />
+              </InputGroup>
+              <InputGroup flex="1">
                 <IconButton
                   size="sm"
                   height="2rem"
                   aria-label="Search"
                   variant="ghost"
-                  icon={<TbSearch />}
                   type="submit"
-                />
-              </InputRightElement>
-            </InputGroup>
-          </Form>
+                >
+                  <TbSearch />
+                </IconButton>
+              </InputGroup>
+            </Form>
+          </HStack>
         )}
       </Box>
 
@@ -151,83 +148,98 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
           fontSize="1.25rem"
           aria-label={"Copy Shared Chats Feed URL"}
           title={"Copy Shared Chats Feed URL"}
-          icon={<FiRss />}
           variant="ghost"
           onClick={handleOpenFeedUrl}
-        />
+        >
+          <FiRss />
+        </IconButton>
         <IconButton
           fontSize="1.25rem"
-          aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
-          title={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}
-          icon={useColorModeValue(<BiMoon />, <BiSun />)}
+          aria-label={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+          title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
           variant="ghost"
-          onClick={toggleColorMode}
-        />
+          onClick={theme === "light" ? () => setTheme("dark") : () => setTheme("light")}
+        >
+          {theme === "light" ? <BiMoon /> : <BiSun />}
+        </IconButton>
 
         <Box zIndex={2}>
-          <Menu>
-            <MenuButton
+          <MenuRoot>
+            <Button
               as={IconButton}
               aria-label="User Settings"
               title="User Settings"
-              icon={
-                user ? (
-                  <Avatar size="xs" src={user.avatarUrl} title={user.username} />
-                ) : (
-                  <Avatar
-                    size="xs"
-                    bg="gray.500"
-                    borderColor="gray.400"
-                    _dark={{ bg: "gray.600", borderColor: "gray.500" }}
-                    showBorder
-                  />
-                )
-              }
               variant="ghost"
-            />
-            <MenuList>
-              <MenuItem onClick={onPrefModalOpen}>Settings...</MenuItem>
+            >
               {user ? (
-                <MenuItem
-                  onClick={() => {
-                    handleLoginLogout("");
-                  }}
-                >
-                  Logout
+                <Avatar size="xs" src={user.avatarUrl} title={user.username} />
+              ) : (
+                <Avatar
+                  size="xs"
+                  bg="gray.500"
+                  borderColor="gray.400"
+                  _dark={{ bg: "gray.600", borderColor: "gray.500" }}
+                  border={1}
+                />
+              )}
+            </Button>
+            <MenuContent>
+              <MenuItem asChild value="Settings...">
+                <Text onClick={onPrefModalOpen}>Settings...</Text>
+              </MenuItem>
+              {user ? (
+                <MenuItem asChild value="logout">
+                  <Text
+                    onClick={() => {
+                      handleLoginLogout("");
+                    }}
+                  >
+                    Logout
+                  </Text>
                 </MenuItem>
               ) : (
                 <>
-                  <MenuItem
-                    onClick={() => {
-                      handleLoginLogout("github");
-                    }}
-                  >
-                    <BsGithub /> <Text ml={2}>Sign in with GitHub</Text>
+                  <MenuItem asChild value="githubLogin">
+                    <BsGithub />{" "}
+                    <Text
+                      ml={2}
+                      onClick={() => {
+                        handleLoginLogout("github");
+                      }}
+                    >
+                      Sign in with GitHub
+                    </Text>
                   </MenuItem>
-                  {/* Google login */}
-                  <MenuItem
-                    onClick={() => {
-                      handleLoginLogout("google");
-                    }}
-                  >
-                    <FcGoogle /> <Text ml={2}>Sign in with Google</Text>
+                  <MenuItem asChild value="googleLogin">
+                    <FcGoogle />{" "}
+                    <Text
+                      ml={2}
+                      onClick={() => {
+                        handleLoginLogout("google");
+                      }}
+                    >
+                      Sign in with Google
+                    </Text>
                   </MenuItem>
                 </>
               )}
-
-              <MenuDivider />
-              <MenuItem
-                as="a"
-                href="https://github.com/tarasglek/chatcraft.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub Repository"
-                title="GitHub Repository"
-              >
-                GitHub Repository
+              <Divider />
+              <MenuItem asChild value="GitHub Repository">
+                <Text>
+                  <Link
+                    as="a"
+                    href="https://github.com/tarasglek/chatcraft.org"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub Repository"
+                    title="GitHub Repository"
+                  >
+                    GitHub Repository
+                  </Link>
+                </Text>
               </MenuItem>
-            </MenuList>
-          </Menu>
+            </MenuContent>
+          </MenuRoot>
         </Box>
       </Flex>
 
