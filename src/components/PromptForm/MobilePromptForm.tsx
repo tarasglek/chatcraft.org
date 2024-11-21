@@ -1,5 +1,6 @@
 import { FormEvent, type RefObject, useEffect, useState } from "react";
-import { Box, chakra, CloseButton, Flex, Image, Spinner } from "@chakra-ui/react";
+import { Box, chakra, Flex, Image, Spinner } from "@chakra-ui/react";
+import { CloseButton } from "../ui/close-button";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
 import OptionsButton from "../OptionsButton";
@@ -227,7 +228,7 @@ function MobilePromptForm({
             ) : (
               <AutoResizingTextarea
                 ref={inputPromptRef}
-                isDisabled={isLoading}
+                disabled={isLoading}
                 autoFocus={true}
                 bg="white"
                 _dark={{ bg: "gray.700" }}

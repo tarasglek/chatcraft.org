@@ -1,26 +1,20 @@
+import { Box, Group as ButtonGroup, Input, IconButton, Container, HStack } from "@chakra-ui/react";
 import {
-  Box,
-  Button,
-  ButtonGroup,
-  IconButton,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuGroup,
+  MenuContent,
   MenuItem,
-  MenuList,
-  Tooltip,
-} from "@chakra-ui/react";
+  MenuItemGroup,
+  MenuRoot,
+  MenuSeparator,
+  MenuTrigger,
+} from "../ui/menu";
+import { InputGroup } from "../ui/input-group";
+import { Tooltip } from "../ui/tooltip";
+import { Button } from "../ui/button";
 import { TbChevronUp, TbSearch, TbSend } from "react-icons/tb";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
-
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useSettings } from "../../hooks/use-settings";
 import { useModels } from "../../hooks/use-models";
-import theme from "../../theme";
 import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
 import { IoMdCheckmark } from "react-icons/io";
 import { type KeyboardEvent, useRef, useState } from "react";
@@ -58,22 +52,31 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   };
 
   return (
-    <ButtonGroup variant="outline" isAttached>
-      <Menu placement="top" strategy="fixed" closeOnSelect={false} offset={[-90, 0]}>
-        <IconButton
+    <ButtonGroup attached>
+      <MenuRoot
+        positioning={{
+          placement: "top",
+          strategy: "fixed",
+          offset: { mainAxis: -90, crossAxis: 0 },
+        }}
+        closeOnSelect={false}
+      >
+        <Button
           type="submit"
           size="md"
           fontSize="1.375rem"
           width="2.75rem"
           variant="solid"
-          isRound
+          rounded="full"
           aria-label="Submit"
-          isLoading={isLoading}
-          icon={<TbSend />}
-        />
+          loading={isLoading}
+        >
+          <TbSend />
+        </Button>
+
         {isTextToSpeechSupported && isAudioQueueEmpty ? (
           <Tooltip
-            label={
+            content={
               settings.textToSpeech.announceMessages
                 ? "Text-to-Speech Enabled"
                 : "Text-to-Speech Disabled"
@@ -88,13 +91,6 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                   ? "Text-to-Speech Enabled"
                   : "Text-to-Speech Disabled"
               }
-              icon={
-                settings.textToSpeech.announceMessages ? (
-                  <MdVolumeUp size={25} />
-                ) : (
-                  <MdVolumeOff size={25} />
-                )
-              }
               onClick={() => {
                 if (settings.textToSpeech.announceMessages) {
                   // Flush any remaining audio clips being announced
@@ -108,43 +104,52 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                   },
                 });
               }}
-            />
+            >
+              <>
+                {settings.textToSpeech.announceMessages ? (
+                  <MdVolumeUp size={25} />
+                ) : (
+                  <MdVolumeOff size={25} />
+                )}
+              </>
+            </IconButton>
           </Tooltip>
         ) : isTextToSpeechSupported ? (
           <InterruptSpeechButton variant={"dancingBars"} size={"lg"} clearOnly={!isLoading} />
         ) : null}
-        <MenuButton
+        <Button
           as={IconButton}
           size="md"
           width="2.75rem"
           fontSize="1.375rem"
-          isRound
+          rounded="full"
           variant="solid"
           aria-label="Choose Model"
           title="Choose Model"
-          icon={<TbChevronUp />}
-        />
-        <MenuList maxHeight={"85dvh"} overflowY={"auto"} zIndex={theme.zIndices.dropdown}>
-          <MenuGroup title="Providers">
+        >
+          <TbChevronUp />
+        </Button>
+        <MenuContent maxHeight={"85dvh"} overflowY={"auto"}>
+          <MenuItemGroup title="Providers">
             {Object.entries(providersList).map(([providerName, providerObject]) => (
-              <MenuItem
-                paddingInline={4}
-                key={providerName}
-                onClick={() => {
-                  setSettings({ ...settings, currentProvider: providerObject });
-                }}
-              >
-                {settings.currentProvider.name === providerName ? (
-                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                ) : (
-                  <span style={{ width: "1.6rem", display: "inline-block" }} />
-                )}
-                {providerName}
+              <MenuItem paddingInline={4} key={providerName} value="provider-name">
+                <Container
+                  onClick={() => {
+                    setSettings({ ...settings, currentProvider: providerObject });
+                  }}
+                >
+                  {settings.currentProvider.name === providerName ? (
+                    <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                  ) : (
+                    <span style={{ width: "1.6rem", display: "inline-block" }} />
+                  )}
+                  {providerName}
+                </Container>
               </MenuItem>
             ))}
-          </MenuGroup>
-          <MenuDivider />
-          <MenuGroup title="Models">
+          </MenuItemGroup>
+          <MenuSeparator />
+          <MenuItemGroup title="Models">
             <Box maxHeight="40dvh" overflowY="auto">
               {models
                 .filter((model) => isChatModel(model.id))
@@ -157,6 +162,8 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                     closeOnSelect={true}
                     key={model.id}
                     onClick={() => setSettings({ ...settings, model })}
+                    asChild
+                    value="model-name"
                   >
                     {settings.model.id === model.id ? (
                       <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
@@ -172,58 +179,62 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
                   </MenuItem>
                 ))}
             </Box>
-            <InputGroup marginTop={2}>
-              <InputLeftElement paddingLeft={3} pointerEvents="none">
+            <HStack>
+              <InputGroup flex="1" marginTop={2} pointerEvents="none" paddingLeft={3}>
                 <TbSearch />
-              </InputLeftElement>
-              <Input
-                marginInline={2}
-                marginBottom={1}
-                ref={inputRef}
-                type="text"
-                variant="outline"
-                placeholder="Search models..."
-                value={searchQuery}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setSearchQuery(e.target.value);
-                }}
-              />
-            </InputGroup>
-          </MenuGroup>
+              </InputGroup>
+              <InputGroup flex="1">
+                <Input
+                  marginInline={2}
+                  marginBottom={1}
+                  ref={inputRef}
+                  type="text"
+                  variant="outline"
+                  placeholder="Search models..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    setSearchQuery(e.target.value);
+                  }}
+                />
+              </InputGroup>
+            </HStack>
+          </MenuItemGroup>
           {isTextToSpeechSupported && (
             <>
-              <MenuDivider />
-              <MenuItem
-                icon={
-                  settings.textToSpeech.announceMessages ? (
-                    <MdVolumeUp style={{ fontSize: "1.25rem" }} />
-                  ) : (
-                    <MdVolumeOff style={{ fontSize: "1.25rem" }} />
-                  )
-                }
-                onClick={() => {
-                  if (settings.textToSpeech.announceMessages) {
-                    // Flush any remaining audio clips being announced
-                    clearAudioQueue();
-                  }
-                  setSettings({
-                    ...settings,
-                    textToSpeech: {
-                      ...settings.textToSpeech,
-                      announceMessages: !settings.textToSpeech.announceMessages,
-                    },
-                  });
-                }}
-              >
-                {settings.textToSpeech.announceMessages
-                  ? "Text-to-Speech Enabled"
-                  : "Text-to-Speech Disabled"}
+              <MenuSeparator />
+              <MenuItem asChild value="button">
+                <div>
+                  <Button
+                    onClick={() => {
+                      if (settings.textToSpeech.announceMessages) {
+                        // Flush any remaining audio clips being announced
+                        clearAudioQueue();
+                      }
+                      setSettings({
+                        ...settings,
+                        textToSpeech: {
+                          ...settings.textToSpeech,
+                          announceMessages: !settings.textToSpeech.announceMessages,
+                        },
+                      });
+                    }}
+                  >
+                    {settings.textToSpeech.announceMessages ? (
+                      <MdVolumeUp style={{ fontSize: "1.25rem" }} />
+                    ) : (
+                      <MdVolumeOff style={{ fontSize: "1.25rem" }} />
+                    )}
+                  </Button>
+                  {settings.textToSpeech.announceMessages
+                    ? "Text-to-Speech Enabled"
+                    : "Text-to-Speech Disabled"}
+                </div>
               </MenuItem>
             </>
           )}
-        </MenuList>
-      </Menu>
+        </MenuContent>
+      </MenuRoot>
     </ButtonGroup>
   );
 }
@@ -269,13 +280,13 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   };
 
   return (
-    <ButtonGroup isAttached>
-      <Button type="submit" size="sm" isLoading={isLoading} loadingText="Sending">
-        Ask {settings.model.prettyModel}
+    <ButtonGroup attached>
+      <Button type="submit" size="sm" loading={isLoading} loadingText="Sending">
+        <>Ask {settings.model.prettyModel}</>
       </Button>
       {isTextToSpeechSupported && isAudioQueueEmpty ? (
         <Tooltip
-          label={
+          content={
             settings.textToSpeech.announceMessages
               ? "Text-to-Speech Enabled"
               : "Text-to-Speech Disabled"
@@ -298,32 +309,43 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
               });
             }}
           >
-            {settings.textToSpeech.announceMessages ? (
-              <MdVolumeUp size={18} />
-            ) : (
-              <MdVolumeOff size={18} />
-            )}
+            <>
+              {settings.textToSpeech.announceMessages ? (
+                <MdVolumeUp size={18} />
+              ) : (
+                <MdVolumeOff size={18} />
+              )}
+            </>
           </Button>
         </Tooltip>
       ) : isTextToSpeechSupported ? (
         <InterruptSpeechButton variant={"dancingBars"} size={"sm"} clearOnly={!isLoading} />
       ) : null}
-      <Menu placement="top-end" strategy="fixed" closeOnSelect={false}>
-        <MenuButton
-          as={IconButton}
-          size="sm"
-          fontSize="1.25rem"
-          aria-label="Choose Model"
-          title="Choose Model"
-          icon={<TbChevronUp />}
-        />
-        <MenuList
+      <MenuRoot
+        positioning={{
+          placement: "top-end",
+          strategy: "fixed",
+        }}
+        closeOnSelect={false}
+      >
+        <MenuTrigger>
+          <Button
+            as={IconButton}
+            size="sm"
+            fontSize="1.25rem"
+            aria-label="Choose Model"
+            title="Choose Model"
+          >
+            <TbChevronUp />
+          </Button>
+        </MenuTrigger>
+        <MenuContent
           maxHeight={"80vh"}
           overflowY={"auto"}
-          zIndex={theme.zIndices.dropdown}
+          zIndex={1}
           onKeyDownCapture={onStartTyping}
         >
-          <MenuGroup title="Providers">
+          <MenuItemGroup title="Providers">
             {Object.entries(providersList).map(([providerName, providerObject]) => (
               <MenuItem
                 paddingInline={4}
@@ -331,6 +353,8 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                 onClick={() => {
                   setSettings({ ...settings, currentProvider: providerObject });
                 }}
+                asChild
+                value="provider-name"
               >
                 {settings.currentProvider.name === providerName ? (
                   <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
@@ -340,27 +364,30 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                 {providerName}
               </MenuItem>
             ))}
-          </MenuGroup>
-          <MenuDivider />
-          <MenuGroup title="Models">
-            <InputGroup>
-              <InputLeftElement paddingLeft={3} pointerEvents="none">
+          </MenuItemGroup>
+          <MenuSeparator />
+          <MenuItemGroup title="Models">
+            <HStack>
+              <InputGroup paddingLeft={3} pointerEvents={"none"} flex="1">
                 <TbSearch />
-              </InputLeftElement>
-              <Input
-                marginInline={2}
-                marginBottom={1}
-                ref={inputRef}
-                type="text"
-                variant="outline"
-                placeholder="Search models..."
-                value={searchQuery}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setSearchQuery(e.target.value);
-                }}
-              />
-            </InputGroup>
+              </InputGroup>
+              <InputGroup flex="1">
+                <Input
+                  marginInline={2}
+                  marginBottom={1}
+                  ref={inputRef}
+                  type="text"
+                  variant="outline"
+                  placeholder="Search models..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    setSearchQuery(e.target.value);
+                  }}
+                />
+              </InputGroup>
+            </HStack>
+
             <Box maxHeight="40vh" overflowY="auto">
               {models
                 .filter((model) => isChatModel(model.id))
@@ -373,6 +400,8 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                     closeOnSelect={true}
                     key={model.id}
                     onClick={() => setSettings({ ...settings, model })}
+                    asChild
+                    value="model-id"
                   >
                     {settings.model.id === model.id ? (
                       <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
@@ -388,9 +417,9 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                   </MenuItem>
                 ))}
             </Box>
-          </MenuGroup>
-        </MenuList>
-      </Menu>
+          </MenuItemGroup>
+        </MenuContent>
+      </MenuRoot>
     </ButtonGroup>
   );
 }

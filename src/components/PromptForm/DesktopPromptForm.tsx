@@ -6,17 +6,16 @@ import {
   chakra,
   Flex,
   Image,
-  InputGroup,
   Kbd,
   Spinner,
   Square,
   Text,
-  useColorModeValue,
   VStack,
 } from "@chakra-ui/react";
+import { InputGroup } from "../ui/input-group";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 import { useDropzone } from "react-dropzone";
-
+import { useTheme } from "next-themes";
 import { useSettings } from "../../hooks/use-settings";
 import { getMetaKey, updateImageUrls } from "../../lib/utils";
 import { TiDeleteOutline } from "react-icons/ti";
@@ -36,7 +35,6 @@ type KeyboardHintProps = {
 
 function KeyboardHint({ isVisible }: KeyboardHintProps) {
   const { settings } = useSettings();
-
   const memo = useMemo(() => getMetaKey(), []);
 
   if (!isVisible) {
@@ -77,8 +75,9 @@ function DesktopPromptForm({
   isLoading,
   previousMessage,
 }: DesktopPromptFormProps) {
-  const [isPromptEmpty, setIsPromptEmpty] = useState(true);
   const { settings } = useSettings();
+  const { theme } = useTheme();
+  const [isPromptEmpty, setIsPromptEmpty] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
@@ -268,11 +267,11 @@ function DesktopPromptForm({
     // Otherwise, let the default paste handling happen
   };
 
-  const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
+  const dragDropBorderColor = theme === "dark" ? "blue.200" : "blue.600";
 
   return (
     <Flex dir="column" w="100%" h="100%">
-      <Card flex={1} my={3} mx={1}>
+      <Card.Root flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
             h="100%"
@@ -355,9 +354,9 @@ function DesktopPromptForm({
                     ) : (
                       <AutoResizingTextarea
                         ref={inputPromptRef}
-                        variant="unstyled"
+                        variant="flushed"
                         onKeyDown={handleKeyDown}
-                        isDisabled={isLoading}
+                        disabled={isLoading}
                         autoFocus={true}
                         onChange={(e) => {
                           setIsPromptEmpty(e.target.value.trim().length === 0);
@@ -394,14 +393,16 @@ function DesktopPromptForm({
                 />
 
                 <Flex alignItems="center" gap={2}>
-                  <KeyboardHint isVisible={!isPromptEmpty && !isLoading} />
-                  <PromptSendButton isLoading={isLoading} />
+                  <>
+                    <KeyboardHint isVisible={!isPromptEmpty && !isLoading} />
+                    <PromptSendButton isLoading={isLoading} />
+                  </>
                 </Flex>
               </Flex>
             </VStack>
           </CardBody>
         </chakra.form>
-      </Card>
+      </Card.Root>
       <ImageModal isOpen={imageModalOpen} onClose={closeModal} imageSrc={selectedImageUrl} />
     </Flex>
   );
