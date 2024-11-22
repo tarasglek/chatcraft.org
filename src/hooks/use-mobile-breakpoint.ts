@@ -6,6 +6,7 @@ const mobileMediaQuery = ["(max-width: 480px)"];
 export default function useMobileBreakpoint() {
   const [isMobile] = useMediaQuery(mobileMediaQuery, {
     ssr: false,
+    getWindow: () => window,
   });
 
   return isMobile;

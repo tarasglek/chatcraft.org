@@ -1,7 +1,7 @@
 import { FormEvent, KeyboardEvent, type RefObject, useEffect, useMemo, useState } from "react";
 import {
   Box,
-  Card,
+  CardRoot,
   CardBody,
   chakra,
   Flex,
@@ -11,6 +11,7 @@ import {
   Square,
   Text,
   VStack,
+  HStack,
 } from "@chakra-ui/react";
 import { InputGroup } from "../ui/input-group";
 import AutoResizingTextarea from "../AutoResizingTextarea";
@@ -270,8 +271,8 @@ function DesktopPromptForm({
   const dragDropBorderColor = theme === "dark" ? "blue.200" : "blue.600";
 
   return (
-    <Flex dir="column" w="100%" h="100%">
-      <Card.Root flex={1} my={3} mx={1}>
+    <Flex dir="column" w="100%" h="auto" bottom={"auto"}>
+      <CardRoot flex={1} my={3} mx={1} overflow={"hidden"}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
             h="100%"
@@ -283,105 +284,102 @@ function DesktopPromptForm({
             {...getRootProps()}
           >
             <VStack w="100%" h="100%" gap={3}>
-              <InputGroup h="100%" bg="white" _dark={{ bg: "gray.700" }}>
-                <Flex w="100%" h="100%" direction="column">
-                  <Flex flexWrap="wrap">
-                    {inputImageUrls.map((imageUrl, index) => (
-                      <Box key={index} position="relative" height="100px" m={2}>
-                        {imageUrl === "" ? (
-                          <Box
-                            width={100}
-                            height={100}
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Spinner size="xl" />
-                          </Box>
-                        ) : (
-                          <Image
-                            src={imageUrl}
-                            alt={`Image# ${index}`}
-                            style={{ height: "100px", objectFit: "cover" }}
-                            cursor="pointer"
-                            onClick={() => handleClickImage(imageUrl)}
-                          />
-                        )}
+              <Flex w="100%" h="100%" direction="column">
+                <Flex flexWrap="wrap">
+                  {inputImageUrls.map((imageUrl, index) => (
+                    <Box key={index} position="relative" height="100px" m={2}>
+                      {imageUrl === "" ? (
                         <Box
-                          position="absolute"
-                          top="2px"
-                          left="2px"
-                          bg="whiteAlpha.600"
-                          borderRadius="full"
-                          p="1"
-                          zIndex="2"
-                          _hover={{
-                            bg: "blue.500",
-                            color: "white",
-                          }}
+                          width={100}
+                          height={100}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
                         >
-                          <Square size="1.5em">{index + 1}</Square>
+                          <Spinner size="xl" />
                         </Box>
-                        <Box
-                          position="absolute"
-                          top="2px"
-                          right="2px"
-                          bg="whiteAlpha.600"
-                          borderRadius="full"
-                          p="1"
-                          onClick={() => handleDeleteImage(index)}
+                      ) : (
+                        <Image
+                          src={imageUrl}
+                          alt={`Image# ${index}`}
+                          style={{ height: "100px", objectFit: "cover" }}
                           cursor="pointer"
-                          zIndex="3"
-                          _hover={{
-                            bg: "red.500",
-                            color: "white",
-                          }}
-                        >
-                          <TiDeleteOutline size="1.5em" />
-                        </Box>
-                      </Box>
-                    ))}
-                  </Flex>
-                  <Flex flexWrap="wrap">
-                    {inputType === "audio" ? (
-                      <Box py={2} px={1} flex={1}>
-                        <AudioStatus
-                          isRecording={isRecording}
-                          isTranscribing={isTranscribing}
-                          recordingSeconds={recordingSeconds}
+                          onClick={() => handleClickImage(imageUrl)}
                         />
-                      </Box>
-                    ) : (
-                      <AutoResizingTextarea
-                        ref={inputPromptRef}
-                        variant="flushed"
-                        onKeyDown={handleKeyDown}
-                        disabled={isLoading}
-                        autoFocus={true}
-                        onChange={(e) => {
-                          setIsPromptEmpty(e.target.value.trim().length === 0);
+                      )}
+                      <Box
+                        position="absolute"
+                        top="2px"
+                        left="2px"
+                        bg="whiteAlpha.600"
+                        borderRadius="full"
+                        p="1"
+                        zIndex="2"
+                        _hover={{
+                          bg: "blue.500",
+                          color: "white",
                         }}
-                        bg="white"
-                        _dark={{ bg: "gray.700" }}
-                        placeholder={
-                          !isLoading && !isRecording && !isTranscribing
-                            ? "Ask a question or use /help to learn more"
-                            : undefined
-                        }
-                        overflowY="auto"
-                        flex={1}
-                      />
-                    )}
-                    <MicIcon
-                      isDisabled={isLoading}
-                      onRecording={handleRecording}
-                      onTranscribing={handleTranscribing}
-                      onTranscriptionAvailable={handleTranscriptionAvailable}
-                      onCancel={handleRecordingCancel}
-                    />
-                  </Flex>
+                      >
+                        <Square size="1.5em">{index + 1}</Square>
+                      </Box>
+                      <Box
+                        position="absolute"
+                        top="2px"
+                        right="2px"
+                        bg="whiteAlpha.600"
+                        borderRadius="full"
+                        p="1"
+                        onClick={() => handleDeleteImage(index)}
+                        cursor="pointer"
+                        zIndex="3"
+                        _hover={{
+                          bg: "red.500",
+                          color: "white",
+                        }}
+                      >
+                        <TiDeleteOutline size="1.5em" />
+                      </Box>
+                    </Box>
+                  ))}
                 </Flex>
-              </InputGroup>
+              </Flex>
+              {inputType === "audio" ? (
+                <Box py={2} px={1} flex={1}>
+                  <AudioStatus
+                    isRecording={isRecording}
+                    isTranscribing={isTranscribing}
+                    recordingSeconds={recordingSeconds}
+                  />
+                </Box>
+              ) : (
+                <HStack gap="10" width={"full"}>
+                  <AutoResizingTextarea
+                    ref={inputPromptRef}
+                    variant="flushed"
+                    onKeyDown={handleKeyDown}
+                    disabled={isLoading}
+                    autoFocus={true}
+                    onChange={(e) => {
+                      setIsPromptEmpty(e.target.value.trim().length === 0);
+                    }}
+                    bg="white"
+                    _dark={{ bg: "gray.700" }}
+                    placeholder={
+                      !isLoading && !isRecording && !isTranscribing
+                        ? "Ask a question or use /help to learn more"
+                        : undefined
+                    }
+                    flex={1} // Ensure textarea takes full width
+                  />
+                  <MicIcon
+                    isDisabled={isLoading}
+                    onRecording={handleRecording}
+                    onTranscribing={handleTranscribing}
+                    onTranscriptionAvailable={handleTranscriptionAvailable}
+                    onCancel={handleRecordingCancel}
+                  />
+                </HStack>
+              )}
 
               <Flex w="100%" gap={1} justify={"space-between"} align="center">
                 <OptionsButton
@@ -391,7 +389,6 @@ function DesktopPromptForm({
                   isDisabled={isLoading}
                   onAttachFiles={importFiles}
                 />
-
                 <Flex alignItems="center" gap={2}>
                   <>
                     <KeyboardHint isVisible={!isPromptEmpty && !isLoading} />
@@ -402,7 +399,7 @@ function DesktopPromptForm({
             </VStack>
           </CardBody>
         </chakra.form>
-      </Card.Root>
+      </CardRoot>
       <ImageModal isOpen={imageModalOpen} onClose={closeModal} imageSrc={selectedImageUrl} />
     </Flex>
   );

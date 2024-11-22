@@ -10,8 +10,15 @@ import {
   //useColorModeValue,
   IconButton,
   Input,
+  Container,
+  HStack,
 } from "@chakra-ui/react";
-import { AccordionItem, AccordionItemContent, AccordionRoot } from "../ui/accordion";
+import {
+  AccordionItem,
+  AccordionItemContent,
+  AccordionItemTrigger,
+  AccordionRoot,
+} from "../ui/accordion";
 import { Button } from "../ui/button";
 import { useLiveQuery } from "dexie-react-hooks";
 import { MdOutlineChatBubbleOutline } from "react-icons/md";
@@ -379,28 +386,20 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   }
 
   return (
-    <Flex direction="column" h="100%" p={2} gap={4}>
-      <AccordionRoot collapsible>
-        <AccordionItem asChild value="save-chat">
-          <Button p={2} minH={10}>
-            <>
-              <Heading as="h3" size="xs">
+    <Flex direction="column" h="100%" p={2}>
+      <AccordionRoot collapsible defaultValue={["b"]}>
+        <AccordionItem key={1} value={"saved-chat"} p={2} minH={10}>
+          <AccordionItemTrigger>
+            <HStack>
+              <Heading as="h3" size="sm">
                 Saved Chats ({formatNumber(chatsTotal || 0)})
               </Heading>
-
               <Button as={Link} ml={1} size="xs" variant="ghost">
-                <Link to="/c/new" style={{ textDecoration: "underline" }}>
-                  New
-                </Link>
+                <Link to="/c/new">New</Link>
               </Button>
-              {/**
-               * AccordionIcon ml="auto" />
-               * finding replacement for accordion button
-               */}
-            </>
-          </Button>
-
-          <AccordionItemContent p={0} pb={4}>
+            </HStack>
+          </AccordionItemTrigger>
+          <AccordionItemContent p={0}>
             <Flex direction="column" gap={2}>
               {recentChats?.length > 0 &&
                 recentChats.map((chat) => (
@@ -424,18 +423,13 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
             )}
           </AccordionItemContent>
         </AccordionItem>
-
-        <AccordionItem asChild value="shared-chat">
-          <Button p={2} minH={10}>
-            <Heading as="h3" size="xs">
+        <AccordionItem key={2} value="shared-chat" p={2} minH={10}>
+          <AccordionItemTrigger>
+            <Heading as="h3" size="sm">
               Shared Chats ({formatNumber(sharedChats.length || 0)})
             </Heading>
-            {/**
-             * AccordionIcon ml="auto" />
-             * finding replacement for accordion button
-             */}
-          </Button>
-          <AccordionItemContent p={0} pb={4}>
+          </AccordionItemTrigger>
+          <AccordionItemContent>
             {sharedChats?.length ? (
               sharedChats.map((shared) => (
                 <ChatSidebarItem
@@ -458,27 +452,14 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
             )}
           </AccordionItemContent>
         </AccordionItem>
-
-        <AccordionItem asChild value="functions">
-          <Button p={2} minH={10}>
-            <>
-              <Flex justify="space-between" align="center">
-                <Heading as="h3" size="xs">
-                  Functions ({formatNumber(functions.length || 0)})
-                </Heading>
-
-                {functions?.length > 0 && (
-                  <Button ml={1} size="xs" variant="ghost">
-                    <Link to="/f/new">New</Link>
-                  </Button>
-                )}
-              </Flex>
-              {/**
-               * AccordionIcon ml="auto" />
-               * finding replacement for accordion button
-               */}
-            </>
-          </Button>
+        <AccordionItem key={3} value="functions" p={2} minH={10}>
+          <AccordionItemTrigger>
+            <Flex justify="space-between" align="center">
+              <Heading as="h3" size="sm">
+                Functions ({formatNumber(functions.length || 0)})
+              </Heading>
+            </Flex>
+          </AccordionItemTrigger>
           <AccordionItemContent p={0} pb={4}>
             {functions?.length ? (
               functions.map((func) => (

@@ -174,10 +174,13 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
   };
 
   return (
-    <DialogRoot>
-      <DialogTrigger>
-        <Button size={isSmallViewport ? "md" : "xl"}>Open User Settings</Button>
-      </DialogTrigger>
+    <DialogRoot
+      open={isOpen}
+      onOpenChange={onClose}
+      size={isSmallViewport ? "full" : "xl"}
+      finalFocusEl={[finalFocusRef] as any}
+      scrollBehavior={"inside"}
+    >
       <DialogBackdrop />
       <DialogContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem" maxHeight="90vh">
         <Flex alignItems="center" justifyContent="space-between" width="100%">

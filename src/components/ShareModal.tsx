@@ -223,9 +223,9 @@ function ShareModal({ chat, isOpen, onClose }: ShareModalProps) {
   const { user, login } = useUser();
   //closeOnEscape={onClose}
   return (
-    <DialogRoot open={isOpen} size="lg">
+    <DialogRoot open={isOpen} size="lg" onOpenChange={onClose}>
       <DialogBackdrop />
-      <DialogTrigger asChild></DialogTrigger>
+      <DialogTrigger></DialogTrigger>
       <DialogContent>
         <DialogHeader>Sharing</DialogHeader>
         <DialogCloseTrigger />

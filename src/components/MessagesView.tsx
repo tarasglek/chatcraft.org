@@ -144,7 +144,7 @@ function MessagesView({
   }, [settings.currentProvider.apiKey, chatId, onPrompt, isLoading]);
 
   return (
-    <Box minHeight="100%" scrollBehavior="smooth">
+    <Box minHeight="full" scrollBehavior="smooth">
       <>
         {prevMessages}
 

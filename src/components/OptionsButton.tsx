@@ -165,14 +165,14 @@ function OptionsButton({
             size="md"
             fontSize="1.25rem"
             variant="outline"
-            isRound
+            borderRadius={4}
           >
             <PiGearBold />
           </IconButton>
         ) : (
           <>
             <Button disabled={isDisabled} size="sm" variant={variant}>
-              <>Options leftIcon={<PiGearBold />}</>
+              <>{<PiGearBold />} Options</>
             </Button>
           </>
         )

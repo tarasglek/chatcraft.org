@@ -10,6 +10,7 @@ import {
   Text,
   useDisclosure,
   HStack,
+  MenuTrigger,
 } from "@chakra-ui/react";
 import { InputGroup } from "./ui/input-group";
 import { MenuRoot, MenuItem, MenuContent } from "./ui/menu";
@@ -38,7 +39,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
   const { theme, setTheme } = useTheme();
   const bgcolor = theme === "light" ? "white" : "gray.700";
   const borderColor = theme === "light" ? "gray.50" : "gray.600";
-  const textColor = theme === "light" ? "blue.600" : "blue.200";
+  const textColor = theme === "light" ? "blue.400" : "blue.100";
   const linkColor = theme === "light" ? "blue.400" : "blue.100";
   const {
     open: isPrefModalOpen,
@@ -104,7 +105,6 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
         >
           <BiMenu />
         </IconButton>
-
         <Text fontWeight="bold" fontSize="1.125rem" color={textColor}>
           <Link href="/" _hover={{ textDecoration: "none", color: linkColor }}>
             &lt;ChatCraft /&gt;
@@ -114,32 +114,22 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
 
       <Box flex={1} maxW="500px">
         {!isMobile && (
-          <HStack gap="10" width="full">
-            <Form action="/s" method="get">
-              <InputGroup flex="1">
+          <Form action="/s" method="get">
+            <HStack gap="10" width="full">
+              <InputGroup flex="1" endElement={<TbSearch />}>
                 <Input
                   fontSize="1rem"
                   type="search"
                   name="q"
                   defaultValue={searchText}
-                  borderRadius={4}
+                  borderRadius={6}
                   required
+                  width="full"
                   placeholder="Search chat history"
                 />
               </InputGroup>
-              <InputGroup flex="1">
-                <IconButton
-                  size="sm"
-                  height="2rem"
-                  aria-label="Search"
-                  variant="ghost"
-                  type="submit"
-                >
-                  <TbSearch />
-                </IconButton>
-              </InputGroup>
-            </Form>
-          </HStack>
+            </HStack>
+          </Form>
         )}
       </Box>
 
@@ -165,26 +155,22 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
 
         <Box zIndex={2}>
           <MenuRoot>
-            <Button
-              as={IconButton}
-              aria-label="User Settings"
-              title="User Settings"
-              variant="ghost"
-            >
+            <MenuTrigger>
               <>
                 {user ? (
                   <Avatar size="xs" src={user.avatarUrl} title={user.username} />
                 ) : (
                   <Avatar
                     size="xs"
-                    bg="gray.500"
+                    bg="gray.100"
                     borderColor="gray.400"
-                    _dark={{ bg: "gray.600", borderColor: "gray.500" }}
+                    _dark={{ bg: "gray.600", borderColor: "gray.700" }}
                     border={1}
                   />
                 )}
               </>
-            </Button>
+            </MenuTrigger>
+
             <MenuContent>
               <MenuItem asChild value="Settings...">
                 <Text onClick={onPrefModalOpen}>Settings...</Text>
@@ -201,9 +187,9 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
                 </MenuItem>
               ) : (
                 <>
-                  <MenuItem asChild value="githubLogin">
-                    <>
-                      <BsGithub />{" "}
+                  <MenuItem asChild value="githubLogin" alignItems={"center"}>
+                    <HStack>
+                      <BsGithub />
                       <Text
                         ml={2}
                         onClick={() => {
@@ -212,10 +198,10 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
                       >
                         Sign in with GitHub
                       </Text>
-                    </>
+                    </HStack>
                   </MenuItem>
                   <MenuItem asChild value="googleLogin">
-                    <>
+                    <HStack>
                       <FcGoogle />{" "}
                       <Text
                         ml={2}
@@ -225,7 +211,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
                       >
                         Sign in with Google
                       </Text>
-                    </>
+                    </HStack>
                   </MenuItem>
                 </>
               )}

@@ -18,6 +18,7 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
+  HStack,
 } from "@chakra-ui/react";
 import {
   type FormEvent,
@@ -527,8 +528,11 @@ function MessageBase({
                 </Flex>
               )}
               <Menu align="end" isDisabled={isLoading}>
-                <MenuItem onClick={handleCopy} icon={<MdContentCopy />}>
-                  Copy
+                <MenuItem onClick={handleCopy}>
+                  <HStack>
+                    <MdContentCopy />
+                    Copy
+                  </HStack>
                 </MenuItem>
                 <SubMenu label="Export" icon={<TbDownload />}>
                   <MenuItem onClick={handleDownloadMarkdown}>Export as Markdown</MenuItem>
@@ -570,20 +574,29 @@ function MessageBase({
                   </>
                 )}
                 <MenuDivider />
-                <MenuItem onClick={() => handleShareMessage()} icon={<TbShare3 />}>
-                  Share Message
+                <MenuItem onClick={() => handleShareMessage()}>
+                  <HStack>
+                    <TbShare3 />
+                    Share Message
+                  </HStack>
                 </MenuItem>
                 {(!disableEdit || shouldShowDeleteMenu) && <MenuDivider />}
                 {!disableEdit && (
-                  <MenuItem onClick={() => onEditingChange(!editing)} icon={<AiOutlineEdit />}>
-                    {editing ? "Cancel Editing" : "Edit"}
+                  <MenuItem onClick={() => onEditingChange(!editing)}>
+                    <HStack>
+                      <AiOutlineEdit />
+                      {editing ? "Cancel Editing" : "Edit"}
+                    </HStack>
                   </MenuItem>
                 )}
                 {shouldShowDeleteMenu && (
                   <>
                     {onDeleteClick && !onDeleteBeforeClick && !onDeleteAfterClick ? (
-                      <MenuItem onClick={onDeleteClick} color="red.400" icon={<TbTrash />}>
-                        Delete Message
+                      <MenuItem onClick={onDeleteClick} color="red.400">
+                        <HStack color="red.400">
+                          <TbTrash />
+                          Delete Message
+                        </HStack>
                       </MenuItem>
                     ) : (
                       <SubMenu label="Delete" color="red.400" icon={<TbTrash />}>

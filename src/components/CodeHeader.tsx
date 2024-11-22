@@ -33,7 +33,7 @@ function CodeHeader({
   code,
   codeDownloadFilename,
 }: PreHeaderProps) {
-  const { onCopy } = useClipboard(code);
+  const { onCopy } = useClipboard({ value: code });
   const { theme } = useTheme();
 
   const { info, error } = useAlert();

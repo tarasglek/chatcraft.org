@@ -346,14 +346,13 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           onKeyDownCapture={onStartTyping}
         >
           <MenuItemGroup title="Providers">
-            {Object.entries(providersList).map(([providerName, providerObject]) => (
+            {Object.entries(providersList).map(([providerName, providerValue]) => (
               <MenuItem
                 paddingInline={4}
                 key={providerName}
                 onClick={() => {
-                  setSettings({ ...settings, currentProvider: providerObject });
+                  setSettings({ ...settings, currentProvider: providerValue });
                 }}
-                asChild
                 value="provider-name"
               >
                 {settings.currentProvider.name === providerName ? (
@@ -366,29 +365,26 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
             ))}
           </MenuItemGroup>
           <MenuSeparator />
-          <MenuItemGroup title="Models">
-            <HStack>
-              <InputGroup paddingLeft={3} pointerEvents={"none"} flex="1">
-                <TbSearch />
-              </InputGroup>
-              <InputGroup flex="1">
-                <Input
-                  marginInline={2}
-                  marginBottom={1}
-                  ref={inputRef}
-                  type="text"
-                  variant="outline"
-                  placeholder="Search models..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    e.preventDefault();
-                    setSearchQuery(e.target.value);
-                  }}
-                />
-              </InputGroup>
-            </HStack>
+          <MenuItem paddingInline={1} pb={2} value="model-id" title="Model">
+            <InputGroup flex="1" startElement={<TbSearch />}>
+              <Input
+                marginInline={2}
+                marginBottom={1}
+                ref={inputRef}
+                type="text"
+                variant="outline"
+                placeholder="Search models..."
+                value={searchQuery}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setSearchQuery(e.target.value);
+                }}
+              />
+            </InputGroup>
+          </MenuItem>
 
-            <Box maxHeight="40vh" overflowY="auto">
+          <MenuItemGroup title="Models">
+            <Box maxH={"40vh"}>
               {models
                 .filter((model) => isChatModel(model.id))
                 .filter((model) =>
@@ -396,28 +392,19 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                 )
                 .map((model) => (
                   <MenuItem
-                    paddingInline={4}
-                    closeOnSelect={true}
                     key={model.id}
-                    onClick={() => setSettings({ ...settings, model })}
-                    asChild
-                    value="model-id"
+                    value={model.id}
+                    _hover={{
+                      backgroundColor: "gray.100",
+                      cursor: "pointer",
+                    }}
                   >
-                    {settings.model.id === model.id ? (
-                      <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                    ) : (
-                      <span
-                        style={{
-                          paddingLeft: "1.6rem",
-                          display: "inline-block",
-                        }}
-                      />
-                    )}
                     {model.name}
                   </MenuItem>
                 ))}
             </Box>
           </MenuItemGroup>
+          <MenuSeparator />
         </MenuContent>
       </MenuRoot>
     </ButtonGroup>
@@ -426,6 +413,5 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
 
 export default function PromptSendButton(props: PromptSendButtonProps) {
   const isMobile = useMobileBreakpoint();
-
   return isMobile ? <MobilePromptSendButton {...props} /> : <DesktopPromptSendButton {...props} />;
 }

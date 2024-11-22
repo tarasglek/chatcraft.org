@@ -4,7 +4,7 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { Provider } from "./components/ui/provider";
 import router from "./router";
-import theme from "./theme";
+//import theme from "./theme";
 import { SettingsProvider } from "./hooks/use-settings";
 import { UserProvider } from "./hooks/use-user";
 import { ModelsProvider } from "./hooks/use-models";
