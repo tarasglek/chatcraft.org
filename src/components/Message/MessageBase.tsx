@@ -468,20 +468,20 @@ function MessageBase({
             <Flex gap={3}>
               <Box>{avatar}</Box>
               <Flex direction="column" justify="center">
-                <Flex h="100%" align="center" gap={2} alignItems="flex-start">
+                <Flex h="100%" align="center" gap={2}>
                   <Flex
                     direction={{ base: "column", sm: "row" }} // Stack on mobile, row on larger screens
                     align={{ base: "flex-start", sm: "center" }} // Align items properly for both views
                     justify="space-between"
                     w="100%"
-                    gap={2}
+                    gap={{ base: 0, sm: 2 }}
                   >
                     <Heading as="h2" size="xs" minW="fit-content">
                       {heading}
                     </Heading>
                     <Text
                       as="span"
-                      fontSize="sm"
+                      fontSize="xs"
                       minW="fit-content"
                       color="gray.500"
                       _dark={{ color: "gray.300" }}
