@@ -1,5 +1,5 @@
-import { Box, Button, Flex, Grid, GridItem, Text, useDisclosure } from "@chakra-ui/react";
-import { Alert } from "../components/ui/alert";
+import { Box, Button, Flex, Grid, GridItem, Alert, Text, useDisclosure } from "@chakra-ui/react";
+
 import { CloseButton } from "../components/ui/close-button";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CgArrowDownO } from "react-icons/cg";
@@ -359,31 +359,36 @@ function ChatBase({ chat }: ChatBaseProps) {
     // If we are using default provider, show alert banner to notify user
     if (showAlert) {
       return (
-        <Alert
+        <Alert.Root
           status="info"
           variant="solid"
-          css={{ py: 1 }}
-          display="flex"
-          justifyContent="space-between"
-          title='
-          You are using the default free AI Provider, which has limited features.{" "}
-          '
+          css={{ py: 0 }}
+          alignItems={"center"}
+          borderRadius={0}
         >
-          <Box display="flex" alignItems="center">
-            {/* <AlertIcon boxSize="4" /> */}
-            <Text
-              as="span"
-              cursor="pointer"
-              fontSize="sm"
-              textDecoration="underline"
-              onClick={onPrefModalOpen}
-            >
-              Click here
-            </Text>{" "}
-            to add other AI providers.
-          </Box>
-          <CloseButton size="sm" onClick={() => setShowAlert(false)} />
-        </Alert>
+          <Alert.Indicator />
+          You are using the default free AI Provider, which has limited features.{" "}
+          <Text
+            as="span"
+            cursor="pointer"
+            fontSize="sm"
+            textDecoration="underline"
+            onClick={onPrefModalOpen}
+          >
+            Click here
+          </Text>
+          to add other AI providers.
+          <CloseButton
+            size="xs"
+            onClick={() => setShowAlert(false)}
+            color={"white"}
+            ml={"auto"}
+            _hover={{
+              shadow: "md",
+              bg: "transparent",
+            }}
+          />
+        </Alert.Root>
       );
     }
   }, [onPrefModalOpen, showAlert]);
@@ -391,7 +396,7 @@ function ChatBase({ chat }: ChatBaseProps) {
   return (
     <Grid
       w="100%"
-      h="100%"
+      h="100vh"
       gridTemplateRows="min-content 1fr min-content"
       gridTemplateColumns={{
         base: "0 1fr",
@@ -401,7 +406,8 @@ function ChatBase({ chat }: ChatBaseProps) {
       bgGradient="linear(to-b, white, gray.100)"
       _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
     >
-      <GridItem colSpan={2}>
+      {/* Header */}
+      <GridItem colSpan={{ base: 1, sm: 2 }}>
         {/* Default Provider Alert Banner*/}
         {defaultProviderAlert}
         <Header
@@ -411,7 +417,6 @@ function ChatBase({ chat }: ChatBaseProps) {
         />
       </GridItem>
 
-      {/* Sidebar */}
       <GridItem rowSpan={2} overflowY="auto">
         <Sidebar
           selectedChat={chat}
@@ -420,34 +425,28 @@ function ChatBase({ chat }: ChatBaseProps) {
         ></Sidebar>
       </GridItem>
 
-      <GridItem overflowY="auto" ref={messageListRef} pos="relative">
-        <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1}>
-          {
-            /* Show a "Follow Chat" button if the user breaks auto scroll during loading */
-            !!scrollProgress && !shouldAutoScroll && (
-              <Flex
-                w="100%"
-                maxW="900px"
-                mx="auto"
-                justify="center"
-                position="fixed"
-                top="5em"
-                zIndex="500"
-              >
-                <Button onClick={() => handleFollowChatClick()}>
-                  <>
-                    <CgArrowDownO />
-                    <Text ml={2}>Follow Chat</Text>
-                  </>
-                </Button>
-              </Flex>
-            )
-          }
-
+      <GridItem overflowY={"auto"} ref={messageListRef} pos="relative">
+        <Flex direction="column" h="full" maxH="full" maxW="full" mx="auto" px={10}>
+          {!!scrollProgress && !shouldAutoScroll && (
+            <Flex
+              w="100%"
+              maxW="900px"
+              mx="auto"
+              justify="center"
+              position="fixed"
+              top="5em"
+              zIndex="500"
+            >
+              <Button onClick={() => handleFollowChatClick()}>
+                <>
+                  <CgArrowDownO />
+                  <Text ml={2}>Follow Chat</Text>
+                </>
+              </Button>
+            </Flex>
+          )}
           <ChatHeader chat={chat} />
-
           <ScrollRestoration />
-
           <MessagesView
             chat={chat}
             newMessage={streamingMessage}
@@ -460,11 +459,10 @@ function ChatBase({ chat }: ChatBaseProps) {
           />
         </Flex>
       </GridItem>
-
       <GridItem>
-        <Box maxW="900px" mx="auto" h="100%">
+        <Box mt="auto" bg="white" _dark={{ bg: "gray.700" }} w="full" mx="auto" px={4} py={2}>
           {chat.readonly ? (
-            <Flex w="100%" h="45px" justify="end" align="center" p={2}>
+            <Flex w="100%" h="45px" justify="end" align="center">
               <OptionsButton chat={chat} forkUrl={`./fork`} variant="solid" />
             </Flex>
           ) : (

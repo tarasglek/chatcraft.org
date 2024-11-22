@@ -76,7 +76,6 @@ function ChatHeader({ chat }: ChatHeaderProps) {
   return (
     <>
       <Card
-        variant={"elevated"}
         bg="gray.200"
         size="sm"
         border="1px solid"
@@ -86,6 +85,7 @@ function ChatHeader({ chat }: ChatHeaderProps) {
           borderColor: "gray.900",
         }}
         mt={2}
+        flex="1"
       >
         <CardBody pb={0}>
           <Box w="100%">
