@@ -1,6 +1,9 @@
 import { memo } from "react";
 
-import { Avatar, Button, Checkbox, Flex, Text } from "@chakra-ui/react";
+import { Flex, Text } from "@chakra-ui/react";
+import { Avatar } from "../ui/avatar";
+import { Checkbox } from "../ui/checkbox";
+import { Button } from "../ui/button";
 import { LuFunctionSquare } from "react-icons/lu";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
@@ -32,8 +35,13 @@ function FunctionResultMessage(props: FunctionMessageProps) {
 
       <Flex gap={2} align="center">
         <Checkbox
-          isChecked={settings.alwaysSendFunctionResult}
-          onChange={(e) => setSettings({ ...settings, alwaysSendFunctionResult: e.target.checked })}
+          checked={settings.alwaysSendFunctionResult}
+          onChange={(e) =>
+            setSettings({
+              ...settings,
+              alwaysSendFunctionResult: (e.target as HTMLInputElement).checked,
+            })
+          }
           size="sm"
         >
           Always send

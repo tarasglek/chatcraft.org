@@ -8,7 +8,7 @@ type NomnomlPreviewProps = {
 };
 
 const NomnomlPreview = ({ children }: NomnomlPreviewProps) => {
-  const { onCopy, value, setValue } = useClipboard("");
+  const { copy: onCopy, value, setValue } = useClipboard();
   const { info } = useAlert();
   const diagramRef = useRef<HTMLDivElement | null>(null);
   const code = String(children);

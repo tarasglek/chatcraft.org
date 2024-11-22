@@ -1,4 +1,4 @@
-import { createToaster } from "@chakra-ui/react";
+import { toaster } from "../components/ui/toaster";
 import { useCallback } from "react";
 import ProgressToast from "../components/ProgressToast";
 import useMobileBreakpoint from "./use-mobile-breakpoint";
@@ -11,103 +11,66 @@ export type AlertArguments = {
 };
 
 function truncateMessage(message?: string): string {
-  if (!message) {
-    return "";
-  }
-
-  if (message.length > 200) {
-    return `${message.substring(0, 200)}...`;
-  }
-
-  return message;
+  if (!message) return "";
+  return message.length > 200 ? `${message.substring(0, 200)}...` : message;
 }
 
 // Keep track of open error toasts
 const openErrorToasts: string[] = [];
 
 export function useAlert() {
-  const toast = createToaster({
-    placement: "bottom-end",
-    overlap: true,
-    gap: 24,
-  });
   const isMobile = useMobileBreakpoint();
 
-  const info = useCallback(
-    ({ id, title, message }: AlertArguments) =>
-      toast({
-        id,
-        title,
-        description: truncateMessage(message),
-        colorScheme: "blue",
-        status: "success",
-        position: "top",
-        isClosable: true,
-        duration: 3000,
-      }),
-    [toast]
-  );
+  const info = useCallback(({ id, title, message }: AlertArguments) => {
+    toaster.create({
+      id,
+      description: truncateMessage(message),
+      title,
+      type: "info",
+    });
+  }, []);
 
   const error = useCallback(
     ({ id, title, message }: AlertArguments) => {
       // Close any open error toasts
-      openErrorToasts.forEach((toastId) => toast.close(toastId));
+      openErrorToasts.forEach((toastId) => toaster.dismiss(toastId));
 
-      const newToastId = toast({
+      const newToastId: string | undefined = toaster.create({
         id,
         title,
         description: truncateMessage(message),
-        status: "error",
-        position: "top",
-        isClosable: true,
+        type: "error",
         // Don't auto-close errors
-        duration: null,
-        containerStyle: {
-          width: isMobile ? "90vw" : "initial",
-        },
-        onCloseComplete() {
-          // Remove the toast if from tracking list
-          openErrorToasts.splice(
-            openErrorToasts.findIndex((id) => id === newToastId),
-            1
-          );
+        action: {
+          label: "Close",
+          onClick: () => toaster.dismiss(newToastId),
         },
       });
 
       // Keep track of open error toasts
-      openErrorToasts.push(newToastId);
+      openErrorToasts.push(newToastId ? newToastId : "");
       return newToastId;
     },
-    [toast, isMobile]
+    [isMobile]
   );
 
-  const success = useCallback(
-    ({ id, title, message }: AlertArguments) =>
-      toast({
-        id,
-        title,
-        description: truncateMessage(message),
-        status: "success",
-        position: "top",
-        isClosable: true,
-        duration: 2000,
-      }),
-    [toast]
-  );
+  const success = useCallback(({ id, title, message }: AlertArguments) => {
+    toaster.create({
+      id,
+      description: truncateMessage(message),
+      title,
+      type: "success",
+    });
+  }, []);
 
-  const warning = useCallback(
-    ({ id, title, message }: AlertArguments) =>
-      toast({
-        id,
-        title,
-        description: truncateMessage(message),
-        status: "warning",
-        position: "top",
-        isClosable: true,
-        duration: 3000,
-      }),
-    [toast]
-  );
+  const warning = useCallback(({ id, title, message }: AlertArguments) => {
+    toaster.create({
+      id,
+      description: truncateMessage(message),
+      title,
+      type: "warning",
+    });
+  }, []);
 
   type ProgressAlertArguements = Omit<AlertArguments, "id"> & {
     id?: string;
@@ -130,6 +93,7 @@ export function useAlert() {
       handleClose,
     }: ProgressAlertArguements) => {
       const toastOptions: any = {
+        id,
         status: "loading",
         position: "top",
         isClosable: isClosable,
@@ -147,32 +111,25 @@ export function useAlert() {
               progressPercentage={progressPercentage}
               showPercentage={showPercentage}
               onClose={isClosable ? closeHandler : undefined}
-            ></ProgressToast>
+            />
           );
         },
       };
 
-      if (id) {
-        if (toast.isActive(id)) {
-          toast.update(id, toastOptions);
-        }
-      } else if (!updateOnly) {
-        return toast({
-          ...toastOptions,
+      if (id && updateOnly) {
+        toaster.update(toastOptions, {
+          id: id,
         });
+      } else {
+        toaster.create(toastOptions);
       }
     },
-    [toast]
+    []
   );
 
-  const closeToast = useCallback(
-    (toastId?: string) => {
-      if (toastId) {
-        toast.close(toastId);
-      }
-    },
-    [toast]
-  );
+  const closeToast = useCallback((toastId?: string) => {
+    if (toastId) toaster.dismiss(toastId);
+  }, []);
 
   return {
     info,

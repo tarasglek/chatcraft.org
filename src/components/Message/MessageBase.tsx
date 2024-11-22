@@ -117,8 +117,8 @@ function MessageBase({
   const [, copyToClipboard] = useCopyToClipboard();
   const { id, date, text, imageUrls } = message;
   const { models } = useModels();
-  const { onCopy } = useClipboard(text);
-  const { info, error, progress, closeToast } = useAlert();
+  const { copy: onCopy } = useClipboard();
+  const { info, error, progress } = useAlert();
   const [isHovering, setIsHovering] = useState(false);
   const { settings } = useSettings();
   const [tokens, setTokens] = useState<number | null>(null);
@@ -249,30 +249,29 @@ function MessageBase({
     if (messageContent.current) {
       const text = messageContent.current.textContent;
       if (text) {
-        let cancelled = false;
+        const cancelled = false;
 
-        const handleClose = () => {
-          limit.clearQueue();
-          cancelled = true;
-        };
-
-        const alertId = progress({
-          title: "Downloading...",
-          message: "Please wait while we prepare your audio download.",
-          progressPercentage: 0,
-          handleClose,
-        });
+        // const handleClose = () => {
+        //limit.clearQueue();
+        // cancelled = true;
+        // };
 
         // Limit the number of concurrent tasks
         const pLimit = (await import("p-limit")).default;
         const limit = pLimit(8); // Adjust the concurrency limit as needed
 
+        // const alertId = progress({
+        //  title: "Downloading...",
+        //  message: "Please wait while we prepare your audio download.",
+        //  progressPercentage: 0,
+        //  handleClose,
+        // });
         try {
           const textChunks = getSentenceChunksFrom(text, 500);
           const chunksToBeProcessed = textChunks.length;
           const audioClips: Blob[] = new Array<Blob>(chunksToBeProcessed);
 
-          let chunksProcessed = 0;
+          // let chunksProcessed = 0;
 
           const { backOff } = await import("exponential-backoff");
 
@@ -288,20 +287,12 @@ function MessageBase({
 
                   const audioClip = await fetch(audioClipUrl).then((r) => r.blob());
                   audioClips[index] = audioClip;
-
-                  ++chunksProcessed;
-                  const processedPercentage = Math.floor(
-                    (chunksProcessed * 100) / chunksToBeProcessed
-                  );
-                  progress({
-                    id: alertId,
-                    title: "Downloading...",
-                    message: "Please wait while we prepare your audio download.",
-                    progressPercentage: processedPercentage,
-                    updateOnly: true,
-                    handleClose,
-                  });
+                  //++chunksProcessed;
+                  // const processedPercentage = Math.floor(
+                  //  (chunksProcessed * 100) / chunksToBeProcessed
+                  // );
                 },
+
                 {
                   startingDelay: 3 * 1000,
                 }
@@ -321,8 +312,6 @@ function MessageBase({
               audioClip.type
             );
 
-            closeToast(alertId);
-
             info({
               title: "Downloaded",
               message: "Message was downloaded as Audio",
@@ -331,7 +320,6 @@ function MessageBase({
         } catch (err: any) {
           console.error(err);
 
-          closeToast(alertId);
           error({
             title: "Error while downloading audio",
             message: err.message,
@@ -341,10 +329,9 @@ function MessageBase({
       }
     }
   }, [
-    closeToast,
     error,
     info,
-    progress,
+    // progress,
     settings.currentProvider.name,
     settings.textToSpeech.voice,
     textToSpeech,

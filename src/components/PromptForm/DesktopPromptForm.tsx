@@ -271,13 +271,13 @@ function DesktopPromptForm({
   const dragDropBorderColor = theme === "dark" ? "blue.200" : "blue.600";
 
   return (
-    <Flex dir="column" w="100%" h="auto" bottom={"auto"}>
-      <CardRoot flex={1} my={3} mx={1} overflow={"hidden"}>
+    <Flex>
+      <CardRoot width={"full"} mx={"auto"}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
             h="100%"
-            px={6}
             py={4}
+            px={4}
             border={"4px solid"}
             borderColor={isDragActive ? dragDropBorderColor : "transparent"}
             borderRadius={".375rem"}
@@ -343,6 +343,7 @@ function DesktopPromptForm({
                   ))}
                 </Flex>
               </Flex>
+
               {inputType === "audio" ? (
                 <Box py={2} px={1} flex={1}>
                   <AudioStatus
@@ -352,7 +353,7 @@ function DesktopPromptForm({
                   />
                 </Box>
               ) : (
-                <HStack gap="10" width={"full"}>
+                <HStack gap="2" width={"full"}>
                   <AutoResizingTextarea
                     ref={inputPromptRef}
                     variant="flushed"

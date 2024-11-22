@@ -152,7 +152,8 @@ function Instructions(props: MessageBaseProps) {
               <SelectRoot
                 collection={providerListsFramework}
                 onValueChange={({ value }) => {
-                  setSelectedProvider(providersList[value]);
+                  const [newValue] = value;
+                  setSelectedProvider(providersList[newValue]);
                   setIsInvalid(false);
                 }}
               >

@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, type ReactNode } from "react";
-import { CardRoot, CardBody, IconButton, useClipboard } from "@chakra-ui/react";
+import { Card, IconButton, useClipboard } from "@chakra-ui/react";
 import mermaid from "mermaid";
 import { TbCopy } from "react-icons/tb";
 import { nanoid } from "nanoid";
@@ -10,7 +10,7 @@ type MermaidPreviewProps = {
 };
 
 const MermaidPreview = ({ children }: MermaidPreviewProps) => {
-  const { onCopy, value, setValue } = useClipboard("");
+  const { copy: onCopy, value, setValue } = useClipboard();
   const { info } = useAlert();
   const diagramRef = useRef<HTMLDivElement | null>(null);
   const code = String(children);
@@ -46,7 +46,7 @@ const MermaidPreview = ({ children }: MermaidPreviewProps) => {
   }, [diagramRef, code, setValue]);
 
   return (
-    <CardRoot variant="outline" position="relative" mt={2} minHeight="12em" resize="vertical">
+    <Card.Root variant="outline" position="relative" mt={2} minHeight="12em" resize="vertical">
       <IconButton
         position="absolute"
         right={1}
@@ -62,10 +62,10 @@ const MermaidPreview = ({ children }: MermaidPreviewProps) => {
       >
         <TbCopy />
       </IconButton>
-      <CardBody p={2}>
+      <Card.Body p={2}>
         <div ref={diagramRef} />
-      </CardBody>
-    </CardRoot>
+      </Card.Body>
+    </Card.Root>
   );
 };
 

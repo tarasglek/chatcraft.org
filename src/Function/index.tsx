@@ -1,21 +1,17 @@
 import {
   Box,
   Card,
-  CardBody,
-  CardFooter,
   Flex,
   Grid,
   GridItem,
   Heading,
   IconButton,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuItem,
-  MenuList,
   Text,
   useDisclosure,
+  Separator,
 } from "@chakra-ui/react";
+import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "../components/ui/menu";
+import { Button } from "../components/ui/button";
 import { MdContentCopy } from "react-icons/md";
 import { TbDownload, TbTrash } from "react-icons/tb";
 import debounce from "lodash-es/debounce";
@@ -41,8 +37,8 @@ export default function Function() {
 
   const funcId = useLoaderData() as string;
   const { settings, setSettings } = useSettings();
-  const { isOpen: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
-    defaultIsOpen: settings.sidebarVisible,
+  const { open: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
+    defaultOpen: settings.sidebarVisible,
   });
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
 
@@ -134,8 +130,91 @@ export default function Function() {
       <GridItem overflowY="auto" pos="relative">
         <Flex direction="column" h="100%" maxH="100%" maxW="900px" mx="auto" px={1} gap={4}>
           <>
-            <Card
-              variant="filled"
+            <Card.Root mt={4}>
+              <Card.Body>
+                <Heading as="h2" fontSize="lg">
+                  <Flex align="center" justifyContent="space-between">
+                    <Flex align="center" gap={2}>
+                      <LuFunctionSquare />
+                      <Text fontSize="md" fontWeight="bold" lineClamp={1}>
+                        {title}
+                      </Text>
+                    </Flex>
+                    {/* table go here */}
+                    <MenuRoot>
+                      <MenuTrigger
+                        _hover={{ bg: "blue.100" }}
+                        css={{
+                          borderRadius: "10%",
+                          padding: "0.5rem",
+                          cursor: "pointer",
+                          transition: "0.2s",
+                        }}
+                      >
+                        <TbDots />
+                      </MenuTrigger>
+                      <MenuContent bg="gray.100" color="white">
+                        {" "}
+                        <MenuItem
+                          value="copy"
+                          _hover={{ bg: "blue.500", color: "white" }}
+                          _active={{ bg: "blue.600" }}
+                          onClick={() => handleCopyFunctionClick()}
+                        >
+                          <MdContentCopy />
+                          Copy
+                        </MenuItem>
+                        <MenuItem value="download" onClick={() => handleDownloadFunctionClick()}>
+                          <TbDownload />
+                          Download
+                        </MenuItem>
+                        <Separator />
+                        <MenuItem
+                          value="delete"
+                          color="red.400"
+                          onClick={() => handleDeleteFunctionClick()}
+                        >
+                          <TbTrash />
+                          Delete
+                        </MenuItem>
+                      </MenuContent>
+                    </MenuRoot>
+                  </Flex>
+                </Heading>
+              </Card.Body>
+              <Card.Footer color="gray.500">
+                <Text fontSize="sm" ml={6}>
+                  {formatDate(new Date())}
+                </Text>
+              </Card.Footer>
+            </Card.Root>
+            <Box>
+              <Card.Root>
+                <Card.Body borderRadius={6}>
+                  <FunctionEditor
+                    initialValue={func.code}
+                    onChange={handleSave}
+                    filename={filename}
+                  />
+                </Card.Body>
+              </Card.Root>
+            </Box>
+          </>
+        </Flex>
+      </GridItem>
+    </Grid>
+  );
+}
+
+/*
+
+
+*/
+
+/**
+ *
+ *        <CardRoot
+              variant="elevated"
               bg="gray.200"
               size="sm"
               border="1px solid"
@@ -151,42 +230,12 @@ export default function Function() {
                   <Flex align="center" justifyContent="space-between">
                     <Flex align="center" gap={2}>
                       <LuFunctionSquare />
-                      <Text fontSize="md" fontWeight="bold" noOfLines={1}>
+                      <Text fontSize="md" fontWeight="bold" lineClamp={1}>
                         {title}
                       </Text>
                     </Flex>
 
-                    <Menu>
-                      <MenuButton
-                        as={IconButton}
-                        aria-label="Chat Menu"
-                        icon={<TbDots />}
-                        variant="ghost"
-                      />
-                      <MenuList>
-                        <MenuItem
-                          icon={<MdContentCopy />}
-                          onClick={() => handleCopyFunctionClick()}
-                        >
-                          Copy
-                        </MenuItem>
-                        <MenuItem
-                          icon={<TbDownload />}
-                          onClick={() => handleDownloadFunctionClick()}
-                        >
-                          Download
-                        </MenuItem>
 
-                        <MenuDivider />
-                        <MenuItem
-                          icon={<TbTrash />}
-                          color="red.400"
-                          onClick={() => handleDeleteFunctionClick()}
-                        >
-                          Delete
-                        </MenuItem>
-                      </MenuList>
-                    </Menu>
                   </Flex>
                 </Heading>
               </CardBody>
@@ -195,10 +244,10 @@ export default function Function() {
                   {formatDate(new Date())}
                 </Text>
               </CardFooter>
-            </Card>
+            </CardRoot>
 
             <Box flex={1} mb={4}>
-              <Card>
+              <CardRoot>
                 <CardBody>
                   <FunctionEditor
                     initialValue={func.code}
@@ -206,11 +255,8 @@ export default function Function() {
                     filename={filename}
                   />
                 </CardBody>
-              </Card>
+              </CardRoot>
             </Box>
-          </>
-        </Flex>
-      </GridItem>
-    </Grid>
-  );
-}
+ *
+ *
+ */

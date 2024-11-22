@@ -91,7 +91,6 @@ function ModelsSettings({ isOpen, modelRef }: ModelsSettingsProps) {
     settings.currentProvider
   );
 
-  console.log(models);
   // Create List of collection to use in Chakra 3.0 select
   const modelFrameWork = createListCollection({
     items: Array.isArray(models) ? models : [],

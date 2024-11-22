@@ -1,4 +1,5 @@
-import { Box, useColorMode } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
+import { useTheme } from "next-themes";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import CodeHeader from "../components/CodeHeader";
@@ -11,7 +12,8 @@ type FunctionEditorProps = {
 };
 
 export default function FunctionEditor({ initialValue, onChange, filename }: FunctionEditorProps) {
-  const { colorMode } = useColorMode();
+  //const { colorMode } = useColorMode();
+  const { theme: colorMode } = useTheme();
   // Maintain our own version of the code, so typing doesn't depend on db syncing
   const [value, setValue] = useState(initialValue);
 
@@ -43,7 +45,7 @@ export default function FunctionEditor({ initialValue, onChange, filename }: Fun
         <CodeMirror
           value={value}
           extensions={[javascript({ typescript: true })]}
-          theme={colorMode}
+          theme={colorMode === "dark" ? "dark" : "light"}
           height="100%"
           style={{
             height: "100%",

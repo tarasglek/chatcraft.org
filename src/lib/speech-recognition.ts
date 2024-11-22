@@ -133,7 +133,9 @@ export class SpeechRecognition {
   }
 
   async transcribe(audio: File) {
-    const transcriptions = new OpenAI.Audio.Transcriptions(this._openai);
+    const transcriptions = new OpenAI.Audio.Transcriptions(this._openai as any);
+    // overload type for silence the type error
+    // using Type OpenAI still not supported Transcriptions even we predefined it
     const transcription = await transcriptions.create({
       file: audio,
       model: this._sttModel,

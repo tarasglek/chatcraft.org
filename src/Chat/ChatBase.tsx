@@ -460,7 +460,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         </Flex>
       </GridItem>
       <GridItem>
-        <Box mt="auto" bg="white" _dark={{ bg: "gray.700" }} w="full" mx="auto" px={4} py={2}>
+        <Box mt="auto" bg="white" _dark={{ bg: "gray.700" }} w="full" mx="auto" px={8} py={2}>
           {chat.readonly ? (
             <Flex w="100%" h="45px" justify="end" align="center">
               <OptionsButton chat={chat} forkUrl={`./fork`} variant="solid" />

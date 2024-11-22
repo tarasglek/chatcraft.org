@@ -10,9 +10,10 @@ import {
   //useColorModeValue,
   IconButton,
   Input,
-  Container,
   HStack,
 } from "@chakra-ui/react";
+
+import { toaster } from "../ui/toaster";
 import {
   AccordionItem,
   AccordionItemContent,
@@ -395,7 +396,18 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
                 Saved Chats ({formatNumber(chatsTotal || 0)})
               </Heading>
               <Link to="/c/new">
-                <Button as={Link} ml={1} size="xs" variant="ghost">
+                <Button
+                  as={Link}
+                  ml={1}
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => {
+                    toaster.create({
+                      description: "New chat created",
+                      type: "success",
+                    });
+                  }}
+                >
                   New
                 </Button>
               </Link>

@@ -1,16 +1,8 @@
 import { memo, useCallback, useMemo, type ReactNode, useState } from "react";
-import {
-  Flex,
-  IconButton,
-  useClipboard,
-  Text,
-  Box,
-  Button as MenuButton,
-  Spinner,
-} from "@chakra-ui/react";
-import { MenuItem, MenuItemGroup, MenuRoot } from "./ui/menu";
+import { Button } from "./ui/button";
+import { Flex, IconButton, useClipboard, Text, Box, Spinner, MenuContent } from "@chakra-ui/react";
+import { MenuItem, MenuRoot, MenuTrigger } from "./ui/menu";
 import { TbCopy, TbDownload, TbRun, TbExternalLink } from "react-icons/tb";
-
 import { download, formatAsCodeBlock } from "../lib/utils";
 import { useAlert } from "../hooks/use-alert";
 import { useTheme } from "next-themes";
@@ -33,7 +25,7 @@ function CodeHeader({
   code,
   codeDownloadFilename,
 }: PreHeaderProps) {
-  const { onCopy } = useClipboard({ value: code });
+  const { copy: onCopy } = useClipboard({ value: code });
   const { theme } = useTheme();
 
   const { info, error } = useAlert();
@@ -200,27 +192,30 @@ function CodeHeader({
                 strategy: "fixed",
               }}
             >
-              <MenuButton
-                as={IconButton}
-                size="sm"
-                aria-label="Run code"
-                title="Run code"
-                color={iconButtonColor}
-                variant="ghost"
-                disabled={isLoading}
-                onClick={shouldShowRunMenuList ? undefined : handleRunBrowser}
-              >
-                {isRunning ? <Spinner size="xs" /> : <TbRun />}
-              </MenuButton>
+              <MenuTrigger>
+                <Button
+                  as={IconButton}
+                  size="sm"
+                  aria-label="Run code"
+                  title="Run code"
+                  color={iconButtonColor}
+                  variant="ghost"
+                  disabled={isLoading}
+                  onClick={shouldShowRunMenuList ? undefined : handleRunBrowser}
+                >
+                  {isRunning ? <Spinner size="xs" /> : <TbRun />}
+                </Button>
+              </MenuTrigger>
+
               {shouldShowRunMenuList && (
-                <MenuItemGroup>
+                <MenuContent>
                   <MenuItem asChild value="run-in-browser">
                     <Text onClick={handleRunBrowser}>Run in Browser</Text>
                   </MenuItem>
                   <MenuItem asChild value="run-on-server">
                     <Text onClick={handleRunRemote}>Run on Server</Text>
                   </MenuItem>
-                </MenuItemGroup>
+                </MenuContent>
               )}
             </MenuRoot>
           )}

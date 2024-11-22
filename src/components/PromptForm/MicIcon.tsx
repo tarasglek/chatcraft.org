@@ -72,7 +72,8 @@ export default function MicIcon({
       speechRecognitionRef.current = null;
       return;
     }
-
+    console.log(`Speech recognition initialized with model: ${sttModel}`);
+    console.log(`isRecording: ${isRecording}`);
     // We have mic permission and user is still holding the mic icon. Start recording
     try {
       await speechRecognitionRef.current.start();

@@ -154,39 +154,38 @@ export const updateImageUrls = (
  */
 import type { AlertArguments } from "../hooks/use-alert";
 export const utilizeAlert = async () => {
-  const { createStandaloneToast } = await import("@chakra-ui/react");
-  const { toast } = createStandaloneToast();
+  const { toaster } = await import("../components/ui/toaster");
 
   const info = ({ id, title, message }: AlertArguments) => {
-    toast({
+    toaster.create({
       id,
       title,
       description: message,
-      colorScheme: "blue",
-      status: "info",
-      position: "top",
-      isClosable: true,
+      //colorScheme: "blue",
+      type: "info",
+      //position: "top",
+      //isClosable: true,
       duration: 3000,
     });
   };
 
   const loading = ({ id, title, message }: AlertArguments) => {
     const fallbackId = new Date().toISOString();
-    toast({
+    toaster.create({
       id: id ?? fallbackId,
       title,
       description: message,
-      colorScheme: "blue",
-      status: "loading",
-      position: "top",
-      isClosable: true,
-      duration: null,
+      //colorScheme: "blue",
+      type: "loading",
+      //position: "top",
+      //isClosable: true,
+      //duration: null,
     });
     return id ?? fallbackId;
   };
 
   const closeLoading = (id: string) => {
-    toast.close(id);
+    toaster.dismiss(id);
   };
 
   return {

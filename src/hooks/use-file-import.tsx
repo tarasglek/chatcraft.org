@@ -176,7 +176,7 @@ type UseFileImportOptions = {
 };
 
 export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
-  const { info, error, progress, closeToast } = useAlert();
+  const { info, error, progress } = useAlert();
   const settings = getSettings();
 
   const importFile = useCallback(
@@ -206,11 +206,11 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
         return;
       }
 
-      let processed = 0;
-      const progressId = progress({
-        title: `Processing file${files.length > 1 ? "s" : ""}`,
-        progressPercentage: 0,
-      });
+      //  const processed = 0;
+      //const progressId = progress({
+      // title: `Processing file${files.length > 1 ? "s" : ""}`,
+      //  progressPercentage: 0,
+      //  });
 
       try {
         for (const file of files) {
@@ -227,19 +227,20 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
               error({ title: "Unable to import file", message: err.message });
             }
           } finally {
-            progress({
-              id: progressId,
-              title: `Processing file${files.length > 1 ? "s" : ""}`,
-              progressPercentage: Math.floor((++processed * 100) / files.length),
-              updateOnly: true,
-            });
+            // progress({
+            //    id: progressId,
+            //   title: `Processing file${files.length > 1 ? "s" : ""}`,
+            //   progressPercentage: Math.floor((++processed * 100) / files.length),
+            //   updateOnly: true,
+            //  });
           }
         }
       } finally {
-        closeToast(progressId);
+        // closeToast(progressId);
       }
     },
-    [closeToast, info, error, progress, importFile, settings]
+    [info, error, progress, importFile, settings]
+    //closeToast,
   );
 
   return importFiles;

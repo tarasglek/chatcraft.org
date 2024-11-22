@@ -1,6 +1,5 @@
 import { memo } from "react";
-import { Avatar } from "@chakra-ui/react";
-
+import { Avatar } from "../../ui/avatar";
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
 import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
 import Instructions from "./Instructions";
@@ -17,7 +16,7 @@ function AppMessage(props: AppMessageProps) {
       size="sm"
       src="/apple-touch-icon.png"
       title="ChatCraft"
-      showBorder
+      border={5}
       borderColor="gray.100"
       _dark={{ borderColor: "gray.600" }}
     />
