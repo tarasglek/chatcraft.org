@@ -271,7 +271,7 @@ function DesktopPromptForm({
   const dragDropBorderColor = theme === "dark" ? "blue.200" : "blue.600";
 
   return (
-    <Flex>
+    <Flex ml={"10"}>
       <CardRoot width={"full"} mx={"auto"}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
@@ -362,8 +362,14 @@ function DesktopPromptForm({
                     onChange={(e) => {
                       setIsPromptEmpty(e.target.value.trim().length === 0);
                     }}
+                    padding={4}
+                    borderRadius={"md"}
+                    colorPalette={"blue"}
+                    shadow={"xl"}
+                    shadowColor={"blue"}
+                    focusRingOffset={"blue"}
                     bg="white"
-                    _dark={{ bg: "gray.700" }}
+                    _dark={{ bg: "gray.900", color: "white" }}
                     placeholder={
                       !isLoading && !isRecording && !isTranscribing
                         ? "Ask a question or use /help to learn more"

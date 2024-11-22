@@ -425,7 +425,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         ></Sidebar>
       </GridItem>
 
-      <GridItem overflowY={"auto"} ref={messageListRef} pos="relative">
+      <GridItem overflowY={"auto"} ref={messageListRef} pos="relative" mb={"6"}>
         <Flex direction="column" h="full" maxH="full" maxW="full" mx="auto" px={10}>
           {!!scrollProgress && !shouldAutoScroll && (
             <Flex
@@ -459,23 +459,22 @@ function ChatBase({ chat }: ChatBaseProps) {
           />
         </Flex>
       </GridItem>
-      <GridItem>
-        <Box mt="auto" bg="white" _dark={{ bg: "gray.700" }} w="full" mx="auto" px={8} py={2}>
-          {chat.readonly ? (
-            <Flex w="100%" h="45px" justify="end" align="center">
-              <OptionsButton chat={chat} forkUrl={`./fork`} variant="solid" />
-            </Flex>
-          ) : (
-            <PromptForm
-              chat={chat}
-              forkUrl={`./fork`}
-              onSendClick={onPrompt}
-              isLoading={loading}
-              previousMessage={chat.messages().at(-1)?.text}
-              inputPromptRef={inputPromptRef}
-            />
-          )}
-        </Box>
+
+      <GridItem mt="auto" colorPalette={"white"} w="full" maxW={"100vw"} mb={"4"} pr={"14"}>
+        {chat.readonly ? (
+          <Flex w="100%" h="45px" justify="end" align="center">
+            <OptionsButton chat={chat} forkUrl={`./fork`} variant="solid" />
+          </Flex>
+        ) : (
+          <PromptForm
+            chat={chat}
+            forkUrl={`./fork`}
+            onSendClick={onPrompt}
+            isLoading={loading}
+            previousMessage={chat.messages().at(-1)?.text}
+            inputPromptRef={inputPromptRef}
+          />
+        )}
       </GridItem>
 
       <PreferencesModal

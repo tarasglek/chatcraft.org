@@ -5,7 +5,6 @@ import {
   IconButton,
   Input,
   Link,
-  Button,
   Separator as Divider,
   Text,
   useDisclosure,
@@ -38,9 +37,10 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
   //const { toggleColorMode } = useColorMode();
   const { theme, setTheme } = useTheme();
   const bgcolor = theme === "light" ? "white" : "gray.700";
+  const colorPalette = theme === "light" ? "blue" : "white";
   const borderColor = theme === "light" ? "gray.50" : "gray.600";
-  const textColor = theme === "light" ? "blue.400" : "blue.100";
-  const linkColor = theme === "light" ? "blue.400" : "blue.100";
+  const textColor = theme === "light" ? "colorPalette.400" : "colorPalette.100";
+  const linkColor = theme === "light" ? "colorPalette.400" : "colorPalette.60";
   const {
     open: isPrefModalOpen,
     onOpen: onPrefModalOpen,
@@ -106,7 +106,14 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
           <BiMenu />
         </IconButton>
         <Text fontWeight="bold" fontSize="1.125rem" color={textColor}>
-          <Link href="/" _hover={{ textDecoration: "none", color: linkColor }}>
+          <Link
+            href="/"
+            _hover={{ textDecoration: "none", color: linkColor }}
+            colorPalette={colorPalette}
+            color={{
+              base: textColor,
+            }}
+          >
             &lt;ChatCraft /&gt;
           </Link>
         </Text>

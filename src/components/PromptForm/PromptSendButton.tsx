@@ -296,6 +296,10 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
           loading={isLoading}
           loadingText="Sending"
           borderRadius={"xl"}
+          colorPalette={"blue"}
+          bg={{
+            base: "colorPalette.500",
+          }}
           borderRightRadius={"none"}
         >
           <>Ask {settings.model.prettyModel}</>
@@ -353,6 +357,10 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
               aria-label="Choose Model"
               title="Choose Model"
               borderLeftRadius={"none"}
+              colorPalette={"blue"}
+              bg={{
+                base: "colorPalette.500",
+              }}
             >
               <TbChevronUp />
             </Button>
