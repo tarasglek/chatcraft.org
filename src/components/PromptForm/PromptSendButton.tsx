@@ -18,8 +18,6 @@ type PromptSendButtonProps = {
 function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
-  const { clearAudioQueue, isAudioQueueEmpty } = useAudioPlayer();
-  const { isTextToSpeechSupported } = useTextToSpeech();
   return (
     <ButtonGroup variant="outline" isAttached>
       <IconButton
@@ -33,48 +31,6 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
         isLoading={isLoading}
         icon={<TbSend />}
       />
-      {isTextToSpeechSupported && isAudioQueueEmpty ? (
-        <Tooltip
-          label={
-            settings.textToSpeech.announceMessages
-              ? "Text-to-Speech Enabled"
-              : "Text-to-Speech Disabled"
-          }
-        >
-          <IconButton
-            type="button"
-            size="md"
-            variant="solid"
-            aria-label={
-              settings.textToSpeech.announceMessages
-                ? "Text-to-Speech Enabled"
-                : "Text-to-Speech Disabled"
-            }
-            icon={
-              settings.textToSpeech.announceMessages ? (
-                <MdVolumeUp size={25} />
-              ) : (
-                <MdVolumeOff size={25} />
-              )
-            }
-            onClick={() => {
-              if (settings.textToSpeech.announceMessages) {
-                // Flush any remaining audio clips being announced
-                clearAudioQueue();
-              }
-              setSettings({
-                ...settings,
-                textToSpeech: {
-                  ...settings.textToSpeech,
-                  announceMessages: !settings.textToSpeech.announceMessages,
-                },
-              });
-            }}
-          />
-        </Tooltip>
-      ) : isTextToSpeechSupported ? (
-        <InterruptSpeechButton variant={"dancingBars"} size={"lg"} clearOnly={!isLoading} />
-      ) : null}
       <Menu
         position="anchor"
         align="center"
