@@ -1,4 +1,12 @@
-import { Box, Group as ButtonGroup, Input, IconButton, Container, HStack } from "@chakra-ui/react";
+import {
+  Box,
+  Group as ButtonGroup,
+  Input,
+  IconButton,
+  Container,
+  HStack,
+  Separator,
+} from "@chakra-ui/react";
 import {
   MenuContent,
   MenuItem,
@@ -280,146 +288,157 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
   };
 
   return (
-    <ButtonGroup attached>
-      <Button type="submit" size="sm" loading={isLoading} loadingText="Sending">
-        <>Ask {settings.model.prettyModel}</>
-      </Button>
-      {isTextToSpeechSupported && isAudioQueueEmpty ? (
-        <Tooltip
-          content={
-            settings.textToSpeech.announceMessages
-              ? "Text-to-Speech Enabled"
-              : "Text-to-Speech Disabled"
-          }
+    <ButtonGroup attached colorPalette={"blue"}>
+      <HStack gap={0}>
+        <Button
+          type="submit"
+          size="sm"
+          loading={isLoading}
+          loadingText="Sending"
+          borderRadius={"xl"}
+          borderRightRadius={"none"}
         >
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => {
-              if (settings.textToSpeech.announceMessages) {
-                // Flush any remaining audio clips being announced
-                clearAudioQueue();
-              }
-              setSettings({
-                ...settings,
-                textToSpeech: {
-                  ...settings.textToSpeech,
-                  announceMessages: !settings.textToSpeech.announceMessages,
-                },
-              });
-            }}
+          <>Ask {settings.model.prettyModel}</>
+        </Button>
+        {isTextToSpeechSupported && isAudioQueueEmpty ? (
+          <Tooltip
+            content={
+              settings.textToSpeech.announceMessages
+                ? "Text-to-Speech Enabled"
+                : "Text-to-Speech Disabled"
+            }
           >
-            <>
-              {settings.textToSpeech.announceMessages ? (
-                <MdVolumeUp size={18} />
-              ) : (
-                <MdVolumeOff size={18} />
-              )}
-            </>
-          </Button>
-        </Tooltip>
-      ) : isTextToSpeechSupported ? (
-        <InterruptSpeechButton variant={"dancingBars"} size={"sm"} clearOnly={!isLoading} />
-      ) : null}
-      <MenuRoot
-        positioning={{
-          placement: "top-end",
-          strategy: "fixed",
-        }}
-        closeOnSelect={false}
-      >
-        <MenuTrigger>
-          <Button
-            as={IconButton}
-            size="sm"
-            fontSize="1.25rem"
-            aria-label="Choose Model"
-            title="Choose Model"
-          >
-            <TbChevronUp />
-          </Button>
-        </MenuTrigger>
-        <MenuContent
-          maxHeight={"80vh"}
-          overflowY={"auto"}
-          zIndex={1}
-          onKeyDownCapture={onStartTyping}
-        >
-          <MenuItemGroup title="Providers">
-            {Object.entries(providersList).map(([providerName, providerValue]) => (
-              <MenuItem
-                paddingInline={4}
-                key={providerName}
-                onClick={() => {
-                  setSettings({ ...settings, currentProvider: providerValue });
-                }}
-                value="provider-name"
-              >
-                {settings.currentProvider.name === providerName ? (
-                  <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                if (settings.textToSpeech.announceMessages) {
+                  // Flush any remaining audio clips being announced
+                  clearAudioQueue();
+                }
+                setSettings({
+                  ...settings,
+                  textToSpeech: {
+                    ...settings.textToSpeech,
+                    announceMessages: !settings.textToSpeech.announceMessages,
+                  },
+                });
+              }}
+            >
+              <>
+                {settings.textToSpeech.announceMessages ? (
+                  <MdVolumeUp size={18} />
                 ) : (
-                  <span style={{ width: "1.6rem", display: "inline-block" }} />
+                  <MdVolumeOff size={18} />
                 )}
-                {providerName}
-              </MenuItem>
-            ))}
-          </MenuItemGroup>
-          <MenuSeparator />
-          <MenuItem paddingInline={1} pb={2} value="model-id" title="Model">
-            <InputGroup flex="1" startElement={<TbSearch />}>
-              <Input
-                marginInline={2}
-                marginBottom={1}
-                ref={inputRef}
-                type="text"
-                variant="outline"
-                placeholder="Search models..."
-                value={searchQuery}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setSearchQuery(e.target.value);
-                }}
-              />
-            </InputGroup>
-          </MenuItem>
+              </>
+            </Button>
+          </Tooltip>
+        ) : isTextToSpeechSupported ? (
+          <InterruptSpeechButton variant={"dancingBars"} size={"sm"} clearOnly={!isLoading} />
+        ) : null}
+        <Separator orientation={"vertical"} width={0} size={"lg"} />
+        <MenuRoot
+          positioning={{
+            placement: "top-end",
+            strategy: "fixed",
+          }}
+          closeOnSelect={true}
+        >
+          <MenuTrigger>
+            <Button
+              as={IconButton}
+              size="sm"
+              fontSize="1.25rem"
+              aria-label="Choose Model"
+              title="Choose Model"
+              borderLeftRadius={"none"}
+            >
+              <TbChevronUp />
+            </Button>
+          </MenuTrigger>
+          <MenuContent
+            maxHeight={"80vh"}
+            overflowY={"auto"}
+            zIndex={1}
+            onKeyDownCapture={onStartTyping}
+          >
+            <MenuItemGroup title="Providers">
+              {Object.entries(providersList).map(([providerName, providerValue]) => (
+                <MenuItem
+                  paddingInline={4}
+                  key={providerName}
+                  onClick={() => {
+                    setSettings({ ...settings, currentProvider: providerValue });
+                  }}
+                  value="provider-name"
+                >
+                  {settings.currentProvider.name === providerName ? (
+                    <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                  ) : (
+                    <span style={{ width: "1.6rem", display: "inline-block" }} />
+                  )}
+                  {providerName}
+                </MenuItem>
+              ))}
+            </MenuItemGroup>
+            <MenuSeparator />
+            <MenuItem paddingInline={1} pb={2} value="model-id" title="Model">
+              <InputGroup flex="1" startElement={<TbSearch />}>
+                <Input
+                  marginInline={2}
+                  marginBottom={1}
+                  ref={inputRef}
+                  type="text"
+                  variant="outline"
+                  placeholder="Search models..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    setSearchQuery(e.target.value);
+                  }}
+                />
+              </InputGroup>
+            </MenuItem>
 
-          <MenuItemGroup title="Models">
-            <Box maxH={"40vh"}>
-              {models
-                .filter((model) => isChatModel(model.id))
-                .filter((model) =>
-                  model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-                )
-                .map((model) => (
-                  <MenuItem
-                    key={model.id}
-                    value={model.id}
-                    _hover={{
-                      backgroundColor: "gray.100",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setSettings({ ...settings, model })}
-                  >
-                    <HStack>
-                      {settings.model.id === model.id ? (
-                        <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-                      ) : (
-                        <span
-                          style={{
-                            paddingLeft: "1.6rem",
-                            display: "inline-block",
-                          }}
-                        />
-                      )}
-                      {model.name}
-                    </HStack>
-                  </MenuItem>
-                ))}
-            </Box>
-          </MenuItemGroup>
-          <MenuSeparator />
-        </MenuContent>
-      </MenuRoot>
+            <MenuItemGroup title="Models">
+              <Box maxH={"40vh"}>
+                {models
+                  .filter((model) => isChatModel(model.id))
+                  .filter((model) =>
+                    model.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+                  )
+                  .map((model) => (
+                    <MenuItem
+                      key={model.id}
+                      value={model.id}
+                      _hover={{
+                        backgroundColor: "gray.100",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setSettings({ ...settings, model })}
+                    >
+                      <HStack>
+                        {settings.model.id === model.id ? (
+                          <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                        ) : (
+                          <span
+                            style={{
+                              paddingLeft: "1.6rem",
+                              display: "inline-block",
+                            }}
+                          />
+                        )}
+                        {model.name}
+                      </HStack>
+                    </MenuItem>
+                  ))}
+              </Box>
+            </MenuItemGroup>
+            <MenuSeparator />
+          </MenuContent>
+        </MenuRoot>
+      </HStack>
     </ButtonGroup>
   );
 }

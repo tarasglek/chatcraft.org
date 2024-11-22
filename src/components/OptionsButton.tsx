@@ -1,5 +1,6 @@
-import { IconButton, Input, useDisclosure } from "@chakra-ui/react";
+import { IconButton, Input, useDisclosure, Separator, VStack, HStack } from "@chakra-ui/react";
 import { Button } from "./ui/button";
+import { MenuContent, MenuItem, MenuRoot, MenuTrigger, MenuTriggerItem } from "./ui/menu";
 import { useFetcher } from "react-router-dom";
 import { TbShare3, TbTrash, TbCopy, TbDownload } from "react-icons/tb";
 import { PiGearBold } from "react-icons/pi";
@@ -13,17 +14,20 @@ import { useAlert } from "../hooks/use-alert";
 import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
 import { download } from "../lib/utils";
-import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
+//import { Menu } from "@szhsin/react-menu";
+//import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
 
 function ShareMenuItem({ chat }: { chat: ChatCraftChat }) {
   const { open, onOpen, onClose } = useDisclosure();
 
   return (
     <>
-      <MenuItem icon={<TbShare3 />} onClick={onOpen}>
-        Share
+      <MenuItem onClick={onOpen} value="share-menu" marginTop={"auto"} bottom={0} my={"auto"}>
+        <HStack justifyContent={"space-between"}>
+          <TbShare3 /> Share Chat
+        </HStack>
+        <ShareModal chat={chat} isOpen={open} onClose={onClose} />
       </MenuItem>
-      <ShareModal chat={chat} isOpen={open} onClose={onClose} />
     </>
   );
 }
@@ -56,6 +60,7 @@ function OptionsButton({
       if (!onAttachFiles || !event.target.files?.length) {
         return;
       }
+      console.log("event.target.files", event.target.files);
       await onAttachFiles(Array.from(event.target.files)).catch((err) =>
         error({ title: "Unable to Attach Files", message: err.message })
       );
@@ -155,92 +160,111 @@ function OptionsButton({
   }, [info, settings, chat]);
 
   return (
-    <Menu
-      isDisabled={isDisabled}
-      menuButton={
-        iconOnly ? (
-          <IconButton
-            aria-label="Options menu"
-            disabled={isDisabled}
-            size="md"
-            fontSize="1.25rem"
-            variant="outline"
-            borderRadius={4}
-          >
-            <PiGearBold />
-          </IconButton>
-        ) : (
-          <>
-            <Button disabled={isDisabled} size="sm" variant={variant}>
-              <>{<PiGearBold />} Options</>
-            </Button>
-          </>
-        )
-      }
-    >
-      <MenuItemLink to="/new">Clear</MenuItemLink>
-      <MenuItemLink to="/new" target="_blank">
-        New Window
-      </MenuItemLink>
-
-      {!!forkUrl && (
-        <MenuItemLink to={forkUrl} target="_blank">
-          Duplicate...
-        </MenuItemLink>
-      )}
-
-      <MenuDivider />
-      <SubMenu label="Copy" icon={<TbCopy />}>
-        <MenuItem isDisabled={!chat} onClick={() => handleCopyAsMarkdown()}>
-          Copy as Markdown
-        </MenuItem>
-        <MenuItem isDisabled={!chat} onClick={() => handleCopyAsJson()}>
-          Copy as JSON
-        </MenuItem>
-        <MenuItem isDisabled={!chat} onClick={() => handleCopyAsYaml()}>
-          Copy as YAML
-        </MenuItem>
-      </SubMenu>
-      <SubMenu label="Export" icon={<TbDownload />}>
-        <MenuItem isDisabled={!chat} onClick={handleDownloadMarkdown}>
-          Export as Markdown
-        </MenuItem>
-        <MenuItem isDisabled={!chat} onClick={handleDownloadJson}>
-          Export as JSON
-        </MenuItem>
-        <MenuItem isDisabled={!chat} onClick={handleDownloadYaml}>
-          Export as YAML
-        </MenuItem>
-      </SubMenu>
-      {!!chat && <ShareMenuItem chat={chat} />}
-      <MenuDivider />
-      {!!onAttachFiles && (
-        <>
-          <Input
-            multiple
-            type="file"
-            ref={fileInputRef}
-            hidden
-            onChange={handleFileChange}
-            accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
-          />
-          <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
-            Attach Files...
+    <VStack>
+      <MenuRoot>
+        <MenuTrigger>
+          {iconOnly ? (
+            <IconButton
+              aria-label="Options menu"
+              disabled={!isDisabled}
+              size="md"
+              fontSize="1.25rem"
+              variant="outline"
+              borderRadius={4}
+            >
+              <PiGearBold />
+            </IconButton>
+          ) : (
+            <>
+              <Button disabled={isDisabled} size="sm" variant={variant}>
+                <>{<PiGearBold />} Options</>
+              </Button>
+            </>
+          )}
+        </MenuTrigger>
+        <MenuContent textDecoration={"none"} width={"150px"} spaceY={1}>
+          <MenuItem value="clear">
+            <a href="/new" rel="noreferrer">
+              Clear
+            </a>
           </MenuItem>
-          <MenuDivider />
-        </>
-      )}
-      {!chat?.readonly && (
-        <MenuItem
-          color="red.400"
-          icon={<TbTrash />}
-          isDisabled={!chat}
-          onClick={() => handleDeleteClick()}
-        >
-          Delete Chat
-        </MenuItem>
-      )}
-    </Menu>
+          <MenuItem onClick={() => console.log("New Window")} value="new-window">
+            <a href="/new" target="_blank" rel="noreferrer">
+              New Window
+            </a>
+          </MenuItem>
+          {!!forkUrl && <MenuItem value="duplicate">Duplicate...</MenuItem>}
+          <Separator />
+          <MenuRoot positioning={{ placement: "right-start", gutter: 2 }}>
+            <MenuTriggerItem value="open-recent" justifyContent={"space-between"}>
+              <TbCopy /> Copy
+            </MenuTriggerItem>
+            <MenuContent>
+              <MenuItem onClick={handleCopyAsMarkdown} value="copy-markdown" disabled={!chat}>
+                Copy as Markdown
+              </MenuItem>
+              <MenuItem onClick={handleCopyAsJson} value="copy-json" disabled={!chat}>
+                Copy as JSON
+              </MenuItem>
+              <MenuItem onClick={handleCopyAsYaml} value="copy-yaml" disabled={!chat}>
+                Copy as YAML
+              </MenuItem>
+            </MenuContent>
+          </MenuRoot>
+          <MenuRoot positioning={{ placement: "right-start", gutter: 2 }}>
+            <MenuTriggerItem value="export" justifyContent={"space-between"}>
+              <TbDownload /> Export
+            </MenuTriggerItem>
+            <MenuContent>
+              <MenuItem onClick={handleDownloadMarkdown} value="export-markdown" disabled={!chat}>
+                Export as Markdown
+              </MenuItem>
+              <MenuItem onClick={handleDownloadJson} value="export-json" disabled={!chat}>
+                Export as JSON
+              </MenuItem>
+              <MenuItem onClick={handleDownloadYaml} value="export-yaml" disabled={!chat}>
+                Export as YAML
+              </MenuItem>
+            </MenuContent>
+          </MenuRoot>
+          <Separator />
+
+          {!!chat && <ShareMenuItem chat={chat} />}
+
+          <Separator />
+          {!!onAttachFiles && (
+            <>
+              <Input
+                multiple
+                type="file"
+                ref={fileInputRef}
+                hidden
+                onChange={handleFileChange}
+                accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
+              />
+              <MenuItem onClick={handleAttachFiles} value="attached_file">
+                <HStack>
+                  <BsPaperclip /> Attach Files...
+                </HStack>
+              </MenuItem>
+              <Separator />
+            </>
+          )}
+          {!chat?.readonly && (
+            <MenuItem
+              color="red.400"
+              disabled={!chat}
+              onClick={() => handleDeleteClick()}
+              value="delete-chat"
+            >
+              <HStack>
+                <TbTrash /> Delete Chat
+              </HStack>
+            </MenuItem>
+          )}
+        </MenuContent>
+      </MenuRoot>
+    </VStack>
   );
 }
 

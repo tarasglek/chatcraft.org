@@ -181,6 +181,7 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
 
   const importFile = useCallback(
     (file: File, contents: string | JinaAiReaderResponse) => {
+      console.log("Importing file", file, contents);
       if (file.type.startsWith("image/")) {
         const base64 = contents as string;
         onImageImport(base64);
@@ -242,6 +243,5 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
     [info, error, progress, importFile, settings]
     //closeToast,
   );
-
   return importFiles;
 }

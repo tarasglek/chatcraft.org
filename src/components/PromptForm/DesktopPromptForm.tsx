@@ -343,17 +343,16 @@ function DesktopPromptForm({
                   ))}
                 </Flex>
               </Flex>
-
-              {inputType === "audio" ? (
-                <Box py={2} px={1} flex={1}>
-                  <AudioStatus
-                    isRecording={isRecording}
-                    isTranscribing={isTranscribing}
-                    recordingSeconds={recordingSeconds}
-                  />
-                </Box>
-              ) : (
-                <HStack gap="2" width={"full"}>
+              <HStack gap="2" width={"full"}>
+                {inputType === "audio" ? (
+                  <Box py={2} px={1} flex={1}>
+                    <AudioStatus
+                      isRecording={isRecording}
+                      isTranscribing={isTranscribing}
+                      recordingSeconds={recordingSeconds}
+                    />
+                  </Box>
+                ) : (
                   <AutoResizingTextarea
                     ref={inputPromptRef}
                     variant="flushed"
@@ -372,15 +371,15 @@ function DesktopPromptForm({
                     }
                     flex={1} // Ensure textarea takes full width
                   />
-                  <MicIcon
-                    isDisabled={isLoading}
-                    onRecording={handleRecording}
-                    onTranscribing={handleTranscribing}
-                    onTranscriptionAvailable={handleTranscriptionAvailable}
-                    onCancel={handleRecordingCancel}
-                  />
-                </HStack>
-              )}
+                )}
+                <MicIcon
+                  isDisabled={isLoading}
+                  onRecording={handleRecording}
+                  onTranscribing={handleTranscribing}
+                  onTranscriptionAvailable={handleTranscriptionAvailable}
+                  onCancel={handleRecordingCancel}
+                />
+              </HStack>
 
               <Flex w="100%" gap={1} justify={"space-between"} align="center">
                 <OptionsButton
