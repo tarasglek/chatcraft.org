@@ -1,4 +1,12 @@
-import { Box, Flex, Separator as Divider, List, useMediaQuery, Button } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Separator as Divider,
+  List,
+  useMediaQuery,
+  Button,
+  HStack,
+} from "@chakra-ui/react";
 
 import { AccordionItemTrigger, AccordionRoot } from "../ui/accordion";
 
@@ -14,7 +22,7 @@ import {
 
 import { useTheme } from "next-themes";
 
-import { RefObject, useState } from "react";
+import { RefObject, useRef, useState } from "react";
 import ModelsSettings from "./ModelsSettings";
 import WebHandlersConfig from "./WebHandlersConfig";
 import DefaultSystemPrompt from "./DefaultSystemPrompt";
@@ -35,7 +43,7 @@ interface Setting {
   icon: IconType;
 }
 
-function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalProps) {
+function PreferencesModal({ isOpen, onClose }: PreferencesModalProps) {
   const { theme } = useTheme();
   const bgDark = theme === "dark" ? "gray.800" : "white";
   const bgBlue = theme === "dark" ? "blue.200" : "blue.500";
@@ -50,6 +58,8 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     { name: "Web Handlers", icon: MdSignalCellularAlt },
     { name: "Customization", icon: MdOutlineDashboardCustomize },
   ];
+
+  const modelRef = useRef<HTMLDivElement>(null);
 
   const handleSettingClick = (setting: Setting) => {
     setSelectedSetting(setting);
@@ -135,37 +145,44 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
   const DesktopSettingsList = () => {
     return (
-      <Box p={4} pr="0" fontSize="m" minWidth="14rem">
+      <Box p={4} fontStyle="normal" minWidth="16rem">
         <List.Root
           css={{
             spaceX: 1,
             spaceY: 1,
           }}
+          variant={"plain"}
         >
           {settings.map((setting, index) => (
-            <List.Item key={index} cursor="pointer" p={0.75}>
-              <Button
-                borderRadius="md"
-                fontWeight="400"
-                width="100%"
-                justifyContent="left"
-                _hover={getHoverStyle(setting)}
-                color={getColorStyle(setting)}
-                bg={getBackgroundStyle(setting)}
-                onClick={() => handleSettingClick(setting)}
-                _active={{
-                  bg: bgDark,
-                }}
-              >
-                <>
-                  <Flex alignItems="center">
-                    <Box mr={4}>
-                      <setting.icon />
-                    </Box>
+            <List.Item
+              key={index}
+              cursor="pointer"
+              p={0.5}
+              alignContent={"start"}
+              alignItems={"start"}
+            >
+              <HStack width="100%">
+                <Button
+                  borderRadius="md"
+                  fontWeight="400"
+                  width="100%"
+                  alignContent={"start"}
+                  alignItems={"center"}
+                  justifyContent="flex-start"
+                  _hover={getHoverStyle(setting)}
+                  color={getColorStyle(setting)}
+                  bg={getBackgroundStyle(setting)}
+                  onClick={() => handleSettingClick(setting)}
+                  _active={{
+                    bg: bgDark,
+                  }}
+                >
+                  <HStack>
+                    <setting.icon />
                     {setting.name}
-                  </Flex>
-                </>
-              </Button>
+                  </HStack>
+                </Button>
+              </HStack>
             </List.Item>
           ))}
         </List.Root>
@@ -175,33 +192,68 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
 
   return (
     <DialogRoot
+      lazyMount
       open={isOpen}
       onOpenChange={onClose}
       size={isSmallViewport ? "full" : "xl"}
-      finalFocusEl={[finalFocusRef] as any}
       scrollBehavior={"inside"}
     >
       <DialogBackdrop />
-      <DialogContent top={isSmallViewport ? "0" : "-2rem"} maxWidth="54rem" maxHeight="90vh">
+      <DialogContent
+        top={isSmallViewport ? "0" : "-2rem"}
+        maxWidth={"8xl"}
+        mx={10}
+        maxHeight="auto"
+        ref={modelRef}
+      >
         <Flex alignItems="center" justifyContent="space-between" width="100%">
           <DialogHeader whiteSpace="nowrap">User Settings</DialogHeader>
-          <DialogCloseTrigger position="relative" top={0} right={0} mx="1rem" onClick={onClose} />
         </Flex>
         {!isSmallViewport && <Divider />}
-        <DialogBody p={0} display="flex" h="95vh">
-          <Flex flexDirection={isSmallViewport ? "column" : "row"} w="100%">
+        <DialogBody alignItems={"center"}>
+          <HStack width="100%" alignItems="flex-start" spaceX={0}>
             {isSmallViewport ? <MobileSettingsAccordion /> : <DesktopSettingsList />}
-            <Box overflowY="auto" px={8} py={3}>
-              {selectedSetting.name === "Models" && <ModelsSettings isOpen={isOpen} />}
+            <Box overflowY="auto" px={8} py={3} flex="1">
+              {selectedSetting.name === "Models" && (
+                <ModelsSettings isOpen={isOpen} modelRef={modelRef} />
+              )}
               {selectedSetting.name === "System Prompt" && <DefaultSystemPrompt />}
-              {selectedSetting.name === "Web Handlers" && <WebHandlersConfig />}
-              {selectedSetting.name === "Customization" && <CustomizationSettings />}
             </Box>
-          </Flex>
+          </HStack>
         </DialogBody>
+        <DialogCloseTrigger onClick={onClose} />
       </DialogContent>
     </DialogRoot>
   );
+}
+
+{
+  /*
+
+    {selectedSetting.name === "Models" && <ModelsSettings isOpen={isOpen} />}
+              {selectedSetting.name === "System Prompt" && <DefaultSystemPrompt />}
+              {selectedSetting.name === "Web Handlers" && <WebHandlersConfig />}
+              {selectedSetting.name === "Customization" && <CustomizationSettings />}
+
+<DialogRoot size="cover" placement="center" motionPreset="slide-in-bottom">
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          Open Dialog
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Dialog Title</DialogTitle>
+          <DialogCloseTrigger />
+        </DialogHeader>
+        <DialogBody>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt
+          ut labore et dolore magna aliqua.
+        </DialogBody>
+      </DialogContent>
+    </DialogRoot>
+
+  */
 }
 
 export default PreferencesModal;

@@ -394,9 +394,11 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
               <Heading as="h3" size="sm">
                 Saved Chats ({formatNumber(chatsTotal || 0)})
               </Heading>
-              <Button as={Link} ml={1} size="xs" variant="ghost">
-                <Link to="/c/new">New</Link>
-              </Button>
+              <Link to="/c/new">
+                <Button as={Link} ml={1} size="xs" variant="ghost">
+                  New
+                </Button>
+              </Link>
             </HStack>
           </AccordionItemTrigger>
           <AccordionItemContent p={0}>

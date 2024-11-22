@@ -1,25 +1,33 @@
 import {
   Box,
-  Button,
-  Checkbox,
+  Group as ButtonGroup,
   Flex,
+  HStack,
   IconButton,
   Input,
   Link,
-  Select,
-  Slider,
-  SliderThumb,
-  SliderTrack,
   Spinner,
+  Stack,
   Table,
-  TableBody as Tbody,
-  TableCell as Td,
-  Text,
-  TableHeader as Th,
   Tooltip,
-  TableRow as Tr,
   VStack,
+  Badge,
+  Text,
+  createListCollection,
 } from "@chakra-ui/react";
+import {
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "../ui/select";
+import { Slider } from "../ui/slider";
+import { Field } from "../ui/field";
+import { Button } from "../ui/button";
+import { PasswordInput, PasswordStrengthMeter } from "../ui/password-input";
+import { Checkbox } from "../ui/checkbox";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { InputGroup } from "../ui/input-group";
 
@@ -40,7 +48,7 @@ import { OpenAiProvider } from "../../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../../lib/providers/OpenRouterProvider";
 import { TextToSpeechVoices } from "../../lib/settings";
 import { download } from "../../lib/utils";
-import PasswordInput from "../PasswordInput";
+//import PasswordInput from "../PasswordInput";
 import { useTextToSpeech } from "../../hooks/use-text-to-speech";
 
 interface ModelsSettingsProps {
@@ -58,9 +66,10 @@ async function isStoragePersisted() {
 
 interface ModelsSettingsProps {
   isOpen: boolean;
+  modelRef: React.RefObject<HTMLDivElement>;
 }
 
-function ModelsSettings(isOpen: ModelsSettingsProps) {
+function ModelsSettings({ isOpen, modelRef }: ModelsSettingsProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
 
@@ -81,6 +90,14 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
   const [focusedProvider, setFocusedProvider] = useState<ChatCraftProvider | null>(
     settings.currentProvider
   );
+
+  console.log(models);
+  // Create List of collection to use in Chakra 3.0 select
+  const modelFrameWork = createListCollection({
+    items: Array.isArray(models) ? models : [],
+  });
+
+  //const modelsList = createListCollection(models as any);
 
   useEffect(() => {
     isStoragePersisted()
@@ -179,54 +196,53 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
   }, [addToAudioQueue, clearAudioQueue, error, settings.textToSpeech, textToSpeech]);
 
   const handleApiKeyChange = async (provider: ChatCraftProvider, apiKey: string) => {
-    const newProvider = providerFromUrl(
-      provider.apiUrl,
-      apiKey,
-      provider.name,
-      provider.defaultModel
-    );
+    if (!provider) {
+      console.error("Error trying to change api key, missing provider");
+      return;
+    }
+    provider.apiKey = apiKey;
 
-    setFocusedProvider(newProvider);
+    //console.log("New provider", provider);
+
+    setFocusedProvider(provider);
 
     const newProviders = { ...settings.providers };
 
     // Update api key in table
-    tableProviders[newProvider.name] = newProvider;
+    tableProviders[provider.name] = provider;
 
     // Api key validation
     try {
       setIsApiKeyInvalid(false);
       setIsValidating(true);
 
-      const result = await newProvider.validateApiKey(newProvider.apiKey!);
+      const result = await provider.validateApiKey(provider.apiKey);
 
       setIsApiKeyInvalid(!result);
       setIsValidating(false);
-
-      // Valid key, update in settings.providers
       if (result) {
         // Valid key, update in settings.providers
-        newProviders[newProvider.name] = newProvider;
+        newProviders[provider.name] = provider;
       } else {
         // Invalid key, remove from settings.providers
-        delete newProviders[newProvider.name];
+        delete newProviders[provider.name];
       }
     } catch {
       setIsApiKeyInvalid(true);
       setIsValidating(false);
 
       // Invalid key, remove from settings.providers
-      delete newProviders[newProvider.name];
+      delete newProviders[provider.name];
     }
 
     setSettings({
       ...settings,
-      ...(newProvider.name === settings.currentProvider.name && { currentProvider: newProvider }),
+      ...(provider.name === settings.currentProvider.name && { currentProvider: provider }),
       providers: newProviders,
     });
 
-    if (newProvider.name === selectedProvider?.name) {
-      setSelectedProvider(newProvider);
+    if (provider.name === selectedProvider?.name) {
+      setSelectedProvider(provider);
     }
 
     setApiKeySaved(true);
@@ -499,269 +515,233 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
       {!tableProviders ? (
         <Box>Loading providers...</Box>
       ) : (
-        <VStack gap={4}>
-          <FormControl>
-            <FormLabel>
-              Providers
-              <ButtonGroup ml={3}>
-                <Button size="xs" onClick={handleAddProvider}>
-                  Add
-                </Button>
-                <Button
-                  size="xs"
-                  colorScheme="red"
-                  onClick={handleDeleteCustomProvider}
-                  disabled={!selectedProvider}
-                >
-                  Delete
-                </Button>
-                <Button
-                  size="xs"
-                  colorScheme="blue"
-                  onClick={handleSetCurrentProvider}
-                  disabled={!selectedProvider}
-                  variant="outline"
-                >
-                  Set as Current Provider
-                </Button>
-              </ButtonGroup>
-              <FormHelperText fontSize="xs">
-                Advanced option for use with other OpenAI-compatible APIs
-              </FormHelperText>
-            </FormLabel>
-            <Table
-              size="sm"
-              variant="simple"
-              sx={{
-                "th:nth-of-type(2), td:nth-of-type(2), th:nth-of-type(3), td:nth-of-type(3)": {
-                  width: "30%",
-                },
-                "th, td": {
-                  pl: "0.4rem",
-                  pr: "0.4rem",
-                },
-                "th:nth-of-type(1), td:nth-of-type(1)": {
-                  width: "5%",
-                },
-                "th:nth-of-type(4), td:nth-of-type()": {
-                  width: "12%",
-                },
-                "th:last-child, td:last-child": {
-                  width: "11%",
-                },
-              }}
+        <VStack gap={4} width={"full"}>
+          <Stack w="full" gap="2">
+            <Field
+              orientation={"vertical"}
+              direction={"column"}
+              display={"flex"}
+              helperText="Advanced option for use with other OpenAI-compatible APIs"
             >
-              <Thead>
-                <Tr>
-                  <Th></Th>
-                  <Th>Name</Th>
-                  <Th>API URL</Th>
-                  <Th>API Key</Th>
-                  <Th sx={{ textAlign: "center" }}>In Use</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {newCustomProvider && (
-                  <Tr>
-                    <Td>
-                      <IconButton
-                        aria-label="Cancel adding new provider"
-                        icon={<MdCancel />}
-                        size={"xs"}
-                        onClick={() => setNewCustomProvider(null)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            setNewCustomProvider(null);
-                          }
-                        }}
-                        variant="outline"
-                        tabIndex={0}
-                        color={"grey"}
-                        border={"none"}
-                        p={0}
-                        fontSize={16}
-                        borderRadius={"50%"}
-                        _hover={{
-                          borderColor: "gray.400",
-                          color: "gray.400",
-                        }}
-                        _focus={{
-                          _focus: {
-                            outline: "none",
-                            boxShadow: "0 0 0 3px rgba(66, 153, 225, 0.6)",
-                            borderColor: "blue.300",
-                          },
-                        }}
-                        _active={{
-                          backgroundColor: "none",
-                        }}
-                      />
-                    </Td>
-                    <Td>
-                      <FormControl isInvalid={!newCustomProvider.name}>
-                        <InputGroup size="sm">
-                          <Input
-                            pl="0.4rem"
-                            fontSize="xs"
-                            placeholder="Name"
-                            value={newCustomProvider.name}
-                            onChange={(e) => {
-                              setNewCustomProvider(
-                                new CustomProvider(
-                                  e.target.value,
-                                  newCustomProvider.apiUrl,
-                                  "",
-                                  newCustomProvider.apiKey
-                                )
-                              );
+              <VStack>
+                <ButtonGroup>
+                  <Text textStyle={"lg"}>Providers</Text>
+                  <Button
+                    size="xs"
+                    px={4}
+                    h={6}
+                    borderRadius={8}
+                    colorPalette={"blue"}
+                    onClick={handleAddProvider}
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    size="xs"
+                    px={4}
+                    h={6}
+                    colorPalette={"red"}
+                    onClick={handleDeleteCustomProvider}
+                    disabled={!selectedProvider}
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    size="xs"
+                    colorPalette={"cyan"}
+                    onClick={handleSetCurrentProvider}
+                    disabled={!selectedProvider}
+                    variant="outline"
+                  >
+                    Set as Current Provider
+                  </Button>
+                </ButtonGroup>
+              </VStack>
+            </Field>
+            <Box width={"100%"} mx="auto">
+              <Field helperText="Your API Key(s) are stored in browser storage">
+                <Table.Root size={"sm"} width="100%">
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.ColumnHeader></Table.ColumnHeader>
+                      <Table.ColumnHeader>Name</Table.ColumnHeader>
+                      <Table.ColumnHeader>API URL</Table.ColumnHeader>
+                      <Table.ColumnHeader>API KEY</Table.ColumnHeader>
+                      <Table.ColumnHeader textAlign={"center"}>In Use</Table.ColumnHeader>
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
+                    {newCustomProvider && (
+                      <Table.Row>
+                        <Table.Cell>
+                          <IconButton
+                            aria-label="Cancel adding new provider"
+                            size={"xs"}
+                            onClick={() => setNewCustomProvider(null)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                setNewCustomProvider(null);
+                              }
                             }}
-                          />
-                        </InputGroup>
-                        <FormErrorMessage fontSize="xs">Name is required.</FormErrorMessage>
-                      </FormControl>
-                    </Td>
-                    <Td>
-                      <FormControl isInvalid={!newCustomProvider.apiUrl}>
-                        <InputGroup size="sm">
-                          <Input
-                            pl="0.4rem"
-                            fontSize="xs"
-                            placeholder="API URL"
-                            value={newCustomProvider.apiUrl}
-                            onChange={(e) => {
-                              setNewCustomProvider(
-                                new CustomProvider(
-                                  newCustomProvider.name,
-                                  e.target.value,
-                                  "",
-                                  newCustomProvider.apiKey
-                                )
-                              );
+                            variant="outline"
+                            tabIndex={0}
+                            color={"grey"}
+                            border={"none"}
+                            p={0}
+                            fontSize={16}
+                            borderRadius={"50%"}
+                            _hover={{
+                              borderColor: "gray.400",
+                              color: "gray.400",
                             }}
-                          />
-                        </InputGroup>
-                        <FormErrorMessage fontSize="xs">API URL is required.</FormErrorMessage>
-                      </FormControl>
-                    </Td>
-                    <Td>
-                      <FormControl isInvalid={!newCustomProvider.apiKey}>
-                        <PasswordInput
-                          size="sm"
-                          buttonSize="xs"
-                          paddingRight={"2rem"}
-                          paddingLeft={"0.5rem"}
-                          fontSize="xs"
-                          value={newCustomProvider.apiKey || ""}
-                          onChange={(e) => {
-                            setNewCustomProvider(
-                              new CustomProvider(
-                                newCustomProvider.name,
-                                newCustomProvider.apiUrl,
-                                "",
-                                e.target.value
-                              )
-                            );
-                          }}
-                        />
-                        <FormErrorMessage fontSize="xs">API Key is required.</FormErrorMessage>
-                      </FormControl>
-                    </Td>
-                    <Td sx={{ textAlign: "center" }}>
-                      <Flex alignItems="center" justifyContent="center">
-                        <Button
-                          size="xs"
-                          colorScheme="blue"
-                          onClick={handleSaveNewCustomProvider}
-                          isLoading={
-                            focusedProvider?.name === newCustomProvider.name && isValidating
-                          }
-                        >
-                          Save
-                        </Button>
-                      </Flex>
-                    </Td>
-                  </Tr>
-                )}
-                {[...Object.values(tableProviders)] // copy of the array
-                  .reverse() // reverse the array so new provider is at top
-                  .map((provider) => {
-                    return (
-                      <Tr key={provider.name}>
-                        <Td>
-                          <Flex width={6} justifyContent={"center"}>
-                            <Checkbox
-                              onChange={() => handleSelectedProviderChange(provider)}
-                              isChecked={selectedProvider?.name === provider.name}
-                            />
-                          </Flex>
-                        </Td>
-                        <Td fontSize="xs">{provider.name}</Td>
-                        <Td fontSize="xs">
-                          <Tooltip
-                            label={`Click to copy: ${provider.apiUrl}`}
-                            placement="top-start"
-                            sx={{ fontSize: "0.65rem" }}
+                            _focus={{
+                              _focus: {
+                                outline: "none",
+                                boxShadow: "0 0 0 3px rgba(66, 153, 225, 0.6)",
+                                borderColor: "blue.300",
+                              },
+                            }}
+                            _active={{
+                              backgroundColor: "none",
+                            }}
                           >
-                            <Text
-                              cursor="pointer"
-                              onClick={() => {
-                                navigator.clipboard.writeText(provider.apiUrl);
-                                success({
-                                  title: "Copied",
-                                  message: "API URL copied to clipboard",
-                                });
-                              }}
-                            >
-                              {extractDomain(provider.apiUrl)}
-                            </Text>
-                          </Tooltip>
-                        </Td>
-                        <Td>
-                          {provider.name === "Free AI Models" ? (
-                            <InputGroup size="sm">
-                              <Input disabled fontSize="xs" value="N/A" />
+                            <MdCancel />
+                          </IconButton>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Field invalid={!newCustomProvider.name} errorText="Name is required.">
+                            <InputGroup>
+                              <Input
+                                pl="0.4rem"
+                                fontSize="xs"
+                                placeholder="Name"
+                                value={newCustomProvider.name}
+                                onChange={(e) => {
+                                  setNewCustomProvider(
+                                    new CustomProvider(
+                                      e.target.value,
+                                      newCustomProvider.apiUrl,
+                                      "",
+                                      newCustomProvider.apiKey
+                                    )
+                                  );
+                                }}
+                              />
                             </InputGroup>
-                          ) : (
-                            <FormControl
-                              isInvalid={
+                          </Field>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Field
+                            invalid={!newCustomProvider.apiUrl}
+                            errorText="API URL is required."
+                          >
+                            <InputGroup>
+                              <Input
+                                pl="0.4rem"
+                                fontSize="xs"
+                                placeholder="API URL"
+                                value={newCustomProvider.apiUrl}
+                                onChange={(e) => {
+                                  setNewCustomProvider(
+                                    new CustomProvider(
+                                      newCustomProvider.name,
+                                      e.target.value,
+                                      "",
+                                      newCustomProvider.apiKey
+                                    )
+                                  );
+                                }}
+                              />
+                            </InputGroup>
+                          </Field>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Field
+                            invalid={!newCustomProvider.apiKey}
+                            errorText="API Key is required."
+                          >
+                            <PasswordInput
+                              size="xs"
+                              paddingRight={"2rem"}
+                              paddingLeft={"0.5rem"}
+                              fontSize="xs"
+                              value={newCustomProvider.apiKey || ""}
+                              onChange={(e) => {
+                                setNewCustomProvider(
+                                  new CustomProvider(
+                                    newCustomProvider.name,
+                                    newCustomProvider.apiUrl,
+                                    "",
+                                    e.target.value
+                                  )
+                                );
+                              }}
+                            />
+                          </Field>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Button
+                            size="xs"
+                            disabled={
+                              !newCustomProvider.name ||
+                              !newCustomProvider.apiUrl ||
+                              !newCustomProvider.apiKey
+                            }
+                            colorScheme="blue"
+                            onClick={handleSaveNewCustomProvider}
+                            loading={
+                              focusedProvider?.name === newCustomProvider.name && isValidating
+                            }
+                          >
+                            Save
+                          </Button>
+                        </Table.Cell>
+                      </Table.Row>
+                    )}
+                    {Object.entries(tableProviders && tableProviders)
+                      .reverse()
+                      .map(([name, provider]) => (
+                        <Table.Row key={name}>
+                          <Table.Cell>
+                            <Flex width={6} justifyContent={"center"}>
+                              <Checkbox
+                                variant={"subtle"}
+                                onCheckedChange={() => handleSelectedProviderChange(provider)}
+                                checked={selectedProvider?.name === provider.name}
+                              />
+                            </Flex>
+                          </Table.Cell>
+                          <Table.Cell>{provider.name}</Table.Cell>
+                          <Table.Cell>{provider.apiUrl}</Table.Cell>
+                          <Table.Cell>
+                            <Field
+                              invalid={
                                 !!(
                                   !isValidating &&
                                   focusedProvider?.name === provider.name &&
                                   isApiKeyInvalid
                                 )
                               }
+                              errorText={` ${provider.apiKey ? "Unable to verify key." : "API Key is required."}`}
                             >
                               <PasswordInput
-                                size="sm"
-                                buttonSize="xs"
-                                paddingRight={"2rem"}
-                                paddingLeft={"0.5rem"}
+                                size="xs"
+                                borderRadius={10}
                                 fontSize="xs"
                                 value={provider.apiKey || ""}
+                                // Bug will fix after migrate done
+                                // ideally input should accept input by key wise
                                 onChange={(e) => handleApiKeyChange(provider, e.target.value)}
                                 onFocus={() => setFocusedProvider(provider)}
-                                isDisabled={provider instanceof FreeModelProvider}
-                                isInvalid={
-                                  !!(
-                                    !isValidating &&
-                                    focusedProvider?.name === provider.name &&
-                                    isApiKeyInvalid
-                                  )
-                                }
+                                disabled={provider instanceof FreeModelProvider}
                               />
-                              {focusedProvider?.name === provider.name && isValidating ? (
+                              {focusedProvider?.name === provider.name && isValidating && (
                                 <Flex mt={2}>
                                   <Spinner size="xs" />
                                   <Text ml={2} fontSize="xs">
                                     Validating...
                                   </Text>{" "}
                                 </Flex>
-                              ) : (
-                                <FormErrorMessage fontSize="xs">
-                                  {provider.apiKey
-                                    ? "Unable to verify key."
-                                    : "API Key is required."}
-                                </FormErrorMessage>
                               )}
                               {provider instanceof OpenRouterProvider &&
                                 provider.name === focusedProvider?.name &&
@@ -774,175 +754,153 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                                     Get OpenRouter key{" "}
                                   </Button>
                                 )}
-                            </FormControl>
-                          )}
-                        </Td>
-                        <Td sx={{ textAlign: "center" }}>
-                          <Flex alignItems="center" justifyContent="center">
+                            </Field>
+                          </Table.Cell>
+
+                          <Table.Cell justifyItems={"center"} justifyContent={"center"} mx={"auto"}>
                             {settings.currentProvider.name === provider.name && (
                               <FaCheck style={{ color: "green" }} />
                             )}
-                          </Flex>
-                        </Td>
-                      </Tr>
-                    );
-                  })}
-              </Tbody>
-            </Table>
-            {apiKeySaved && (
-              <FormHelperText fontSize="xs">
-                Your API Key(s) are stored in browser storage
-              </FormHelperText>
-            )}
-          </FormControl>
-          <FormControl>
-            <FormLabel>
-              Offline database is {isPersisted ? "persisted" : "not persisted"}
-              <ButtonGroup ml={2}>
-                <Button
-                  size="xs"
-                  onClick={() => handlePersistClick()}
-                  isDisabled={isPersisted}
-                  variant="outline"
-                >
-                  Persist
-                </Button>
-                <Button size="xs" onClick={() => handleImportClick()}>
-                  Import
-                </Button>
-                <Input
-                  type="file"
-                  ref={inputRef}
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                />
-                <Button size="xs" onClick={() => handleExportClick()}>
-                  Export
-                </Button>
-              </ButtonGroup>
-            </FormLabel>
-            <FormHelperText>
-              Persisted databases use the{" "}
-              <Link
-                href="https://developer.mozilla.org/en-US/docs/Web/API/Storage_API"
-                textDecoration="underline"
-                target="_blank"
-                rel="noopener noreferrer"
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                  </Table.Body>
+                </Table.Root>
+              </Field>
+              <Field
+                mt={4}
+                orientation={"vertical"}
+                helperText={`Persisted databases use the Storage API and are retained by the browser as long as possible. See documents for database export details.`}
               >
-                Storage API
-              </Link>{" "}
-              and are retained by the browser as long as possible. See{" "}
-              <Link
-                href="https://dexie.org/docs/ExportImport/dexie-export-import"
-                textDecoration="underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                docs
-              </Link>{" "}
-              for database export details.
-            </FormHelperText>
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>GPT Model</FormLabel>
-            <Select
-              value={settings.model.id}
-              onChange={(e) =>
-                setSettings({
-                  ...settings,
-                  model: new ChatCraftModel(e.target.value),
-                })
-              }
-            >
-              {models
-                .filter(
-                  (model) =>
-                    !(settings.currentProvider instanceof OpenAiProvider) ||
-                    model.id.includes("gpt")
-                )
-                .map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.prettyModel}
-                  </option>
-                ))}
-            </Select>
-            <FormHelperText>
-              See{" "}
-              <Link
-                href="https://platform.openai.com/docs/models/gpt-4"
-                textDecoration="underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                docs
-              </Link>{" "}
-              and{" "}
-              <Link
-                href="https://openai.com/pricing"
-                textDecoration="underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                pricing
-              </Link>
-              . NOTE: not all accounts have access to GPT - 4
-            </FormHelperText>
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>Temperature: {settings.temperature}</FormLabel>
-            <Box px="5">
-              <Slider
-                value={settings.temperature}
-                onChange={(value) => setSettings({ ...settings, temperature: value })}
-                min={0}
-                max={2}
-                step={0.05}
-              >
-                <SliderTrack>
-                  <SliderFilledTrack />
-                </SliderTrack>
-                <SliderThumb />
-              </Slider>
-            </Box>
-            <FormErrorMessage>Temperature must be a number between 0 and 2.</FormErrorMessage>
-            <FormHelperText>
-              The temperature increases the randomness of the response (0.0 - 2.0).
-            </FormHelperText>
-          </FormControl>
-
-          {isTextToSpeechSupported && (
-            <FormControl>
-              <FormLabel>Select Voice</FormLabel>
-
-              <Flex gap={3} alignItems={"center"}>
-                <Select
-                  value={settings.textToSpeech.voice}
-                  onChange={(evt) => handleVoiceSelection(evt.target.value as TextToSpeechVoices)}
-                >
-                  {Object.values(TextToSpeechVoices).map((voice) => (
-                    <option key={voice} value={voice}>
-                      {capitalize(voice)}
-                    </option>
-                  ))}
-                </Select>
-                <Tooltip label="Audio Preview">
-                  <IconButton
+                <ButtonGroup mt={0}>
+                  <Text textStyle={"sm"} fontWeight={"medium"}>
+                    Offline database is {isPersisted ? "persisted" : "not persisted"}
+                  </Text>
+                  <Button
+                    size="xs"
+                    h={6}
+                    colorPalette={isPersisted ? "green" : "blue"}
+                    borderRadius={10}
+                    onClick={() => handlePersistClick()}
+                    disabled={isPersisted}
                     variant="outline"
-                    type="button"
-                    aria-label={"Audio Preview for " + capitalize(settings.textToSpeech.voice)}
-                    icon={<MdVolumeUp />}
-                    onClick={handlePlayAudioPreview}
+                  >
+                    Persist
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant={"outline"}
+                    h={6}
+                    borderRadius={10}
+                    onClick={() => handleImportClick()}
+                  >
+                    Import
+                  </Button>
+                  <Input
+                    type="file"
+                    ref={inputRef}
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
                   />
-                </Tooltip>
-              </Flex>
-
-              <FormHelperText>
-                Used when announcing messages in real-time or with the &lsquo;Speak&rsquo; option
-              </FormHelperText>
-            </FormControl>
-          )}
+                  <Button
+                    size="xs"
+                    h={6}
+                    variant={"outline"}
+                    borderRadius={10}
+                    onClick={() => handleExportClick()}
+                  >
+                    Export
+                  </Button>
+                </ButtonGroup>
+              </Field>
+              <Box spaceX={4}>
+                <Badge>
+                  <Link
+                    href="https://developer.mozilla.org/en-US/docs/Web/API/Storage_API"
+                    textDecoration="underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Storage API
+                  </Link>{" "}
+                </Badge>
+                <Badge>
+                  <Link
+                    href="https://dexie.org/docs/ExportImport/dexie-export-import"
+                    textDecoration="underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Documents
+                  </Link>
+                </Badge>
+              </Box>
+              <Field
+                label="GPT Model"
+                mt={4}
+                helperText="See documents and pricing. NOTE: not all accounts have access to GPT - 4"
+              >
+                <SelectRoot collection={modelFrameWork} size="sm">
+                  <SelectTrigger>
+                    <SelectValueText placeholder="Model" />
+                  </SelectTrigger>
+                  <SelectContent portalRef={modelRef} width={"full"}>
+                    <Box>
+                      {modelFrameWork.items
+                        .filter(
+                          (model) =>
+                            !(settings.currentProvider instanceof OpenAiProvider) ||
+                            model.id.includes("gpt")
+                        )
+                        .map((m) => (
+                          <SelectItem
+                            item={m.id}
+                            key={m.id}
+                            zIndex={10}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                model: new ChatCraftModel((e.target as HTMLSelectElement).value),
+                              })
+                            }
+                          >
+                            <HStack>
+                              {m.logoUrl && (
+                                <img src={m.logoUrl} alt={m.name} width={20} height={20} />
+                              )}
+                              {m.prettyModel}
+                            </HStack>
+                          </SelectItem>
+                        ))}
+                    </Box>
+                  </SelectContent>
+                </SelectRoot>
+              </Field>
+              <Field
+                mt={4}
+                helperText="Used when announcing messages in real-time or with the &lsquo;Speak&rsquo; option"
+              >
+                <Slider
+                  label={`Temperature: ${settings.temperature === 0 ? "unset temperature" : settings.temperature}`}
+                  width="full"
+                  size={"sm"}
+                  colorPalette={"blue"}
+                  defaultValue={[0.4]}
+                  onValueChange={({ value }) => {
+                    const [temperature] = value;
+                    // temperature value = 0.1 - 1.0
+                    setSettings({
+                      ...settings,
+                      temperature,
+                    });
+                  }}
+                  min={0}
+                  step={0.05}
+                  max={2}
+                />
+              </Field>
+            </Box>
+          </Stack>
         </VStack>
       )}
     </Box>

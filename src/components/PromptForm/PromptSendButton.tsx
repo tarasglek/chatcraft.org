@@ -398,8 +398,21 @@ function DesktopPromptSendButton({ isLoading }: PromptSendButtonProps) {
                       backgroundColor: "gray.100",
                       cursor: "pointer",
                     }}
+                    onClick={() => setSettings({ ...settings, model })}
                   >
-                    {model.name}
+                    <HStack>
+                      {settings.model.id === model.id ? (
+                        <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+                      ) : (
+                        <span
+                          style={{
+                            paddingLeft: "1.6rem",
+                            display: "inline-block",
+                          }}
+                        />
+                      )}
+                      {model.name}
+                    </HStack>
                   </MenuItem>
                 ))}
             </Box>

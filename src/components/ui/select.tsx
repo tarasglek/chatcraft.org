@@ -82,6 +82,7 @@ export const SelectValueText = React.forwardRef<HTMLSpanElement, SelectValueText
         <ChakraSelect.Context>
           {(select) => {
             const items = select.selectedItems;
+            console.log(items);
             if (items.length === 0) return props.placeholder;
             if (children) return children(items);
             if (items.length === 1) return select.collection.stringifyItem(items[0]);
