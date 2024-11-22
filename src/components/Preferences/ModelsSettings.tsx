@@ -9,7 +9,6 @@ import {
   Spinner,
   Stack,
   Table,
-  Tooltip,
   VStack,
   Badge,
   Text,
@@ -18,15 +17,16 @@ import {
 import {
   SelectContent,
   SelectItem,
-  SelectLabel,
   SelectRoot,
   SelectTrigger,
   SelectValueText,
 } from "../ui/select";
+
+import { Tooltip } from "../ui/tooltip";
 import { Slider } from "../ui/slider";
 import { Field } from "../ui/field";
 import { Button } from "../ui/button";
-import { PasswordInput, PasswordStrengthMeter } from "../ui/password-input";
+import { PasswordInput } from "../ui/password-input";
 import { Checkbox } from "../ui/checkbox";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { InputGroup } from "../ui/input-group";
@@ -712,7 +712,28 @@ function ModelsSettings({ isOpen, modelRef }: ModelsSettingsProps) {
                             </Flex>
                           </Table.Cell>
                           <Table.Cell>{provider.name}</Table.Cell>
-                          <Table.Cell>{provider.apiUrl}</Table.Cell>
+                          <Table.Cell>
+                            <Tooltip
+                              content={`Click to copy: ${provider.apiUrl}`}
+                              positioning={{
+                                placement: "top-start",
+                              }}
+                              interactive
+                            >
+                              <Text
+                                cursor={"pointer"}
+                                onClick={() => {
+                                  navigator.clipboard.writeText(provider.apiUrl);
+                                  success({
+                                    title: "Copied",
+                                    message: "API URL copied to clipboard",
+                                  });
+                                }}
+                              >
+                                {extractDomain(provider.apiUrl)}
+                              </Text>
+                            </Tooltip>
+                          </Table.Cell>
                           <Table.Cell>
                             <Field
                               invalid={
