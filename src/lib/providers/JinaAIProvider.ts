@@ -1,9 +1,22 @@
 import { NonLLMProviders } from "../ChatCraftProvider";
-import { JinaAiReaderResponse } from "../ai";
 import { getSettings } from "../settings";
 
 const JINA_AI = "Jina AI";
 const JINA_API_URL = "https://r.jina.ai/";
+
+export type JinaAiReaderResponse = {
+  code: number;
+  status: number;
+  data: {
+    content: string;
+    description?: string;
+    title?: string;
+    url?: string;
+  };
+  usage: {
+    tokens: number;
+  };
+};
 
 export class JinaAIProvider extends NonLLMProviders {
   constructor(apiKey?: string) {
@@ -12,34 +25,19 @@ export class JinaAIProvider extends NonLLMProviders {
 
   static fromSettings(): JinaAIProvider {
     const settings = getSettings();
-    return (settings.nonLLMProviders["Jina AI"] as JinaAIProvider) || new JinaAIProvider();
-  }
+    const provider = settings.nonLLMProviders["Jina AI"];
 
-  get clientHeaders() {
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    if (this.apiKey) {
-      headers.Authorization = `Bearer ${this.apiKey}`;
+    // case 1 when the provider already exists in the settings
+    if (provider instanceof JinaAIProvider) {
+      return provider;
+    }
+    // case 2 when the provider doesn't exist but the api key is set
+    if (provider?.apiKey) {
+      return new JinaAIProvider(provider.apiKey);
     }
 
-    return headers;
-  }
-  async validateApiKey(key: string) {
-    try {
-      const response = await fetch("https://r.jina.ai/https://example.com", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${key}`,
-        },
-      });
-
-      return response.ok;
-    } catch {
-      return false;
-    }
+    // case 3 when the provider doesn't exist and the api key is not set
+    return new JinaAIProvider();
   }
 
   async pdfToMarkdown(file: File): Promise<JinaAiReaderResponse> {
@@ -62,20 +60,33 @@ export class JinaAIProvider extends NonLLMProviders {
         reader.onerror = (error) => reject(error);
         reader.readAsDataURL(file);
       });
-      const jinaHeaders = this.clientHeaders;
+
+      const headers = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...(this.apiKey && { Authorization: `Bearer ${this.apiKey}` }),
+      };
+
       const res = await fetch("https://r.jina.ai/", {
         method: "POST",
         body: JSON.stringify({
           pdf: base64String,
         }),
-        headers: {
-          ...jinaHeaders,
-        },
+        headers,
       });
+
       if (!res.ok) {
         const error = await res.json();
+        // we're checking for 429 , rate limit exceeded, and also checking if the error message contains "quota"
+        if (res.status === 429 || (error?.detail && error.detail.includes("quota"))) {
+          throw new Error(
+            "Free tier limit exceeded. Please add an API key in Settings to process larger files.",
+            { cause: { code: "FreeTierExceeded" } }
+          );
+        }
         throw new Error(`Error converting PDF file with Jina.ai Reader: ${error}`);
       }
+
       const result: JinaAiReaderResponse = await res.json();
       if (result.code !== 200) {
         throw new Error(`Error converting PDF file with Jina.ai Reader: got code ${result.code}`);
