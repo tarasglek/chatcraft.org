@@ -1,4 +1,14 @@
-import { Box, Button, Flex, Grid, GridItem, Alert, Text, useDisclosure } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Grid,
+  GridItem,
+  Alert,
+  Text,
+  useDisclosure,
+  HStack,
+} from "@chakra-ui/react";
 
 import { CloseButton } from "../components/ui/close-button";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -26,6 +36,7 @@ import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import { ChatCompletionError } from "../lib/ai";
 import { useTheme } from "next-themes";
+import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -34,6 +45,7 @@ type ChatBaseProps = {
 function ChatBase({ chat }: ChatBaseProps) {
   const { error: apiError } = useModels();
   const { theme } = useTheme();
+  const isMobile = useMobileBreakpoint();
   const alertBgColor = theme === "dark" ? "#90CEF4" : "#2B6CB0";
   const alertTextColor = theme === "dark" ? "#333" : "#fff";
   // When chatting with OpenAI, a streaming message is returned during loading
@@ -367,37 +379,38 @@ function ChatBase({ chat }: ChatBaseProps) {
           status="info"
           variant="solid"
           css={{ py: 0 }}
-          alignItems={"center"}
+          display="flex"
+          flexDirection={"row"}
+          alignItems="center"
+          textAlign="left"
+          h={isMobile ? "16" : "8"}
           borderRadius={0}
           bg={alertBgColor}
           color={alertTextColor}
+          p={0}
+          py={6}
         >
-          <Alert.Indicator color={alertTextColor} />
-          You are using the default free AI Provider, which has limited features.{" "}
-          <Text
-            as="span"
-            cursor="pointer"
-            fontSize="sm"
-            textDecoration="underline"
-            onClick={onPrefModalOpen}
-          >
-            Click here
+          <Alert.Indicator color={alertTextColor} boxSize={5} ml={2} />
+          <HStack truncate={false} w={"full"} lineClamp={3} gap={2}>
+            You are using the default free AI Provider, which has limited features.{" "}
+            <Text
+              as="span"
+              cursor="pointer"
+              fontSize="sm"
+              textDecoration="underline"
+              onClick={onPrefModalOpen}
+            >
+              Click here
+            </Text>{" "}
+            to add other AI providers.
+          </HStack>
+          <Text textStyle={"xl"} onClick={() => setShowAlert(false)} mr={6}>
+            &times;
           </Text>
-          to add other AI providers.
-          <CloseButton
-            size="xs"
-            onClick={() => setShowAlert(false)}
-            color={"white"}
-            ml={"auto"}
-            _hover={{
-              shadow: "md",
-              bg: "transparent",
-            }}
-          />
         </Alert.Root>
       );
     }
-  }, [onPrefModalOpen, showAlert, alertBgColor, alertTextColor]);
+  }, [onPrefModalOpen, showAlert, alertBgColor, alertTextColor, isMobile]);
 
   return (
     <Grid
@@ -471,7 +484,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         </Flex>
       </GridItem>
 
-      <GridItem mt="auto" w="full" maxW={"100vw"} mb={0} pr={"14"}>
+      <GridItem mt="auto" w="full" maxW={"100vw"} mb={0} pr={isMobile ? "0" : "14"}>
         {chat.readonly ? (
           <Flex w="100%" h="45px" justify="end" align="center">
             <OptionsButton chat={chat} forkUrl={`./fork`} variant="solid" />
