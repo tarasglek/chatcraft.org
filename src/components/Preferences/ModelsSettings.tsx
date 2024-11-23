@@ -851,27 +851,61 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
           </FormControl>
           <FormControl>
             <FormLabel>
-              Non LLM Providers
-              <FormHelperText fontSize="xs">Non LLM API services</FormHelperText>
+              Other Providers
+              <FormHelperText fontSize="xs">
+                Document Processing and Other AI services
+              </FormHelperText>
             </FormLabel>
-            <Table size="sm" variant="simple">
+            <Table
+              size="sm"
+              variant="simple"
+              sx={{
+                "th:nth-of-type(1), td:nth-of-type(1)": {
+                  width: "20%",
+                },
+                "th:nth-of-type(2), td:nth-of-type(2)": {
+                  width: "45%",
+                },
+                "th:nth-of-type(3), td:nth-of-type(3)": {
+                  width: "35%",
+                },
+                "th, td": {
+                  pl: "0.4rem",
+                  pr: "0.4rem",
+                },
+              }}
+            >
               <Thead>
                 <Tr>
-                  <Th>Provider</Th>
+                  <Th>Name</Th>
+                  <Th>Description</Th>
                   <Th>API Key</Th>
-                  <Th>Status</Th>
                 </Tr>
               </Thead>
               <Tbody>
                 <Tr>
-                  <Td>Jina AI</Td>
+                  <Td fontSize="xs">Jina AI</Td>
+                  <Td fontSize="xs">
+                    Optional service for processing larger files.{" "}
+                    <Link
+                      href="https://jina.ai/"
+                      isExternal
+                      color="blue.500"
+                      _hover={{ textDecoration: "underline" }}
+                    >
+                      Learn more
+                    </Link>
+                  </Td>
                   <Td>
                     <FormControl isInvalid={isNonLLMInvalid}>
                       <PasswordInput
                         size="sm"
+                        buttonSize="xs"
+                        paddingRight={"2rem"}
+                        paddingLeft={"0.5rem"}
+                        fontSize="xs"
                         value={nonLLMProviders["Jina AI"]?.apiKey || ""}
                         onChange={(e) => handleNonLLMApiKeyChange(e.target.value)}
-                        placeholder="Optional - for larger files"
                       />
                       {isNonLLMValidating && (
                         <Flex mt={2}>
@@ -885,13 +919,6 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                         <FormErrorMessage fontSize="xs">Unable to verify API key</FormErrorMessage>
                       )}
                     </FormControl>
-                  </Td>
-                  <Td>
-                    {nonLLMProviders["Jina AI"]?.apiKey ? (
-                      <FaCheck color="green" />
-                    ) : (
-                      "Using Free Tier"
-                    )}
                   </Td>
                 </Tr>
               </Tbody>
