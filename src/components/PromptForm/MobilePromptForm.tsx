@@ -164,7 +164,8 @@ function MobilePromptForm({
   return (
     <Box flex={1} w="100%" h="100%" my={1} px={2} py={1} pb="env(safe-area-inset-bottom)">
       <chakra.form onSubmit={handlePromptSubmit} h="100%">
-        <Flex alignItems="end" gap={2}>
+        <Flex align="end" gap={2} w="100%">
+          {/* Options Button */}
           <OptionsButton
             chat={chat}
             forkUrl={forkUrl}
@@ -172,8 +173,11 @@ function MobilePromptForm({
             iconOnly
             onAttachFiles={importFiles}
           />
-          <Box flex={1}>
-            <Flex flexWrap="wrap">
+
+          {/* Input Section */}
+          <Flex flex={1} direction="column" gap={2}>
+            {/* Uploaded Images */}
+            <Flex flexWrap="wrap" gap={2}>
               {inputImageUrls.map((imageUrl, index) => (
                 <Box
                   key={index}
@@ -181,12 +185,12 @@ function MobilePromptForm({
                   height="70px"
                   display="flex"
                   alignItems="center"
-                  m={2}
+                  justifyContent="center"
                 >
                   {imageUrl === "" ? (
                     <Box
-                      width={70}
-                      height={70}
+                      w="70px"
+                      h="70px"
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
@@ -201,22 +205,20 @@ function MobilePromptForm({
                       cursor="pointer"
                     />
                   )}
-                  <Box
-                    key={`${index}-close`}
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
+                  <CloseButton
+                    position="absolute"
                     top="0"
                     right="0"
-                    backgroundColor="grey"
+                    size="sm"
+                    bg="gray.500"
                     color="white"
-                    height="70px"
-                  >
-                    <CloseButton onClick={() => handleDeleteImage(index)} />
-                  </Box>
+                    onClick={() => handleDeleteImage(index)}
+                  />
                 </Box>
               ))}
             </Flex>
+
+            {/* Text Area or Audio Status */}
             {inputType === "audio" ? (
               <Box p={2}>
                 <AudioStatus
@@ -229,16 +231,18 @@ function MobilePromptForm({
               <AutoResizingTextarea
                 ref={inputPromptRef}
                 disabled={isLoading}
-                autoFocus={true}
+                autoFocus
                 bg="white"
                 _dark={{ bg: "gray.700" }}
                 overflowY="auto"
                 placeholder="Ask about..."
-                w={144}
-                h={6}
+                flex={1} /* Ensure it takes full width */
+                minH="40px"
               />
             )}
-          </Box>
+          </Flex>
+
+          {/* Mic Icon */}
           {!isTranscribing && (
             <MicIcon
               isDisabled={isLoading}
@@ -248,6 +252,8 @@ function MobilePromptForm({
               onCancel={handleRecordingCancel}
             />
           )}
+
+          {/* Send Button */}
           {!isRecording && <PromptSendButton isLoading={isLoading} />}
         </Flex>
       </chakra.form>

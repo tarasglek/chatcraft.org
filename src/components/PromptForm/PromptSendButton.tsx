@@ -1,4 +1,5 @@
-import { Group as ButtonGroup, HStack, Separator, StackSeparator } from "@chakra-ui/react";
+import { Group as ButtonGroup, HStack, Separator, StackSeparator, Flex } from "@chakra-ui/react";
+
 import { Tooltip } from "../ui/tooltip";
 import { Button } from "../ui/button";
 import { TbSend } from "react-icons/tb";
@@ -19,7 +20,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   const bgColor = theme === "dark" ? "#90CEF4" : "#2B6CB0";
   //const color = theme === "dark" ? "#333" : "#fff";
   return (
-    <ButtonGroup attached>
+    <Flex align="center" gap={1} mb={1.5}>
       <HStack gap={0} separator={<StackSeparator />}>
         <Button
           type="submit"
@@ -28,12 +29,10 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           width="2.75rem"
           h={7}
           w={10}
-          colorPalette={"blue"}
-          bg={{
-            base: bgColor,
-          }}
-          borderLeftRadius={"xl"}
-          borderRightRadius={"none"}
+          colorScheme="blue"
+          bg={bgColor}
+          borderLeftRadius="xl"
+          borderRightRadius="none"
           aria-label="Submit"
           loading={isLoading}
         >
@@ -43,12 +42,12 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
           placement="top-end"
           strategy="fixed"
           bgColor={bgColor}
-          color={"#fff"}
+          color="#fff"
           isLoading={isLoading}
           isMobile={true}
         />
       </HStack>
-    </ButtonGroup>
+    </Flex>
   );
 }
 

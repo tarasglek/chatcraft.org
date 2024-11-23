@@ -101,6 +101,7 @@ const CustomMenu = ({
                   ? "Text-to-Speech Enabled"
                   : "Text-to-Speech Disabled"
               }
+              color={color}
               onClick={() => {
                 if (settings.textToSpeech.announceMessages) {
                   // Flush any remaining audio clips being announced
@@ -140,6 +141,7 @@ const CustomMenu = ({
             base: bgColor,
           }}
           variant="solid"
+          color={color}
           aria-label="Choose Model"
           title="Choose Model"
         >
