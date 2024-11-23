@@ -1,4 +1,4 @@
-import { HStack, IconButton, Input, Text } from "@chakra-ui/react";
+import { HStack, Input, Text } from "@chakra-ui/react";
 import { TbSearch } from "react-icons/tb";
 import {
   DrawerBackdrop,
@@ -28,7 +28,7 @@ function SidebarMobile({
   selectedFunction,
 }: SidebarMobileProps) {
   const { theme } = useTheme();
-  const brandColor = theme === "light" ? "blue.600" : "blue.200";
+  const brandColor = theme === "light" ? "#2B6CB0" : "#90CEF4";
 
   return (
     <DrawerRoot open={isSidebarVisible} placement={"start"}>
@@ -51,8 +51,8 @@ function SidebarMobile({
         </DrawerTrigger>
 
         <Form action="/s" method="get" onSubmit={handleToggleSidebarVisible}>
-          <HStack>
-            <InputGroup>
+          <HStack w="100%" gap={2} px={2}>
+            <InputGroup flex={1} endElement={<TbSearch color={brandColor} />}>
               <Input
                 fontSize="1rem"
                 type="search"
@@ -61,12 +61,10 @@ function SidebarMobile({
                 borderRadius={4}
                 required
                 placeholder="Search chat history"
+                css={{
+                  focusRingColor: brandColor,
+                }}
               />
-            </InputGroup>
-            <InputGroup>
-              <IconButton size="sm" height="2rem" aria-label="Search" variant="ghost" type="submit">
-                <TbSearch />
-              </IconButton>
             </InputGroup>
           </HStack>
         </Form>
