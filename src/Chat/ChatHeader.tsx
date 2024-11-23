@@ -2,9 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   Box,
   Group as ButtonGroup,
-  CardRoot as Card,
-  CardBody,
-  CardFooter,
+  Card,
   Flex,
   IconButton,
   Input,
@@ -75,19 +73,21 @@ function ChatHeader({ chat }: ChatHeaderProps) {
 
   return (
     <>
-      <Card
+      <Card.Root
         bg="gray.200"
         size="sm"
-        border="1px solid"
         borderColor="gray.300"
         _dark={{
-          bg: "gray.800",
-          borderColor: "gray.900",
+          bg: "#1A202D",
+          borderColor: "gray.700",
         }}
         mt={2}
         flex="1"
+        alignItems={"start"}
+        justifyContent={"center"}
+        p={0}
       >
-        <CardBody pb={0}>
+        <Card.Body pb={0}>
           <Box w="100%">
             {isEditing ? (
               <form onSubmit={handleSaveSummary}>
@@ -97,12 +97,12 @@ function ChatHeader({ chat }: ChatHeaderProps) {
                     defaultValue={chat.summary}
                     type="text"
                     name="summary"
-                    bg="white"
-                    _dark={{ bg: "gray.700" }}
+                    _dark={{ bg: "#2D3748" }}
                     size="sm"
                     borderRadius={4}
                     fontSize="1rem"
                     w="100%"
+                    h={8}
                     autoFocus={true}
                     placeholder="Chat Summary"
                   />
@@ -140,8 +140,8 @@ function ChatHeader({ chat }: ChatHeaderProps) {
               </Flex>
             )}
           </Box>
-        </CardBody>
-        <CardFooter pt={0}>
+        </Card.Body>
+        <Card.Footer pt={0}>
           <Flex w="100%" gap={4} color="gray.500" _dark={{ color: "gray.400" }}>
             <Link as={ReactRouterLink} href={`/c/${chat.id}`}>
               <Text fontSize="sm" ml={6}>
@@ -159,8 +159,8 @@ function ChatHeader({ chat }: ChatHeaderProps) {
               </Flex>
             )}
           </Flex>
-        </CardFooter>
-      </Card>
+        </Card.Footer>
+      </Card.Root>
       <ShareModal chat={chat} isOpen={open} onClose={onClose} />
     </>
   );

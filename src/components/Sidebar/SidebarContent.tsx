@@ -10,6 +10,7 @@ import {
   //useColorModeValue,
   IconButton,
   Input,
+  Badge,
   HStack,
 } from "@chakra-ui/react";
 
@@ -65,6 +66,7 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
         : "gray.600";
   const { error } = useAlert();
   const [isEditing, setIsEditing] = useState(false);
+
   useKey("Escape", () => setIsEditing(false), { event: "keydown" }, [setIsEditing]);
   const selectedRef = useRef<HTMLDivElement>(null);
 
@@ -304,6 +306,9 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   const { user } = useUser();
   const navigate = useNavigate();
   const [recentCount, setRecentCount] = useState(10);
+  const { theme } = useTheme();
+  const tagBgColor = theme === "dark" ? "#90CEF4" : "#3182CE";
+  const tagColor = theme === "dark" ? "#333" : "#fff";
 
   const chatsTotal = useLiveQuery<number, number>(() => db.chats.count(), [], 0);
 
@@ -389,28 +394,15 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   return (
     <Flex direction="column" h="100%" p={2}>
       <AccordionRoot collapsible defaultValue={["b"]}>
-        <AccordionItem key={1} value={"saved-chat"} p={2} minH={10}>
+        <AccordionItem key={1} value={"saved-chat"} p={1}>
           <AccordionItemTrigger>
-            <HStack>
+            <HStack align={"center"} justify={"center"}>
               <Heading as="h3" size="sm">
                 Saved Chats ({formatNumber(chatsTotal || 0)})
               </Heading>
-              <Link to="/c/new">
-                <Button
-                  as={Link}
-                  ml={1}
-                  size="xs"
-                  variant="ghost"
-                  onClick={() => {
-                    toaster.create({
-                      description: "New chat created",
-                      type: "success",
-                    });
-                  }}
-                >
-                  New
-                </Button>
-              </Link>
+              <Badge color={tagColor} bg={tagBgColor}>
+                <Link to={"/c/new"}>New</Link>
+              </Badge>
             </HStack>
           </AccordionItemTrigger>
           <AccordionItemContent p={0}>
@@ -437,7 +429,7 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
             )}
           </AccordionItemContent>
         </AccordionItem>
-        <AccordionItem key={2} value="shared-chat" p={2} minH={10}>
+        <AccordionItem key={2} value="shared-chat" p={1}>
           <AccordionItemTrigger>
             <Heading as="h3" size="sm">
               Shared Chats ({formatNumber(sharedChats.length || 0)})
@@ -466,12 +458,17 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
             )}
           </AccordionItemContent>
         </AccordionItem>
-        <AccordionItem key={3} value="functions" p={2} minH={10}>
+        <AccordionItem key={3} value="functions" p={1} minH={10}>
           <AccordionItemTrigger>
             <Flex justify="space-between" align="center">
-              <Heading as="h3" size="sm">
-                Functions ({formatNumber(functions.length || 0)})
-              </Heading>
+              <HStack gap={2}>
+                <Heading as="h3" size="sm">
+                  Functions ({formatNumber(functions.length || 0)})
+                </Heading>
+                <Badge color={tagColor} bg={tagBgColor}>
+                  <Link to={"/f/new"}>New</Link>
+                </Badge>
+              </HStack>
             </Flex>
           </AccordionItemTrigger>
           <AccordionItemContent p={0} pb={4}>

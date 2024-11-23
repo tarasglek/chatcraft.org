@@ -1,5 +1,5 @@
 import { FormEvent, type RefObject, useEffect, useState } from "react";
-import { Box, chakra, Flex, Image, Spinner } from "@chakra-ui/react";
+import { Box, chakra, Flex, HStack, Image, Spinner } from "@chakra-ui/react";
 import { CloseButton } from "../ui/close-button";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 
@@ -10,6 +10,7 @@ import AudioStatus from "./AudioStatus";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { updateImageUrls } from "../../lib/utils";
 import { useFileImport } from "../../hooks/use-file-import";
+//import { Field } from "../ui/field";
 
 type MobilePromptFormProps = {
   chat: ChatCraftChat;
@@ -171,6 +172,102 @@ function MobilePromptForm({
             iconOnly
             onAttachFiles={importFiles}
           />
+          <Box flex={1}>
+            <Flex flexWrap="wrap">
+              {inputImageUrls.map((imageUrl, index) => (
+                <Box
+                  key={index}
+                  position="relative"
+                  height="70px"
+                  display="flex"
+                  alignItems="center"
+                  m={2}
+                >
+                  {imageUrl === "" ? (
+                    <Box
+                      width={70}
+                      height={70}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Spinner size="xl" />
+                    </Box>
+                  ) : (
+                    <Image
+                      src={imageUrl}
+                      alt={`Image# ${index}`}
+                      style={{ height: "70px", objectFit: "cover" }}
+                      cursor="pointer"
+                    />
+                  )}
+                  <Box
+                    key={`${index}-close`}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    top="0"
+                    right="0"
+                    backgroundColor="grey"
+                    color="white"
+                    height="70px"
+                  >
+                    <CloseButton onClick={() => handleDeleteImage(index)} />
+                  </Box>
+                </Box>
+              ))}
+            </Flex>
+            {inputType === "audio" ? (
+              <Box p={2}>
+                <AudioStatus
+                  isRecording={isRecording}
+                  isTranscribing={isTranscribing}
+                  recordingSeconds={recordingSeconds}
+                />
+              </Box>
+            ) : (
+              <AutoResizingTextarea
+                ref={inputPromptRef}
+                disabled={isLoading}
+                autoFocus={true}
+                bg="white"
+                _dark={{ bg: "gray.700" }}
+                overflowY="auto"
+                placeholder="Ask about..."
+                w={144}
+                h={6}
+              />
+            )}
+          </Box>
+          {!isTranscribing && (
+            <MicIcon
+              isDisabled={isLoading}
+              onRecording={handleRecording}
+              onTranscribing={handleTranscribing}
+              onTranscriptionAvailable={handleTranscriptionAvailable}
+              onCancel={handleRecordingCancel}
+            />
+          )}
+          {!isRecording && <PromptSendButton isLoading={isLoading} />}
+        </Flex>
+      </chakra.form>
+    </Box>
+  );
+}
+
+export default MobilePromptForm;
+
+/*
+
+  <chakra.form onSubmit={handlePromptSubmit} h="100%">
+        <Flex alignItems="end" gap={2}>
+          <OptionsButton
+            chat={chat}
+            forkUrl={forkUrl}
+            variant="outline"
+            iconOnly
+            onAttachFiles={importFiles}
+          />
 
           <Box flex={1}>
             <Flex flexWrap="wrap">
@@ -251,8 +348,4 @@ function MobilePromptForm({
           {!isRecording && <PromptSendButton isLoading={isLoading} />}
         </Flex>
       </chakra.form>
-    </Box>
-  );
-}
-
-export default MobilePromptForm;
+*/

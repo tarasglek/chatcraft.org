@@ -163,24 +163,26 @@ function OptionsButton({
     <VStack>
       <MenuRoot>
         <MenuTrigger>
-          {iconOnly ? (
-            <IconButton
-              aria-label="Options menu"
-              disabled={!isDisabled}
-              size="md"
-              fontSize="1.25rem"
-              variant="outline"
-              borderRadius={4}
-            >
-              <PiGearBold />
-            </IconButton>
-          ) : (
-            <>
-              <Button disabled={isDisabled} size="sm" variant={variant}>
-                <>{<PiGearBold />} Options</>
-              </Button>
-            </>
-          )}
+          <HStack>
+            {iconOnly ? (
+              <IconButton
+                aria-label="Options menu"
+                disabled={!isDisabled}
+                size="md"
+                fontSize="1.25rem"
+                variant="outline"
+                borderRadius={4}
+              >
+                <PiGearBold />
+              </IconButton>
+            ) : (
+              <>
+                <Button disabled={isDisabled} size="sm" variant={variant}>
+                  <>{<PiGearBold />} Options</>
+                </Button>
+              </>
+            )}
+          </HStack>
         </MenuTrigger>
         <MenuContent textDecoration={"none"} width={"150px"} spaceY={1}>
           <MenuItem value="clear">

@@ -8,7 +8,7 @@ const AutoResizingTextarea = forwardRef<HTMLTextAreaElement, TextareaProps>((pro
     <Textarea
       minH="unset"
       overflow="hidden"
-      w="100%"
+      w="full"
       maxH="36vh"
       resize="none"
       ref={ref}

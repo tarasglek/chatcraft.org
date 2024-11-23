@@ -13,7 +13,6 @@ import {
   VStack,
   HStack,
 } from "@chakra-ui/react";
-import { InputGroup } from "../ui/input-group";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 import { useDropzone } from "react-dropzone";
 import { useTheme } from "next-themes";
@@ -78,6 +77,8 @@ function DesktopPromptForm({
 }: DesktopPromptFormProps) {
   const { settings } = useSettings();
   const { theme } = useTheme();
+  const bgColor = theme === "dark" ? "#90CEF4" : "#2B6CB0";
+  const color = theme === "dark" ? "#333" : "#fff";
   const [isPromptEmpty, setIsPromptEmpty] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -271,8 +272,14 @@ function DesktopPromptForm({
   const dragDropBorderColor = theme === "dark" ? "blue.200" : "blue.600";
 
   return (
-    <Flex ml={"10"}>
-      <CardRoot width={"full"} mx={"auto"}>
+    <Flex ml={"10"} mb={3} mt={2}>
+      <CardRoot
+        width={"full"}
+        mx={"auto"}
+        _dark={{
+          bg: "#2D3748",
+        }}
+      >
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
             h="100%"
@@ -362,14 +369,10 @@ function DesktopPromptForm({
                     onChange={(e) => {
                       setIsPromptEmpty(e.target.value.trim().length === 0);
                     }}
-                    padding={4}
+                    padding={3}
                     borderRadius={"md"}
-                    colorPalette={"blue"}
-                    shadow={"xl"}
-                    shadowColor={"blue"}
-                    focusRingOffset={"blue"}
                     bg="white"
-                    _dark={{ bg: "gray.900", color: "white" }}
+                    _dark={{ bg: "#475164", color: "white" }}
                     placeholder={
                       !isLoading && !isRecording && !isTranscribing
                         ? "Ask a question or use /help to learn more"

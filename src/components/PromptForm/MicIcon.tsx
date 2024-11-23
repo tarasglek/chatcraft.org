@@ -8,7 +8,7 @@ import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { SpeechRecognition } from "../../lib/speech-recognition";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import { isSpeechToTextModel } from "../../lib/ai";
-
+import { useTheme } from "next-themes";
 type MicIconProps = {
   onRecording: () => void;
   onTranscribing: () => void;
@@ -30,6 +30,9 @@ export default function MicIcon({
   const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
   const { error } = useAlert();
   const { clearAudioQueue } = useAudioPlayer();
+  const { theme } = useTheme();
+  const bgColor = theme === "dark" ? "#90CEF4" : "#2B6CB0";
+  //const color = theme === "dark" ? "#333" : "#fff";
 
   const { getSpeechToTextClient, isSpeechToTextSupported, allProvidersWithModels } = useModels();
 
@@ -146,6 +149,7 @@ export default function MicIcon({
         ref={micIconRef}
         onClick={handleMicToggle}
         onBlur={() => onRecordingCancel()}
+        color={bgColor}
       >
         <TbMicrophone />
       </IconButton>

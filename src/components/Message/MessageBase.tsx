@@ -450,7 +450,11 @@ function MessageBase({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <CardRoot>
+      <CardRoot
+        _dark={{
+          bg: "#2D3748",
+        }}
+      >
         <CardHeader p={0} pt={3} pb={2} pr={1}>
           <Flex justify="space-between" align="center" ml={5} mr={2}>
             <Flex gap={3}>

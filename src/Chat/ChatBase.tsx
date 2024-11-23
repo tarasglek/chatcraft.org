@@ -25,6 +25,7 @@ import { WebHandler } from "../lib/WebHandler";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import { ChatCompletionError } from "../lib/ai";
+import { useTheme } from "next-themes";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -32,6 +33,9 @@ type ChatBaseProps = {
 
 function ChatBase({ chat }: ChatBaseProps) {
   const { error: apiError } = useModels();
+  const { theme } = useTheme();
+  const alertBgColor = theme === "dark" ? "#90CEF4" : "#2B6CB0";
+  const alertTextColor = theme === "dark" ? "#333" : "#fff";
   // When chatting with OpenAI, a streaming message is returned during loading
   const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
   const { settings, setSettings } = useSettings();
@@ -365,8 +369,10 @@ function ChatBase({ chat }: ChatBaseProps) {
           css={{ py: 0 }}
           alignItems={"center"}
           borderRadius={0}
+          bg={alertBgColor}
+          color={alertTextColor}
         >
-          <Alert.Indicator />
+          <Alert.Indicator color={alertTextColor} />
           You are using the default free AI Provider, which has limited features.{" "}
           <Text
             as="span"
@@ -391,7 +397,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         </Alert.Root>
       );
     }
-  }, [onPrefModalOpen, showAlert]);
+  }, [onPrefModalOpen, showAlert, alertBgColor, alertTextColor]);
 
   return (
     <Grid
@@ -403,11 +409,16 @@ function ChatBase({ chat }: ChatBaseProps) {
         sm: isSidebarVisible ? "300px 4fr" : "0: 1fr",
       }}
       transition={"150ms"}
-      bgGradient="linear(to-b, white, gray.100)"
-      _dark={{ bgGradient: "linear(to-b, gray.600, gray.700)" }}
+      // bgGradient={"to-bl"}
+      // gradientFrom={"white"}
+      //gradientTo={"#EEF3F7"}
+      css={{
+        bgImage: "linear-gradient(white, #EEF3F7)",
+      }}
+      _dark={{ bgImage: "linear-gradient(#424C5E, #3A4456)" }}
     >
       {/* Header */}
-      <GridItem colSpan={{ base: 1, sm: 2 }}>
+      <GridItem colSpan={2}>
         {/* Default Provider Alert Banner*/}
         {defaultProviderAlert}
         <Header
@@ -425,7 +436,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         ></Sidebar>
       </GridItem>
 
-      <GridItem overflowY={"auto"} ref={messageListRef} pos="relative" mb={"6"}>
+      <GridItem overflowY={"auto"} ref={messageListRef} pos="relative" mb={"1"}>
         <Flex direction="column" h="full" maxH="full" maxW="full" mx="auto" px={10}>
           {!!scrollProgress && !shouldAutoScroll && (
             <Flex
@@ -460,7 +471,7 @@ function ChatBase({ chat }: ChatBaseProps) {
         </Flex>
       </GridItem>
 
-      <GridItem mt="auto" colorPalette={"white"} w="full" maxW={"100vw"} mb={"4"} pr={"14"}>
+      <GridItem mt="auto" w="full" maxW={"100vw"} mb={0} pr={"14"}>
         {chat.readonly ? (
           <Flex w="100%" h="45px" justify="end" align="center">
             <OptionsButton chat={chat} forkUrl={`./fork`} variant="solid" />

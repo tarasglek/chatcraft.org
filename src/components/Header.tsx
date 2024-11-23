@@ -10,6 +10,7 @@ import {
   useDisclosure,
   HStack,
   MenuTrigger,
+  defineStyle,
 } from "@chakra-ui/react";
 import { InputGroup } from "./ui/input-group";
 import { MenuRoot, MenuItem, MenuContent } from "./ui/menu";
@@ -36,11 +37,9 @@ type HeaderProps = {
 function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderProps) {
   //const { toggleColorMode } = useColorMode();
   const { theme, setTheme } = useTheme();
-  const bgcolor = theme === "light" ? "white" : "gray.700";
-  const colorPalette = theme === "light" ? "blue" : "white";
+  const bgcolor = theme === "light" ? "white" : "#2D3748";
   const borderColor = theme === "light" ? "gray.50" : "gray.600";
-  const textColor = theme === "light" ? "colorPalette.400" : "colorPalette.100";
-  const linkColor = theme === "light" ? "colorPalette.400" : "colorPalette.60";
+  const textColor = theme === "light" ? "#2B6CB0" : "#90CEF4";
   const {
     open: isPrefModalOpen,
     onOpen: onPrefModalOpen,
@@ -48,6 +47,13 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
   } = useDisclosure();
   const { user, login, logout } = useUser();
   const { error } = useAlert();
+
+  const avatarRing = defineStyle({
+    outlineWidth: "2px",
+    outlineColor: "colorPalette.500",
+    outlineOffset: "1px",
+    outlineStyle: "solid",
+  });
 
   const handleLoginLogout = useCallback(
     (provider: string) => {
@@ -88,32 +94,28 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     <Flex
       w="100%"
       h="3rem"
-      gap={3}
+      px={4}
+      gap={4}
       bg={bgcolor}
-      justify="space-between"
       align="center"
+      justify="space-between"
       borderBottom="2px"
       borderColor={borderColor}
     >
-      <Flex pl={1} align="center" gap={2}>
+      {/* Left Section: Logo and Sidebar Toggle */}
+      <Flex align="center" gap={2} flexShrink={0}>
         <IconButton
-          fontSize="1.5rem"
+          fontSize="1rem"
           variant="ghost"
           aria-label="Toggle Sidebar Menu"
           title="Toggle Sidebar Menu"
           onClick={onToggleSidebar}
+          color={textColor}
         >
           <BiMenu />
         </IconButton>
-        <Text fontWeight="bold" fontSize="1.125rem" color={textColor}>
-          <Link
-            href="/"
-            _hover={{ textDecoration: "none", color: linkColor }}
-            colorPalette={colorPalette}
-            color={{
-              base: textColor,
-            }}
-          >
+        <Text fontWeight="bold" fontSize="1.125rem" color={textColor} lineClamp={1}>
+          <Link href="/" _hover={{ textDecoration: "none", color: "blue.400" }} color={textColor}>
             &lt;ChatCraft /&gt;
           </Link>
         </Text>
@@ -123,14 +125,16 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
         {!isMobile && (
           <Form action="/s" method="get">
             <HStack gap="10" width="full">
-              <InputGroup flex="1" endElement={<TbSearch />}>
+              <InputGroup flex="1" endElement={<TbSearch color={textColor} />}>
                 <Input
                   fontSize="1rem"
                   type="search"
+                  colorPalette={"blue"}
                   name="q"
                   defaultValue={searchText}
                   borderRadius={6}
                   required
+                  h={8}
                   width="full"
                   placeholder="Search chat history"
                 />
@@ -140,12 +144,13 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
         )}
       </Box>
 
-      <Flex pr={2} alignItems="center">
+      <Flex align="center" gap={2} flexShrink={0}>
         <IconButton
           fontSize="1.25rem"
           aria-label={"Copy Shared Chats Feed URL"}
           title={"Copy Shared Chats Feed URL"}
           variant="ghost"
+          color={textColor}
           onClick={handleOpenFeedUrl}
         >
           <FiRss />
@@ -155,6 +160,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
           aria-label={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
           title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
           variant="ghost"
+          color={textColor}
           onClick={theme === "light" ? () => setTheme("dark") : () => setTheme("light")}
         >
           {theme === "light" ? <BiMoon /> : <BiSun />}
@@ -169,10 +175,11 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
                 ) : (
                   <Avatar
                     size="xs"
-                    bg="gray.100"
+                    bg="#718096"
+                    color={"white"}
                     borderColor="gray.400"
-                    _dark={{ bg: "gray.600", borderColor: "gray.700" }}
-                    border={1}
+                    _dark={{ borderColor: "gray.50" }}
+                    css={avatarRing}
                   />
                 )}
               </>
@@ -252,3 +259,7 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
 }
 
 export default Header;
+
+/*
+
+*/
