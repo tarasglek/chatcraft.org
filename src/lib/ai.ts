@@ -463,17 +463,3 @@ export function isChatModel(model: string): boolean {
     !(isTextToSpeechModel(model) || isSpeechToTextModel(model) || isTextToImageModel(model))
   );
 }
-
-export type JinaAiReaderResponse = {
-  code: number;
-  status: number;
-  data: {
-    content: string;
-    description?: string;
-    title?: string;
-    url?: string;
-  };
-  usage: {
-    tokens: number;
-  };
-};
