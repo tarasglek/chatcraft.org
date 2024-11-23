@@ -91,9 +91,6 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
     settings.currentProvider
   );
 
-  const [isNonLLMValidating, setIsNonLLMValidating] = useState(false);
-  const [isNonLLMInvalid, setIsNonLLMInvalid] = useState(false);
-
   useEffect(() => {
     isStoragePersisted()
       .then((value) => setIsPersisted(value))
@@ -244,45 +241,17 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
 
     setApiKeySaved(true);
   };
-  const handleNonLLMApiKeyChange = async (apiKey: string) => {
-    const newProvider = new JinaAIProvider(apiKey);
-
-    // Api key validation
-    try {
-      setIsNonLLMInvalid(false);
-      setIsNonLLMValidating(true);
-
-      const result = await newProvider.validateApiKey(apiKey);
-
-      setIsNonLLMInvalid(!result);
-      setIsNonLLMValidating(false);
-
-      // Valid key, update in nonLLMProviders
-      if (result) {
-        setNonLLMProviders({
-          ...nonLLMProviders,
-          [newProvider.name]: newProvider,
-        });
-        setApiKeySaved(true);
-      } else {
-        // Invalid key, remove from nonLLMProviders
-        const updatedProviders = { ...nonLLMProviders };
-        delete updatedProviders[newProvider.name];
-        setNonLLMProviders(updatedProviders);
-      }
-    } catch {
-      setIsNonLLMInvalid(true);
-      setIsNonLLMValidating(false);
-
-      // Invalid key, remove from nonLLMProviders
-      const updatedProviders = { ...nonLLMProviders };
-      delete updatedProviders[newProvider.name];
-      setNonLLMProviders(updatedProviders);
-    }
-
+  const handleNonLLMApiKeyChange = (value: string) => {
+    setNonLLMProviders({
+      ...nonLLMProviders,
+      "Jina AI": new JinaAIProvider(value),
+    });
     setSettings({
       ...settings,
-      nonLLMProviders: nonLLMProviders,
+      nonLLMProviders: {
+        ...nonLLMProviders,
+        "Jina AI": new JinaAIProvider(value),
+      },
     });
   };
 
@@ -897,7 +866,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                     </Link>
                   </Td>
                   <Td>
-                    <FormControl isInvalid={isNonLLMInvalid}>
+                    <FormControl>
                       <PasswordInput
                         size="sm"
                         buttonSize="xs"
@@ -905,19 +874,20 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                         paddingLeft={"0.5rem"}
                         fontSize="xs"
                         value={nonLLMProviders["Jina AI"]?.apiKey || ""}
-                        onChange={(e) => handleNonLLMApiKeyChange(e.target.value)}
+                        onChange={(e) => {
+                          setNonLLMProviders({
+                            ...nonLLMProviders,
+                            "Jina AI": new JinaAIProvider(e.target.value),
+                          });
+                          setSettings({
+                            ...settings,
+                            nonLLMProviders: {
+                              ...nonLLMProviders,
+                              "Jina AI": new JinaAIProvider(e.target.value),
+                            },
+                          });
+                        }}
                       />
-                      {isNonLLMValidating && (
-                        <Flex mt={2}>
-                          <Spinner size="xs" />
-                          <Text ml={2} fontSize="xs">
-                            Validating...
-                          </Text>
-                        </Flex>
-                      )}
-                      {isNonLLMInvalid && (
-                        <FormErrorMessage fontSize="xs">Unable to verify API key</FormErrorMessage>
-                      )}
                     </FormControl>
                   </Td>
                 </Tr>

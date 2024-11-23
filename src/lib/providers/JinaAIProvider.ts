@@ -1,5 +1,6 @@
 import { NonLLMProviders } from "../ChatCraftProvider";
 import { JinaAiReaderResponse } from "../ai";
+import { getSettings } from "../settings";
 
 const JINA_AI = "Jina AI";
 const JINA_API_URL = "https://r.jina.ai/";
@@ -8,6 +9,12 @@ export class JinaAIProvider extends NonLLMProviders {
   constructor(apiKey?: string) {
     super(JINA_AI, JINA_API_URL, apiKey);
   }
+
+  static fromSettings(): JinaAIProvider {
+    const settings = getSettings();
+    return (settings.nonLLMProviders["Jina AI"] as JinaAIProvider) || new JinaAIProvider();
+  }
+
   get clientHeaders() {
     const headers: HeadersInit = {
       "Content-Type": "application/json",

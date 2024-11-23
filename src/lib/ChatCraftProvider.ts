@@ -99,8 +99,4 @@ export abstract class NonLLMProviders {
     this.apiUrl = url;
     this.apiKey = key;
   }
-  abstract validateApiKey(key: string): Promise<boolean>;
-  get clientHeaders() {
-    return {};
-  }
 }

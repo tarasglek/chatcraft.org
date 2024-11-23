@@ -2,10 +2,9 @@ import { useCallback } from "react";
 import { useAlert } from "./use-alert";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
-import { type JinaAiReaderResponse } from "../lib/ai";
 import { compressImageToBase64, formatAsCodeBlock } from "../lib/utils";
 import { getSettings } from "../lib/settings";
-import { JinaAIProvider } from "../lib/providers/JinaAIProvider";
+import { JinaAIProvider, type JinaAiReaderResponse } from "../lib/providers/JinaAIProvider";
 
 function readTextFile(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -144,8 +143,7 @@ async function processFile(
   }
 
   if (file.type === "application/pdf") {
-    const jinaAIProvider =
-      (settings.nonLLMProviders["Jina AI"] as JinaAIProvider) || new JinaAIProvider();
+    const jinaAIProvider = JinaAIProvider.fromSettings();
     const contents = await jinaAIProvider.pdfToMarkdown(file);
     assertContents(contents);
     return contents;
@@ -221,13 +219,21 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
             const contents = await processFile(file, settings);
             importFile(file, contents);
           } catch (err: any) {
-            if (err.cause.code === "EmptyFile") {
+            if (err.cause?.code === "EmptyFile") {
               info({
                 title: "Warning: empty file",
                 message: `The file ${file.name} was empty after processing, skipping import.`,
               });
+            } else if (err.cause?.code === "FreeTierExceeded") {
+              error({
+                title: "Free Tier Limit Exceeded",
+                message: err.message,
+              });
             } else {
-              error({ title: "Unable to import file", message: err.message });
+              error({
+                title: "Unable to import file",
+                message: err.message || "Unknown error occurred while importing file",
+              });
             }
           } finally {
             progress({
