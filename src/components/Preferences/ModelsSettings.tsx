@@ -874,19 +874,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                         paddingLeft={"0.5rem"}
                         fontSize="xs"
                         value={nonLLMProviders["Jina AI"]?.apiKey || ""}
-                        onChange={(e) => {
-                          setNonLLMProviders({
-                            ...nonLLMProviders,
-                            "Jina AI": new JinaAIProvider(e.target.value),
-                          });
-                          setSettings({
-                            ...settings,
-                            nonLLMProviders: {
-                              ...nonLLMProviders,
-                              "Jina AI": new JinaAIProvider(e.target.value),
-                            },
-                          });
-                        }}
+                        onChange={(e) => handleNonLLMApiKeyChange(e.target.value)}
                       />
                     </FormControl>
                   </Td>
