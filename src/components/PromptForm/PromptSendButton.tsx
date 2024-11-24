@@ -21,6 +21,7 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
   return (
     <ButtonGroup variant="outline" isAttached>
       <IconButton
+        // We do want to submit the form when this button is clicked
         type="submit"
         size="md"
         fontSize="1.375rem"
@@ -46,6 +47,8 @@ function MobilePromptSendButton({ isLoading }: PromptSendButtonProps) {
         }}
         menuButton={({ open }) => (
           <button
+            // We don't want to submit the form when clicking on the menu
+            type="button"
             style={{
               width: "2.5rem",
               height: "2.5rem",
