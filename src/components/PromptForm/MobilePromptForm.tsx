@@ -66,6 +66,7 @@ function MobilePromptForm({
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
     const textValue = inputPromptRef.current?.value.trim() || "";
+    console.log("handlePromptSubmit", e.target, textValue);
     if (!textValue) {
       return;
     }
