@@ -80,16 +80,16 @@ export class JinaAIProvider extends NonLLMProviders {
         // we're checking for 429 , rate limit exceeded, and also checking if the error message contains "quota"
         if (res.status === 429 || (error?.detail && error.detail.includes("quota"))) {
           throw new Error(
-            "Free tier limit exceeded. Please add an API key in Settings to process larger files.",
+            "Jina Reader API Free tier limit exceeded. Please add an API key in Settings to process larger files.",
             { cause: { code: "FreeTierExceeded" } }
           );
         }
-        throw new Error(`Error converting PDF file with Jina.ai Reader: ${error}`);
+        throw new Error(`Error converting PDF file with Jina Reader API: ${error}`);
       }
 
       const result: JinaAiReaderResponse = await res.json();
       if (result.code !== 200) {
-        throw new Error(`Error converting PDF file with Jina.ai Reader: got code ${result.code}`);
+        throw new Error(`Error converting PDF file with Jina Reader API: got code ${result.code}`);
       }
       return result;
     } catch (err) {

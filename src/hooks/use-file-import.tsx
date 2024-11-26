@@ -226,7 +226,7 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
               });
             } else if (err.cause?.code === "FreeTierExceeded") {
               error({
-                title: "Free Tier Limit Exceeded",
+                title: "Jina Reader API Free Tier Limit Exceeded",
                 message: err.message,
               });
             } else {

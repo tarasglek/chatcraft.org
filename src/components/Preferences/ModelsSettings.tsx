@@ -38,7 +38,7 @@ import useAudioPlayer from "../../hooks/use-audio-player";
 import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
-import { ChatCraftProvider, ProviderData, NonLLMProviderData } from "../../lib/ChatCraftProvider";
+import { ChatCraftProvider, ProviderData } from "../../lib/ChatCraftProvider";
 import db from "../../lib/db";
 import { providerFromUrl, supportedProviders } from "../../lib/providers";
 import { CustomProvider } from "../../lib/providers/CustomProvider";
@@ -84,7 +84,6 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
 
   // Stores the list of providers we are displaying in providers table
   const [tableProviders, setTableProviders] = useState<ProviderData>({});
-  const [nonLLMProviders, setNonLLMProviders] = useState<NonLLMProviderData>({});
 
   // Stores the provider that has its api key field currently actively selected
   const [focusedProvider, setFocusedProvider] = useState<ChatCraftProvider | null>(
@@ -242,14 +241,10 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
     setApiKeySaved(true);
   };
   const handleNonLLMApiKeyChange = (value: string) => {
-    setNonLLMProviders({
-      ...nonLLMProviders,
-      "Jina AI": new JinaAIProvider(value),
-    });
     setSettings({
       ...settings,
       nonLLMProviders: {
-        ...nonLLMProviders,
+        ...settings.nonLLMProviders,
         "Jina AI": new JinaAIProvider(value),
       },
     });
@@ -526,6 +521,9 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
           <FormControl>
             <FormLabel>
               LLM Providers
+              <FormHelperText fontSize="xs" mb={1}>
+                OpenAI-Compatible Chat Completion Providers
+              </FormHelperText>
               <ButtonGroup ml={3}>
                 <Button size="xs" onClick={handleAddProvider}>
                   Add
@@ -853,11 +851,11 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
               </Thead>
               <Tbody>
                 <Tr>
-                  <Td fontSize="xs">Jina AI</Td>
+                  <Td fontSize="xs">Jina Reader API</Td>
                   <Td fontSize="xs">
                     Optional service for processing larger files.{" "}
                     <Link
-                      href="https://jina.ai/"
+                      href="https://jina.ai/reader"
                       isExternal
                       color="blue.500"
                       _hover={{ textDecoration: "underline" }}
@@ -873,7 +871,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                         paddingRight={"2rem"}
                         paddingLeft={"0.5rem"}
                         fontSize="xs"
-                        value={nonLLMProviders["Jina AI"]?.apiKey || ""}
+                        value={settings.nonLLMProviders["Jina AI"]?.apiKey || ""}
                         onChange={(e) => handleNonLLMApiKeyChange(e.target.value)}
                       />
                     </FormControl>
