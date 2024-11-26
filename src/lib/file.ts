@@ -119,8 +119,7 @@ export async function importFiles(
         });
         onFile(file, base64);
       } else if (file.type === "application/pdf") {
-        const jinaAIProvider = JinaAIProvider.fromSettings();
-        const markdown = await jinaAIProvider.pdfToMarkdown(file);
+        const markdown = await JinaAIProvider.pdfToMarkdown(file);
         onFile(file, markdown);
       } else if (file.type === "application/markdown" || file.type === "text/markdown") {
         const markdown = await readTextFile(file);

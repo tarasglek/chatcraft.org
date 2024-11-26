@@ -40,8 +40,9 @@ export class JinaAIProvider extends NonLLMProviders {
     return new JinaAIProvider();
   }
 
-  async pdfToMarkdown(file: File): Promise<JinaAiReaderResponse> {
+  static async pdfToMarkdown(file: File): Promise<JinaAiReaderResponse> {
     try {
+      const jinaProvider = JinaAIProvider.fromSettings();
       const base64String = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -64,7 +65,7 @@ export class JinaAIProvider extends NonLLMProviders {
       const headers = {
         "Content-Type": "application/json",
         Accept: "application/json",
-        ...(this.apiKey && { Authorization: `Bearer ${this.apiKey}` }),
+        ...(jinaProvider.apiKey && { Authorization: `Bearer ${jinaProvider.apiKey}` }),
       };
 
       const res = await fetch("https://r.jina.ai/", {

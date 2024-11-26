@@ -143,8 +143,7 @@ async function processFile(
   }
 
   if (file.type === "application/pdf") {
-    const jinaAIProvider = JinaAIProvider.fromSettings();
-    const contents = await jinaAIProvider.pdfToMarkdown(file);
+    const contents = await JinaAIProvider.pdfToMarkdown(file);
     assertContents(contents);
     return contents;
   }
