@@ -1,5 +1,3 @@
-import { Feed } from "feed";
-import { DOMParser } from "linkedom";
 import { errorResponse, createResourcesForEnv } from "../../utils";
 
 interface Env {

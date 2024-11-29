@@ -22,13 +22,11 @@ import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { TbSearch } from "react-icons/tb";
-import { FiRss } from "react-icons/fi";
 import { Form } from "react-router-dom";
 
 import PreferencesModal from "./Preferences/PreferencesModal";
 import { useUser } from "../hooks/use-user";
 import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
-import { useAlert } from "../hooks/use-alert";
 
 type HeaderProps = {
   chatId?: string;
@@ -45,7 +43,6 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     onClose: onPrefModalClose,
   } = useDisclosure();
   const { user, login, logout } = useUser();
-  const { error } = useAlert();
 
   const handleLoginLogout = useCallback(
     (provider: string) => {
