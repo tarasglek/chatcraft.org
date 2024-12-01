@@ -294,13 +294,15 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   const navigate = useNavigate();
   const [recentCount, setRecentCount] = useState(10);
 
-  const chatsTotal = useLiveQueryTraced<number, number>("count-chats")(
-    () => db.chats.count(),
-    [],
+  const chatsTotal = useLiveQueryTraced<number, number>(
+    "count-chats", 
+    () => db.chats.count(), 
+    [], 
     0
   );
 
-  const recentChats = useLiveQueryTraced<ChatCraftChat[], ChatCraftChat[]>("recent-chats")(
+  const recentChats = useLiveQueryTraced<ChatCraftChat[], ChatCraftChat[]>(
+    "recent-chats",
     async () => {
       const records = await db.chats.orderBy("date").reverse().limit(recentCount).toArray();
       if (!records) {
@@ -314,8 +316,7 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   );
 
   const functions = useLiveQueryTraced<ChatCraftFunction[], ChatCraftFunction[]>(
-    "recent-functions"
-  )(
+    "recent-functions",
     async () => {
       const records = await db.functions.orderBy("date").reverse().limit(recentCount).toArray();
       if (!records) {
@@ -328,7 +329,8 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
     []
   );
 
-  const sharedChats = useLiveQueryTraced<SharedCraftChat[], SharedCraftChat[]>("shared-chats")(
+  const sharedChats = useLiveQueryTraced<SharedCraftChat[], SharedCraftChat[]>(
+    "shared-chats",
     async () => {
       const records = await db.shared.toArray();
       if (!records) {
