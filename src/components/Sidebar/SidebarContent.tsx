@@ -17,7 +17,7 @@ import {
   AccordionIcon,
   AccordionPanel,
 } from "@chakra-ui/react";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQueryTraced } from "../../lib/performance";
 import { MdOutlineChatBubbleOutline } from "react-icons/md";
 import { TbCheck, TbTrash } from "react-icons/tb";
 import { CgClose } from "react-icons/cg";
@@ -294,9 +294,15 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   const navigate = useNavigate();
   const [recentCount, setRecentCount] = useState(10);
 
-  const chatsTotal = useLiveQuery<number, number>(() => db.chats.count(), [], 0);
+  const chatsTotal = useLiveQueryTraced<number, number>(
+    "count-chats",
+    () => db.chats.count(),
+    [],
+    0
+  );
 
-  const recentChats = useLiveQuery<ChatCraftChat[], ChatCraftChat[]>(
+  const recentChats = useLiveQueryTraced<ChatCraftChat[], ChatCraftChat[]>(
+    "recent-chats",
     async () => {
       const records = await db.chats.orderBy("date").reverse().limit(recentCount).toArray();
       if (!records) {
@@ -309,7 +315,8 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
     []
   );
 
-  const functions = useLiveQuery<ChatCraftFunction[], ChatCraftFunction[]>(
+  const functions = useLiveQueryTraced<ChatCraftFunction[], ChatCraftFunction[]>(
+    "recent-functions",
     async () => {
       const records = await db.functions.orderBy("date").reverse().limit(recentCount).toArray();
       if (!records) {
@@ -322,7 +329,8 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
     []
   );
 
-  const sharedChats = useLiveQuery<SharedChatCraftChat[], SharedChatCraftChat[]>(
+  const sharedChats = useLiveQueryTraced<SharedChatCraftChat[], SharedChatCraftChat[]>(
+    "shared-chats",
     async () => {
       const records = await db.shared.toArray();
       if (!records) {

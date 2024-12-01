@@ -24,7 +24,7 @@ import { LuFunctionSquare } from "react-icons/lu";
 import { useFetcher, useLoaderData } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
 
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQueryTraced } from "../lib/performance";
 import { TbDots } from "react-icons/tb";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
@@ -46,11 +46,15 @@ export default function Function() {
   });
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
 
-  const func = useLiveQuery<ChatCraftFunction | undefined>(() => {
-    if (funcId) {
-      return Promise.resolve(ChatCraftFunction.find(funcId));
-    }
-  }, [funcId]);
+  const func = useLiveQueryTraced<ChatCraftFunction | undefined>(
+    "find-function",
+    () => {
+      if (funcId) {
+        return Promise.resolve(ChatCraftFunction.find(funcId));
+      }
+    },
+    [funcId]
+  );
 
   const title = useMemo(() => {
     if (!func) {

@@ -12,7 +12,7 @@ import {
   MenuList,
   Text,
 } from "@chakra-ui/react";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQueryTraced } from "../../lib/performance";
 import { TbChevronDown, TbStar, TbStarFilled } from "react-icons/tb";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
@@ -31,7 +31,8 @@ function SystemPromptVersionsMenu({
 }) {
   const { error } = useAlert();
 
-  const prevSystemPrompts = useLiveQuery<string[], string[]>(
+  const prevSystemPrompts = useLiveQueryTraced<string[], string[]>(
+    "get-starred-prompts",
     async () => {
       // Get all starred System Messages, sorted by date
       const records = await db.starred
@@ -45,17 +46,14 @@ function SystemPromptVersionsMenu({
         .catch((error) => {
           console.error("Failed to query the starred table:", error);
         });
-      if (!records) {
-        return [defaultSystemPrompt()];
-      }
-
-      return records;
+      return records || [defaultSystemPrompt()];
     },
     [],
     []
   );
 
-  const isStarredSystemPrompt = useLiveQuery<boolean>(
+  const isStarredSystemPrompt = useLiveQueryTraced<boolean>(
+    "check-starred-prompt",
     () =>
       ChatCraftStarredSystemPrompt.exists(promptMessage.text).catch((err) => {
         console.warn("Unable to query 'starred' table for PK", err);
