@@ -27,7 +27,7 @@ export class StatsCommand extends ChatCraftCommand {
         min: Number(stat.minDuration.toFixed(2)),
         avg: Number((stat.totalDuration / stat.operations).toFixed(2)),
         max: Number(stat.maxDuration.toFixed(2)),
-        total: Number(stat.totalDuration.toFixed(2))
+        total: Number(stat.totalDuration.toFixed(2)),
       }))
       .sort((a, b) => b.total - a.total);
 
@@ -36,10 +36,8 @@ export class StatsCommand extends ChatCraftCommand {
       "## Performance Statistics\n",
       "| Operation | Count | min/avg/max (ms) | Total (ms) |",
       "|-----------|--------|-----------------|------------|",
-      ...results.map(r => 
-        `| ${r.name} | ${r.ops} | ${r.min}/${r.avg}/${r.max} | ${r.total} |`
-      )
-    ].join('\n');
+      ...results.map((r) => `| ${r.name} | ${r.ops} | ${r.min}/${r.avg}/${r.max} | ${r.total} |`),
+    ].join("\n");
 
     return chat.addMessage(new ChatCraftAppMessage({ text: message }));
   }
