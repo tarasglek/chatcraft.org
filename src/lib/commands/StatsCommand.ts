@@ -24,9 +24,9 @@ export class StatsCommand extends ChatCraftCommand {
       .map(([name, stat]) => ({
         name,
         ops: stat.operations,
-        min: Math.round(stat.minDuration * 100) / 100,
-        avg: Math.round(stat.totalDuration / stat.operations * 100) / 100,
-        max: Math.round(stat.maxDuration * 100) / 100
+        min: Number(stat.minDuration.toFixed(2)),
+        avg: Number((stat.totalDuration / stat.operations).toFixed(2)),
+        max: Number(stat.maxDuration.toFixed(2))
       }))
       .sort((a, b) => b.ops - a.ops);
 
