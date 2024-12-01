@@ -17,17 +17,33 @@ export const perfObserver = new PerformanceObserver((list, observer) => {
 
 import { useLiveQuery } from "dexie-react-hooks";
 
+/**
+ * Wrapper for Dexie's useLiveQuery that adds performance measurement.
+ * Automatically traces query execution time using the performance API.
+ * 
+ * @template T The type of data returned by the query
+ * @param queryFn Function that returns the query result or Promise
+ * @param deps Optional array of dependencies that trigger re-running the query
+ * @param name Optional name for the performance trace (defaults to 'query')
+ * @returns {T | undefined} The query result, undefined while loading
+ * 
+ * @example
+ * const chat = useLiveQueryTraced<Chat | undefined>(
+ *   () => Chat.find(id),
+ *   [id],
+ *   'find-chat'
+ * );
+ */
 export function useLiveQueryTraced<T>(
   queryFn: () => Promise<T> | T,
   deps?: any[],
-  name: string = "query"
+  name: string = 'query'
 ) {
   return useLiveQuery(
-    () =>
-      measure(`${name}`, async () => {
-        const result = await queryFn();
-        return result;
-      }),
+    () => measure(`${name}`, async () => {
+      const result = await queryFn();
+      return result;
+    }),
     deps
   );
 }
