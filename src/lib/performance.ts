@@ -20,10 +20,10 @@ import { useLiveQuery } from "dexie-react-hooks";
 /**
  * A custom React hook that wraps useLiveQuery with performance tracing.
  * Measures execution time of the query function.
- * 
+ *
  * Usage:
  * const result = useLiveQueryTraced("name", queryFn, deps, defaultValue)
- * 
+ *
  * @template T The type of data returned by the query
  * @template TDefault The type of the default value
  * @param name Name for the performance trace
@@ -39,10 +39,11 @@ export function useLiveQueryTraced<T, TDefault = T>(
   defaultValue?: TDefault
 ): T | TDefault {
   return useLiveQuery(
-    () => measure(name, async () => {
-      const result = await queryFn();
-      return result;
-    }),
+    () =>
+      measure(name, async () => {
+        const result = await queryFn();
+        return result;
+      }),
     deps,
     defaultValue
   ) as T | TDefault;

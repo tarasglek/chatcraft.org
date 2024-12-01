@@ -295,9 +295,9 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   const [recentCount, setRecentCount] = useState(10);
 
   const chatsTotal = useLiveQueryTraced<number, number>(
-    "count-chats", 
-    () => db.chats.count(), 
-    [], 
+    "count-chats",
+    () => db.chats.count(),
+    [],
     0
   );
 
