@@ -32,10 +32,10 @@ import { useLiveQuery } from "dexie-react-hooks";
  * @param defaultValue Optional default value while loading
  * @returns The query result or default value
  */
-export function useLiveQueryTraced<T, TDefault = undefined>(
+export function useLiveQueryTraced<T, TDefault = T>(
   name: string,
   queryFn: () => Promise<T> | T,
-  deps?: any[],
+  deps: any[] = [],
   defaultValue?: TDefault
 ): T | TDefault {
   return useLiveQuery(
@@ -45,7 +45,7 @@ export function useLiveQueryTraced<T, TDefault = undefined>(
     }),
     deps,
     defaultValue
-  );
+  ) as T | TDefault;
 }
 
 export async function measure<T>(name: string, fn: () => Promise<T>): Promise<T> {
