@@ -18,7 +18,7 @@ function updateStats(name: string, duration: number) {
     totalDuration: 0,
     minDuration: Infinity,
     maxDuration: -Infinity,
-    lastDuration: 0
+    lastDuration: 0,
   };
 
   stats.operations++;
@@ -36,7 +36,7 @@ export const perfObserver = new PerformanceObserver((list) => {
     if (!entry.name.startsWith(PERF_PREFIX)) return;
 
     if (entry.entryType === "measure") {
-      const name = entry.name.replace(PERF_PREFIX, '');
+      const name = entry.name.replace(PERF_PREFIX, "");
       updateStats(name, entry.duration);
       console.log(`${entry.name}'s duration: ${entry.duration}`);
     }

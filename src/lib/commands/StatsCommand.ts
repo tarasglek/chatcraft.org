@@ -10,11 +10,11 @@ export class StatsCommand extends ChatCraftCommand {
 
   async execute(chat: ChatCraftChat) {
     const stats = getPerformanceStats();
-    
+
     if (stats.size === 0) {
       return chat.addMessage(
-        new ChatCraftAppMessage({ 
-          text: "No performance statistics available." 
+        new ChatCraftAppMessage({
+          text: "No performance statistics available.",
         })
       );
     }
@@ -25,10 +25,10 @@ export class StatsCommand extends ChatCraftCommand {
         name,
         operations: stat.operations,
         totalMs: Math.round(stat.totalDuration * 100) / 100,
-        avgMs: Math.round(stat.totalDuration / stat.operations * 100) / 100,
+        avgMs: Math.round((stat.totalDuration / stat.operations) * 100) / 100,
         minMs: Math.round(stat.minDuration * 100) / 100,
         maxMs: Math.round(stat.maxDuration * 100) / 100,
-        lastMs: Math.round(stat.lastDuration * 100) / 100
+        lastMs: Math.round(stat.lastDuration * 100) / 100,
       }))
       .sort((a, b) => b.totalMs - a.totalMs);
 
@@ -37,13 +37,12 @@ export class StatsCommand extends ChatCraftCommand {
       "## Performance Statistics\n",
       "| Operation | Count | Avg (ms) | Min (ms) | Max (ms) | Total (ms) |",
       "|-----------|--------|----------|----------|----------|------------|",
-      ...results.map(r => 
-        `| ${r.name} | ${r.operations} | ${r.avgMs} | ${r.minMs} | ${r.maxMs} | ${r.totalMs} |`
-      )
-    ].join('\n');
+      ...results.map(
+        (r) =>
+          `| ${r.name} | ${r.operations} | ${r.avgMs} | ${r.minMs} | ${r.maxMs} | ${r.totalMs} |`
+      ),
+    ].join("\n");
 
-    return chat.addMessage(
-      new ChatCraftAppMessage({ text: message })
-    );
+    return chat.addMessage(new ChatCraftAppMessage({ text: message }));
   }
 }
