@@ -329,7 +329,7 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
     []
   );
 
-  const sharedChats = useLiveQueryTraced<SharedCraftChat[], SharedCraftChat[]>(
+  const sharedChats = useLiveQueryTraced<SharedChatCraftChat[], SharedChatCraftChat[]>(
     "shared-chats",
     async () => {
       const records = await db.shared.toArray();
