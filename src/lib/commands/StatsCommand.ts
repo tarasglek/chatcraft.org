@@ -30,15 +30,14 @@ export class StatsCommand extends ChatCraftCommand {
       }))
       .sort((a, b) => b.ops - a.ops);
 
-    // Format message with concise table
+    // Format message with markdown table
     const message = [
-      "```",
-      "Operation            Ops    min/avg/max(ms)",
-      "-------------------------------------------",
+      "## Performance Statistics\n",
+      "| Operation | Count | min/avg/max (ms) |",
+      "|-----------|--------|-----------------|",
       ...results.map(r => 
-        `${r.name.padEnd(20)} ${r.ops.toString().padStart(5)}  ${r.min}/${r.avg}/${r.max}`
-      ),
-      "```"
+        `| ${r.name} | ${r.ops} | ${r.min}/${r.avg}/${r.max} |`
+      )
     ].join('\n');
 
     return chat.addMessage(new ChatCraftAppMessage({ text: message }));
