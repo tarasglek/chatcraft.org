@@ -29,6 +29,22 @@ import { useLiveQuery } from "dexie-react-hooks";
  * @param name Optional name for the performance trace (defaults to 'query')
  * @returns {T | TDefault} The query result, or defaultValue while loading
  */
+/**
+ * Creates a traced version of useLiveQuery that measures performance.
+ * Uses several TypeScript/JS tricks:
+ * 1. Function currying - returns a new function that wraps useLiveQuery
+ * 2. typeof operator - copies useLiveQuery's exact type signature
+ * 3. Rest parameters (...args) - captures all arguments as an array
+ * 4. Spread operator - forwards all remaining args unchanged
+ * 
+ * Usage:
+ * const result = useLiveQueryTraced<Type>("name")(queryFn, deps, defaultValue)
+ * 
+ * @template T The type of data returned by the query
+ * @template TDefault The type of the default value
+ * @param name Name for the performance trace
+ * @returns A wrapped version of useLiveQuery that traces performance
+ */
 export function useLiveQueryTraced<T, TDefault = undefined>(
   name: string
 ): typeof useLiveQuery<T, TDefault> {
