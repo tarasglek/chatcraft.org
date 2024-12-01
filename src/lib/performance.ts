@@ -18,47 +18,34 @@ export const perfObserver = new PerformanceObserver((list) => {
 import { useLiveQuery } from "dexie-react-hooks";
 
 /**
- * Wrapper for Dexie's useLiveQuery that adds performance measurement.
- * Automatically traces query execution time using the performance API.
- *
- * @template T The type of data returned by the query
- * @template TDefault The type of the default value
- * @param queryFn Function that returns the query result or Promise
- * @param deps Optional array of dependencies that trigger re-running the query
- * @param defaultValue Optional default value to return while loading
- * @param name Optional name for the performance trace (defaults to 'query')
- * @returns {T | TDefault} The query result, or defaultValue while loading
- */
-/**
- * Creates a traced version of useLiveQuery that measures performance.
- * Uses several TypeScript/JS tricks:
- * 1. Function currying - returns a new function that wraps useLiveQuery
- * 2. typeof operator - copies useLiveQuery's exact type signature
- * 3. Rest parameters (...args) - captures all arguments as an array
- * 4. Spread operator - forwards all remaining args unchanged
- *
+ * A custom React hook that wraps useLiveQuery with performance tracing.
+ * Measures execution time of the query function.
+ * 
  * Usage:
- * const result = useLiveQueryTraced<Type>("name")(queryFn, deps, defaultValue)
- *
+ * const result = useLiveQueryTraced("name", queryFn, deps, defaultValue)
+ * 
  * @template T The type of data returned by the query
  * @template TDefault The type of the default value
  * @param name Name for the performance trace
- * @returns A wrapped version of useLiveQuery that traces performance
+ * @param queryFn Function that returns the query result or Promise
+ * @param deps Optional array of dependencies
+ * @param defaultValue Optional default value while loading
+ * @returns The query result or default value
  */
 export function useLiveQueryTraced<T, TDefault = undefined>(
-  name: string
-): typeof useLiveQuery<T, TDefault> {
-  return function (...args) {
-    const queryFn = args[0];
-    return useLiveQuery(
-      () =>
-        measure(`${name}`, async () => {
-          const result = await queryFn();
-          return result;
-        }),
-      ...args.slice(1)
-    );
-  };
+  name: string,
+  queryFn: () => Promise<T> | T,
+  deps?: any[],
+  defaultValue?: TDefault
+): T | TDefault {
+  return useLiveQuery(
+    () => measure(name, async () => {
+      const result = await queryFn();
+      return result;
+    }),
+    deps,
+    defaultValue
+  );
 }
 
 export async function measure<T>(name: string, fn: () => Promise<T>): Promise<T> {
