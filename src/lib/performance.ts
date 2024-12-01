@@ -20,13 +20,14 @@ import { useLiveQuery } from "dexie-react-hooks";
 export function useLiveQueryTraced<T>(
   queryFn: () => Promise<T> | T,
   deps?: any[],
-  name: string = 'query'
+  name: string = "query"
 ) {
   return useLiveQuery(
-    () => measure(`${name}`, async () => {
-      const result = await queryFn();
-      return result;
-    }),
+    () =>
+      measure(`${name}`, async () => {
+        const result = await queryFn();
+        return result;
+      }),
     deps
   );
 }
