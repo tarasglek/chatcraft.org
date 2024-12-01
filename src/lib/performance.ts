@@ -22,29 +22,26 @@ import { useLiveQuery } from "dexie-react-hooks";
  * Automatically traces query execution time using the performance API.
  * 
  * @template T The type of data returned by the query
+ * @template TDefault The type of the default value
  * @param queryFn Function that returns the query result or Promise
- * @param deps Optional array of dependencies that trigger re-running the query
+ * @param deps Optional array of dependencies that trigger re-running the query 
+ * @param defaultValue Optional default value to return while loading
  * @param name Optional name for the performance trace (defaults to 'query')
- * @returns {T | undefined} The query result, undefined while loading
- * 
- * @example
- * const chat = useLiveQueryTraced<Chat | undefined>(
- *   () => Chat.find(id),
- *   [id],
- *   'find-chat'
- * );
+ * @returns {T | TDefault} The query result, or defaultValue while loading
  */
-export function useLiveQueryTraced<T>(
+export function useLiveQueryTraced<T, TDefault = undefined>(
   queryFn: () => Promise<T> | T,
   deps?: any[],
-  name: string = 'query'
-) {
-  return useLiveQuery(
+  defaultValue?: TDefault,
+  name: string = "query"
+): T | TDefault {
+  return useLiveQuery<T, TDefault>(
     () => measure(`${name}`, async () => {
       const result = await queryFn();
       return result;
     }),
-    deps
+    deps,
+    defaultValue  // Pass through the default value parameter
   );
 }
 
