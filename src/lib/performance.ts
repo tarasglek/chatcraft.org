@@ -32,15 +32,16 @@ import { useLiveQuery } from "dexie-react-hooks";
 export function useLiveQueryTraced<T, TDefault = undefined>(
   name: string
 ): typeof useLiveQuery<T, TDefault> {
-  return (queryFn: () => Promise<T> | T, deps?: any[], defaultValue?: TDefault) =>
-    useLiveQuery<T, TDefault>(
+  return function(...args) {
+    const queryFn = args[0];
+    return useLiveQuery(
       () => measure(`${name}`, async () => {
         const result = await queryFn();
         return result;
       }),
-      deps,
-      defaultValue
+      ...args.slice(1)
     );
+  };
 }
 
 export async function measure<T>(name: string, fn: () => Promise<T>): Promise<T> {
