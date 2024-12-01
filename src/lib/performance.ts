@@ -1,19 +1,55 @@
 const PERF_PREFIX = "--chatcraft-";
 
-// https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver
+type PerfStats = {
+  operations: number;
+  totalDuration: number;
+  minDuration: number;
+  maxDuration: number;
+  lastDuration: number;
+};
 
+// Use a Map to store running statistics
+const measurements = new Map<string, PerfStats>();
+
+// Update stats for a measurement
+function updateStats(name: string, duration: number) {
+  const stats = measurements.get(name) || {
+    operations: 0,
+    totalDuration: 0,
+    minDuration: Infinity,
+    maxDuration: -Infinity,
+    lastDuration: 0
+  };
+
+  stats.operations++;
+  stats.totalDuration += duration;
+  stats.minDuration = Math.min(stats.minDuration, duration);
+  stats.maxDuration = Math.max(stats.maxDuration, duration);
+  stats.lastDuration = duration;
+
+  measurements.set(name, stats);
+}
+
+// Refactored observer to use shared code
 export const perfObserver = new PerformanceObserver((list) => {
   list.getEntries().forEach((entry) => {
     if (!entry.name.startsWith(PERF_PREFIX)) return;
 
-    if (entry.entryType === "mark") {
-      // console.log(`${entry.name}'s startTime: ${entry.startTime}`);
-    }
     if (entry.entryType === "measure") {
+      const name = entry.name.replace(PERF_PREFIX, '');
+      updateStats(name, entry.duration);
       console.log(`${entry.name}'s duration: ${entry.duration}`);
     }
   });
 });
+
+/**
+ * Get all performance measurements collected so far
+ * @returns Map of operation names to their statistics
+ */
+export function getPerformanceStats(): Map<string, PerfStats> {
+  return new Map(measurements);
+}
 
 import { useLiveQuery } from "dexie-react-hooks";
 
