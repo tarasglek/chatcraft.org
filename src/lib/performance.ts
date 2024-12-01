@@ -1,3 +1,5 @@
+import { useLiveQuery } from "dexie-react-hooks";
+
 const PERF_PREFIX = "--chatcraft-";
 
 type PerfStats = {
@@ -51,8 +53,6 @@ export function getPerformanceStats(): Map<string, PerfStats> {
   return new Map(measurements);
 }
 
-import { useLiveQuery } from "dexie-react-hooks";
-
 /**
  * A custom React hook that wraps useLiveQuery with performance tracing.
  * Measures execution time of the query function.
@@ -94,7 +94,11 @@ export async function measure<T>(name: string, fn: () => Promise<T>): Promise<T>
   try {
     const result = await fn();
     performance.mark(endMark);
-    performance.measure(fullName, startMark, endMark);
+    try {
+      performance.measure(fullName, startMark, endMark);
+    } catch (e) {
+      console.error(`Failed to measure ${startMark} to ${endMark}: ${e}`);
+    }
     return result;
   } finally {
     performance.clearMarks(startMark);
