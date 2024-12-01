@@ -19,29 +19,27 @@ export class StatsCommand extends ChatCraftCommand {
       );
     }
 
-    // Convert stats to array and sort by total duration
+    // Convert stats to array and sort by operation count
     const results = Array.from(stats.entries())
       .map(([name, stat]) => ({
         name,
-        operations: stat.operations,
-        totalMs: Math.round(stat.totalDuration * 100) / 100,
-        avgMs: Math.round((stat.totalDuration / stat.operations) * 100) / 100,
-        minMs: Math.round(stat.minDuration * 100) / 100,
-        maxMs: Math.round(stat.maxDuration * 100) / 100,
-        lastMs: Math.round(stat.lastDuration * 100) / 100,
+        ops: stat.operations,
+        min: Math.round(stat.minDuration * 100) / 100,
+        avg: Math.round(stat.totalDuration / stat.operations * 100) / 100,
+        max: Math.round(stat.maxDuration * 100) / 100
       }))
-      .sort((a, b) => b.totalMs - a.totalMs);
+      .sort((a, b) => b.ops - a.ops);
 
-    // Format message with markdown table
+    // Format message with concise table
     const message = [
-      "## Performance Statistics\n",
-      "| Operation | Count | Avg (ms) | Min (ms) | Max (ms) | Total (ms) |",
-      "|-----------|--------|----------|----------|----------|------------|",
-      ...results.map(
-        (r) =>
-          `| ${r.name} | ${r.operations} | ${r.avgMs} | ${r.minMs} | ${r.maxMs} | ${r.totalMs} |`
+      "```",
+      "Operation            Ops    min/avg/max(ms)",
+      "-------------------------------------------",
+      ...results.map(r => 
+        `${r.name.padEnd(20)} ${r.ops.toString().padStart(5)}  ${r.min}/${r.avg}/${r.max}`
       ),
-    ].join("\n");
+      "```"
+    ].join('\n');
 
     return chat.addMessage(new ChatCraftAppMessage({ text: message }));
   }
