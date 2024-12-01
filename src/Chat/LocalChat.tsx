@@ -1,5 +1,6 @@
 import { useLoaderData } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
+import { measure } from "../lib/performance";
 
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import ChatBase from "./ChatBase";
