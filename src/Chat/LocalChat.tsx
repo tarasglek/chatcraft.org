@@ -10,6 +10,7 @@ export default function LocalChat() {
   const chat = useLiveQueryTraced<ChatCraftChat | undefined>(
     () => chatId ? ChatCraftChat.find(chatId) : undefined,
     [chatId],
+    undefined,
     'find-chat'
   );
 
