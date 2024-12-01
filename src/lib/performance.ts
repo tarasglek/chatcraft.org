@@ -1,7 +1,11 @@
+const PERF_PREFIX = '--chatcraft-';
+
 // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver
 
 export const perfObserver = new PerformanceObserver((list, observer) => {
   list.getEntries().forEach((entry) => {
+    if (!entry.name.startsWith(PERF_PREFIX)) return;
+    
     if (entry.entryType === "mark") {
       console.log(`${entry.name}'s startTime: ${entry.startTime}`);
     }
@@ -12,17 +16,17 @@ export const perfObserver = new PerformanceObserver((list, observer) => {
 });
 
 export async function measure<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  const startMark = `${name}-start`;
-  const endMark = `${name}-end`;
+  const fullName = `${PERF_PREFIX}${name}`;
+  const startMark = `${fullName}-start`;
+  const endMark = `${fullName}-end`;
   
   performance.mark(startMark);
   try {
     const result = await fn();
     performance.mark(endMark);
-    performance.measure(name, startMark, endMark);
+    performance.measure(fullName, startMark, endMark);
     return result;
   } finally {
-    // Clean up the marks
     performance.clearMarks(startMark);
     performance.clearMarks(endMark);
   }
