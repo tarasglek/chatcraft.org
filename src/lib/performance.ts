@@ -15,6 +15,22 @@ export const perfObserver = new PerformanceObserver((list, observer) => {
   });
 });
 
+import { useLiveQuery } from "dexie-react-hooks";
+
+export function useLiveQueryTraced<T>(
+  queryFn: () => Promise<T> | T,
+  deps?: any[],
+  name: string = 'query'
+) {
+  return useLiveQuery(
+    () => measure(`${name}`, async () => {
+      const result = await queryFn();
+      return result;
+    }),
+    deps
+  );
+}
+
 export async function measure<T>(name: string, fn: () => Promise<T>): Promise<T> {
   const fullName = `${PERF_PREFIX}${name}`;
   const startMark = `${fullName}-start`;
