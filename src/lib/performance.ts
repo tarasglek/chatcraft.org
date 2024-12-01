@@ -30,19 +30,17 @@ import { useLiveQuery } from "dexie-react-hooks";
  * @returns {T | TDefault} The query result, or defaultValue while loading
  */
 export function useLiveQueryTraced<T, TDefault = undefined>(
-  queryFn: () => Promise<T> | T,
-  deps?: any[],
-  defaultValue?: TDefault,
-  name: string = "query"
-): T | TDefault {
-  return useLiveQuery<T, TDefault>(
-    () => measure(`${name}`, async () => {
-      const result = await queryFn();
-      return result;
-    }),
-    deps,
-    defaultValue  // Pass through the default value parameter
-  );
+  name: string
+): typeof useLiveQuery<T, TDefault> {
+  return (queryFn: () => Promise<T> | T, deps?: any[], defaultValue?: TDefault) =>
+    useLiveQuery<T, TDefault>(
+      () => measure(`${name}`, async () => {
+        const result = await queryFn();
+        return result;
+      }),
+      deps,
+      defaultValue
+    );
 }
 
 export async function measure<T>(name: string, fn: () => Promise<T>): Promise<T> {
