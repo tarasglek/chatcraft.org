@@ -46,14 +46,11 @@ export default function Function() {
   });
   const inputPromptRef = useRef<HTMLTextAreaElement>(null);
 
-  const func = useLiveQueryTraced<ChatCraftFunction | undefined>("find-function")(
-    () => {
-      if (funcId) {
-        return Promise.resolve(ChatCraftFunction.find(funcId));
-      }
-    }, 
-    [funcId]
-  );
+  const func = useLiveQueryTraced<ChatCraftFunction | undefined>("find-function")(() => {
+    if (funcId) {
+      return Promise.resolve(ChatCraftFunction.find(funcId));
+    }
+  }, [funcId]);
 
   const title = useMemo(() => {
     if (!func) {

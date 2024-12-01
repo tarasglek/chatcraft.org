@@ -2,7 +2,7 @@ const PERF_PREFIX = "--chatcraft-";
 
 // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver
 
-export const perfObserver = new PerformanceObserver((list, observer) => {
+export const perfObserver = new PerformanceObserver((list) => {
   list.getEntries().forEach((entry) => {
     if (!entry.name.startsWith(PERF_PREFIX)) return;
 
@@ -20,11 +20,11 @@ import { useLiveQuery } from "dexie-react-hooks";
 /**
  * Wrapper for Dexie's useLiveQuery that adds performance measurement.
  * Automatically traces query execution time using the performance API.
- * 
+ *
  * @template T The type of data returned by the query
  * @template TDefault The type of the default value
  * @param queryFn Function that returns the query result or Promise
- * @param deps Optional array of dependencies that trigger re-running the query 
+ * @param deps Optional array of dependencies that trigger re-running the query
  * @param defaultValue Optional default value to return while loading
  * @param name Optional name for the performance trace (defaults to 'query')
  * @returns {T | TDefault} The query result, or defaultValue while loading
@@ -36,10 +36,10 @@ import { useLiveQuery } from "dexie-react-hooks";
  * 2. typeof operator - copies useLiveQuery's exact type signature
  * 3. Rest parameters (...args) - captures all arguments as an array
  * 4. Spread operator - forwards all remaining args unchanged
- * 
+ *
  * Usage:
  * const result = useLiveQueryTraced<Type>("name")(queryFn, deps, defaultValue)
- * 
+ *
  * @template T The type of data returned by the query
  * @template TDefault The type of the default value
  * @param name Name for the performance trace
@@ -48,13 +48,14 @@ import { useLiveQuery } from "dexie-react-hooks";
 export function useLiveQueryTraced<T, TDefault = undefined>(
   name: string
 ): typeof useLiveQuery<T, TDefault> {
-  return function(...args) {
+  return function (...args) {
     const queryFn = args[0];
     return useLiveQuery(
-      () => measure(`${name}`, async () => {
-        const result = await queryFn();
-        return result;
-      }),
+      () =>
+        measure(`${name}`, async () => {
+          const result = await queryFn();
+          return result;
+        }),
       ...args.slice(1)
     );
   };

@@ -295,8 +295,8 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   const [recentCount, setRecentCount] = useState(10);
 
   const chatsTotal = useLiveQueryTraced<number, number>("count-chats")(
-    () => db.chats.count(), 
-    [], 
+    () => db.chats.count(),
+    [],
     0
   );
 
@@ -313,7 +313,9 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
     []
   );
 
-  const functions = useLiveQueryTraced<ChatCraftFunction[], ChatCraftFunction[]>("recent-functions")(
+  const functions = useLiveQueryTraced<ChatCraftFunction[], ChatCraftFunction[]>(
+    "recent-functions"
+  )(
     async () => {
       const records = await db.functions.orderBy("date").reverse().limit(recentCount).toArray();
       if (!records) {

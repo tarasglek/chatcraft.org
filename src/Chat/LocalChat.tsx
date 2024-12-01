@@ -8,7 +8,7 @@ import { AutoScrollProvider } from "../hooks/use-autoscroll";
 export default function LocalChat() {
   const chatId = useLoaderData() as string;
   const chat = useLiveQueryTraced<ChatCraftChat | undefined>("find-chat")(
-    () => chatId ? ChatCraftChat.find(chatId) : undefined,
+    () => (chatId ? ChatCraftChat.find(chatId) : undefined),
     [chatId]
   );
 
