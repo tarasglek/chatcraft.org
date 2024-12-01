@@ -28,7 +28,7 @@ import {
   Tr,
   VStack,
 } from "@chakra-ui/react";
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { capitalize } from "lodash-es";
 import { FaCheck } from "react-icons/fa";
@@ -39,29 +39,15 @@ import { useModels } from "../../hooks/use-models";
 import { useSettings } from "../../hooks/use-settings";
 import { ChatCraftModel } from "../../lib/ChatCraftModel";
 import { ChatCraftProvider, ProviderData } from "../../lib/ChatCraftProvider";
-import db from "../../lib/db";
+
 import { providerFromUrl, supportedProviders } from "../../lib/providers";
 import { CustomProvider } from "../../lib/providers/CustomProvider";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 import { OpenAiProvider } from "../../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../../lib/providers/OpenRouterProvider";
 import { TextToSpeechVoices } from "../../lib/settings";
-import { download } from "../../lib/utils";
 import PasswordInput from "../PasswordInput";
 import { useTextToSpeech } from "../../hooks/use-text-to-speech";
-
-interface ModelsSettingsProps {
-  isOpen: boolean;
-}
-
-// https://dexie.org/docs/StorageManager
-async function isStoragePersisted() {
-  if (navigator.storage?.persisted) {
-    return await navigator.storage.persisted();
-  }
-
-  return false;
-}
 
 interface ModelsSettingsProps {
   isOpen: boolean;
@@ -71,10 +57,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
   const { settings, setSettings } = useSettings();
   const { models } = useModels();
 
-  // Whether our db is being persisted
-  const [isPersisted, setIsPersisted] = useState(false);
-  const { info, error, success, warning } = useAlert();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { error, success, warning } = useAlert();
   const [isApiKeyInvalid, setIsApiKeyInvalid] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<ChatCraftProvider | null>(null);
   const [newCustomProvider, setNewCustomProvider] = useState<ChatCraftProvider | null>(null);
@@ -87,73 +70,6 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
   // Stores the provider that has its api key field currently actively selected
   const [focusedProvider, setFocusedProvider] = useState<ChatCraftProvider | null>(
     settings.currentProvider
-  );
-
-  useEffect(() => {
-    isStoragePersisted()
-      .then((value) => setIsPersisted(value))
-      .catch(console.error);
-  }, []);
-
-  async function handlePersistClick() {
-    if (navigator.storage?.persist) {
-      await navigator.storage.persist();
-      const persisted = await isStoragePersisted();
-      setIsPersisted(persisted);
-    }
-  }
-
-  const handleExportClick = useCallback(
-    async function () {
-      // Don't load this unless it's needed (150K)
-      const { exportDB } = await import("dexie-export-import");
-      const blob = await exportDB(db);
-      download(blob, "chatcraft-db.json", "application/json");
-      info({
-        title: "Downloaded",
-        message: "Message was downloaded as a file",
-      });
-    },
-    [info]
-  );
-
-  const handleFileChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const blob = new Blob([new Uint8Array(reader.result as ArrayBuffer)]);
-          // Don't load this unless it's needed (150K)
-          import("dexie-export-import")
-            .then(({ importDB }) => importDB(blob))
-            .then(() => {
-              info({
-                title: "Database Import",
-                message: "Database imported successfully. You may need to refresh.",
-              });
-            })
-            .catch((err) => {
-              console.warn("Error importing db", err);
-              error({
-                title: "Database Import",
-                message: "Unable to import database. See Console for more details.",
-              });
-            });
-        };
-        reader.readAsArrayBuffer(file);
-      }
-    },
-    [error, info]
-  );
-
-  const handleImportClick = useCallback(
-    function () {
-      if (inputRef.current) {
-        inputRef.current.click();
-      }
-    },
-    [inputRef]
   );
 
   const handleVoiceSelection = useCallback(
@@ -801,54 +717,6 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                 Your API Key(s) are stored in browser storage
               </FormHelperText>
             )}
-          </FormControl>
-          <FormControl>
-            <FormLabel>
-              Offline database is {isPersisted ? "persisted" : "not persisted"}
-              <ButtonGroup ml={2}>
-                <Button
-                  size="xs"
-                  onClick={() => handlePersistClick()}
-                  isDisabled={isPersisted}
-                  variant="outline"
-                >
-                  Persist
-                </Button>
-                <Button size="xs" onClick={() => handleImportClick()}>
-                  Import
-                </Button>
-                <Input
-                  type="file"
-                  ref={inputRef}
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                />
-                <Button size="xs" onClick={() => handleExportClick()}>
-                  Export
-                </Button>
-              </ButtonGroup>
-            </FormLabel>
-            <FormHelperText>
-              Persisted databases use the{" "}
-              <Link
-                href="https://developer.mozilla.org/en-US/docs/Web/API/Storage_API"
-                textDecoration="underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Storage API
-              </Link>{" "}
-              and are retained by the browser as long as possible. See{" "}
-              <Link
-                href="https://dexie.org/docs/ExportImport/dexie-export-import"
-                textDecoration="underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                docs
-              </Link>{" "}
-              for database export details.
-            </FormHelperText>
           </FormControl>
 
           <FormControl>
