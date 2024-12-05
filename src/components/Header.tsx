@@ -22,13 +22,11 @@ import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { TbSearch } from "react-icons/tb";
-import { FiRss } from "react-icons/fi";
 import { Form } from "react-router-dom";
 
 import PreferencesModal from "./Preferences/PreferencesModal";
 import { useUser } from "../hooks/use-user";
 import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
-import { useAlert } from "../hooks/use-alert";
 
 type HeaderProps = {
   chatId?: string;
@@ -45,7 +43,6 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
     onClose: onPrefModalClose,
   } = useDisclosure();
   const { user, login, logout } = useUser();
-  const { error } = useAlert();
 
   const handleLoginLogout = useCallback(
     (provider: string) => {
@@ -59,28 +56,6 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
   );
 
   const isMobile = useMobileBreakpoint();
-
-  const handleOpenFeedUrl = useCallback(async () => {
-    if (!user) {
-      error({
-        title: "Failed to Open Feed",
-        message: "Can't open feed because user is not logged in",
-      });
-      return;
-    }
-    try {
-      const currentUrl = window.location.href;
-      const parsedUrl = new URL(currentUrl);
-      const userFeedUrl = `${parsedUrl.origin}/api/share/${user.username}/feed.atom`;
-      window.open(userFeedUrl, "_blank");
-    } catch (err) {
-      console.error(err);
-      error({
-        title: "Failed to Open Shared Chats Feed URL",
-        message: "An error occurred while trying to open shared chats feed URL.",
-      });
-    }
-  }, [user, error]);
 
   return (
     <Flex
@@ -146,14 +121,6 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       </Box>
 
       <Flex pr={2} alignItems="center">
-        <IconButton
-          fontSize="1.25rem"
-          aria-label={"Copy Shared Chats Feed URL"}
-          title={"Copy Shared Chats Feed URL"}
-          icon={<FiRss />}
-          variant="ghost"
-          onClick={handleOpenFeedUrl}
-        />
         <IconButton
           fontSize="1.25rem"
           aria-label={useColorModeValue("Switch to Dark Mode", "Switch to Light Mode")}

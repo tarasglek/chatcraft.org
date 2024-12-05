@@ -1,5 +1,3 @@
-import { Feed } from "feed";
-import { DOMParser } from "linkedom";
 import { errorResponse, createResourcesForEnv } from "../../utils";
 
 interface Env {
@@ -8,89 +6,6 @@ interface Env {
   CLIENT_ID: string;
   CLIENT_SECRET: string;
   JWT_SECRET: string;
-}
-
-async function generateUserFeed(env: Env, user: string): Promise<void> {
-  const { CHATCRAFT_ORG_BUCKET } = env;
-  const prefix = `${user}/`;
-  const { objects } = await CHATCRAFT_ORG_BUCKET.list({ prefix });
-  const xsltUrl = "/rss-style.xsl";
-
-  const feed = new Feed({
-    title: `User Feed for ${user}`,
-    description: `This is ${user}'s shared chats`,
-    id: `https://chatcraft.org/api/share/${user}/feed.atom`,
-    link: `https://chatcraft.org/api/share/${user}/feed.atom`,
-    updated: new Date(),
-    feedLinks: {
-      atom: `https://chatcraft.org/api/share/${user}/feed.atom`,
-    },
-    author: {
-      name: user,
-    },
-    copyright: `Copyright © ${new Date().getFullYear()} by ${user}`,
-  });
-
-  const sortedObjects = objects.sort((a, b) => b.uploaded.getTime() - a.uploaded.getTime());
-  const recentObjects = sortedObjects.slice(0, 20);
-  for (const object of recentObjects) {
-    const chatData = await CHATCRAFT_ORG_BUCKET.get(object.key);
-    if (chatData) {
-      const chatContent = await chatData.text();
-      const document = new DOMParser().parseFromString(chatContent, "text/html");
-
-      const getTitle = document.querySelector('meta[property="og:title"]');
-      const title = getTitle ? getTitle.getAttribute("content") : "No Title";
-
-      const getSummary = document.querySelector('meta[property="og:description"]');
-      const summary = getSummary ? getSummary.getAttribute("content") : "No Summary";
-
-      const getUrl = document.querySelector('meta[property="og:url"]');
-      const url = getUrl ? getUrl.getAttribute("content") : "No URL";
-
-      const id = url.split("/").pop() || "No ID";
-
-      const preContentElement = document.querySelector("pre");
-      const preContent = preContentElement ? preContentElement.textContent : "";
-      const dateMatch = preContent.match(/date:\s*(.+)/i);
-      const date = dateMatch ? new Date(dateMatch[1]) : new Date();
-
-      if (title !== "No Title" && url !== "No URL")
-        feed.addItem({
-          title: title,
-          id: id,
-          link: url,
-          description: summary,
-          date: date,
-          author: [{ name: user }],
-        });
-    }
-  }
-
-  let feedXml = feed.atom1();
-
-  // Remove the first line (second XML declaration) if it exists
-  const lines = feedXml.split("\n");
-  if (lines[0].startsWith("<?xml")) {
-    lines.shift();
-    feedXml = lines.join("\n");
-  }
-
-  feedXml =
-    `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="${xsltUrl}"?>\n` +
-    feedXml;
-
-  try {
-    const feedKey = `${user}/feed.atom`;
-    await CHATCRAFT_ORG_BUCKET.put(feedKey, new TextEncoder().encode(feedXml), {
-      httpMetadata: {
-        contentType: "application/atom+xml",
-      },
-    });
-    console.log(`Feed generated successfully for user: ${user}`);
-  } catch (err) {
-    console.error(`Unable to generate feed for ${user}: ${err.message}`);
-  }
 }
 
 // POST https://chatcraft.org/api/share/:user/:id
@@ -165,9 +80,6 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env, params })
         contentType: contentType,
       },
     });
-
-    const [user] = user_id;
-    await generateUserFeed(env, user);
 
     return new Response(
       JSON.stringify({
