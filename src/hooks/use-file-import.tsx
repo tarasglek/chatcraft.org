@@ -145,6 +145,7 @@ async function processFile(
   file: File,
   settings: ReturnType<typeof getSettings>
 ): Promise<string | JinaAiReaderResponse | OpenAISpeechToTextResponse> {
+  console.log(file.type);
   if (file.type.startsWith("image/")) {
     return await compressImageToBase64(file, {
       compressionFactor: settings.compressionFactor,

@@ -11,6 +11,8 @@ import {
 import { ChatCraftModel } from "./ChatCraftModel";
 import { getSettings } from "./settings";
 import { usingOfficialOpenAI } from "./providers";
+import { ModelService } from "./model-service";
+import { SpeechRecognition } from "./speech-recognition";
 
 export type ChatOptions = {
   model?: ChatCraftModel;
@@ -469,34 +471,37 @@ export type OpenAISpeechToTextResponse = {
 };
 
 /**
- * Convert an audio file to text using https://platform.openai.com/docs/api-reference/audio/createTranscription?lang=node
+ * Convert an audio file to text
  */
+
 export async function audioToText(file: File): Promise<OpenAISpeechToTextResponse> {
+  const settings = getSettings();
+  const currentProvider = settings.currentProvider;
+
+  if (!currentProvider.apiKey) {
+    throw new Error("Missing API Key");
+  }
+
+  const sttClient = await ModelService.getSpeechToTextClient();
+
+  if (!sttClient) {
+    throw new Error("No STT client available");
+  }
+
+  const sttModel = await ModelService.getSpeechToTextModel(currentProvider);
+
+  if (!sttModel) {
+    throw new Error(`No speech-to-text model found for provider ${currentProvider.name}`);
+  }
+
+  const recognition = new SpeechRecognition(sttModel, sttClient);
+
   try {
-    const { currentProvider } = getSettings();
-    if (!currentProvider.apiKey) {
-      throw new Error("Missing OpenAI API Key");
-    }
-
-    const { openai } = currentProvider.createClient(currentProvider.apiKey);
-
-    const response = await openai.audio.transcriptions.create({
-      file,
-      model: "whisper-1",
-    });
-
-    if (!response.text) {
-      throw new Error("Error: No transcription text returned by OpenAI.");
-    }
-
-    const result: OpenAISpeechToTextResponse = {
-      text: response.text,
-    };
-
-    return result;
-  } catch (err) {
-    console.error("Error converting audio to text", err);
-    throw err;
+    const text = await recognition.transcribe(file);
+    return { text };
+  } catch (error) {
+    console.error("Error transcribing audio:", error);
+    throw error;
   }
 }
 
