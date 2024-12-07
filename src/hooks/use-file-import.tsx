@@ -124,19 +124,21 @@ function formatTextContent(filename: string, type: string, content: string): str
 
 // Makes sure that the contents are non-empty
 function assertContents(contents: string | JinaAiReaderResponse | OpenAISpeechToTextResponse) {
+  let content: string | undefined;
+
   if (typeof contents === "string") {
-    if (!contents.trim().length) {
-      throw new Error("Empty contents", { cause: { code: "EmptyFile" } });
-    }
+    content = contents;
   } else if ("data" in contents && "content" in contents.data) {
-    if (!contents.data.content.trim().length) {
-      throw new Error("Empty contents", { cause: { code: "EmptyFile" } });
-    }
+    content = contents.data.content;
   } else if ("text" in contents) {
-    if (!contents.text.trim().length) {
-      throw new Error("Empty contents", { cause: { code: "EmptyFile" } });
-    }
-  } else {
+    content = contents.text;
+  }
+
+  if (!content?.trim().length) {
+    throw new Error("Empty contents", { cause: { code: "EmptyFile" } });
+  }
+
+  if (!content) {
     throw new Error("Unknown content type", { cause: { code: "InvalidContentType" } });
   }
 }
