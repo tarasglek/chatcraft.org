@@ -11,6 +11,8 @@ import {
 import { ChatCraftModel } from "./ChatCraftModel";
 import { getSettings } from "./settings";
 import { usingOfficialOpenAI } from "./providers";
+import { ModelService } from "./model-service";
+import { SpeechRecognition } from "./speech-recognition";
 
 export type ChatOptions = {
   model?: ChatCraftModel;
@@ -462,6 +464,45 @@ export function isChatModel(model: string): boolean {
     (usingOfficialOpenAI() && model.includes("gpt")) ||
     !(isTextToSpeechModel(model) || isSpeechToTextModel(model) || isTextToImageModel(model))
   );
+}
+
+export type OpenAISpeechToTextResponse = {
+  text: string;
+};
+
+/**
+ * Convert an audio file to text
+ */
+
+export async function audioToText(file: File): Promise<OpenAISpeechToTextResponse> {
+  const settings = getSettings();
+  const currentProvider = settings.currentProvider;
+
+  if (!currentProvider.apiKey) {
+    throw new Error("Missing API Key");
+  }
+
+  const sttClient = await ModelService.getSpeechToTextClient();
+
+  if (!sttClient) {
+    throw new Error("No STT client available");
+  }
+
+  const sttModel = await ModelService.getSpeechToTextModel(currentProvider);
+
+  if (!sttModel) {
+    throw new Error(`No speech-to-text model found for provider ${currentProvider.name}`);
+  }
+
+  const recognition = new SpeechRecognition(sttModel, sttClient);
+
+  try {
+    const text = await recognition.transcribe(file);
+    return { text };
+  } catch (error) {
+    console.error("Error transcribing audio:", error);
+    throw error;
+  }
 }
 
 export type JinaAiReaderResponse = {
