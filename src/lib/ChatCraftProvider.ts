@@ -5,6 +5,9 @@ import { ChatCraftModel } from "./ChatCraftModel";
 export interface ProviderData {
   [key: string]: ChatCraftProvider;
 }
+export interface NonLLMProviderData {
+  [key: string]: NonLLMProviders;
+}
 
 export type SerializedChatCraftProvider = {
   id: string;
@@ -84,3 +87,16 @@ export abstract class ChatCraftProvider {
 export type ChatCraftProviderWithModels = ChatCraftProvider & {
   models: ChatCraftModel[];
 };
+
+export abstract class NonLLMProviders {
+  id: string;
+  name: string;
+  apiUrl: string;
+  apiKey?: string;
+  constructor(name: string, url: string, key?: string) {
+    this.id = nanoid();
+    this.name = name;
+    this.apiUrl = url;
+    this.apiKey = key;
+  }
+}

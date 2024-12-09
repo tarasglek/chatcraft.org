@@ -45,6 +45,7 @@ import { CustomProvider } from "../../lib/providers/CustomProvider";
 import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 import { OpenAiProvider } from "../../lib/providers/OpenAiProvider";
 import { OpenRouterProvider } from "../../lib/providers/OpenRouterProvider";
+import { JinaAIProvider } from "../../lib/providers/JinaAIProvider";
 import { TextToSpeechVoices } from "../../lib/settings";
 import { download } from "../../lib/utils";
 import PasswordInput from "../PasswordInput";
@@ -202,6 +203,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
 
     // Api key validation
     try {
+      // maybe this could be encapsulated into a single function
       setIsApiKeyInvalid(false);
       setIsValidating(true);
 
@@ -237,6 +239,15 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
     }
 
     setApiKeySaved(true);
+  };
+  const handleNonLLMApiKeyChange = (value: string) => {
+    setSettings({
+      ...settings,
+      nonLLMProviders: {
+        ...settings.nonLLMProviders,
+        "Jina AI": new JinaAIProvider(value),
+      },
+    });
   };
 
   const handleSetCurrentProvider = async () => {
@@ -509,7 +520,10 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
         <VStack gap={4}>
           <FormControl>
             <FormLabel>
-              Providers
+              LLM Providers
+              <FormHelperText fontSize="xs" mb={1}>
+                OpenAI-Compatible Chat Completion Providers
+              </FormHelperText>
               <ButtonGroup ml={3}>
                 <Button size="xs" onClick={handleAddProvider}>
                   Add
@@ -801,6 +815,70 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                 Your API Key(s) are stored in browser storage
               </FormHelperText>
             )}
+          </FormControl>
+          <FormControl>
+            <FormLabel>
+              Other Providers
+              <FormHelperText fontSize="xs">
+                Document Processing and Other AI services
+              </FormHelperText>
+            </FormLabel>
+            <Table
+              size="sm"
+              variant="simple"
+              sx={{
+                "th:nth-of-type(1), td:nth-of-type(1)": {
+                  width: "20%",
+                },
+                "th:nth-of-type(2), td:nth-of-type(2)": {
+                  width: "45%",
+                },
+                "th:nth-of-type(3), td:nth-of-type(3)": {
+                  width: "35%",
+                },
+                "th, td": {
+                  pl: "0.4rem",
+                  pr: "0.4rem",
+                },
+              }}
+            >
+              <Thead>
+                <Tr>
+                  <Th>Name</Th>
+                  <Th>Description</Th>
+                  <Th>API Key</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                <Tr>
+                  <Td fontSize="xs">Jina Reader API</Td>
+                  <Td fontSize="xs">
+                    Optional service for processing larger files.{" "}
+                    <Link
+                      href="https://jina.ai/reader"
+                      isExternal
+                      color="blue.500"
+                      _hover={{ textDecoration: "underline" }}
+                    >
+                      Learn more
+                    </Link>
+                  </Td>
+                  <Td>
+                    <FormControl>
+                      <PasswordInput
+                        size="sm"
+                        buttonSize="xs"
+                        paddingRight={"2rem"}
+                        paddingLeft={"0.5rem"}
+                        fontSize="xs"
+                        value={settings.nonLLMProviders["Jina AI"]?.apiKey || ""}
+                        onChange={(e) => handleNonLLMApiKeyChange(e.target.value)}
+                      />
+                    </FormControl>
+                  </Td>
+                </Tr>
+              </Tbody>
+            </Table>
           </FormControl>
           <FormControl>
             <FormLabel>
