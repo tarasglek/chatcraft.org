@@ -143,7 +143,7 @@ function Database() {
 
         <FormControl>
           <Flex justify="space-between" align="center">
-            <FormLabel>Export database to to JSON file</FormLabel>
+            <FormLabel>Export database to JSON file</FormLabel>
             <Button size="sm" onClick={() => handleExportClick()}>
               Export
             </Button>
