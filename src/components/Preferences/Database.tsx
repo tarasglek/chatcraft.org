@@ -24,7 +24,7 @@ async function isStoragePersisted() {
   return false;
 }
 
-function DataControls() {
+function Database() {
   // Whether our db is being persisted
   const [isPersisted, setIsPersisted] = useState(false);
   const { info, error } = useAlert();
@@ -143,7 +143,18 @@ function DataControls() {
 
         <FormControl>
           <Flex justify="space-between" align="center">
-            <FormLabel>Data Import</FormLabel>
+            <FormLabel>Export database to to JSON file</FormLabel>
+            <Button size="sm" onClick={() => handleExportClick()}>
+              Export
+            </Button>
+          </Flex>
+        </FormControl>
+
+        <Divider />
+
+        <FormControl>
+          <Flex justify="space-between" align="center">
+            <FormLabel>Import database from JSON file</FormLabel>
             <Button size="sm" onClick={() => handleImportClick()}>
               Import
             </Button>
@@ -155,20 +166,9 @@ function DataControls() {
             />
           </Flex>
         </FormControl>
-
-        <Divider />
-
-        <FormControl>
-          <Flex justify="space-between" align="center">
-            <FormLabel>Data Export</FormLabel>
-            <Button size="sm" onClick={() => handleExportClick()}>
-              Export
-            </Button>
-          </Flex>
-        </FormControl>
       </VStack>
     </Box>
   );
 }
 
-export default DataControls;
+export default Database;

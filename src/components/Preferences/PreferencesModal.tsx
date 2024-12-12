@@ -24,7 +24,7 @@ import ModelsSettings from "./ModelsSettings";
 import WebHandlersConfig from "./WebHandlersConfig";
 import DefaultSystemPrompt from "./DefaultSystemPrompt";
 import CustomizationSettings from "./CustomizationSettings";
-import DataControls from "./DataControls";
+import Database from "./Database";
 import { MdOutlineDashboardCustomize, MdSignalCellularAlt } from "react-icons/md";
 import { IconType } from "react-icons";
 import { TbPrompt } from "react-icons/tb";
@@ -55,7 +55,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     { name: "System Prompt", icon: TbPrompt },
     { name: "Web Handlers", icon: MdSignalCellularAlt },
     { name: "Customization", icon: MdOutlineDashboardCustomize },
-    { name: "Data Controls", icon: FaDatabase },
+    { name: "Database", icon: FaDatabase },
   ];
 
   const handleSettingClick = (setting: Setting) => {
@@ -192,7 +192,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               {selectedSetting.name === "System Prompt" && <DefaultSystemPrompt />}
               {selectedSetting.name === "Web Handlers" && <WebHandlersConfig />}
               {selectedSetting.name === "Customization" && <CustomizationSettings />}
-              {selectedSetting.name === "Data Controls" && <DataControls />}
+              {selectedSetting.name === "Database" && <Database />}
             </Box>
           </Flex>
         </ModalBody>
