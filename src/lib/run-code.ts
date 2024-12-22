@@ -19,7 +19,6 @@ const SupportedBrowserLanguages = [
   ...supportedPY,
   ...supportedRuby,
 ];
-const supportedServerLanguages = [...supportedJS, ...supportedTS];
 
 function isJavaScript(language: string) {
   return supportedJS.includes(language);
@@ -41,10 +40,6 @@ export function isRunnableInBrowser(language: string) {
   return SupportedBrowserLanguages.includes(language);
 }
 
-export function isRunnableOnServer(language: string) {
-  return supportedServerLanguages.includes(language);
-}
-
 async function captureConsole<T>(
   callback: () => Promise<T>
 ): Promise<{ logs: string | undefined; ret: T }> {
@@ -57,7 +52,7 @@ async function captureConsole<T>(
   };
 
   // Prepare a string to store the captured messages
-  let capturedMessages: string = "";
+  let capturedMessages = "";
 
   // Function to create an overridden console method
   const createOverriddenMethod = (method: keyof Console) => {
