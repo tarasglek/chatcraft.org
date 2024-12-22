@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "prepare": "husky",
     "lint": "eslint .",
-    "prettier": "prettier --write .",
+    "prettier": "pnpm run format",
+    "format": "prettier --write .",
     "test": "vitest"
   },
   "dependencies": {
