@@ -1,16 +1,16 @@
-import { memo, useCallback, useMemo, type ReactNode, useState } from "react";
+import { memo, type ReactNode, useCallback, useMemo, useState } from "react";
 import {
+  Box,
   Flex,
   IconButton,
-  useClipboard,
-  useColorModeValue,
-  Text,
-  Box,
   Menu,
   MenuButton,
   Spinner,
+  Text,
+  useClipboard,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { TbCopy, TbDownload, TbRun, TbExternalLink } from "react-icons/tb";
+import { TbCopy, TbDownload, TbExternalLink, TbRun } from "react-icons/tb";
 
 import { download, formatAsCodeBlock } from "../lib/utils";
 import { useAlert } from "../hooks/use-alert";
@@ -34,7 +34,7 @@ function CodeHeader({
   codeDownloadFilename,
 }: PreHeaderProps) {
   const { onCopy } = useClipboard(code);
-  const { info, error } = useAlert();
+  const { info } = useAlert();
   const [isRunning, setIsRunning] = useState(false);
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
   const shouldShowRunButton = isRunnableInBrowser(language) && onPrompt;
