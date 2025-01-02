@@ -22,7 +22,7 @@ import { MdOutlineChatBubbleOutline } from "react-icons/md";
 import { TbCheck, TbTrash } from "react-icons/tb";
 import { CgClose } from "react-icons/cg";
 import { AiOutlineEdit } from "react-icons/ai";
-import { LuFunctionSquare } from "react-icons/lu";
+import { LuSquareFunction } from "react-icons/lu";
 import { useKey } from "react-use";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -250,7 +250,7 @@ function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSideba
         <Link to={url} style={{ width: "100%" }}>
           <Flex align="center">
             <Box px={2}>
-              <LuFunctionSquare />
+              <LuSquareFunction />
             </Box>
             <Text flex={1} fontSize="sm" as="strong">
               {func.prettyName}

@@ -35,16 +35,25 @@ const MenuItem: React.FC<MenuItemProps> = ({
     return theme.colors[color]?.[shade];
   };
 
+  const renderContent = (modifiers?: any) => (
+    <>
+      {icon && (
+        <Box
+          display="inline-flex"
+          alignItems="center"
+          marginRight={iconSpacing}
+          color={props.color}
+        >
+          {icon}
+        </Box>
+      )}
+      {typeof children === "function" ? children(modifiers) : children}
+    </>
+  );
+
   return (
     <ReactMenuItem {...props} disabled={!!isDisabled} style={{ color: toCssColor(props.color) }}>
-      <>
-        {icon && (
-          <Box marginRight={iconSpacing} as={"span"} color={props.color}>
-            {icon}
-          </Box>
-        )}
-        {children}
-      </>
+      {renderContent}
     </ReactMenuItem>
   );
 };

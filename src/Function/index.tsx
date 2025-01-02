@@ -20,7 +20,7 @@ import { MdContentCopy } from "react-icons/md";
 import { TbDownload, TbTrash } from "react-icons/tb";
 import debounce from "lodash-es/debounce";
 import { useCallback, useMemo, useRef } from "react";
-import { LuFunctionSquare } from "react-icons/lu";
+import { LuSquareFunction } from "react-icons/lu";
 import { useFetcher, useLoaderData } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
 
@@ -154,7 +154,7 @@ export default function Function() {
                 <Heading as="h2" fontSize="lg">
                   <Flex align="center" justifyContent="space-between">
                     <Flex align="center" gap={2}>
-                      <LuFunctionSquare />
+                      <LuSquareFunction />
                       <Text fontSize="md" fontWeight="bold" noOfLines={1}>
                         {title}
                       </Text>

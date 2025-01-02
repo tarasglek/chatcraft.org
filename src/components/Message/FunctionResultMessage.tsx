@@ -1,7 +1,7 @@
 import { memo } from "react";
 
 import { Avatar, Button, Checkbox, Flex, Text } from "@chakra-ui/react";
-import { LuFunctionSquare } from "react-icons/lu";
+import { LuSquareFunction } from "react-icons/lu";
 
 import MessageBase, { type MessageBaseProps } from "./MessageBase";
 import { formatFunctionName } from "../../lib/ChatCraftFunction";
@@ -20,7 +20,7 @@ function FunctionResultMessage(props: FunctionMessageProps) {
   const avatar = (
     <Avatar
       size="sm"
-      icon={<LuFunctionSquare fontSize="1.3rem" />}
+      icon={<LuSquareFunction fontSize="1.3rem" />}
       bg="orange.500"
       title={functionName}
     />

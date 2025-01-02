@@ -1,4 +1,5 @@
-import { Box, keyframes } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
+import { keyframes } from "@emotion/react";
 import SidebarContent, { SidebarContentProps } from "./SidebarContent";
 
 type SidebarDesktopProps = SidebarContentProps & {
