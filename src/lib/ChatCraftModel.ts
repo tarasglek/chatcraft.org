@@ -58,6 +58,10 @@ export class ChatCraftModel {
       return "/hugging-face-logo.png";
     }
 
+    if (modelName === "command" || modelName.includes("command-")) {
+      return "/cohere-logo.png";
+    }
+
     return undefined;
   }
 
