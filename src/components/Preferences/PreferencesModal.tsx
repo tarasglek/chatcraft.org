@@ -30,6 +30,7 @@ import { IconType } from "react-icons";
 import { TbPrompt } from "react-icons/tb";
 import { FaRobot } from "react-icons/fa";
 import { FaDatabase } from "react-icons/fa";
+import { AnalyticsVisualizations } from "../AnalyticsVisualizations";
 
 type PreferencesModalProps = {
   isOpen: boolean;
@@ -56,6 +57,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     { name: "Web Handlers", icon: MdSignalCellularAlt },
     { name: "Customization", icon: MdOutlineDashboardCustomize },
     { name: "Database", icon: FaDatabase },
+    { name: "Analytics", icon: FaDatabase },
   ];
 
   const handleSettingClick = (setting: Setting) => {
@@ -193,6 +195,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               {selectedSetting.name === "Web Handlers" && <WebHandlersConfig />}
               {selectedSetting.name === "Customization" && <CustomizationSettings />}
               {selectedSetting.name === "Database" && <Database />}
+              {selectedSetting.name === "Analytics" && <AnalyticsVisualizations />}
             </Box>
           </Flex>
         </ModalBody>
