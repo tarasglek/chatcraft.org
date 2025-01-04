@@ -77,6 +77,40 @@ export interface ChatAnalytics {
   };
 }
 
+export interface AnalyticsSummary {
+  totals: {
+    chats: number;
+    messages: number;
+    characters: number;
+  };
+  max: {
+    chats: number;
+    messages: number;
+    characters: number;
+  };
+  averages: {
+    messagesPerChat: number;
+    charactersPerMessage: number;
+  };
+}
+
+export interface FormattedModelUsage {
+  name: string;
+  value: number;
+  percentage: number;
+}
+
+export interface ProcessedAnalytics {
+  timeSeriesData: Array<{
+    period: string;
+    chats: number;
+    messages: number;
+    characters: number;
+  }>;
+  modelUsage: FormattedModelUsage[];
+  summary: AnalyticsSummary;
+}
+
 export async function generateAnalytics(startDate?: Date, endDate?: Date): Promise<ChatAnalytics> {
   const messages = await db.messages
     .where("date")
@@ -296,23 +330,91 @@ export async function generateAnalytics(startDate?: Date, endDate?: Date): Promi
   return results;
 }
 
-export function visualizeAnalytics(analytics: ChatAnalytics) {
-  // Model Usage Chart
-  const modelUsageData = Object.entries(analytics.modelMetrics.usage).map(([model, stats]) => ({
-    model,
-    messages: stats.messageCount,
-    characters: stats.characterCount,
-  }));
+export async function processAnalytics(
+  startDate?: Date,
+  endDate?: Date
+): Promise<ProcessedAnalytics> {
+  const rawAnalytics = await generateAnalytics(startDate, endDate);
 
-  // Time Distribution Chart
-  const timeData = Object.entries(analytics.timeMetrics.byPeriod).map(([period, stats]) => ({
-    period,
-    messages: stats.messageCount,
-    conversations: stats.conversationCount,
-  }));
+  const summary: AnalyticsSummary = {
+    totals: {
+      chats: Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
+        (sum, stats) => sum + stats.conversationCount,
+        0
+      ),
+      messages: Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
+        (sum, stats) => sum + stats.messageCount,
+        0
+      ),
+      characters: Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
+        (sum, stats) => sum + stats.characterCount,
+        0
+      ),
+    },
+    max: {
+      chats: Math.max(
+        ...Object.values(rawAnalytics.timeMetrics.byPeriod).map((stats) => stats.conversationCount)
+      ),
+      messages: Math.max(
+        ...Object.values(rawAnalytics.timeMetrics.byPeriod).map((stats) => stats.messageCount)
+      ),
+      characters: Math.max(
+        ...Object.values(rawAnalytics.timeMetrics.byPeriod).map((stats) => stats.characterCount)
+      ),
+    },
+    averages: {
+      messagesPerChat: Number(
+        (
+          Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
+            (sum, stats) => sum + stats.messageCount,
+            0
+          ) /
+          Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
+            (sum, stats) => sum + stats.conversationCount,
+            0
+          )
+        ).toFixed(1)
+      ),
+      charactersPerMessage: Number(
+        (
+          Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
+            (sum, stats) => sum + stats.characterCount,
+            0
+          ) /
+          Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
+            (sum, stats) => sum + stats.messageCount,
+            0
+          )
+        ).toFixed(0)
+      ),
+    },
+  };
+
+  const timeSeriesData = Object.entries(rawAnalytics.timeMetrics.byPeriod)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([period, stats]) => ({
+      period,
+      chats: stats.conversationCount,
+      messages: stats.messageCount,
+      characters: Math.round(stats.characterCount / 1000),
+    }));
+
+  const totalMessages = Object.values(rawAnalytics.modelMetrics.usage).reduce(
+    (sum, stats) => sum + stats.messageCount,
+    0
+  );
+
+  const modelUsage = Object.entries(rawAnalytics.modelMetrics.usage)
+    .map(([model, stats]) => ({
+      name: model,
+      value: stats.messageCount,
+      percentage: Number(((stats.messageCount / totalMessages) * 100).toFixed(1)),
+    }))
+    .sort((a, b) => b.value - a.value);
 
   return {
-    modelUsageData,
-    timeData,
+    timeSeriesData,
+    modelUsage,
+    summary,
   };
 }
