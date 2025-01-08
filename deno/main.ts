@@ -6,7 +6,7 @@ import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-patte
 import { byPattern } from "jsr:@http/route/by-pattern";
 import { handle } from "jsr:@http/route/handle";
 
-const env = { ...process.env };
+const env = { ...Deno.env.toObject() };
 if (!env.ENVIRONMENT) {
   env.ENVIRONMENT = "development";
 }
