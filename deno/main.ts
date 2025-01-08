@@ -4,14 +4,18 @@ import freshPathMapper from "jsr:@http/discovery/fresh-path-mapper";
 import { discoverRoutes } from "jsr:@http/discovery/discover-routes";
 import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-pattern";
 import { byPattern } from "jsr:@http/route/by-pattern";
+import { handle } from "jsr:@http/route/handle";
 
+const env = {...process.env};
+if (!env.ENVIRONMENT) {
+  env.ENVIRONMENT = 'development';
+}
 function adaptLegacyCloudflareHandler(handler: Function) {
-  return async (request: Request) => {
+  return async (request: Request, _match: URLPatternResult) => {
     // Create minimal CF-style context object
-    const env = {};
     const ctx = {
-      waitUntil: () => {},
-      passThroughOnException: () => {},
+      waitUntil: () => { },
+      passThroughOnException: () => { },
     };
 
     // Call the legacy handler with CF-style arguments
@@ -20,7 +24,7 @@ function adaptLegacyCloudflareHandler(handler: Function) {
   };
 }
 
-async function cfRoutes(fileRootUrl: string): Promise<Route[]> {
+async function cfRoutes(fileRootUrl: string) {
   const routes = await discoverRoutes({
     pattern: "/",
     fileRootUrl: fileRootUrl,
@@ -28,7 +32,7 @@ async function cfRoutes(fileRootUrl: string): Promise<Route[]> {
     verbose: true,
   });
 
-  const handlers: Route[] = [];
+  const handlers = [];
 
   for (const { pattern, module } of routes) {
     const modulePath = module.toString();
@@ -36,42 +40,31 @@ async function cfRoutes(fileRootUrl: string): Promise<Route[]> {
     // Only include routes that start with /api and aren't tests
     const valid = modulePathShort.startsWith('/api') && !modulePathShort.includes('.test');
     if (!valid) {
-        continue;
+      continue;
     }
-    
-    console.log("\nPattern:", asSerializablePattern(pattern));
-    console.log("Module:", modulePath);
+
     const routeModule = await import(modulePath);
-    console.log("Default:", routeModule.default);
-    console.log("onRequestGet:", routeModule.onRequestGet);
-    
+    // console.log("Default:", routeModule.default);
     if (routeModule.onRequestGet) {
+      console.log("\nPattern:", asSerializablePattern(pattern));
+      console.log("Module:", modulePath);
+      console.log("onRequestGet:", routeModule.onRequestGet);
       handlers.push(byPattern(pattern, adaptLegacyCloudflareHandler(routeModule.onRequestGet)));
-    } else if (routeModule.default) {
-      handlers.push(byPattern(pattern, routeModule.default));
     }
   }
   return handlers;
 }
 
-const routes = await cfRoutes(import.meta.resolve("../functions"));
+const cfHandlers = await cfRoutes(import.meta.resolve("../functions"));
 
 
 // watchexec --verbose -i deno/** pnpm build
-// https://jsr.io/@http/route and https://github.com/jollytoad/deno_http_fns/tree/main/packages/examples has newer fancier stuff
-async function handleFetch(req: Request): Promise<Response> {
-  console.log(`${JSON.stringify(routes.map((x) => { p: x.pattern.pathname }))}`);
-
-  return route(routes, async (req: Request) => {
+// deno run --unstable-net --unstable-sloppy-imports --unstable-node-globals --watch -A serve-ssl.ts
+export default {
+  fetch: handle(cfHandlers, async (req: Request) => {
     console.log("fallback", req);
     const ret = await serveDir(req, { fsRoot: "build" });
     console.log(ret);
     return ret;
-  })(req);
-
-  // return ;
-}
-
-export default {
-  fetch: handleFetch,
+  }),
 };
