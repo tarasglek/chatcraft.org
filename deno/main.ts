@@ -55,7 +55,7 @@ async function cfRoutes(fileRootUrl: string) {
     const routeModule = await import(modulePath);
     // console.log("Default:", routeModule.default);
     if (routeModule.onRequestGet) {
-      console.log("\nRoute:", asSerializablePattern(pattern), "->", modulePath);
+      console.log("Route:", asSerializablePattern(pattern), "->", modulePathShort);
       // console.log("onRequestGet:", routeModule.onRequestGet);
       handlers.push(byPattern(pattern, adaptLegacyCloudflareHandler(routeModule.onRequestGet)));
     }
