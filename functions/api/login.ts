@@ -72,7 +72,3 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     });
   }
 };
-
-export default {
-  fetch: (request: Request, env: Env) => onRequestGet({ request, env: env ? env : {} }),
-};

@@ -183,7 +183,7 @@ export async function handleGithubDevLogin({
       ]),
     });
   } catch (err) {
-    console.error(err.stack);
+    console.error(err);
     return Response.redirect(`/?github_login_error`, 302);
   }
 }
