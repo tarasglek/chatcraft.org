@@ -1,5 +1,4 @@
 import { serveDir } from "jsr:@std/http/file-server";
-import { route, type Route } from "jsr:@std/http/unstable-route";
 import freshPathMapper from "jsr:@http/discovery/fresh-path-mapper";
 import { discoverRoutes } from "jsr:@http/discovery/discover-routes";
 import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-pattern";
@@ -19,6 +18,7 @@ if (!env.CLIENT_SECRET) {
 if (!env.JWT_SECRET) {
   env.JWT_SECRET = "jwt_secret";
 }
+
 function adaptLegacyCloudflareHandler(handler: Function) {
   return async (request: Request, _match: URLPatternResult) => {
     // Create minimal CF-style context object
@@ -57,7 +57,7 @@ async function cfRoutes(fileRootUrl: string) {
     if (routeModule.onRequestGet) {
       console.log("\nPattern:", asSerializablePattern(pattern));
       console.log("Module:", modulePath);
-      console.log("onRequestGet:", routeModule.onRequestGet);
+      // console.log("onRequestGet:", routeModule.onRequestGet);
       handlers.push(byPattern(pattern, adaptLegacyCloudflareHandler(routeModule.onRequestGet)));
     }
   }
