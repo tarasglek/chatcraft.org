@@ -19,6 +19,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     GOOGLE_OAUTH_CLIENT_ID,
     GOOGLE_OUATH_CLIENT_SECRET,
   } = env;
+  console.log({ request, env });
   const reqUrl = new URL(request.url);
 
   // Determine the login provider
@@ -71,4 +72,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       appUrl,
     });
   }
+};
+
+export default {
+  fetch: (request: Request, env: Env) => onRequestGet({ request, env: env ? env : {} }),
 };
