@@ -17,6 +17,11 @@ async function cfRoutes(fileRootUrl: string) {
   const handlers = [];
 
   for (const { pattern, module } of routes) {
+    // Skip test files
+    if (module.toString().includes('.test')) {
+        continue;
+    }
+    
     console.log("\nPattern:", asSerializablePattern(pattern));
     console.log("Module:", module.toString());
     const routeModule = await import(module.toString());
