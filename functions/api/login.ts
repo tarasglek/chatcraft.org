@@ -19,7 +19,7 @@ export default {
       JWT_SECRET,
       GOOGLE_OAUTH_CLIENT_ID,
       GOOGLE_OUATH_CLIENT_SECRET,
-    } = env;
+    } = env as Env;
     const reqUrl = new URL(request.url);
 
     // Determine the login provider
