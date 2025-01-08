@@ -67,6 +67,7 @@ export default {
     console.log("fallback", req);
     let ret = await serveDir(req, serveOpts);
     if (ret.status === 404) {
+      console.log("Got 404, trying with root path:", req.url);  // Add this line
       // Try again with /index.html appended
       const url = new URL(req.url);
       url.pathname = '/';
