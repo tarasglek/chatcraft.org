@@ -7,12 +7,17 @@ import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-patte
 import { byPattern } from "jsr:@http/route/by-pattern";
 import { handle } from "jsr:@http/route/handle";
 
-const env = {
+// we can probably share these with vite by factoring them into a common JSON
+const defaults = {
   ENVIRONMENT: "development",
   CLIENT_ID: "client_id",
-  CLIENT_SECRET: "client_secret", 
+  CLIENT_SECRET: "client_secret",
   JWT_SECRET: "jwt_secret",
-  ...Deno.env.toObject()
+};
+
+const env = {
+  ...defaults,
+  ...Deno.env.toObject(),
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
