@@ -10,6 +10,15 @@ const env = { ...process.env };
 if (!env.ENVIRONMENT) {
   env.ENVIRONMENT = "development";
 }
+if (!env.CLIENT_ID) {
+  env.CLIENT_ID = "client_id";
+}
+if (!env.CLIENT_SECRET) {
+  env.CLIENT_SECRET = "client_secret";
+}
+if (!env.JWT_SECRET) {
+  env.JWT_SECRET = "jwt_secret";
+}
 function adaptLegacyCloudflareHandler(handler: Function) {
   return async (request: Request, _match: URLPatternResult) => {
     // Create minimal CF-style context object
