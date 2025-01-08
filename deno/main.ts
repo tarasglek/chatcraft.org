@@ -22,7 +22,6 @@ if (!env.JWT_SECRET) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-// deno-lint-ignore ban-types
 function adaptLegacyCloudflareHandler(handler: Function) {
   return async (request: Request, _match: URLPatternResult) => {
     // Create minimal CF-style context object
