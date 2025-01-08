@@ -7,19 +7,13 @@ import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-patte
 import { byPattern } from "jsr:@http/route/by-pattern";
 import { handle } from "jsr:@http/route/handle";
 
-const env = { ...Deno.env.toObject() };
-if (!env.ENVIRONMENT) {
-  env.ENVIRONMENT = "development";
-}
-if (!env.CLIENT_ID) {
-  env.CLIENT_ID = "client_id";
-}
-if (!env.CLIENT_SECRET) {
-  env.CLIENT_SECRET = "client_secret";
-}
-if (!env.JWT_SECRET) {
-  env.JWT_SECRET = "jwt_secret";
-}
+const env = {
+  ENVIRONMENT: "development",
+  CLIENT_ID: "client_id",
+  CLIENT_SECRET: "client_secret", 
+  JWT_SECRET: "jwt_secret",
+  ...Deno.env.toObject()
+};
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function adaptLegacyCloudflareHandler(handler: Function) {
