@@ -18,24 +18,29 @@ async function cfRoutes(fileRootUrl: string) {
 
   for (const { pattern, module } of routes) {
     const modulePath = module.toString();
+    const modulePathShort = modulePath.substring(fileRootUrl.length)
     // Only include routes that start with /api and aren't tests
-    if (!modulePath.startsWith('/api') || modulePath.includes('.test')) {
+    const valid = modulePathShort.startsWith('/api') && !modulePathShort.includes('.test');
+    if (!valid) {
         continue;
     }
     
     console.log("\nPattern:", asSerializablePattern(pattern));
     console.log("Module:", modulePath);
-    const routeModule = await import(module.toString());
+    const routeModule = await import(modulePath);
     console.log("Default:", routeModule.default);
+    console.log("onRequestGet:", routeModule.onRequestGet);
     handlers.push(byPattern(pattern, routeModule.default));
   }
   return handlers;
 }
 
+const routes = await cfRoutes(import.meta.resolve("../functions")) as Route[];
+
+
 // watchexec --verbose -i deno/** pnpm build
 // https://jsr.io/@http/route and https://github.com/jollytoad/deno_http_fns/tree/main/packages/examples has newer fancier stuff
 async function handleFetch(req: Request): Promise<Response> {
-  const routes = await cfRoutes(import.meta.resolve("../functions")) as Route[];
   console.log(`${JSON.stringify(routes.map((x) => { p: x.pattern.pathname }))}`);
 
   return route(routes, async (req: Request) => {
