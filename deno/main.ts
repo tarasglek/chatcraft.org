@@ -5,6 +5,21 @@ import { discoverRoutes } from "jsr:@http/discovery/discover-routes";
 import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-pattern";
 import { byPattern } from "jsr:@http/route/by-pattern";
 
+function adaptLegacyCloudflareHandler(handler: Function) {
+  return async (request: Request) => {
+    // Create minimal CF-style context object
+    const env = {};
+    const ctx = {
+      waitUntil: () => {},
+      passThroughOnException: () => {},
+    };
+
+    // Call the legacy handler with CF-style arguments
+    const response = await handler(request, env, ctx);
+    return response;
+  };
+}
+
 async function cfRoutes(fileRootUrl: string) {
   const routes = await discoverRoutes({
     pattern: "/",
@@ -30,7 +45,12 @@ async function cfRoutes(fileRootUrl: string) {
     const routeModule = await import(modulePath);
     console.log("Default:", routeModule.default);
     console.log("onRequestGet:", routeModule.onRequestGet);
-    handlers.push(byPattern(pattern, routeModule.default));
+    
+    if (routeModule.onRequestGet) {
+      handlers.push(byPattern(pattern, adaptLegacyCloudflareHandler(routeModule.onRequestGet)));
+    } else if (routeModule.default) {
+      handlers.push(byPattern(pattern, routeModule.default));
+    }
   }
   return handlers;
 }
