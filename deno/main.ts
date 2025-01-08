@@ -17,13 +17,14 @@ async function cfRoutes(fileRootUrl: string) {
   const handlers = [];
 
   for (const { pattern, module } of routes) {
-    // Skip test files
-    if (module.toString().includes('.test')) {
+    const modulePath = module.toString();
+    // Only include routes that start with /api and aren't tests
+    if (!modulePath.startsWith('/api') || modulePath.includes('.test')) {
         continue;
     }
     
     console.log("\nPattern:", asSerializablePattern(pattern));
-    console.log("Module:", module.toString());
+    console.log("Module:", modulePath);
     const routeModule = await import(module.toString());
     console.log("Default:", routeModule.default);
     handlers.push(byPattern(pattern, routeModule.default));
