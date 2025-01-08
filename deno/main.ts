@@ -21,6 +21,7 @@ if (!env.JWT_SECRET) {
   env.JWT_SECRET = "jwt_secret";
 }
 
+// deno-lint-ignore ban-types
 function adaptLegacyCloudflareHandler(handler: Function) {
   return async (request: Request, _match: URLPatternResult) => {
     // Create minimal CF-style context object

@@ -4,7 +4,6 @@ let keys: string[];
 do {
   try {
     keys = await Promise.all(["cert", "key"].map((name) => Deno.readTextFile(`${name}.pem`)));
-    break;
   } catch (error) {
     if (error instanceof Deno.errors.NotFound) {
       console.log("SSL certificates not found, generating new ones...");
@@ -18,6 +17,7 @@ do {
     }
     throw error;
   }
+  break;
 } while (true);
 
 const [cert, key] = keys;
