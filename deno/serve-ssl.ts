@@ -1,6 +1,7 @@
 import handler from "./main.ts";
 // deno run --unstable-sloppy-imports --unstable-net --watch -A serve-ssl.ts
 let keys: string[];
+// eslint-disable-next-line no-constant-condition
 do {
   try {
     keys = await Promise.all(["cert", "key"].map((name) => Deno.readTextFile(`${name}.pem`)));

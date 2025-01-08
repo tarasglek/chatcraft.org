@@ -21,6 +21,7 @@ if (!env.JWT_SECRET) {
   env.JWT_SECRET = "jwt_secret";
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 // deno-lint-ignore ban-types
 function adaptLegacyCloudflareHandler(handler: Function) {
   return async (request: Request, _match: URLPatternResult) => {
