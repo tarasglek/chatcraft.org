@@ -20,7 +20,7 @@ function adaptLegacyCloudflareHandler(handler: Function) {
   };
 }
 
-async function cfRoutes(fileRootUrl: string) {
+async function cfRoutes(fileRootUrl: string): Promise<Route[]> {
   const routes = await discoverRoutes({
     pattern: "/",
     fileRootUrl: fileRootUrl,
@@ -28,8 +28,7 @@ async function cfRoutes(fileRootUrl: string) {
     verbose: true,
   });
 
-
-  const handlers = [];
+  const handlers: Route[] = [];
 
   for (const { pattern, module } of routes) {
     const modulePath = module.toString();
@@ -55,7 +54,7 @@ async function cfRoutes(fileRootUrl: string) {
   return handlers;
 }
 
-const routes = await cfRoutes(import.meta.resolve("../functions")) as Route[];
+const routes = await cfRoutes(import.meta.resolve("../functions"));
 
 
 // watchexec --verbose -i deno/** pnpm build
