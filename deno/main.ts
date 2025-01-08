@@ -60,17 +60,17 @@ const cfHandlers = await cfRoutes(import.meta.resolve("../functions"));
 
 // watchexec --verbose -i deno/** pnpm build
 // deno run --unstable-net --unstable-sloppy-imports --unstable-node-globals --watch -A serve-ssl.ts
-const commonOpts = { fsRoot: "build" };
+const serveOpts = { fsRoot: "build" };
 
 export default {
   fetch: handle(cfHandlers, async (req: Request) => {
     console.log("fallback", req);
-    let ret = await serveDir(req, commonOpts);
+    let ret = await serveDir(req, serveOpts);
     if (ret.status === 404) {
       // Try again with /index.html appended
       const url = new URL(req.url);
-      url.pathname = '/index.html';
-      ret = await serveDir(new Request(url, req), commonOpts);
+      url.pathname = '/';
+      ret = await serveDir(new Request(url, req), serveOpts);
     }
     console.log(ret);
     return ret;
