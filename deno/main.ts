@@ -1,3 +1,5 @@
+// watchexec --verbose -i deno/** pnpm build
+// deno run --unstable-net --unstable-sloppy-imports --watch -A serve-ssl.ts
 import { serveDir } from "jsr:@std/http/file-server";
 import freshPathMapper from "jsr:@http/discovery/fresh-path-mapper";
 import { discoverRoutes } from "jsr:@http/discovery/discover-routes";
@@ -65,8 +67,6 @@ async function cfRoutes(fileRootUrl: string) {
 
 const cfHandlers = await cfRoutes(import.meta.resolve("../functions"));
 
-// watchexec --verbose -i deno/** pnpm build
-// deno run --unstable-net --unstable-sloppy-imports --unstable-node-globals --watch -A serve-ssl.ts
 const serveOpts = { fsRoot: "build" };
 
 export default {
