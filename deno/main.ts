@@ -6,6 +6,7 @@ import { discoverRoutes } from "jsr:@http/discovery/discover-routes";
 import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-pattern";
 import { byPattern } from "jsr:@http/route/by-pattern";
 import { handle } from "jsr:@http/route/handle";
+import * as path from "jsr:@std/path";
 
 // we can probably share these with vite by factoring them into a common JSON
 const defaults = {
