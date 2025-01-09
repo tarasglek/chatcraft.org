@@ -1,3 +1,4 @@
 {
-  "entrypoint": "deno/main.ts"
+  "entrypoint": "deno/main.ts",
+  "denoArgs": ["--unstable-sloppy-imports"]
 }
