@@ -94,7 +94,8 @@ async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
   return handlers;
 }
 
-const cfHandlers = await cfRoutes(import.meta.resolve("../functions"), "/api", false);
+const verbose = false;
+const cfHandlers = await cfRoutes(import.meta.resolve("../functions"), "/api", verbose);
 
 const serveOpts = { fsRoot: "build" };
 
