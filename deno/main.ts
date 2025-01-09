@@ -36,8 +36,7 @@ const env = {
  */
 function adaptCloudflareHandler(modulePath: string, verbose = false) {
   const modulePathShort = modulePath.substring(
-    modulePath.indexOf("/functions") + "/functions".length
-  );
+    modulePath.indexOf("/functions") + "/functions".length);
 
   // Skip test files
   if (modulePathShort.includes(".test")) {
