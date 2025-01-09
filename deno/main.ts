@@ -1,7 +1,8 @@
 // watchexec --verbose -i deno/** pnpm build
 // deno run --unstable-net --unstable-sloppy-imports --watch -A serve-ssl.ts
 import { serveDir } from "jsr:@std/http/file-server";
-import { authCallbackRoute } from "../functions/_auth/callback";
+import { authCallbackHandler } from "../functions/_auth/callback";
+import { byPattern } from "jsr:@http/route/by-pattern";
 import freshPathMapper from "jsr:@http/discovery/fresh-path-mapper";
 import { discoverRoutes } from "jsr:@http/discovery/discover-routes";
 import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-pattern";
@@ -116,6 +117,11 @@ async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
 
 const verbose = false;
 
+
+const authCallbackRoute = byPattern(
+  new URLPattern({ pathname: "/_auth/callback" }),
+  authCallbackHandler
+);
 
 const cfHandlers = [
   authCallbackRoute,
