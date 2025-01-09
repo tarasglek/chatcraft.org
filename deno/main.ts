@@ -36,7 +36,7 @@ function adaptLegacyCloudflareHandler(handler: Function) {
   };
 }
 
-async function cfRoutes(fileRootUrl: string, prefix: string = "/api") {
+async function cfRoutes(fileRootUrl: string, prefix: string) {
   // Use path.join for proper path joining
   const fullFileRootUrl = path.join(fileRootUrl, prefix);
 
@@ -97,7 +97,7 @@ async function cfRoutes(fileRootUrl: string, prefix: string = "/api") {
   return handlers;
 }
 
-const cfHandlers = await cfRoutes(import.meta.resolve("../functions"));
+const cfHandlers = await cfRoutes(import.meta.resolve("../functions"), "/api");
 
 const serveOpts = { fsRoot: "build" };
 
