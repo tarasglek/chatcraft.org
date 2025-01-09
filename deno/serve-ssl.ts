@@ -36,4 +36,19 @@ do {
 
 const [cert, key] = keys;
 Deno.chdir("..");
-Deno.serve({ cert, key, port: args.port, reusePort: true }, handler.fetch);
+
+try {
+  console.log(`Starting server on port ${args.port}...`);
+  await Deno.serve({ cert, key, port: args.port, reusePort: true }, handler.fetch);
+} catch (error) {
+  if (error instanceof Deno.errors.PermissionDenied) {
+    const scriptName = Deno.mainModule.split('/').pop() || 'serve-ssl.ts';
+    console.error(`\nError: Cannot bind to port ${args.port}. This port requires elevated privileges.`);
+    console.error(`Try one of these solutions:`);
+    console.error(` - Run with sudo: sudo deno run ... ${scriptName}`);
+    console.error(` - Use a port number above 1024: --port 8443\n`);
+    Deno.exit(1);
+  }
+  // Re-throw other errors
+  throw error;
+}
