@@ -27,12 +27,6 @@ const env = {
  * @param {string} modulePath - The full path to the module to import
  * @param {boolean} [verbose=false] - Whether to enable verbose logging
  * @returns {Function|null} - A fetch handler function or null if the module is invalid
- *
- * @example
- * const handler = adaptCloudflareHandler('/path/to/module.ts');
- * if (handler) {
- *   app.get('/route', handler);
- * }
  */
 function adaptCloudflareHandler(modulePath: string, verbose = false) {
   const modulePathShort = modulePath.substring(
