@@ -1,7 +1,7 @@
 // watchexec --verbose -i deno/** pnpm build
 // deno run --unstable-net --unstable-sloppy-imports --watch -A serve-ssl.ts
 import { serveDir } from "jsr:@std/http/file-server";
-import { wrap_lastlogin } from "../functions/lastlogin";
+import { authCallbackRoute } from "../functions/_auth/callback";
 import freshPathMapper from "jsr:@http/discovery/fresh-path-mapper";
 import { discoverRoutes } from "jsr:@http/discovery/discover-routes";
 import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-pattern";
@@ -116,14 +116,6 @@ async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
 
 const verbose = false;
 
-const authCallbackHandler = wrap_lastlogin(env.JWT_SECRET, async (request: Request) => {
-  throw new Error("/_auth isn't supposed to get called, it's a dummy endpoint for lastlogin");
-});
-
-const authCallbackRoute = byPattern(
-  new URLPattern({ pathname: "/_auth/callback" }),
-  authCallbackHandler
-);
 
 const cfHandlers = [
   authCallbackRoute,
