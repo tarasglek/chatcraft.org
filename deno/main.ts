@@ -42,14 +42,14 @@ function adaptLegacyCloudflareHandler(handler: Function) {
  * @param prefix 
  * @returns 
  */
-async function cfRoutes(fileRootUrl: string, prefix: string) {
+async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
   const fullFileRootUrl = path.join(fileRootUrl, prefix);
 
   const routes = await discoverRoutes({
     pattern: "/",
     fileRootUrl: fullFileRootUrl,
     pathMapper: freshPathMapper,
-    verbose: true,
+    verbose,
   });
 
   const handlers = [];
@@ -82,7 +82,9 @@ async function cfRoutes(fileRootUrl: string, prefix: string) {
 
       const routeModule = await import(modulePath);
       if (routeModule.onRequestGet) {
-        console.log("Route:", asSerializablePattern(patternWithPrefix), "->", modulePathShort);
+        if (verbose) {
+          console.log("Route:", asSerializablePattern(patternWithPrefix), "->", modulePathShort);
+        }
         handlers.push(byPattern(patternWithPrefix, adaptLegacyCloudflareHandler(routeModule.onRequestGet)));
       }
     } else {
@@ -92,7 +94,7 @@ async function cfRoutes(fileRootUrl: string, prefix: string) {
   return handlers;
 }
 
-const cfHandlers = await cfRoutes(import.meta.resolve("../functions"), "/api");
+const cfHandlers = await cfRoutes(import.meta.resolve("../functions"), "/api", false);
 
 const serveOpts = { fsRoot: "build" };
 
