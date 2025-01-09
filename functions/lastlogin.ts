@@ -44,7 +44,7 @@ export async function handleLastLogin(
       });
     },
     {
-      provider: provider as LastLoginOptions["provider"],
+      provider,
       verifyEmail: (_) => true, // we accept all emails
       secretKey: JWT_SECRET,
     }
