@@ -64,8 +64,8 @@ export class TokenProvider {
   // Format for inclusion in Set-Cookie header. By default
   // use 30 day expiry, but allow override (e.g., 0 to remove cookie)
   // "Set-Cookie: __Host-SID=<session token>; path=/; Secure; HttpOnly; SameSite=Strict."
-  serializeToken(name: "access_token" | "id_token", token: string, maxAge = 2592000) {
-    const { isDev, accessTokenName, idTokenName } = this;
+  serializeToken(name: "access_token" | string, token: string, maxAge = 2592000) {
+    const { isDev, accessTokenName } = this;
     const cookieName = name === "access_token" ? accessTokenName : name;
 
     return serialize(cookieName, token, {

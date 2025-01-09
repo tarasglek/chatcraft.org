@@ -45,7 +45,7 @@ export async function handleLogout({
       ["Set-Cookie", tokenProvider.serializeToken("access_token", accessToken, 0)],
       ["Set-Cookie", tokenProvider.serializeToken("id_token", idToken, 0)],
       // temp hack until we can override lastlogin cookie name to be called "access_token"
-      ["Set-Cookie", tokenProvider.serializeToken("lastlogin_jwt" as any, idToken, 0)],
+      ["Set-Cookie", tokenProvider.serializeToken("lastlogin_jwt", idToken, 0)],
     ]),
   });
 }
