@@ -51,31 +51,22 @@ async function cfRoutes(fileRootUrl: string, prefix: string) {
 
   for (const { pattern, module } of routes) {
     if (pattern instanceof URLPattern) {
-      // Destructure pattern properties inline
-      const {
-        protocol,
-        username,
-        password,
-        hostname,
-        port,
-        pathname,
-        search,
-        hash,
-      } = pattern;
+      // Only destructure pathname
+      const { pathname } = pattern;
 
       // Use path.join for prefixing the path
       const prefixedPath = path.join(prefix, pathname);
 
-      // Create new pattern with prefixed path
+      // Create new pattern using original pattern's properties with new pathname
       const patternWithPrefix = new URLPattern({
-        protocol,
-        username,
-        password,
-        hostname,
-        port,
+        protocol: pattern.protocol,
+        username: pattern.username,
+        password: pattern.password,
+        hostname: pattern.hostname,
+        port: pattern.port,
         pathname: prefixedPath,
-        search,
-        hash,
+        search: pattern.search,
+        hash: pattern.hash,
       });
 
       const modulePath = module.toString();
