@@ -33,12 +33,6 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
   }
 
-  if (!provider) {
-    provider = "github";
-  } else if (provider !== "google" && provider !== "github") {
-    return errorResponse(403, `Invalid provider: ${provider}`);
-  }
-
   // Include ?chat_id=... to redirect back to a given chat in the client.  Google will
   // return it back to us via ?state=provider%3Dgoogle%26chat_id%3Dl77...
   let chatId = reqUrl.searchParams.get("chat_id");
@@ -58,7 +52,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   if (isDev) {
     return handleLastLogin(
       request,
-      provider,
+      provider === "google" ? provider : "github",
       chatId,
       JWT_SECRET,
       tokenProvider,
