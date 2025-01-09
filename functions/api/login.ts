@@ -1,8 +1,7 @@
-import { createResourcesForEnv, errorResponse } from "../utils";
-import { handleGithubLogin, requestDevUserInfo } from "../github";
-import { handleGoogleLogin, requestGoogleDevUserInfo } from "../google";
-import { lastlogin } from "@pomdtr/lastlogin";
-import type { LastLoginOptions } from "@pomdtr/lastlogin";
+import { createResourcesForEnv } from "../utils";
+import { handleGithubLogin } from "../github";
+import { handleGoogleLogin } from "../google";
+import { handleLastLogin } from "../lastlogin";
 
 interface Env {
   ENVIRONMENT: string;
@@ -57,36 +56,14 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const { appUrl, isDev, tokenProvider } = createResourcesForEnv(env.ENVIRONMENT, request.url);
   // use lastlogin for dev
   if (isDev) {
-    const wrapped_fetch = lastlogin(async (request) => {
-      const email = request.headers.get("X-Lastlogin-Email");
-      console.log(`X-Lastlogin-Email ${email}!`);
-      if (!email) {
-        return errorResponse(403, "Lastlogin failed us");
-      }
-      const avatarUrl = (provider === "google" ? requestGoogleDevUserInfo() : requestDevUserInfo()).avatarUrl;
-      // User info goes in a non HTTP-Only cookie that browser can read
-      const idToken = await tokenProvider.createToken(email, { username: email, name: email, avatarUrl }, JWT_SECRET);
-      // API authorization goes in an HTTP-Only cookie that only functions can read
-      const accessToken = await tokenProvider.createToken(email, { role: "api" }, JWT_SECRET);
-
-      // Return to the root or a specific chat if we have an id
-      const url = new URL(chatId ? `/c/${chatId}` : "/", appUrl).href;
-
-      return new Response(null, {
-        status: 302,
-        headers: new Headers([
-          ["Location", url],
-          ["Set-Cookie", tokenProvider.serializeToken("access_token", accessToken)],
-          ["Set-Cookie", tokenProvider.serializeToken("id_token", idToken)],
-        ]),
-      });
-
-    }, {
-      provider: provider as LastLoginOptions["provider"],
-      verifyEmail: _ => true, // we accept all emails
-      secretKey: JWT_SECRET
-    })
-    return wrapped_fetch(request);
+    return handleLastLogin(
+      request,
+      provider,
+      chatId,
+      JWT_SECRET,
+      tokenProvider,
+      appUrl
+    );
   }
   if (provider === "google") {
     return handleGoogleLogin({
