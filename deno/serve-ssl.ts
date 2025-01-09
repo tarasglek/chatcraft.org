@@ -1,5 +1,24 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 
+const helpText = `
+Secure HTTPS development server with auto-generated SSL certificates
+
+USAGE:
+    deno run --unstable-sloppy-imports --unstable-net --watch -A serve-ssl.ts [OPTIONS]
+
+OPTIONS:
+    -h, --help              Show this help message
+    --port <NUMBER>         Port to listen on (default: 443)
+    --handler <PATH>        Path to handler module (default: "./main.ts")
+
+EXAMPLES:
+    # Run with defaults (port 443, main.ts handler)
+    deno run --unstable-sloppy-imports --unstable-net --watch -A serve-ssl.ts
+
+    # Run on port 8443 with custom handler
+    deno run --unstable-sloppy-imports --unstable-net --watch -A serve-ssl.ts --port 8443 --handler "./custom.ts"
+`;
+
 // Parse command line arguments
 const args = parseArgs(Deno.args, {
   default: {
@@ -7,8 +26,16 @@ const args = parseArgs(Deno.args, {
     handler: "./main.ts"
   },
   string: ["handler"],
-  number: ["port"]
+  number: ["port"],
+  boolean: ["help", "h"],
+  alias: { h: "help" }
 });
+
+// Show help and exit if requested
+if (args.help) {
+  console.log(helpText);
+  Deno.exit(0);
+}
 
 // Dynamically import the handler
 const handlerModule = await import(args.handler);
