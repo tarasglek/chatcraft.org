@@ -23,6 +23,7 @@ export async function handleLastLogin(
   appUrl: string
 ) {
   const wrapped_fetch = wrap_lastlogin(JWT_SECRET, async (request) => {
+    // this whole body would be unnecessary in a normal lastlogin-wrapped request
     const email = request.headers.get("X-Lastlogin-Email");
     console.log(`X-Lastlogin-Email ${email}!`);
     if (!email) {
