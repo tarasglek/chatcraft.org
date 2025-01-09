@@ -103,13 +103,17 @@ export default {
   fetch: handle(cfHandlers, async (req: Request) => {
     let ret = await serveDir(req, serveOpts);
     if (ret.status === 404) {
-      console.log("Got 404 from serveDir, trying with /:", req.url); // Add this line
+      if (verbose) {
+        console.log("Got 404 from serveDir, trying with /:", req.url);
+      }
       // Try again with /
       const url = new URL(req.url);
       url.pathname = "/";
       ret = await serveDir(new Request(url, req), serveOpts);
     }
-    console.log(ret);
+    if (verbose) {
+      console.log(ret);
+    }
     return ret;
   }),
 };
