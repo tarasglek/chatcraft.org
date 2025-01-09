@@ -35,7 +35,7 @@ function adaptLegacyCloudflareHandler(handler: Function) {
   };
 }
 
-async function cfRoutes(fileRootUrl: string) {
+async function cfRoutes(fileRootUrl: string, prefix: string = "/api") {
   const routes = await discoverRoutes({
     pattern: "/",
     fileRootUrl: fileRootUrl,
@@ -49,7 +49,7 @@ async function cfRoutes(fileRootUrl: string) {
     const modulePath = module.toString();
     const modulePathShort = modulePath.substring(fileRootUrl.length);
     // Only include routes that start with /api and aren't tests
-    const valid = modulePathShort.startsWith("/api") && !modulePathShort.includes(".test");
+    const valid = modulePathShort.startsWith(prefix) && !modulePathShort.includes(".test");
     if (!valid) {
       continue;
     }
@@ -65,7 +65,7 @@ async function cfRoutes(fileRootUrl: string) {
   return handlers;
 }
 
-const cfHandlers = await cfRoutes(import.meta.resolve("../functions"));
+const cfHandlers = await cfRoutes(import.meta.resolve("../functions"), "/api");
 
 const serveOpts = { fsRoot: "build" };
 
