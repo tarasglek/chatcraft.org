@@ -21,9 +21,25 @@ const env = {
   ...Deno.env.toObject(),
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-function adaptLegacyCloudflareHandler(handler: Function) {
+function adaptLegacyCloudflareHandler(modulePath: string, verbose = false) {
+  const modulePathShort = modulePath.substring(modulePath.indexOf("/functions") + "/functions".length);
+  
+  // Skip test files
+  if (modulePathShort.includes(".test")) {
+    return null;
+  }
+
   return async (request: Request, _match: URLPatternResult) => {
+    const routeModule = await import(modulePath);
+    
+    if (!routeModule.onRequestGet) {
+      return null;
+    }
+
+    if (verbose) {
+      console.log("Route:", modulePathShort);
+    }
+
     // Create minimal CF-style context object
     const ctx = {
       waitUntil: () => {},
@@ -31,8 +47,7 @@ function adaptLegacyCloudflareHandler(handler: Function) {
     };
 
     // Call the legacy handler with CF-style arguments
-    const response = await handler({ request, env, ctx });
-    return response;
+    return routeModule.onRequestGet({ request, env, ctx });
   };
 }
 
@@ -75,20 +90,12 @@ async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
         hash: pattern.hash,
       });
 
-      const modulePath = module.toString();
-      const modulePathShort = modulePath.substring(fileRootUrl.length);
-      if (modulePathShort.includes(".test")) {
-        continue;
-      }
-
-      const routeModule = await import(modulePath);
-      if (routeModule.onRequestGet) {
+      const handler = adaptLegacyCloudflareHandler(module.toString(), verbose);
+      if (handler) {
         if (verbose) {
-          console.log("Route:", asSerializablePattern(patternWithPrefix), "->", modulePathShort);
+          console.log("Route:", asSerializablePattern(patternWithPrefix), "->", module.toString());
         }
-        handlers.push(
-          byPattern(patternWithPrefix, adaptLegacyCloudflareHandler(routeModule.onRequestGet))
-        );
+        handlers.push(byPattern(patternWithPrefix, handler));
       }
     } else {
       throw new Error("Only expect URLPatterns");
