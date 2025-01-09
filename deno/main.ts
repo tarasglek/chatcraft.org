@@ -117,10 +117,7 @@ async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
 const verbose = false;
 
 const authCallbackHandler = wrap_lastlogin(env.JWT_SECRET, async (request: Request) => {
-  return new Response("Hello from lastlogin auth callback!", {
-    status: 200,
-    headers: { "Content-Type": "text/plain" },
-  });
+  throw new Error("/_auth isn't supposed to get called, it's a dummy endpoint for lastlogin");
 });
 
 const authCallbackRoute = byPattern(
