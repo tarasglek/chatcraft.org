@@ -1,4 +1,4 @@
-import { parseArgs } from "@std/cli/parse_args.ts";
+import { parseArgs } from "jsr:@std/cli/parse-args";
 
 // Parse command line arguments
 const args = parseArgs(Deno.args, {
