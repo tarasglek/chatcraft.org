@@ -23,11 +23,11 @@ const env = {
 
 /**
  * Adapts a Cloudflare Workers-style module to a modern fetch handler.
- * 
+ *
  * @param {string} modulePath - The full path to the module to import
  * @param {boolean} [verbose=false] - Whether to enable verbose logging
  * @returns {Function|null} - A fetch handler function or null if the module is invalid
- * 
+ *
  * @example
  * const handler = adaptCloudflareHandler('/path/to/module.ts');
  * if (handler) {
@@ -36,7 +36,8 @@ const env = {
  */
 function adaptCloudflareHandler(modulePath: string, verbose = false) {
   const modulePathShort = modulePath.substring(
-    modulePath.indexOf("/functions") + "/functions".length);
+    modulePath.indexOf("/functions") + "/functions".length
+  );
 
   // Skip test files
   if (modulePathShort.includes(".test")) {
@@ -45,7 +46,7 @@ function adaptCloudflareHandler(modulePath: string, verbose = false) {
 
   return async (request: Request, _match: URLPatternResult) => {
     const routeModule = await import(modulePath);
-    
+
     if (!routeModule.onRequestGet) {
       return null;
     }
