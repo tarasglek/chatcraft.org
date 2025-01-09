@@ -21,6 +21,19 @@ const env = {
   ...Deno.env.toObject(),
 };
 
+/**
+ * Adapts a legacy Cloudflare Workers-style module to a modern request handler.
+ * 
+ * @param {string} modulePath - The full path to the module to import
+ * @param {boolean} [verbose=false] - Whether to enable verbose logging
+ * @returns {Function|null} - A request handler function or null if the module is invalid
+ * 
+ * @example
+ * const handler = adaptLegacyCloudflareHandler('/path/to/module.ts');
+ * if (handler) {
+ *   app.get('/route', handler);
+ * }
+ */
 function adaptLegacyCloudflareHandler(modulePath: string, verbose = false) {
   const modulePathShort = modulePath.substring(modulePath.indexOf("/functions") + "/functions".length);
   
