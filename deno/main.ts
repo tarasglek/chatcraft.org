@@ -35,10 +35,10 @@ function adaptLegacyCloudflareHandler(handler: Function) {
   };
 }
 
-async function cfRoutes(fileRootUrl: string, prefix: string = "/api") {
+async function cfRoutes(fileRootUrl: string, prefix: string) {
   const routes = await discoverRoutes({
     pattern: "/",
-    fileRootUrl: fileRootUrl,
+    fileRootUrl: fileRootUrl + prefix,
     pathMapper: freshPathMapper,
     verbose: true,
   });
@@ -46,6 +46,12 @@ async function cfRoutes(fileRootUrl: string, prefix: string = "/api") {
   const handlers = [];
 
   for (const { pattern, module } of routes) {
+    let patternWithPrefix: URLPattern;
+    if (pattern instanceof URLPattern) {
+      patternWithPrefix = new URLPattern(pattern);
+    } else {
+      throw new Error("Only expect URLPatterns");
+    }
     const modulePath = module.toString();
     const modulePathShort = modulePath.substring(fileRootUrl.length);
     // Only include routes that start with /api and aren't tests
@@ -57,9 +63,9 @@ async function cfRoutes(fileRootUrl: string, prefix: string = "/api") {
     const routeModule = await import(modulePath);
     // console.log("Default:", routeModule.default);
     if (routeModule.onRequestGet) {
-      console.log("Route:", asSerializablePattern(pattern), "->", modulePathShort);
+      console.log("Route:", asSerializablePattern(patternWithPrefix), "->", modulePathShort);
       // console.log("onRequestGet:", routeModule.onRequestGet);
-      handlers.push(byPattern(pattern, adaptLegacyCloudflareHandler(routeModule.onRequestGet)));
+      handlers.push(byPattern(patternWithPrefix, adaptLegacyCloudflareHandler(routeModule.onRequestGet)));
     }
   }
   return handlers;
