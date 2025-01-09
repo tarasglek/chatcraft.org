@@ -66,7 +66,7 @@ export class TokenProvider {
   // "Set-Cookie: __Host-SID=<session token>; path=/; Secure; HttpOnly; SameSite=Strict."
   serializeToken(name: "access_token" | "id_token", token: string, maxAge = 2592000) {
     const { isDev, accessTokenName, idTokenName } = this;
-    const cookieName = name === "access_token" ? accessTokenName : idTokenName;
+    const cookieName = name === "access_token" ? accessTokenName : name;
 
     return serialize(cookieName, token, {
       // Access tokens can't be read by browser, but id tokens can

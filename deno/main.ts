@@ -1,12 +1,10 @@
 // watchexec --verbose -i deno/** pnpm build
 // deno run --unstable-net --unstable-sloppy-imports --watch -A serve-ssl.ts
 import { serveDir } from "jsr:@std/http/file-server";
-import { authCallbackHandler } from "../functions/_auth/callback";
 import { byPattern } from "jsr:@http/route/by-pattern";
 import freshPathMapper from "jsr:@http/discovery/fresh-path-mapper";
 import { discoverRoutes } from "jsr:@http/discovery/discover-routes";
 import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-pattern";
-import { byPattern } from "jsr:@http/route/by-pattern";
 import { handle } from "jsr:@http/route/handle";
 import * as path from "jsr:@std/path";
 
@@ -115,17 +113,11 @@ async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
   return handlers;
 }
 
-const verbose = false;
-
-
-const authCallbackRoute = byPattern(
-  new URLPattern({ pathname: "/_auth/callback" }),
-  authCallbackHandler
-);
+const verbose = true;
 
 const cfHandlers = [
-  authCallbackRoute,
-  ...(await cfRoutes(import.meta.resolve("../functions"), "/api", verbose))
+  ...(await cfRoutes(import.meta.resolve("../functions"), "/api", verbose)),
+  ...(await cfRoutes(import.meta.resolve("../functions"), "/_auth", verbose)), // will remove this once we have more customization in lastlogin lib
 ];
 
 const serveOpts = { fsRoot: "build" };
