@@ -37,8 +37,8 @@ function adaptLegacyCloudflareHandler(handler: Function) {
 }
 
 async function cfRoutes(fileRootUrl: string, prefix: string = "/api") {
-  // Proper URL joining using URL constructor
-  const fullFileRootUrl = new URL(prefix, fileRootUrl).toString();
+  // Use path.join for proper path joining
+  const fullFileRootUrl = path.join(fileRootUrl, prefix);
 
   const routes = await discoverRoutes({
     pattern: "/",
@@ -63,8 +63,8 @@ async function cfRoutes(fileRootUrl: string, prefix: string = "/api") {
         hash,
       } = pattern;
 
-      // Add prefix to pathname using URL constructor for proper joining
-      const prefixedPath = new URL(prefix + pathname, 'http://localhost').pathname;
+      // Use path.join for prefixing the path
+      const prefixedPath = path.join(prefix, pathname);
 
       // Create new pattern with prefixed path
       const patternWithPrefix = new URLPattern({
