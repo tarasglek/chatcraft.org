@@ -5,6 +5,16 @@ import { errorResponse } from "./utils";
 import { requestDevUserInfo } from "./github";
 import { requestGoogleDevUserInfo } from "./google";
 
+export function wrap_lastlogin(
+  secretKey: string,
+  handler: (request: Request) => Promise<Response>
+) {
+  return lastlogin(handler, {
+    verifyEmail: (_) => true, // we accept all emails
+    secretKey,
+  });
+}
+
 export async function handleLastLogin(
   request: Request,
   provider: "google" | "github",
@@ -13,8 +23,7 @@ export async function handleLastLogin(
   tokenProvider: TokenProvider,
   appUrl: string
 ) {
-  const wrapped_fetch = lastlogin(
-    async (request) => {
+  const wrapped_fetch = wrap_lastlogin(JWT_SECRET, async (request) => {
       const email = request.headers.get("X-Lastlogin-Email");
       console.log(`X-Lastlogin-Email ${email}!`);
       if (!email) {
@@ -42,13 +51,7 @@ export async function handleLastLogin(
           ["Set-Cookie", tokenProvider.serializeToken("id_token", idToken)],
         ]),
       });
-    },
-    {
-      provider,
-      verifyEmail: (_) => true, // we accept all emails
-      secretKey: JWT_SECRET,
-    }
-  );
+  });
 
   return wrapped_fetch(request);
 }
