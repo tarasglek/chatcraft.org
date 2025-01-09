@@ -37,10 +37,11 @@ function adaptLegacyCloudflareHandler(handler: Function) {
 }
 
 /**
+ * Scans CF path handlers
  * Can reduce amount of scanning by filtering for prefix within fileRootUrl
- * @param fileRootUrl 
- * @param prefix 
- * @returns 
+ * @param fileRootUrl
+ * @param prefix
+ * @returns
  */
 async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
   const fullFileRootUrl = path.join(fileRootUrl, prefix);
@@ -85,7 +86,9 @@ async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
         if (verbose) {
           console.log("Route:", asSerializablePattern(patternWithPrefix), "->", modulePathShort);
         }
-        handlers.push(byPattern(patternWithPrefix, adaptLegacyCloudflareHandler(routeModule.onRequestGet)));
+        handlers.push(
+          byPattern(patternWithPrefix, adaptLegacyCloudflareHandler(routeModule.onRequestGet))
+        );
       }
     } else {
       throw new Error("Only expect URLPatterns");
@@ -100,6 +103,7 @@ const cfHandlers = await cfRoutes(import.meta.resolve("../functions"), "/api", v
 const serveOpts = { fsRoot: "build" };
 
 export default {
+  // Serve any pattern matches in cfHandlers, otherwise serve static files
   fetch: handle(cfHandlers, async (req: Request) => {
     let ret = await serveDir(req, serveOpts);
     if (ret.status === 404) {
