@@ -36,8 +36,13 @@ function adaptLegacyCloudflareHandler(handler: Function) {
   };
 }
 
+/**
+ * Can reduce amount of scanning by filtering for prefix within fileRootUrl
+ * @param fileRootUrl 
+ * @param prefix 
+ * @returns 
+ */
 async function cfRoutes(fileRootUrl: string, prefix: string) {
-  // Use path.join for proper path joining
   const fullFileRootUrl = path.join(fileRootUrl, prefix);
 
   const routes = await discoverRoutes({
@@ -71,8 +76,7 @@ async function cfRoutes(fileRootUrl: string, prefix: string) {
 
       const modulePath = module.toString();
       const modulePathShort = modulePath.substring(fileRootUrl.length);
-      const valid = modulePathShort.startsWith(prefix) && !modulePathShort.includes(".test");
-      if (!valid) {
+      if (modulePathShort.includes(".test")) {
         continue;
       }
 
