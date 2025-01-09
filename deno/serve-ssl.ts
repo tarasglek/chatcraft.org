@@ -1,5 +1,18 @@
-import handler from "./main.ts";
-// deno run --unstable-sloppy-imports --unstable-net --watch -A serve-ssl.ts
+import { parseArgs } from "@std/cli/parse_args.ts";
+
+// Parse command line arguments
+const args = parseArgs(Deno.args, {
+  default: {
+    port: 443,
+    handler: "./main.ts"
+  },
+  string: ["handler"],
+  number: ["port"]
+});
+
+// Dynamically import the handler
+const handlerModule = await import(args.handler);
+const handler = handlerModule.default;
 let keys: string[];
 do {
   try {
@@ -23,4 +36,4 @@ do {
 
 const [cert, key] = keys;
 Deno.chdir("..");
-Deno.serve({ cert, key, port: 4443, reusePort: true }, handler.fetch);
+Deno.serve({ cert, key, port: args.port, reusePort: true }, handler.fetch);
