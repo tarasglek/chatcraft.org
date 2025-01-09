@@ -22,11 +22,11 @@ const env = {
 };
 
 /**
- * Adapts a legacy Cloudflare Workers-style module to a modern request handler.
+ * Adapts a Cloudflare Workers-style module to a modern fetch handler.
  * 
  * @param {string} modulePath - The full path to the module to import
  * @param {boolean} [verbose=false] - Whether to enable verbose logging
- * @returns {Function|null} - A request handler function or null if the module is invalid
+ * @returns {Function|null} - A fetch handler function or null if the module is invalid
  * 
  * @example
  * const handler = adaptLegacyCloudflareHandler('/path/to/module.ts');
@@ -59,7 +59,7 @@ function adaptLegacyCloudflareHandler(modulePath: string, verbose = false) {
       passThroughOnException: () => {},
     };
 
-    // Call the legacy handler with CF-style arguments
+    // Call the handler with CF-style arguments
     return routeModule.onRequestGet({ request, env, ctx });
   };
 }
