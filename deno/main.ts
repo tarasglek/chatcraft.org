@@ -29,12 +29,12 @@ const env = {
  * @returns {Function|null} - A fetch handler function or null if the module is invalid
  * 
  * @example
- * const handler = adaptLegacyCloudflareHandler('/path/to/module.ts');
+ * const handler = adaptCloudflareHandler('/path/to/module.ts');
  * if (handler) {
  *   app.get('/route', handler);
  * }
  */
-function adaptLegacyCloudflareHandler(modulePath: string, verbose = false) {
+function adaptCloudflareHandler(modulePath: string, verbose = false) {
   const modulePathShort = modulePath.substring(modulePath.indexOf("/functions") + "/functions".length);
   
   // Skip test files
@@ -103,7 +103,7 @@ async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
         hash: pattern.hash,
       });
 
-      const handler = adaptLegacyCloudflareHandler(module.toString(), verbose);
+      const handler = adaptCloudflareHandler(module.toString(), verbose);
       if (handler) {
         if (verbose) {
           console.log("Route:", asSerializablePattern(patternWithPrefix), "->", module.toString());
