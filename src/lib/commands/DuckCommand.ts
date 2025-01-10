@@ -1,7 +1,6 @@
 import { ChatCraftCommand } from "../ChatCraftCommand";
 import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftAppMessage } from "../ChatCraftMessage";
-import { getPerformanceStats } from "../performance";
 
 export class DuckCommand extends ChatCraftCommand {
   constructor() {
