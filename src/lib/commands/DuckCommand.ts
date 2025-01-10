@@ -58,15 +58,22 @@ async function idbExport(): Promise<Blob> {
 }
 
 export class DuckCommand extends ChatCraftCommand {
+  private static _duckdb: Promise<duckdb_lib.AsyncDuckDB> | null = null;
+
   constructor() {
     super("duck", "/duck", "Do some SQL queries");
   }
 
+  private static get duckdb(): Promise<duckdb_lib.AsyncDuckDB> {
+    if (!this._duckdb) {
+      this._duckdb = duckdb_start();
+    }
+    return this._duckdb;
+  }
+
   async execute(chat: ChatCraftChat) {
     //
-    // const duckdb = await import("@duckdb/duckdb-wasm");
-    // Select a bundle based on browser checks
-    const duckdb = await duckdb_start();
+    const duckdb = await DuckCommand.duckdb;
     const jsonBlob = await idbExport();
     await duckdb.registerFileBuffer("dexie.json", new Uint8Array(await jsonBlob.arrayBuffer()));
     const sql_import_dexie_json = `CREATE TABLE dexie_json AS
