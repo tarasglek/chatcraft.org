@@ -16,15 +16,13 @@ function jsonToMarkdownTable(json: any[]): string {
 
   // Get headers from first object's keys
   const headers = Object.keys(json[0]);
-  
+
   // Create markdown table header
   const headerRow = `| ${headers.join(" | ")} |`;
   const dividerRow = `| ${headers.map(() => "---").join(" | ")} |`;
-  
+
   // Create markdown table rows
-  const rows = json.map(obj => 
-    `| ${Object.values(obj).join(" | ")} |`
-  ).join("\n");
+  const rows = json.map((obj) => `| ${Object.values(obj).join(" | ")} |`).join("\n");
 
   return `${headerRow}\n${dividerRow}\n${rows}`;
 }
@@ -71,12 +69,15 @@ export class DuckCommand extends ChatCraftCommand {
     return this._duckdb;
   }
 
-  async execute(chat: ChatCraftChat) {
+  async execute(chat: ChatCraftChat, _user: User | undefined, args?: string[]) {
     //
     const duckdb = await DuckCommand.duckdb;
-    const jsonBlob = await idbExport();
-    await duckdb.registerFileBuffer("dexie.json", new Uint8Array(await jsonBlob.arrayBuffer()));
-    const sql_import_dexie_json = `CREATE TABLE dexie_json AS
+    let sql = "";
+    let results;
+    if (!args?.length) {
+      const jsonBlob = await idbExport();
+      await duckdb.registerFileBuffer("dexie.json", new Uint8Array(await jsonBlob.arrayBuffer()));
+      const sql_import_dexie_json = `CREATE TABLE dexie_json AS
 WITH json_data AS (
     SELECT
         unnest(data.data) AS data
@@ -87,21 +88,49 @@ SELECT
     data.tableName AS table_name,
     data.rows AS rows
 FROM
-    json_data;`;
-    const sql_select_dexie_tables = `SELECT table_name FROM dexie_json`;
-    const c = await duckdb.connect();
-    globalThis.window.c = c;
-    await c.query(sql_import_dexie_json);
-    const json = (await c.query<{ table_name: Utf8 }>(sql_select_dexie_tables)).toArray();
-
+    json_data`;
+      const sql_select_dexie_tables = `SELECT table_name FROM dexie_json`;
+      const c = await duckdb.connect();
+      globalThis.window.c = c;
+      await c.query(sql_import_dexie_json);
+      const stmts = [sql_import_dexie_json, sql_select_dexie_tables];
+      for (const row of await c.query<{ table_name: Utf8 }>(sql_select_dexie_tables)) {
+        const create_table = `CREATE TABLE ${row.table_name}  AS (
+    WITH json_data AS (
+        SELECT
+            unnest(rows) as rows
+        FROM
+            dexie_json
+        WHERE
+            table_name = '${row.table_name}'
+    )
+    SELECT
+        rows.*
+    FROM
+        json_data
+);`;
+        stmts.push(create_table);
+        await c.query(create_table);
+      }
+      const sql_show_tables = "show tables";
+      stmts.push(sql_show_tables);
+      results = await c.query(sql_show_tables);
+      sql = stmts.join(";\n\n");
+    } else {
+      // we need to fix command parsing to only provide string
+      // otherwise this regexp split + join is lossy
+      sql = args.join(" ");
+      const c = await duckdb.connect();
+      results = await c.query(sql);
+    }
     const message = [
-      "## SQL Results",
-      jsonToMarkdownTable(json),
+      // show query
+      "```sql",
+      sql,
+      "```",
+      // show results
+      jsonToMarkdownTable(results.toArray()),
     ].join("\n\n");
-    (globalThis.window as any).db = {
-      duckdb,
-      jsonBlob,
-    };
     return chat.addMessage(new ChatCraftAppMessage({ text: message }));
   }
 }
