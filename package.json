@@ -20,6 +20,7 @@
     "@chakra-ui/react": "^2.10.4",
     "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-yaml": "^6.1.2",
+    "@duckdb/duckdb-wasm": "^1.29.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@eslint/compat": "^1.2.4",
