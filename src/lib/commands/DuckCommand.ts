@@ -27,7 +27,7 @@ function jsonToMarkdownTable(json: any[]): string {
   return `${headerRow}\n${dividerRow}\n${rows}`;
 }
 
-const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
+const MANUAL_BUNDLES: duckdb_lib.DuckDBBundles = {
   mvp: {
     mainModule: duckdb_wasm,
     mainWorker: mvp_worker,
@@ -72,8 +72,8 @@ export class DuckCommand extends ChatCraftCommand {
   async execute(chat: ChatCraftChat, _user: User | undefined, args?: string[]) {
     const duckdb = await DuckCommand.duckdb;
     const c = await duckdb.connect();
-    globalThis.window.c = c;
-    
+    // globalThis.window.c = c;
+
     const stmts: string[] = [];
     const query = (sql: string) => {
       stmts.push(sql);
@@ -82,11 +82,11 @@ export class DuckCommand extends ChatCraftCommand {
 
     let sql = "";
     let results;
-    
+
     if (!args?.length) {
       const jsonBlob = await idbExport();
       await duckdb.registerFileBuffer("dexie.json", new Uint8Array(await jsonBlob.arrayBuffer()));
-      
+
       const sql_import_dexie_json = `CREATE TABLE dexie_json AS
 WITH json_data AS (
     SELECT
@@ -99,11 +99,11 @@ SELECT
     data.rows AS rows
 FROM
     json_data`;
-      
+
       await query(sql_import_dexie_json);
-      
+
       const tables = await query(`SELECT table_name FROM dexie_json`);
-      
+
       for (const row of tables) {
         const create_table = `CREATE TABLE ${row.table_name}  AS (
     WITH json_data AS (
@@ -121,7 +121,7 @@ FROM
 );`;
         await query(create_table);
       }
-      
+
       results = await query("show tables");
       sql = stmts.join(";\n\n");
     } else {
