@@ -70,13 +70,23 @@ export class DuckCommand extends ChatCraftCommand {
   }
 
   async execute(chat: ChatCraftChat, _user: User | undefined, args?: string[]) {
-    //
     const duckdb = await DuckCommand.duckdb;
+    const c = await duckdb.connect();
+    globalThis.window.c = c;
+    
+    const stmts: string[] = [];
+    const query = (sql: string) => {
+      stmts.push(sql);
+      return c.query(sql);
+    };
+
     let sql = "";
     let results;
+    
     if (!args?.length) {
       const jsonBlob = await idbExport();
       await duckdb.registerFileBuffer("dexie.json", new Uint8Array(await jsonBlob.arrayBuffer()));
+      
       const sql_import_dexie_json = `CREATE TABLE dexie_json AS
 WITH json_data AS (
     SELECT
@@ -89,12 +99,12 @@ SELECT
     data.rows AS rows
 FROM
     json_data`;
-      const sql_select_dexie_tables = `SELECT table_name FROM dexie_json`;
-      const c = await duckdb.connect();
-      globalThis.window.c = c;
-      await c.query(sql_import_dexie_json);
-      const stmts = [sql_import_dexie_json, sql_select_dexie_tables];
-      for (const row of await c.query<{ table_name: Utf8 }>(sql_select_dexie_tables)) {
+      
+      await query(sql_import_dexie_json);
+      
+      const tables = await query(`SELECT table_name FROM dexie_json`);
+      
+      for (const row of tables) {
         const create_table = `CREATE TABLE ${row.table_name}  AS (
     WITH json_data AS (
         SELECT
@@ -109,19 +119,14 @@ FROM
     FROM
         json_data
 );`;
-        stmts.push(create_table);
-        await c.query(create_table);
+        await query(create_table);
       }
-      const sql_show_tables = "show tables";
-      stmts.push(sql_show_tables);
-      results = await c.query(sql_show_tables);
+      
+      results = await query("show tables");
       sql = stmts.join(";\n\n");
     } else {
-      // we need to fix command parsing to only provide string
-      // otherwise this regexp split + join is lossy
       sql = args.join(" ");
-      const c = await duckdb.connect();
-      results = await c.query(sql);
+      results = await query(sql);
     }
     const message = [
       // show query
