@@ -9,6 +9,26 @@ import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 import type { Utf8 } from "apache-arrow";
 
+function jsonToMarkdownTable(json: any[]): string {
+  if (!json.length) {
+    return "";
+  }
+
+  // Get headers from first object's keys
+  const headers = Object.keys(json[0]);
+  
+  // Create markdown table header
+  const headerRow = `| ${headers.join(" | ")} |`;
+  const dividerRow = `| ${headers.map(() => "---").join(" | ")} |`;
+  
+  // Create markdown table rows
+  const rows = json.map(obj => 
+    `| ${Object.values(obj).join(" | ")} |`
+  ).join("\n");
+
+  return `${headerRow}\n${dividerRow}\n${rows}`;
+}
+
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
   mvp: {
     mainModule: duckdb_wasm,
@@ -68,12 +88,9 @@ FROM
     const json = (await c.query<{ table_name: Utf8 }>(sql_select_dexie_tables)).toArray();
 
     const message = [
-      "## SQL\n",
-      "```json",
-      `${JSON.stringify(json, null, 2)}`,
-      "```",
-      // ...results.map((r) => `| ${r.name} | ${r.ops} | ${r.min}/${r.avg}/${r.max} | ${r.total} |`),
-    ].join("\n");
+      "## SQL Results",
+      jsonToMarkdownTable(json),
+    ].join("\n\n");
     (globalThis.window as any).db = {
       duckdb,
       jsonBlob,
