@@ -9,6 +9,7 @@ import { ImportCommand } from "./ImportCommand";
 import { CommandsHelpCommand } from "./CommandsHelpCommand";
 import { ImageCommand } from "./ImageCommand";
 import { StatsCommand } from "./StatsCommand";
+import { DuckCommand } from "./DuckCommand";
 
 // Register all our commands
 ChatCraftCommandRegistry.registerCommand(new NewCommand());
@@ -19,3 +20,4 @@ ChatCraftCommandRegistry.registerCommand(new CommandsHelpCommand());
 ChatCraftCommandRegistry.registerCommand(new ImportCommand());
 ChatCraftCommandRegistry.registerCommand(new ImageCommand());
 ChatCraftCommandRegistry.registerCommand(new StatsCommand());
+ChatCraftCommandRegistry.registerCommand(new DuckCommand());
