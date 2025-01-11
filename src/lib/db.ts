@@ -203,14 +203,6 @@ class ChatCraftDatabase extends Dexie {
     // Step 2: Create tables in DuckDB
     const results = await Promise.all(
       tableData.map(async ({ name, data }) => {
-        // Drop existing table if it exists
-        try {
-          // Try to drop the table if it exists
-          await query(`DROP TABLE IF EXISTS ${name}`);
-        } catch (_error) {
-          // Ignore errors from dropping non-existent tables
-        }
-
         // Skip empty tables
         if (data.length === 0) {
           return { name, rowCount: 0 };

@@ -354,13 +354,8 @@ export async function insertCSV(
         .map(([k, v]) => (typeof v === "boolean" ? `${k}=${v}` : `${k}='${v}'`))
         .join(", ");
 
-      // First drop the table if it exists and we're creating a new one
-      if (finalOptions.create) {
-        await conn.query(`DROP TABLE IF EXISTS ${finalOptions.schema}.${finalOptions.name}`);
-      }
-
       await conn.query(`
-        CREATE TABLE IF NOT EXISTS ${finalOptions.schema}.${finalOptions.name} AS
+        CREATE OR REPLACE TABLE ${finalOptions.schema}.${finalOptions.name} AS
         SELECT * FROM read_csv_auto('${bufferName}'${optionsStr})
       `);
     } finally {
@@ -408,13 +403,8 @@ export async function insertJSON(
 
       const optionsStr = finalOptions.shape ? `, format='${finalOptions.shape}'` : "";
 
-      // First drop the table if it exists and we're creating a new one
-      if (finalOptions.create) {
-        await conn.query(`DROP TABLE IF EXISTS ${finalOptions.schema}.${finalOptions.name}`);
-      }
-
       await conn.query(`
-        CREATE TABLE IF NOT EXISTS ${finalOptions.schema}.${finalOptions.name} AS
+        CREATE OR REPLACE TABLE ${finalOptions.schema}.${finalOptions.name} AS
         SELECT * FROM read_json_auto('${bufferName}'${optionsStr})
       `);
     } finally {
