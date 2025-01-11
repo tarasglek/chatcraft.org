@@ -177,28 +177,16 @@ class ChatCraftDatabase extends Dexie {
     tables: { name: string; rowCount: number }[];
   }> {
     // Step 1: Get data from each Dexie table
-    const tableData = await Promise.all([
-      {
-        name: "chats",
-        data: await this.chats.toArray(),
-      },
-      {
-        name: "messages",
-        data: await this.messages.toArray(),
-      },
-      {
-        name: "shared",
-        data: await this.shared.toArray(),
-      },
-      {
-        name: "functions",
-        data: await this.functions.toArray(),
-      },
-      {
-        name: "starred",
-        data: await this.starred.toArray(),
-      },
-    ]);
+    const tableNames: Array<
+      keyof Pick<typeof this, "chats" | "messages" | "shared" | "functions" | "starred">
+    > = ["chats", "messages", "shared", "functions", "starred"];
+
+    const tableData = await Promise.all(
+      tableNames.map(async (name) => ({
+        name,
+        data: await this[name].toArray(),
+      }))
+    );
 
     // Step 2: Create tables in DuckDB
     const results = await Promise.all(
