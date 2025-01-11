@@ -2,6 +2,7 @@ import Dexie, { Table } from "dexie";
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 
 import type { MessageType, FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
+import { insertJSON, query } from "./duckdb";
 
 export type ChatCraftChatTable = {
   id: string;
@@ -166,6 +167,82 @@ class ChatCraftDatabase extends Dexie {
     this.shared = this.table("shared");
     this.functions = this.table("functions");
     this.starred = this.table("starred");
+  }
+
+  /**
+   * Exports all tables from Dexie to DuckDB
+   * @returns Object containing table names and row counts
+   */
+  async exportToDuckDB(): Promise<{
+    tables: { name: string; rowCount: number }[];
+  }> {
+    // Step 1: Get data from each Dexie table
+    const tableData = await Promise.all([
+      {
+        name: "chats",
+        data: await this.chats.toArray(),
+      },
+      {
+        name: "messages",
+        data: await this.messages.toArray(),
+      },
+      {
+        name: "shared",
+        data: await this.shared.toArray(),
+      },
+      {
+        name: "functions",
+        data: await this.functions.toArray(),
+      },
+      {
+        name: "starred",
+        data: await this.starred.toArray(),
+      },
+    ]);
+
+    // Step 2: Create tables in DuckDB
+    const results = await Promise.all(
+      tableData.map(async ({ name, data }) => {
+        // Drop existing table if it exists
+        try {
+          // Try to drop the table if it exists
+          await query(`DROP TABLE IF EXISTS ${name}`);
+        } catch (_error) {
+          // Ignore errors from dropping non-existent tables
+        }
+
+        // Skip empty tables
+        if (data.length === 0) {
+          return { name, rowCount: 0 };
+        }
+
+        // Convert dates to ISO strings for JSON serialization
+        const jsonData = data.map((record) => ({
+          ...record,
+          date: record.date instanceof Date ? record.date.toISOString() : record.date,
+        }));
+
+        // Create table in DuckDB from JSON
+        await insertJSON(name, JSON.stringify(jsonData), { name, schema: "main", create: true });
+
+        // Convert date strings back to timestamps
+        if (data[0].date instanceof Date) {
+          await query(`
+            ALTER TABLE ${name}
+            ALTER COLUMN date
+            SET DATA TYPE TIMESTAMP
+            USING strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+          `);
+        }
+
+        return {
+          name,
+          rowCount: data.length,
+        };
+      })
+    );
+
+    return { tables: results };
   }
 }
 
