@@ -2,7 +2,7 @@ import Dexie, { Table } from "dexie";
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 
 import type { MessageType, FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
-import { insertJSON, query } from "./duckdb";
+import { insertJSON } from "./duckdb";
 
 export type ChatCraftChatTable = {
   id: string;
@@ -202,23 +202,20 @@ class ChatCraftDatabase extends Dexie {
           date: record.date instanceof Date ? record.date.toISOString() : record.date,
         }));
 
-        // Create table in DuckDB from JSON
-        await insertJSON(name, JSON.stringify(jsonData), { name, schema: "main", create: true });
+        try {
+          // Create table in DuckDB from JSON
+          await insertJSON(name, JSON.stringify(jsonData), {
+            name,
+          });
 
-        // Convert date strings back to timestamps
-        if (data[0].date instanceof Date) {
-          await query(`
-            ALTER TABLE ${name}
-            ALTER COLUMN date
-            SET DATA TYPE TIMESTAMP
-            USING strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
-          `);
+          return {
+            name,
+            rowCount: data.length,
+          };
+        } catch (err) {
+          console.error(`Error creating table ${name}:`, err);
+          throw err;
         }
-
-        return {
-          name,
-          rowCount: data.length,
-        };
       })
     );
 
