@@ -2,17 +2,13 @@ import {
   AsyncDuckDB,
   ConsoleLogger,
   VoidLogger,
+  getJsDelivrBundles,
   selectBundle,
-  DuckDBBundles,
   AsyncDuckDBConnection,
 } from "@duckdb/duckdb-wasm";
 // NOTE: duckdb-wasm uses v17.0.0 currently vs. v18.x, see:
 // https://github.com/duckdb/duckdb-wasm/blob/b42a8e78d60b30363139a966e42bd33a3dd305a5/packages/duckdb-wasm/package.json#L26C9-L26C34
 import * as arrow from "apache-arrow";
-import duckdb_wasm from "@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url";
-import mvp_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url";
-import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
-import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 
 // These duckdb types aren't exported, so recreate here so we can export
 export interface SQLType {
@@ -178,24 +174,20 @@ export interface ArrowInsertOptions {
   create?: boolean;
 }
 
-const MANUAL_BUNDLES: DuckDBBundles = {
-  mvp: {
-    mainModule: duckdb_wasm,
-    mainWorker: mvp_worker,
-  },
-  eh: {
-    mainModule: duckdb_wasm_eh,
-    mainWorker: eh_worker,
-  },
-};
-
 async function init(logToConsole = true) {
-  const bundle = await selectBundle(MANUAL_BUNDLES);
+  const JSDELIVR_BUNDLES = getJsDelivrBundles();
+  // Select a bundle based on browser checks
+  const bundle = await selectBundle(JSDELIVR_BUNDLES);
+  const workerUrl = URL.createObjectURL(
+    new Blob([`importScripts("${bundle.mainWorker!}");`], { type: "text/javascript" })
+  );
+
   // Instantiate the asynchronous version of DuckDB-wasm
-  const worker = new Worker(bundle.mainWorker!);
+  const worker = new Worker(workerUrl);
   const logger = logToConsole ? new ConsoleLogger() : new VoidLogger();
   const duckdb = new AsyncDuckDB(logger, worker);
   await duckdb.instantiate(bundle.mainModule, bundle.pthreadWorker);
+  URL.revokeObjectURL(workerUrl);
   return duckdb;
 }
 
