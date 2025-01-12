@@ -53,8 +53,8 @@ export const getReferer = () => {
   return `${origin}/`;
 };
 
-export function jsonToMarkdownTable(json: any[]): string {
-  if (!json.length) {
+export function jsonToMarkdownTable(json: any): string {
+  if (!Array.isArray(json) && json.length) {
     return "";
   }
 
@@ -66,7 +66,7 @@ export function jsonToMarkdownTable(json: any[]): string {
   const dividerRow = `| ${headers.map(() => "---").join(" | ")} |`;
 
   // Create markdown table rows
-  const rows = json.map((obj) => `| ${Object.values(obj).join(" | ")} |`).join("\n");
+  const rows = json.map((obj: any) => `| ${Object.values(obj).join(" | ")} |`).join("\n");
 
   return `${headerRow}\n${dividerRow}\n${rows}`;
 }

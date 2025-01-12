@@ -204,9 +204,7 @@ class ChatCraftDatabase extends Dexie {
 
         try {
           // Create table in DuckDB from JSON
-          await insertJSON(name, JSON.stringify(jsonData), {
-            name,
-          });
+          await insertJSON(name, JSON.stringify(jsonData));
 
           return {
             name,

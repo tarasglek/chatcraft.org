@@ -10,51 +10,8 @@ import {
 // https://github.com/duckdb/duckdb-wasm/blob/b42a8e78d60b30363139a966e42bd33a3dd305a5/packages/duckdb-wasm/package.json#L26C9-L26C34
 import * as arrow from "apache-arrow";
 
-// These duckdb types aren't exported, so recreate here so we can export
-interface SQLType {
-  sqlType: string;
-  nullable?: boolean;
-  precision?: number;
-  scale?: number;
-  timezone?: string;
-  byteWidth?: number;
-  keyType?: SQLType;
-  valueType?: SQLType;
-  fields?: SQLField[];
-}
-type SQLField = SQLType & {
-  name: string;
-};
-export declare enum JSONTableShape {
-  ROW_ARRAY = "row-array",
-  COLUMN_OBJECT = "column-object",
-}
-export interface JSONInsertOptions {
-  name: string;
-  schema?: string;
-  create?: boolean;
-  shape?: JSONTableShape;
-}
-export interface CSVInsertOptions {
-  name: string;
-  schema?: string;
-  create?: boolean;
-  header?: boolean;
-  delimiter?: string;
-  quote?: string;
-  escape?: string;
-  skip?: number;
-  detect?: boolean;
-  dateFormat?: string;
-  timestampFormat?: string;
-}
-export interface ArrowInsertOptions {
-  name: string;
-  schema?: string;
-  create?: boolean;
-}
-
 async function init(logToConsole = true) {
+  // NOTE: the wasm bundles are too large for CloudFlare pages, so we load externally
   const JSDELIVR_BUNDLES = getJsDelivrBundles();
   // Select a bundle based on browser checks
   const bundle = await selectBundle(JSDELIVR_BUNDLES);
@@ -89,7 +46,13 @@ export const getDuckdb = async (logToConsole?: boolean) => {
 /** Type alias for query results using Arrow Tables */
 export type QueryResult<T extends { [key: string]: arrow.DataType } = any> = arrow.Table<T>;
 
-// Manage connection lifecycle
+// Helper to turn a query result into JSON.
+// https://duckdb.org/docs/api/wasm/query.html#arrow-table-to-json
+export function queryResultToJson(result: QueryResult) {
+  return result.toArray().map((row: any) => row.toJSON());
+}
+
+// Manage connection lifecycle, closing when done
 async function withConnection<T>(
   callback: (conn: AsyncDuckDBConnection, duckdb: AsyncDuckDB) => Promise<T>
 ): Promise<T> {
@@ -138,40 +101,11 @@ export async function query<T extends { [key: string]: arrow.DataType } = any>(
 }
 
 /**
- * Executes a SQL query and returns a stream of results
- * @param text The SQL query to execute
- * @returns Promise resolving to an Arrow stream reader
- * @throws {Error} If the query fails
+ * Loads text content from a File or URL
+ * @param source the URL or File to load
+ * @returns the text of the file
  */
-export async function streamQuery<T extends { [key: string]: arrow.DataType } = any>(
-  text: string
-): Promise<arrow.AsyncRecordBatchStreamReader<T>> {
-  return withConnection((conn) => conn.send<T>(text));
-}
-
-/**
- * Inserts an Arrow table into DuckDB
- * @param tableName Name of the table to create
- * @param table Arrow table containing the data
- * @param options Optional configuration for the insertion
- * @throws {Error} If the insertion fails
- */
-export async function insertArrowTable(
-  tableName: string,
-  table: arrow.Table,
-  options?: Partial<ArrowInsertOptions>
-): Promise<void> {
-  return withConnection(async (conn) => {
-    const defaultOptions: ArrowInsertOptions = {
-      name: tableName,
-      schema: "main",
-      create: true,
-    };
-    await conn.insertArrowTable(table, { ...defaultOptions, ...options });
-  });
-}
-
-async function loadContent(source: URL | File): Promise<string> {
+async function loadTextContent(source: URL | File): Promise<string> {
   if (source instanceof File) {
     return await source.text();
   }
@@ -180,6 +114,79 @@ async function loadContent(source: URL | File): Promise<string> {
     throw new Error(`Failed to fetch content: ${response.statusText}`);
   }
   return await response.text();
+}
+
+/**
+ * Format options for SQL query, handling both CSV and JSON specific options
+ */
+function formatOptionsForSqlQuery(options: CSVOptions | JSONOptions) {
+  // Remove schema from options as it's handled separately
+  const { schema, ...opts } = options;
+
+  // Special handling for CSV-specific options
+  if ("types" in opts || "names" in opts || "nullstr" in opts) {
+    const csvOpts = opts as CSVOptions;
+    return Object.entries({
+      ...opts,
+      types: Array.isArray(csvOpts.types)
+        ? csvOpts.types.join(", ")
+        : JSON.stringify(csvOpts.types),
+      names: csvOpts.names?.join(", "),
+      nullstr: Array.isArray(csvOpts.nullstr) ? csvOpts.nullstr.join(", ") : csvOpts.nullstr,
+    })
+      .filter(([_, v]) => v !== undefined)
+      .map(([k, v]) => {
+        if (typeof v === "boolean") return `${k}=${v}`;
+        if (Array.isArray(v)) return `${k}=[${v}]`;
+        return `${k}='${v}'`;
+      })
+      .join(", ");
+  }
+
+  // Handle JSON options
+  return Object.entries(opts)
+    .filter(([_, v]) => v !== undefined)
+    .map(([k, v]) => {
+      if (typeof v === "boolean") return `${k}=${v}`;
+      if (typeof v === "number") return `${k}=${v}`;
+      return `${k}='${v}'`;
+    })
+    .join(", ");
+}
+
+/**
+ * Options for CSV file imports, see docs:
+ * https://duckdb.org/docs/data/csv/overview.html#parameters
+ */
+export interface CSVOptions {
+  /** Database schema (default: 'main') */
+  schema?: string;
+  /** Whether file has a header row (default: false) */
+  header?: boolean;
+  /** Column separator (default: ',') */
+  delim?: string;
+  /** Quote character (default: '"') */
+  quote?: string;
+  /** Escape character (default: '"') */
+  escape?: string;
+  /** Number of rows to skip (default: 0) */
+  skip?: number;
+  /** Date format string */
+  dateformat?: string;
+  /** Timestamp format string */
+  timestampformat?: string;
+  /** Ignore parsing errors and skip problematic rows */
+  ignore_errors?: boolean;
+  /** Treat all columns as VARCHAR */
+  all_varchar?: boolean;
+  /** Column names as list */
+  names?: string[];
+  /** Column types by position or name */
+  types?: string[] | Record<string, string>;
+  /** String that represents NULL values */
+  nullstr?: string | string[];
+  /** The decimal separator character (default: '.') */
+  decimal_separator?: string;
 }
 
 /**
@@ -192,45 +199,49 @@ async function loadContent(source: URL | File): Promise<string> {
 export async function insertCSV(
   tableName: string,
   source: string | URL | File,
-  options: Partial<CSVInsertOptions> = {}
+  options: CSVOptions = {}
 ): Promise<void> {
   return withConnection(async (conn, duckdb) => {
-    const content = typeof source === "string" ? source : await loadContent(source);
+    const content = typeof source === "string" ? source : await loadTextContent(source);
     const bufferName = `temp_${tableName}_${Date.now()}`;
-
-    const finalOptions: CSVInsertOptions = {
-      name: tableName,
-      schema: "main",
-      create: true,
-      header: true,
-      ...options,
-    };
+    const schema = options.schema || "main";
 
     try {
       await duckdb.registerFileBuffer(bufferName, new TextEncoder().encode(content));
 
-      // Use the full options in the SQL query
-      const optionsStr = Object.entries({
-        header: finalOptions.header,
-        delimiter: finalOptions.delimiter,
-        quote: finalOptions.quote,
-        escape: finalOptions.escape,
-        skip: finalOptions.skip,
-        dateFormat: finalOptions.dateFormat,
-        timestampFormat: finalOptions.timestampFormat,
-      })
-        .filter(([_, v]) => v !== undefined)
-        .map(([k, v]) => (typeof v === "boolean" ? `${k}=${v}` : `${k}='${v}'`))
-        .join(", ");
+      const optionsStr = formatOptionsForSqlQuery(options);
 
       await conn.query(`
-        CREATE OR REPLACE TABLE ${finalOptions.schema}.${finalOptions.name} AS
-        SELECT * FROM read_csv_auto('${bufferName}'${optionsStr})
+        CREATE OR REPLACE TABLE ${schema}.${tableName} AS
+        SELECT * FROM read_csv('${bufferName}'${optionsStr})
       `);
     } finally {
       await duckdb.dropFile(bufferName);
     }
   });
+}
+
+/**
+ * Options for JSON file imports, see docs:
+ * https://duckdb.org/docs/data/json/loading_json#parameters
+ */
+export interface JSONOptions {
+  /** Database schema (default: 'main') */
+  schema?: string;
+  /** JSON format: 'auto', 'unstructured', 'newline_delimited', or 'array' */
+  format?: "auto" | "unstructured" | "newline_delimited" | "array";
+  /** Compression type: 'auto', 'none', 'gzip', or 'zstd' */
+  compression?: "auto" | "none" | "gzip" | "zstd";
+  /** Whether to include filename column in result */
+  filename?: boolean;
+  /** Whether to interpret path as Hive partitioned */
+  hive_partitioning?: boolean;
+  /** Ignore parse errors (only for newline_delimited format) */
+  ignore_errors?: boolean;
+  /** Maximum number of JSON files sampled for auto-detection */
+  maximum_sample_files?: number;
+  /** Maximum size of a JSON object in bytes */
+  maximum_object_size?: number;
 }
 
 /**
@@ -243,42 +254,26 @@ export async function insertCSV(
 export async function insertJSON(
   tableName: string,
   source: string | URL | File,
-  options: Partial<JSONInsertOptions> = {}
+  options: JSONOptions = {}
 ): Promise<void> {
   return withConnection(async (conn, duckdb) => {
-    const content = typeof source === "string" ? source : await loadContent(source);
+    const content = typeof source === "string" ? source : await loadTextContent(source);
     const bufferName = `temp_${tableName}_${Date.now()}`;
-
-    const finalOptions: JSONInsertOptions = {
-      name: tableName,
-      schema: "main",
-      create: true,
-      ...options,
-    };
+    const schema = options.schema || "main";
 
     try {
       await duckdb.registerFileBuffer(bufferName, new TextEncoder().encode(content));
 
-      const optionsStr = finalOptions.shape ? `, format='${finalOptions.shape}'` : "";
+      const optionsStr = formatOptionsForSqlQuery(options);
 
       await conn.query(`
-        CREATE OR REPLACE TABLE ${finalOptions.schema}.${finalOptions.name} AS
-        SELECT * FROM read_json_auto('${bufferName}'${optionsStr})
+        CREATE OR REPLACE TABLE ${schema}.${tableName} AS
+        SELECT * FROM read_json('${bufferName}'${optionsStr ? ", " + optionsStr : ""})
       `);
     } finally {
       await duckdb.dropFile(bufferName);
     }
   });
-}
-
-/**
- * Gets the names of all tables in the database
- * @param query Optional query to filter tables (defaults to all tables)
- * @returns Promise resolving to array of table names
- * @throws {Error} If the query fails
- */
-export async function getTableNames(query = "SELECT * FROM main.sqlite_master"): Promise<string[]> {
-  return withConnection((conn) => conn.getTableNames(query));
 }
 
 /**
