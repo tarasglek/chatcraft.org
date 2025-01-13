@@ -196,6 +196,15 @@ export async function toJavaScript(tsCode: string) {
   return js.code;
 }
 
+async function runSQL(sql: string): Promise<{ ret: any; logs: string | undefined }> {
+  try {
+    const result = await queryToMarkdown(sql);
+    return { ret: result, logs: undefined };
+  } catch (error) {
+    return { ret: undefined, logs: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 export async function runCode(
   code: string,
   language: string
@@ -212,10 +221,8 @@ export async function runCode(
   } else if (isRuby(language)) {
     return runInWasi(code, "ruby");
   } else if (language === "sql") {
-    try {
-      return { ret: await queryToMarkdown(code), logs: undefined };
-    } catch (error) { }
+    return runSQL(code);
   } else {
-    throw new Error(`Unsupported language: ${language}`);
+    return { ret: undefined, logs: `Unsupported language: ${language}` };
   }
 }
