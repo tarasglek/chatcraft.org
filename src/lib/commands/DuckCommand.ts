@@ -3,7 +3,6 @@ import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
 import db from "../../lib/db";
 import { queryToMarkdown } from "../duckdb";
-import { jsonToMarkdownTable } from "../utils";
 
 export class DuckCommand extends ChatCraftCommand {
   constructor() {
@@ -22,10 +21,7 @@ export class DuckCommand extends ChatCraftCommand {
         tableNames.map(async ({ name }) => {
           const rowCount = exportResult.tables.find((table) => table.name === name)?.rowCount || 0;
           const tableDescription = await queryToMarkdown(`DESCRIBE ${name}`);
-          message.push(
-            `### ${name} (${rowCount} rows)`,
-            tableDescription
-          );
+          message.push(`### ${name} (${rowCount} rows)`, tableDescription);
         })
       );
 

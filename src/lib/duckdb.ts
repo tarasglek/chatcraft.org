@@ -9,6 +9,7 @@ import {
 // NOTE: duckdb-wasm uses v17.0.0 currently vs. v18.x, see:
 // https://github.com/duckdb/duckdb-wasm/blob/b42a8e78d60b30363139a966e42bd33a3dd305a5/packages/duckdb-wasm/package.json#L26C9-L26C34
 import * as arrow from "apache-arrow";
+import { jsonToMarkdownTable } from "./utils";
 
 async function init(logToConsole = true) {
   // NOTE: the wasm bundles are too large for CloudFlare pages, so we load externally
