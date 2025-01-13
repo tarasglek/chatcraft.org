@@ -2,6 +2,7 @@ import Dexie, { Table } from "dexie";
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 
 import type { MessageType, FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
+import { insertJSON } from "./duckdb";
 
 export type ChatCraftChatTable = {
   id: string;
@@ -166,6 +167,57 @@ class ChatCraftDatabase extends Dexie {
     this.shared = this.table("shared");
     this.functions = this.table("functions");
     this.starred = this.table("starred");
+  }
+
+  /**
+   * Exports all tables from Dexie to DuckDB
+   * @returns Object containing table names and row counts
+   */
+  async exportToDuckDB(): Promise<{
+    tables: { name: string; rowCount: number }[];
+  }> {
+    // Step 1: Get data from each Dexie table
+    const tableNames: Array<
+      keyof Pick<typeof this, "chats" | "messages" | "shared" | "functions" | "starred">
+    > = ["chats", "messages", "shared", "functions", "starred"];
+
+    const tableData = await Promise.all(
+      tableNames.map(async (name) => ({
+        name,
+        data: await this[name].toArray(),
+      }))
+    );
+
+    // Step 2: Create tables in DuckDB
+    const results = [];
+    for (const { name, data } of tableData) {
+      // Skip empty tables
+      if (data.length === 0) {
+        results.push({ name, rowCount: 0 });
+        continue;
+      }
+
+      // Convert dates to ISO strings for JSON serialization
+      const jsonData = data.map((record) => ({
+        ...record,
+        date: record.date instanceof Date ? record.date.toISOString() : record.date,
+      }));
+
+      try {
+        // Create table in DuckDB from JSON
+        await insertJSON(name, JSON.stringify(jsonData));
+
+        results.push({
+          name,
+          rowCount: data.length,
+        });
+      } catch (err) {
+        console.error(`Error creating table ${name} in DuckDB:`, err);
+        throw err;
+      }
+    }
+
+    return { tables: results };
   }
 }
 

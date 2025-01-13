@@ -53,6 +53,24 @@ export const getReferer = () => {
   return `${origin}/`;
 };
 
+export function jsonToMarkdownTable(json: any): string {
+  if (!Array.isArray(json) && json.length) {
+    return "";
+  }
+
+  // Get headers from first object's keys
+  const headers = Object.keys(json[0]);
+
+  // Create markdown table header
+  const headerRow = `| ${headers.join(" | ")} |`;
+  const dividerRow = `| ${headers.map(() => "---").join(" | ")} |`;
+
+  // Create markdown table rows
+  const rows = json.map((obj: any) => `| ${Object.values(obj).join(" | ")} |`).join("\n");
+
+  return `${headerRow}\n${dividerRow}\n${rows}`;
+}
+
 export const formatAsCodeBlock = (code: string, language = "text") =>
   `\`\`\`${language}\n${code}\n\`\`\``;
 
