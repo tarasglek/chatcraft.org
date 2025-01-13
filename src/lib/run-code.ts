@@ -200,14 +200,14 @@ export async function runCode(code: string, language: string) {
     code = await toJavaScript(code);
     language = "js";
   }
+  
   if (isJavaScript(language)) {
     return runJavaScript(code);
-  }
-  if (isPython(language)) {
+  } else if (isPython(language)) {
     return runInWasi(code, "python");
-  }
-  if (isRuby(language)) {
+  } else if (isRuby(language)) {
     return runInWasi(code, "ruby");
+  } else {
+    throw new Error(`Unsupported language: ${language}`);
   }
-  throw new Error(`Unsupported language: ${language}`);
 }
