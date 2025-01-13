@@ -212,7 +212,9 @@ export async function runCode(
   } else if (isRuby(language)) {
     return runInWasi(code, "ruby");
   } else if (language === "sql") {
-    return { ret: await queryToMarkdown(code), logs: undefined };
+    try {
+      return { ret: await queryToMarkdown(code), logs: undefined };
+    } catch (error) { }
   } else {
     throw new Error(`Unsupported language: ${language}`);
   }
