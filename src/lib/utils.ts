@@ -54,7 +54,7 @@ export const getReferer = () => {
 };
 
 export function jsonToMarkdownTable(json: any): string {
-  if (!Array.isArray(json) && json.length) {
+  if (!Array.isArray(json) || !json.length) {
     return "";
   }
 

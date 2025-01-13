@@ -9,6 +9,7 @@ import {
 // NOTE: duckdb-wasm uses v17.0.0 currently vs. v18.x, see:
 // https://github.com/duckdb/duckdb-wasm/blob/b42a8e78d60b30363139a966e42bd33a3dd305a5/packages/duckdb-wasm/package.json#L26C9-L26C34
 import * as arrow from "apache-arrow";
+import { jsonToMarkdownTable } from "./utils";
 
 async function init(logToConsole = true) {
   // NOTE: the wasm bundles are too large for CloudFlare pages, so we load externally
@@ -280,6 +281,19 @@ export async function insertJSON(
  * Resets the DuckDB instance, terminating the connection
  * @throws {Error} If termination fails
  */
+/**
+ * Executes a SQL query and returns the results as a Markdown table
+ * @param sql The SQL query to execute
+ * @param params Optional parameters for prepared statement
+ * @returns Promise resolving to a Markdown formatted table string
+ * @throws {Error} If the query fails
+ */
+export async function queryToMarkdown(sql: string, params?: any[]): Promise<string> {
+  const result = await query(sql, params);
+  const json = queryResultToJson(result);
+  return jsonToMarkdownTable(json);
+}
+
 export async function reset(): Promise<void> {
   if (_duckdb) {
     await _duckdb.dropFiles();
