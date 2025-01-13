@@ -50,7 +50,11 @@ export default defineConfig({
         name: "ChatCraft.org",
         short_name: "ChatCraft",
         icons: [
-          { src: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+          {
+            src: "/android-chrome-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
           {
             src: "/android-chrome-512x512.png",
             sizes: "512x512",
@@ -85,5 +89,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 2200,
     outDir: "build",
     target: "esnext",
+    minify: false, // Disable minification for better stack traces
+    sourcemap: "hidden", // ✘ [ERROR] Error: Pages only supports files up to 25 MiB in size
   },
 });
