@@ -201,7 +201,7 @@ async function runSQL(sql: string): Promise<{ ret: any; logs: string | undefined
     const result = await queryToMarkdown(sql);
     return { ret: result, logs: undefined };
   } catch (error) {
-    return { ret: undefined, logs: error instanceof Error ? error.message : String(error) };
+    return { ret: "", logs: error instanceof Error ? error.message : String(error) };
   }
 }
 
@@ -223,6 +223,6 @@ export async function runCode(
   } else if (language === "sql") {
     return runSQL(code);
   } else {
-    return { ret: undefined, logs: `Unsupported language: ${language}` };
+    return { ret: "", logs: `Unsupported language: ${language}` };
   }
 }
