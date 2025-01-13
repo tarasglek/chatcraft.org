@@ -42,9 +42,14 @@ export function isRunnableInBrowser(language: string) {
   return SupportedBrowserLanguages.includes(language);
 }
 
+type ExecutionResult = {
+  ret: any;
+  logs: string | undefined;
+};
+
 async function captureConsole<T>(
   callback: () => Promise<T>
-): Promise<{ logs: string | undefined; ret: T }> {
+): Promise<ExecutionResult> {
   // Save the original console methods
   const originalConsole = {
     log: console.log,
@@ -94,7 +99,7 @@ async function captureConsole<T>(
  * Run JavaScript code in eval() context, to support returning values from simple expressions `1+1`
  * and also support `import * as esbuild from 'https://cdn.skypack.dev/esbuild-wasm@0.19.2'` via ES6 modules fallback
  */
-async function runJavaScript(code: string) {
+async function runJavaScript(code: string): Promise<ExecutionResult> {
   try {
     const generated = `return eval(${JSON.stringify(code)});`;
     const fn = new Function(generated);
@@ -122,7 +127,7 @@ async function runJavaScript(code: string) {
   }
 }
 
-async function runInWasi(code: string, language: string) {
+async function runInWasi(code: string, language: string): Promise<ExecutionResult> {
   const { WASI } = await import("@antonz/runno");
 
   let url: string;
@@ -196,7 +201,7 @@ export async function toJavaScript(tsCode: string) {
   return js.code;
 }
 
-async function runSQL(sql: string): Promise<{ ret: any; logs: string | undefined }> {
+async function runSQL(sql: string): Promise<ExecutionResult> {
   try {
     const result = await queryToMarkdown(sql);
     return { ret: result, logs: undefined };
@@ -208,7 +213,7 @@ async function runSQL(sql: string): Promise<{ ret: any; logs: string | undefined
 export async function runCode(
   code: string,
   language: string
-): Promise<{ ret: any; logs: string | undefined }> {
+): Promise<ExecutionResult> {
   if (isTypeScript(language)) {
     code = await toJavaScript(code);
     language = "js";
