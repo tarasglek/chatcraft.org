@@ -47,9 +47,7 @@ type ExecutionResult = {
   logs: string | undefined;
 };
 
-async function captureConsole<T>(
-  callback: () => Promise<T>
-): Promise<ExecutionResult> {
+async function captureConsole<T>(callback: () => Promise<T>): Promise<ExecutionResult> {
   // Save the original console methods
   const originalConsole = {
     log: console.log,
@@ -206,14 +204,11 @@ async function runSQL(sql: string): Promise<ExecutionResult> {
     const result = await queryToMarkdown(sql);
     return { ret: result, logs: undefined };
   } catch (error) {
-    return { ret: "", logs: error instanceof Error ? error.message : String(error) };
+    return { ret: "", logs: error instanceof Error ? error.stack : String(error) };
   }
 }
 
-export async function runCode(
-  code: string,
-  language: string
-): Promise<ExecutionResult> {
+export async function runCode(code: string, language: string): Promise<ExecutionResult> {
   if (isTypeScript(language)) {
     code = await toJavaScript(code);
     language = "js";
