@@ -2,7 +2,7 @@ import { ChatCraftCommand } from "../ChatCraftCommand";
 import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
 import db from "../../lib/db";
-import { query, queryResultToJson } from "../duckdb";
+import { queryToMarkdown } from "../duckdb";
 import { jsonToMarkdownTable } from "../utils";
 
 export class DuckCommand extends ChatCraftCommand {
@@ -16,16 +16,15 @@ export class DuckCommand extends ChatCraftCommand {
     if (!args?.length) {
       // Get a list of all tables and describe each one
       const message: string[] = ["## DuckDB Tables"];
-      const result = await query("SHOW TABLES");
-      const tableNames = queryResultToJson(result);
+      const tableNames = await queryToMarkdown("SHOW TABLES");
 
       await Promise.all(
         tableNames.map(async ({ name }) => {
           const rowCount = exportResult.tables.find((table) => table.name === name)?.rowCount || 0;
-          const result = await query(`DESCRIBE ${name}`);
+          const tableDescription = await queryToMarkdown(`DESCRIBE ${name}`);
           message.push(
             `### ${name} (${rowCount} rows)`,
-            jsonToMarkdownTable(queryResultToJson(result))
+            tableDescription
           );
         })
       );
@@ -34,14 +33,14 @@ export class DuckCommand extends ChatCraftCommand {
     }
 
     const sql = args.join(" ");
-    const queryResult = await query(sql);
+    const results = await queryToMarkdown(sql);
     const message = [
       // show query
       "```sql",
       sql,
       "```",
       // show results
-      jsonToMarkdownTable(queryResultToJson(queryResult)),
+      results,
     ].join("\n\n");
     return chat.addMessage(new ChatCraftHumanMessage({ text: message }));
   }
