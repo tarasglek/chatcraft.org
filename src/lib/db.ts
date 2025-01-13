@@ -189,33 +189,33 @@ class ChatCraftDatabase extends Dexie {
     );
 
     // Step 2: Create tables in DuckDB
-    const results = await Promise.all(
-      tableData.map(async ({ name, data }) => {
-        // Skip empty tables
-        if (data.length === 0) {
-          return { name, rowCount: 0 };
-        }
+    const results = [];
+    for (const { name, data } of tableData) {
+      // Skip empty tables
+      if (data.length === 0) {
+        results.push({ name, rowCount: 0 });
+        continue;
+      }
 
-        // Convert dates to ISO strings for JSON serialization
-        const jsonData = data.map((record) => ({
-          ...record,
-          date: record.date instanceof Date ? record.date.toISOString() : record.date,
-        }));
+      // Convert dates to ISO strings for JSON serialization
+      const jsonData = data.map((record) => ({
+        ...record,
+        date: record.date instanceof Date ? record.date.toISOString() : record.date,
+      }));
 
-        try {
-          // Create table in DuckDB from JSON
-          await insertJSON(name, JSON.stringify(jsonData));
+      try {
+        // Create table in DuckDB from JSON
+        await insertJSON(name, JSON.stringify(jsonData));
 
-          return {
-            name,
-            rowCount: data.length,
-          };
-        } catch (err) {
-          console.error(`Error creating table ${name}:`, err);
-          throw err;
-        }
-      })
-    );
+        results.push({
+          name,
+          rowCount: data.length,
+        });
+      } catch (err) {
+        console.error(`Error creating table ${name} in DuckDB:`, err);
+        throw err;
+      }
+    }
 
     return { tables: results };
   }
