@@ -191,12 +191,6 @@ class ChatCraftDatabase extends Dexie {
     // Step 2: Create tables in DuckDB
     const results = [];
     for (const { name, data } of tableData) {
-      // Skip empty tables
-      if (data.length === 0) {
-        results.push({ name, rowCount: 0 });
-        continue;
-      }
-
       // Convert dates to ISO strings for JSON serialization
       const jsonData = data.map((record) => ({
         ...record,
