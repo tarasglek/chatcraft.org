@@ -1,4 +1,5 @@
 import esbuildWasmUrl from "esbuild-wasm/esbuild.wasm?url";
+import { queryToMarkdown } from "./duckdb";
 
 // By default, we haven't loaded the esbuild wasm module, and
 // the esbuild module doesn't have a concept of checking if it's
@@ -195,18 +196,23 @@ export async function toJavaScript(tsCode: string) {
   return js.code;
 }
 
-export async function runCode(code: string, language: string) {
+export async function runCode(
+  code: string,
+  language: string
+): Promise<{ ret: any; logs: string | undefined }> {
   if (isTypeScript(language)) {
     code = await toJavaScript(code);
     language = "js";
   }
-  
+
   if (isJavaScript(language)) {
     return runJavaScript(code);
   } else if (isPython(language)) {
     return runInWasi(code, "python");
   } else if (isRuby(language)) {
     return runInWasi(code, "ruby");
+  } else if (language === "sql") {
+    return { ret: await queryToMarkdown(code), logs: undefined };
   } else {
     throw new Error(`Unsupported language: ${language}`);
   }

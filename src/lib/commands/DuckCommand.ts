@@ -15,8 +15,7 @@ export class DuckCommand extends ChatCraftCommand {
     if (!args?.length) {
       // Get a list of all tables and describe each one
       const message: string[] = ["## DuckDB Tables"];
-    
-      // Directly query and format the table names
+
       const tables = await query("SHOW TABLES");
       const tableNames = queryResultToJson(tables).map((row: any) => row.name);
 

@@ -8,5 +8,6 @@
     "source.fixAll": "explicit"
   },
   "files.eol": "\n",
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "deno.enable": false
 }
