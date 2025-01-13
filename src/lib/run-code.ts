@@ -18,6 +18,7 @@ const SupportedBrowserLanguages = [
   ...supportedTS,
   ...supportedPY,
   ...supportedRuby,
+  "sql",
 ];
 
 function isJavaScript(language: string) {
