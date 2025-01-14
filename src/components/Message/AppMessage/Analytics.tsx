@@ -27,6 +27,7 @@ import {
 } from "recharts";
 import ComponentMessage from "../ComponentMessage";
 import { ProcessedAnalytics, processAnalytics } from "../../../lib/analytics";
+import db from "../../../lib/db";
 
 type Period = "1H" | "1D" | "1W" | "1M" | "1Y" | "ALL";
 
@@ -93,7 +94,10 @@ function Analytics() {
         break;
     }
 
-    processAnalytics(startDate, endDate).then(setAnalytics);
+    // TODO: would be good to figure out how to only do this export once
+    db.exportToDuckDB()
+      .then(() => processAnalytics(startDate, endDate, period))
+      .then(setAnalytics);
   }, [period]);
 
   const avatar = (

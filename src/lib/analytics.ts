@@ -1,81 +1,4 @@
-import { MessageType } from "./ChatCraftMessage";
-import db from "./db";
-
-type Period = "day" | "week" | "month";
-
-// Get a standardized key for a time period
-function getPeriodKey(date: Date, periodType: Period = "day"): string {
-  switch (periodType) {
-    case "day":
-      return date.toISOString().slice(0, 10); // YYYY-MM-DD
-    case "week": {
-      const startOfWeek = new Date(date);
-      startOfWeek.setDate(date.getDate() - date.getDay());
-      return startOfWeek.toISOString().slice(0, 10);
-    }
-    case "month":
-      return date.toISOString().slice(0, 7); // YYYY-MM
-    default:
-      throw new Error(`Invalid period type: ${periodType}`);
-  }
-}
-
-// Base metrics without calculation fields
-interface BaseMetrics {
-  messageCount: number;
-  characterCount: number;
-  conversationCount: number;
-  avgResponseTime: number;
-  uniqueModels: string[];
-}
-
-// Working metrics with calculation fields
-interface WorkingPeriodMetrics extends BaseMetrics {
-  totalResponseTime: number;
-  responseCount: number;
-  conversationIds: Set<string>;
-}
-
-// Working model metrics
-interface WorkingModelMetrics {
-  messageCount: number;
-  characterCount: number;
-  avgResponseLength: number;
-  avgResponseTime: number;
-  totalResponseTime: number;
-  responseCount: number;
-}
-
-// Final model metrics
-interface ModelMetrics {
-  messageCount: number;
-  characterCount: number;
-  avgResponseLength: number;
-  avgResponseTime: number;
-}
-
-export interface ChatAnalytics {
-  timeMetrics: {
-    byPeriod: Record<string, BaseMetrics>;
-    hourlyDistribution: Record<number, number>;
-    weekdayDistribution: Record<number, number>;
-  };
-  modelMetrics: {
-    usage: Record<string, ModelMetrics>;
-    transitions: Record<string, Record<string, number>>;
-  };
-  contentMetrics: {
-    messageTypes: Record<MessageType, number>;
-    avgMessageLength: number;
-    codeSnippetCount: number;
-    conversationDepth: {
-      min: number;
-      max: number;
-      avg: number;
-      distribution: Record<number, number>;
-    };
-  };
-}
+import { query } from "./duckdb";
 
 export interface AnalyticsSummary {
   totals: {
@@ -111,310 +34,159 @@ export interface ProcessedAnalytics {
   summary: AnalyticsSummary;
 }
 
-export async function generateAnalytics(startDate?: Date, endDate?: Date): Promise<ChatAnalytics> {
-  const messages = await db.messages
-    .where("date")
-    .between(startDate || new Date(0), endDate || new Date())
-    .toArray();
-
-  const chats = await db.chats.toArray();
-  const workingMetrics: Record<string, WorkingPeriodMetrics> = {};
-  const workingModelMetrics: Record<string, WorkingModelMetrics> = {};
-
-  // First, organize chats by period based on their creation date
-  const chatsByPeriod: Record<string, Set<string>> = {};
-  chats.forEach((chat) => {
-    // Use the first message's date as the chat creation date
-    const firstMessage = messages.find((m) => m.chatId === chat.id);
-    if (firstMessage) {
-      const period = getPeriodKey(firstMessage.date);
-      if (!chatsByPeriod[period]) {
-        chatsByPeriod[period] = new Set();
-      }
-      chatsByPeriod[period].add(chat.id);
-    }
-  });
-
-  // Initialize period metrics with the correct conversation counts
-  Object.entries(chatsByPeriod).forEach(([period, chatIds]) => {
-    workingMetrics[period] = {
-      messageCount: 0,
-      characterCount: 0,
-      conversationCount: chatIds.size,
-      avgResponseTime: 0,
-      uniqueModels: [],
-      totalResponseTime: 0,
-      responseCount: 0,
-      conversationIds: chatIds,
-    };
-  });
-
-  // Initialize results structure
-  const results: ChatAnalytics = {
-    timeMetrics: {
-      byPeriod: {},
-      hourlyDistribution: {},
-      weekdayDistribution: {},
-    },
-    modelMetrics: {
-      usage: {},
-      transitions: {},
-    },
-    contentMetrics: {
-      messageTypes: {} as Record<MessageType, number>,
-      avgMessageLength: 0,
-      codeSnippetCount: 0,
-      conversationDepth: {
-        min: Infinity,
-        max: 0,
-        avg: 0,
-        distribution: {},
-      },
-    },
-  };
-
-  // Process messages in a single pass
-  messages.forEach((msg, idx, arr) => {
-    const period = getPeriodKey(msg.date);
-    const hour = msg.date.getHours();
-    const weekday = msg.date.getDay();
-
-    // Initialize period metrics if needed
-    if (!workingMetrics[period]) {
-      workingMetrics[period] = {
-        messageCount: 0,
-        characterCount: 0,
-        conversationCount: 0,
-        avgResponseTime: 0,
-        uniqueModels: [],
-        totalResponseTime: 0,
-        responseCount: 0,
-        conversationIds: new Set(),
-      };
-    }
-
-    const periodMetrics = workingMetrics[period];
-
-    // Basic message counting
-    periodMetrics.messageCount++;
-    periodMetrics.characterCount += msg.text.length;
-
-    // Track response times for AI messages
-    if (msg.type === "ai" && idx > 0) {
-      const prevMsg = arr[idx - 1];
-      if (prevMsg.chatId === msg.chatId && prevMsg.type === "human") {
-        const responseTime = msg.date.getTime() - prevMsg.date.getTime();
-        periodMetrics.totalResponseTime += responseTime;
-        periodMetrics.responseCount++;
-      }
-    }
-
-    // Track models
-    if (msg.model) {
-      if (!periodMetrics.uniqueModels.includes(msg.model)) {
-        periodMetrics.uniqueModels.push(msg.model);
-      }
-    }
-
-    // Update distributions
-    results.timeMetrics.hourlyDistribution[hour] =
-      (results.timeMetrics.hourlyDistribution[hour] || 0) + 1;
-    results.timeMetrics.weekdayDistribution[weekday] =
-      (results.timeMetrics.weekdayDistribution[weekday] || 0) + 1;
-
-    // Model metrics
-    if (msg.model) {
-      if (!workingModelMetrics[msg.model]) {
-        workingModelMetrics[msg.model] = {
-          messageCount: 0,
-          characterCount: 0,
-          avgResponseLength: 0,
-          avgResponseTime: 0,
-          totalResponseTime: 0,
-          responseCount: 0,
-        };
-      }
-
-      const modelMetrics = workingModelMetrics[msg.model];
-      modelMetrics.messageCount++;
-      modelMetrics.characterCount += msg.text.length;
-
-      // Track model response times
-      if (msg.type === "ai" && idx > 0) {
-        const prevMsg = arr[idx - 1];
-        if (prevMsg.chatId === msg.chatId && prevMsg.type === "human") {
-          const responseTime = msg.date.getTime() - prevMsg.date.getTime();
-          modelMetrics.totalResponseTime += responseTime;
-          modelMetrics.responseCount++;
-        }
-      }
-
-      // Track model transitions
-      if (idx > 0 && arr[idx - 1].model && arr[idx - 1].model !== msg.model) {
-        const prevModel = arr[idx - 1].model;
-        if (prevModel) {
-          if (!results.modelMetrics.transitions[prevModel]) {
-            results.modelMetrics.transitions[prevModel] = {};
-          }
-          results.modelMetrics.transitions[prevModel][msg.model] =
-            (results.modelMetrics.transitions[prevModel][msg.model] || 0) + 1;
-        }
-      }
-    }
-
-    // Content metrics
-    results.contentMetrics.messageTypes[msg.type] =
-      (results.contentMetrics.messageTypes[msg.type] || 0) + 1;
-    results.contentMetrics.codeSnippetCount += (msg.text.match(/```/g) || []).length / 2;
-
-    console.log(`Period ${period}:`, {
-      messages: periodMetrics.messageCount,
-      conversations: periodMetrics.conversationIds.size,
-      responseTimes: {
-        total: periodMetrics.totalResponseTime,
-        count: periodMetrics.responseCount,
-        avg: periodMetrics.responseCount
-          ? periodMetrics.totalResponseTime / periodMetrics.responseCount
-          : 0,
-      },
-      models: periodMetrics.uniqueModels,
-    });
-  });
-
-  // Process chats for conversation depth
-  chats.forEach((chat) => {
-    const depth = chat.messageIds.length;
-    results.contentMetrics.conversationDepth.min = Math.min(
-      results.contentMetrics.conversationDepth.min,
-      depth
-    );
-    results.contentMetrics.conversationDepth.max = Math.max(
-      results.contentMetrics.conversationDepth.max,
-      depth
-    );
-    results.contentMetrics.conversationDepth.distribution[depth] =
-      (results.contentMetrics.conversationDepth.distribution[depth] || 0) + 1;
-  });
-
-  // Calculate final averages
-  results.contentMetrics.avgMessageLength =
-    messages.reduce((sum, msg) => sum + msg.text.length, 0) / messages.length;
-  results.contentMetrics.conversationDepth.avg =
-    chats.reduce((sum, chat) => sum + chat.messageIds.length, 0) / chats.length;
-
-  // Convert working metrics to final format
-  Object.entries(workingMetrics).forEach(([period, metrics]) => {
-    results.timeMetrics.byPeriod[period] = {
-      messageCount: metrics.messageCount,
-      characterCount: metrics.characterCount,
-      conversationCount: metrics.conversationCount,
-      avgResponseTime: metrics.responseCount
-        ? metrics.totalResponseTime / metrics.responseCount
-        : 0,
-      uniqueModels: metrics.uniqueModels,
-    };
-  });
-
-  // Convert working model metrics to final format
-  Object.entries(workingModelMetrics).forEach(([model, metrics]) => {
-    results.modelMetrics.usage[model] = {
-      messageCount: metrics.messageCount,
-      characterCount: metrics.characterCount,
-      avgResponseLength: metrics.messageCount ? metrics.characterCount / metrics.messageCount : 0,
-      avgResponseTime: metrics.responseCount
-        ? metrics.totalResponseTime / metrics.responseCount
-        : 0,
-    };
-  });
-
-  return results;
-}
-
 export async function processAnalytics(
-  startDate?: Date,
-  endDate?: Date
+  startDate: Date,
+  endDate: Date,
+  period: "1H" | "1D" | "1W" | "1M" | "1Y" | "ALL"
 ): Promise<ProcessedAnalytics> {
-  const rawAnalytics = await generateAnalytics(startDate, endDate);
+  // Convert dates to ISO strings for SQL
+  const start = startDate?.toISOString() || "2019-01-01";
+  const end = endDate?.toISOString() || new Date().toISOString();
 
-  const summary: AnalyticsSummary = {
-    totals: {
-      chats: Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
-        (sum, stats) => sum + stats.conversationCount,
-        0
-      ),
-      messages: Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
-        (sum, stats) => sum + stats.messageCount,
-        0
-      ),
-      characters: Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
-        (sum, stats) => sum + stats.characterCount,
-        0
-      ),
-    },
-    max: {
-      chats: Math.max(
-        ...Object.values(rawAnalytics.timeMetrics.byPeriod).map((stats) => stats.conversationCount)
-      ),
-      messages: Math.max(
-        ...Object.values(rawAnalytics.timeMetrics.byPeriod).map((stats) => stats.messageCount)
-      ),
-      characters: Math.max(
-        ...Object.values(rawAnalytics.timeMetrics.byPeriod).map((stats) => stats.characterCount)
-      ),
-    },
-    averages: {
-      messagesPerChat: Number(
-        (
-          Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
-            (sum, stats) => sum + stats.messageCount,
-            0
-          ) /
-          Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
-            (sum, stats) => sum + stats.conversationCount,
-            0
-          )
-        ).toFixed(1)
-      ),
-      charactersPerMessage: Number(
-        (
-          Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
-            (sum, stats) => sum + stats.characterCount,
-            0
-          ) /
-          Object.values(rawAnalytics.timeMetrics.byPeriod).reduce(
-            (sum, stats) => sum + stats.messageCount,
-            0
-          )
-        ).toFixed(0)
-      ),
-    },
-  };
+  const summaryQuery = `
+    WITH message_stats AS (
+      SELECT
+        CAST(COUNT(DISTINCT chatId) AS DOUBLE) as total_chats,
+        CAST(COUNT(*) AS DOUBLE) as total_messages,
+        CAST(SUM(LENGTH(text)) AS DOUBLE) as total_characters
+      FROM messages
+      WHERE date BETWEEN '${start}' AND '${end}'
+    ),
+    max_stats AS (
+      SELECT
+        CAST(MAX(chats) AS DOUBLE) as max_chats,
+        CAST(MAX(messages) AS DOUBLE) as max_messages,
+        CAST(MAX(chars) AS DOUBLE) as max_characters
+      FROM (
+        SELECT
+          DATE_TRUNC('day', CAST(date AS TIMESTAMP)) as day,
+          COUNT(DISTINCT chatId) as chats,
+          COUNT(*) as messages,
+          SUM(LENGTH(text)) as chars
+        FROM messages
+        WHERE date BETWEEN '${start}' AND '${end}'
+        GROUP BY 1
+      )
+    )
+    SELECT
+      m.*,
+      x.*,
+      CAST(ROUND(CAST(m.total_messages AS DOUBLE) /
+        NULLIF(m.total_chats, 0), 1) AS DOUBLE) as avg_messages_per_chat,
+      CAST(ROUND(CAST(m.total_characters AS DOUBLE) /
+        NULLIF(m.total_messages, 0), 0) AS DOUBLE) as avg_chars_per_message
+    FROM message_stats m
+    CROSS JOIN max_stats x
+  `;
 
-  const timeSeriesData = Object.entries(rawAnalytics.timeMetrics.byPeriod)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([period, stats]) => ({
-      period,
-      chats: stats.conversationCount,
-      messages: stats.messageCount,
-      characters: Math.round(stats.characterCount / 1000),
-    }));
+  const timeSeriesQuery = `
+    WITH RECURSIVE
+    time_series AS (
+      SELECT
+        CASE '${period}'
+          WHEN '1H' THEN
+            DATE_TRUNC('minute', CAST('${start}' AS TIMESTAMP))
+          WHEN '1D' THEN
+            DATE_TRUNC('hour', CAST('${start}' AS TIMESTAMP))
+          WHEN '1W' THEN
+            DATE_TRUNC('day', CAST('${start}' AS TIMESTAMP))
+          WHEN '1M' THEN
+            DATE_TRUNC('day', CAST('${start}' AS TIMESTAMP))
+          ELSE
+            DATE_TRUNC('month', CAST('${start}' AS TIMESTAMP))
+        END as period
+      UNION ALL
+      SELECT
+        CASE '${period}'
+          WHEN '1H' THEN period + INTERVAL 1 MINUTE
+          WHEN '1D' THEN period + INTERVAL 1 HOUR
+          WHEN '1W' THEN period + INTERVAL 1 DAY
+          WHEN '1M' THEN period + INTERVAL 1 DAY
+          ELSE period + INTERVAL 1 MONTH
+        END
+      FROM time_series
+      WHERE period < CAST('${end}' AS TIMESTAMP)
+    ),
+    message_stats AS (
+      SELECT
+        CASE '${period}'
+          WHEN '1H' THEN DATE_TRUNC('minute', CAST(date AS TIMESTAMP))
+          WHEN '1D' THEN DATE_TRUNC('hour', CAST(date AS TIMESTAMP))
+          WHEN '1W' THEN DATE_TRUNC('day', CAST(date AS TIMESTAMP))
+          WHEN '1M' THEN DATE_TRUNC('day', CAST(date AS TIMESTAMP))
+          ELSE DATE_TRUNC('month', CAST(date AS TIMESTAMP))
+        END as period,
+        CAST(COUNT(DISTINCT chatId) AS DOUBLE) AS chats,
+        CAST(COUNT(*) AS DOUBLE) AS messages,
+        CAST(ROUND(SUM(LENGTH(text)) / 1000.0) AS DOUBLE) AS characters
+      FROM messages
+      WHERE date BETWEEN '${start}' AND '${end}'
+      GROUP BY 1
+    )
+    SELECT
+      ts.period,
+      COALESCE(ms.chats, 0) as chats,
+      COALESCE(ms.messages, 0) as messages,
+      COALESCE(ms.characters, 0) as characters
+    FROM time_series ts
+    LEFT JOIN message_stats ms ON ts.period = ms.period
+    ORDER BY ts.period
+  `;
 
-  const totalMessages = Object.values(rawAnalytics.modelMetrics.usage).reduce(
-    (sum, stats) => sum + stats.messageCount,
-    0
-  );
+  const modelUsageQuery = `
+    WITH model_counts AS (
+      SELECT
+        model,
+        CAST(COUNT(*) AS DOUBLE) as message_count
+      FROM messages
+      WHERE date BETWEEN '${start}' AND '${end}'
+        AND model IS NOT NULL
+      GROUP BY model
+    ),
+    total_messages AS (
+      SELECT CAST(SUM(message_count) AS DOUBLE) as total
+      FROM model_counts
+    )
+    SELECT
+      model as name,
+      CAST(message_count AS DOUBLE) as value,
+      CAST(ROUND(CAST(message_count AS DOUBLE) * 100 / total, 1) AS DOUBLE) as percentage
+    FROM model_counts
+    CROSS JOIN total_messages
+    ORDER BY message_count DESC
+  `;
 
-  const modelUsage = Object.entries(rawAnalytics.modelMetrics.usage)
-    .map(([model, stats]) => ({
-      name: model,
-      value: stats.messageCount,
-      percentage: Number(((stats.messageCount / totalMessages) * 100).toFixed(1)),
-    }))
-    .sort((a, b) => b.value - a.value);
+  const [summaryResult, timeSeriesResult, modelUsageResult] = await Promise.all([
+    query(summaryQuery),
+    query(timeSeriesQuery),
+    query(modelUsageQuery),
+  ]);
+
+  const summary = summaryResult.toArray()[0];
 
   return {
-    timeSeriesData,
-    modelUsage,
-    summary,
+    summary: {
+      totals: {
+        chats: summary.total_chats,
+        messages: summary.total_messages,
+        characters: summary.total_characters,
+      },
+      max: {
+        chats: summary.max_chats,
+        messages: summary.max_messages,
+        characters: summary.max_characters,
+      },
+      averages: {
+        messagesPerChat: summary.avg_messages_per_chat,
+        charactersPerMessage: summary.avg_chars_per_message,
+      },
+    },
+    timeSeriesData: timeSeriesResult.toArray().map((row) => ({
+      period: row.period,
+      chats: row.chats,
+      messages: row.messages,
+      characters: row.characters,
+    })),
+    modelUsage: modelUsageResult.toArray(),
   };
 }
