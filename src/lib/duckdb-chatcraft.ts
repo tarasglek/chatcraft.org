@@ -52,21 +52,25 @@ export async function chatCraftQuery<T extends { [key: string]: DataType } = any
     if (match) {
       const tableName = match[1];
 
-      // If the missing table is a chatcraft table, sync and retry
+      // First check if the missing table is a ChatCraft table
       if (isChatCraftTableName(tableName)) {
-        // Create schema if needed
-        await withConnection(async (conn) => {
-          await conn.query(`CREATE SCHEMA IF NOT EXISTS chatcraft`);
-        });
+        // Then verify it's referenced as chatcraft.table in the query
+        const referencedTables = extractChatCraftTables(sql);
+        if (referencedTables.includes(tableName)) {
+          // Create schema if needed
+          await withConnection(async (conn) => {
+            await conn.query(`CREATE SCHEMA IF NOT EXISTS chatcraft`);
+          });
 
-        await syncChatCraftTable(tableName);
+          await syncChatCraftTable(tableName);
 
-        // Retry the query after syncing
-        return await query<T>(sql, params);
+          // Retry the query after syncing
+          return await query<T>(sql, params);
+        }
       }
     }
 
-    // If not a catalog error or not a chatcraft table, rethrow
+    // If not a catalog error, not a chatcraft table, or not referenced properly, rethrow
     throw error;
   }
 }
