@@ -1,5 +1,5 @@
 import { DataType } from "apache-arrow";
-import db, { ChatCraftTableName, isChatCraftTableName } from "./db";
+import db, { CHATCRAFT_TABLES, ChatCraftTableName, isChatCraftTableName } from "./db";
 import {
   withConnection,
   insertJSON,
@@ -99,5 +99,19 @@ export { chatCraftQuery as query };
 export async function queryToMarkdown(sql: string, params?: any[]): Promise<string> {
   const result = await chatCraftQuery(sql, params);
   const json = queryResultToJson(result);
+  return jsonToMarkdownTable(json);
+}
+
+/**
+ * Get a list of all available tables, including the "virtual"
+ * chatcraft.* tables we can sync into duckdb on demand.
+ */
+export async function getTables() {
+  const result = await query("show tables");
+  const json = queryResultToJson(result);
+  // TODO: this isn't really accurate, since `show tables` only shows what's in the current schema (main)
+  CHATCRAFT_TABLES.forEach((table) => {
+    json.push({ name: `chatcraft.${table}` });
+  });
   return jsonToMarkdownTable(json);
 }
