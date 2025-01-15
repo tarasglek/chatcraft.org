@@ -9,7 +9,6 @@ import {
 // NOTE: duckdb-wasm uses v17.0.0 currently vs. v18.x, see:
 // https://github.com/duckdb/duckdb-wasm/blob/b42a8e78d60b30363139a966e42bd33a3dd305a5/packages/duckdb-wasm/package.json#L26C9-L26C34
 import * as arrow from "apache-arrow";
-import { jsonToMarkdownTable } from "./utils";
 
 async function init(logToConsole = true) {
   // NOTE: the wasm bundles are too large for CloudFlare pages, so we load externally
@@ -54,7 +53,7 @@ export function queryResultToJson(result: QueryResult) {
 }
 
 // Manage connection lifecycle, closing when done
-async function withConnection<T>(
+export async function withConnection<T>(
   callback: (conn: AsyncDuckDBConnection, duckdb: AsyncDuckDB) => Promise<T>
 ): Promise<T> {
   let conn: AsyncDuckDBConnection | null = null;
@@ -72,6 +71,7 @@ async function withConnection<T>(
  * @param sql The SQL query to execute
  * @param params Optional parameters for prepared statement
  * @returns Promise resolving to an Arrow Table containing the results
+ * @throws {DuckDBCatalogError} If the query references a non-existent table
  * @throws {Error} If the query fails
  * @example
  * // Simple query
@@ -88,15 +88,22 @@ export async function query<T extends { [key: string]: arrow.DataType } = any>(
   params?: any[]
 ): Promise<QueryResult<T>> {
   return withConnection(async (conn) => {
-    if (!params?.length) {
-      return await conn.query<T>(sql);
-    }
-
-    const stmt = await conn.prepare<T>(sql);
     try {
-      return await stmt.query(...params);
-    } finally {
-      await stmt.close();
+      if (!params?.length) {
+        return await conn.query<T>(sql);
+      }
+
+      const stmt = await conn.prepare<T>(sql);
+      try {
+        return await stmt.query(...params);
+      } finally {
+        await stmt.close();
+      }
+    } catch (err) {
+      if (DuckDBCatalogError.isCatalogError(err)) {
+        throw new DuckDBCatalogError(err);
+      }
+      throw err;
     }
   });
 }
@@ -281,23 +288,47 @@ export async function insertJSON(
  * Resets the DuckDB instance, terminating the connection
  * @throws {Error} If termination fails
  */
-/**
- * Executes a SQL query and returns the results as a Markdown table
- * @param sql The SQL query to execute
- * @param params Optional parameters for prepared statement
- * @returns Promise resolving to a Markdown formatted table string
- * @throws {Error} If the query fails
- */
-export async function queryToMarkdown(sql: string, params?: any[]): Promise<string> {
-  const result = await query(sql, params);
-  const json = queryResultToJson(result);
-  return jsonToMarkdownTable(json);
-}
-
 export async function reset(): Promise<void> {
   if (_duckdb) {
     await _duckdb.dropFiles();
     await _duckdb.terminate();
     _duckdb = null;
+  }
+}
+
+/**
+ * Custom error for identifying DuckDB Catalog Errors with missing Table
+ */
+export class DuckDBCatalogError extends Error {
+  static readonly ERROR_NAME = "DuckDBCatalogError" as const;
+
+  private static readonly catalogErrorPattern =
+    /Catalog Error: Table with name (\w+) does not exist!/;
+
+  readonly tableName: string;
+
+  constructor(error: unknown) {
+    if (!DuckDBCatalogError.isCatalogError(error)) {
+      throw new Error("Not a DuckDB catalog error");
+    }
+
+    const tableName = DuckDBCatalogError.extractTableName(error);
+    if (!tableName) {
+      throw new Error("Failed to extract table name from error message");
+    }
+
+    super(`Table '${tableName}' does not exist in DuckDB catalog`);
+
+    this.tableName = tableName;
+    this.name = DuckDBCatalogError.ERROR_NAME;
+  }
+
+  static isCatalogError(error: unknown): error is Error {
+    return error instanceof Error && DuckDBCatalogError.extractTableName(error) !== null;
+  }
+
+  static extractTableName(error: Error): string | null {
+    const match = error.message.match(DuckDBCatalogError.catalogErrorPattern);
+    return match?.[1] ?? null;
   }
 }

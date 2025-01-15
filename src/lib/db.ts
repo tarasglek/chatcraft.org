@@ -2,7 +2,17 @@ import Dexie, { Table } from "dexie";
 import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 
 import type { MessageType, FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
-import { insertJSON } from "./duckdb";
+
+// List of all known table names
+export const CHATCRAFT_TABLES = ["chats", "messages", "shared", "functions", "starred"] as const;
+export type ChatCraftTableName = (typeof CHATCRAFT_TABLES)[number];
+
+/**
+ * Checks if a table name exists in Dexie
+ */
+export function isChatCraftTableName(name: string): name is ChatCraftTableName {
+  return CHATCRAFT_TABLES.includes(name as ChatCraftTableName);
+}
 
 export type ChatCraftChatTable = {
   id: string;
@@ -170,48 +180,23 @@ class ChatCraftDatabase extends Dexie {
   }
 
   /**
-   * Exports all tables from Dexie to DuckDB
-   * @returns Object containing table names and row counts
+   * Get a ChatCraftTable by name
    */
-  async exportToDuckDB(): Promise<{
-    tables: { name: string; rowCount: number }[];
-  }> {
-    // Step 1: Get data from each Dexie table
-    const tableNames: Array<
-      keyof Pick<typeof this, "chats" | "messages" | "shared" | "functions" | "starred">
-    > = ["chats", "messages", "shared", "functions", "starred"];
-
-    const tableData = await Promise.all(
-      tableNames.map(async (name) => ({
-        name,
-        data: await this[name].toArray(),
-      }))
-    );
-
-    // Step 2: Create tables in DuckDB
-    const results = [];
-    for (const { name, data } of tableData) {
-      // Convert dates to ISO strings for JSON serialization
-      const jsonData = data.map((record) => ({
-        ...record,
-        date: record.date instanceof Date ? record.date.toISOString() : record.date,
-      }));
-
-      try {
-        // Create table in DuckDB from JSON
-        await insertJSON(name, JSON.stringify(jsonData));
-
-        results.push({
-          name,
-          rowCount: data.length,
-        });
-      } catch (err) {
-        console.error(`Error creating table ${name} in DuckDB:`, err);
-        throw err;
-      }
+  byTableName(tableName: ChatCraftTableName) {
+    switch (tableName) {
+      case "chats":
+        return this.chats;
+      case "messages":
+        return this.messages;
+      case "shared":
+        return this.shared;
+      case "functions":
+        return this.functions;
+      case "starred":
+        return this.starred;
+      default:
+        throw new Error(`Unknown table name: ${tableName}`);
     }
-
-    return { tables: results };
   }
 }
 
