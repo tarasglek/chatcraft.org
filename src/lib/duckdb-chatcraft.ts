@@ -44,10 +44,10 @@ export async function chatCraftQuery<T extends { [key: string]: DataType } = any
   try {
     // First attempt to execute the query
     return await query<T>(sql, params);
-  } catch (error) {
+  } catch (error: unknown) {
     // Check if error matches the catalog error pattern
     const catalogErrorPattern = /Catalog Error: Table with name (\w+) does not exist!/;
-    const match = error?.message?.match(catalogErrorPattern);
+    const match = error instanceof Error && error.message.match(catalogErrorPattern);
 
     if (match) {
       const tableName = match[1];
