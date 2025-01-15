@@ -54,7 +54,7 @@ export function queryResultToJson(result: QueryResult) {
 }
 
 // Manage connection lifecycle, closing when done
-async function withConnection<T>(
+export async function withConnection<T>(
   callback: (conn: AsyncDuckDBConnection, duckdb: AsyncDuckDB) => Promise<T>
 ): Promise<T> {
   let conn: AsyncDuckDBConnection | null = null;

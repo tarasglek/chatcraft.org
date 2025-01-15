@@ -1,8 +1,10 @@
 import { ChatCraftCommand } from "../ChatCraftCommand";
 import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
-import db from "../../lib/db";
-import { query, queryResultToJson, queryToMarkdown } from "../duckdb";
+import { CHATCRAFT_TABLES } from "../../lib/db";
+import { queryResultToJson } from "../duckdb";
+import { query } from "../duckdb-chatcraft";
+import { jsonToMarkdownTable } from "../utils";
 
 export class DuckCommand extends ChatCraftCommand {
   constructor() {
@@ -10,35 +12,27 @@ export class DuckCommand extends ChatCraftCommand {
   }
 
   async execute(chat: ChatCraftChat, _user: User | undefined, args?: string[]) {
-    const exportResult = await db.exportToDuckDB();
-
     if (!args?.length) {
-      // Get a list of all tables and describe each one
-      const message: string[] = ["## DuckDB Tables"];
-
-      const tables = await query("SHOW TABLES");
-      const tableNames = queryResultToJson(tables).map((row: any) => row.name);
-
-      await Promise.all(
-        tableNames.map(async (name: string) => {
-          const rowCount = exportResult.tables.find((table) => table.name === name)?.rowCount || 0;
-          const tableDescription = await queryToMarkdown(`DESCRIBE ${name}`);
-          message.push(`### ${name} (${rowCount} rows)`, tableDescription);
+      return chat.addMessage(
+        new ChatCraftHumanMessage({
+          text:
+            `Available DuckDB Tables - ` +
+            `${CHATCRAFT_TABLES.map((t) => `chatcraft.${t}`).join(", ")}\n\nTry \`/duck describe chatcraft.chats\``,
         })
       );
-
-      return chat.addMessage(new ChatCraftHumanMessage({ text: message.join("\n\n") }));
     }
 
     const sql = args.join(" ");
-    const results = await queryToMarkdown(sql);
+    const data = await query(sql);
+    const json = queryResultToJson(data);
+    const markdown = jsonToMarkdownTable(json);
     const message = [
       // show query
       "```sql",
       sql,
       "```",
       // show results
-      results,
+      markdown,
     ].join("\n\n");
     return chat.addMessage(new ChatCraftHumanMessage({ text: message }));
   }
