@@ -1,5 +1,5 @@
 import { DataType } from "apache-arrow";
-import db, { CHATCRAFT_TABLES, ChatCraftTableName, isChatCraftTableName } from "./db";
+import db, { ChatCraftTableName, isChatCraftTableName } from "./db";
 import { withConnection, insertJSON, QueryResult, query } from "./duckdb";
 
 /**
