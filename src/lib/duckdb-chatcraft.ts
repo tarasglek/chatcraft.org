@@ -48,10 +48,10 @@ export async function chatCraftQuery<T extends { [key: string]: DataType } = any
     // Check if error matches the catalog error pattern
     const catalogErrorPattern = /Catalog Error: Table with name (\w+) does not exist!/;
     const match = error?.message?.match(catalogErrorPattern);
-    
+
     if (match) {
       const tableName = match[1];
-      
+
       // If the missing table is a chatcraft table, sync and retry
       if (isChatCraftTableName(tableName)) {
         // Create schema if needed
@@ -60,12 +60,12 @@ export async function chatCraftQuery<T extends { [key: string]: DataType } = any
         });
 
         await syncChatCraftTable(tableName);
-        
+
         // Retry the query after syncing
         return await query<T>(sql, params);
       }
     }
-    
+
     // If not a catalog error or not a chatcraft table, rethrow
     throw error;
   }
