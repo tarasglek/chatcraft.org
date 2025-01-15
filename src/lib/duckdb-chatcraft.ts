@@ -45,32 +45,32 @@ export async function chatCraftQuery<T extends { [key: string]: DataType } = any
     // First attempt to execute the query
     return await query<T>(sql, params);
   } catch (error: unknown) {
+    // Get all chatcraft tables referenced in the query
+    const referencedTables = extractChatCraftTables(sql);
+    
     // Check if error matches the catalog error pattern
     const catalogErrorPattern = /Catalog Error: Table with name (\w+) does not exist!/;
     const match = error instanceof Error && error.message.match(catalogErrorPattern);
 
-    if (match) {
-      const tableName = match[1];
+    // If we have a catalog error and referenced tables
+    if (match || referencedTables.length > 0) {
+      // Create schema if needed
+      await withConnection(async (conn) => {
+        await conn.query(`CREATE SCHEMA IF NOT EXISTS chatcraft`);
+      });
 
-      // First check if the missing table is a ChatCraft table
-      if (isChatCraftTableName(tableName)) {
-        // Then verify it's referenced as chatcraft.table in the query
-        const referencedTables = extractChatCraftTables(sql);
-        if (referencedTables.includes(tableName)) {
-          // Create schema if needed
-          await withConnection(async (conn) => {
-            await conn.query(`CREATE SCHEMA IF NOT EXISTS chatcraft`);
-          });
-
+      // Sync all referenced chatcraft tables
+      for (const tableName of referencedTables) {
+        if (isChatCraftTableName(tableName)) {
           await syncChatCraftTable(tableName);
-
-          // Retry the query after syncing
-          return await query<T>(sql, params);
         }
       }
+
+      // Retry the query after syncing
+      return await query<T>(sql, params);
     }
 
-    // If not a catalog error, not a chatcraft table, or not referenced properly, rethrow
+    // If not a catalog error or no referenced tables, rethrow
     throw error;
   }
 }
