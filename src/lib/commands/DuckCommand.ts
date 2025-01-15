@@ -2,9 +2,7 @@ import { ChatCraftCommand } from "../ChatCraftCommand";
 import { ChatCraftChat } from "../ChatCraftChat";
 import { ChatCraftHumanMessage } from "../ChatCraftMessage";
 import { CHATCRAFT_TABLES } from "../../lib/db";
-import { queryResultToJson } from "../duckdb";
-import { query } from "../duckdb-chatcraft";
-import { jsonToMarkdownTable } from "../utils";
+import { queryToMarkdown } from "../duckdb-chatcraft";
 
 export class DuckCommand extends ChatCraftCommand {
   constructor() {
@@ -23,9 +21,7 @@ export class DuckCommand extends ChatCraftCommand {
     }
 
     const sql = args.join(" ");
-    const data = await query(sql);
-    const json = queryResultToJson(data);
-    const markdown = jsonToMarkdownTable(json);
+    const markdown = await queryToMarkdown(sql);
     const message = [
       // show query
       "```sql",
@@ -33,7 +29,7 @@ export class DuckCommand extends ChatCraftCommand {
       "```",
       // show results
       markdown,
-    ].join("\n\n");
+    ].join("\n");
     return chat.addMessage(new ChatCraftHumanMessage({ text: message }));
   }
 }

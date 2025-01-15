@@ -1,6 +1,14 @@
 import { DataType } from "apache-arrow";
 import db, { ChatCraftTableName, isChatCraftTableName } from "./db";
-import { withConnection, insertJSON, QueryResult, query } from "./duckdb";
+import {
+  withConnection,
+  insertJSON,
+  QueryResult,
+  query,
+  DuckDBCatalogError,
+  queryResultToJson,
+} from "./duckdb";
+import { jsonToMarkdownTable } from "./utils";
 
 /**
  * Extracts chatcraft schema table references from a SQL query
@@ -34,29 +42,24 @@ async function syncChatCraftTable(tableName: ChatCraftTableName): Promise<void> 
 
 /**
  * Enhanced query function that handles ChatCraft db data synchronization silently
- * TODO: move lazy chatcraft table creation logic into queryToMarkdown so we could
- * also add a message that we created these implicit tables and show their schema
  * @param sql The SQL query to execute
  * @param params Optional parameters for prepared statement
  * @returns Query results as an Arrow Table
  */
-export async function chatCraftQuery<T extends { [key: string]: DataType } = any>(
+async function chatCraftQuery<T extends { [key: string]: DataType } = any>(
   sql: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
   try {
-    // First attempt to execute the query
+    // First, attempt to execute the query assuming everything is already created
     return await query<T>(sql, params);
   } catch (error: unknown) {
-    // Rely on missing table error if if a user happens to want to create a called chatcraft.messages, we are fine with it
-    // this also reduces of risk of overhead of premature table creation
-    // Check if error matches the catalog error pattern
-    const catalogErrorPattern = /Catalog Error: Table with name (\w+) does not exist!/;
-    const match = error instanceof Error && error.message.match(catalogErrorPattern);
-
-    // Only proceed if we have a catalog error
-    if (match) {
-      // Get all chatcraft tables referenced in the query
+    // If the query fails, see if the error is due to a missing table that we can provide
+    // by injecting ChatCraft data from Dexie. NOTE: if a user happens to create a tabled
+    // that shares the same name as our injected tables (e.g., chatcraft.messages), we'll
+    // let them use theirs instead of generating a new one. This also reduces the risk of
+    // overhead from premature table creation.
+    if (error instanceof DuckDBCatalogError) {
       const referencedTables = extractChatCraftTables(sql);
 
       // If we have referenced tables, sync them
@@ -85,3 +88,16 @@ export async function chatCraftQuery<T extends { [key: string]: DataType } = any
 
 // Replace the original query export with the enhanced, ChatCraft version
 export { chatCraftQuery as query };
+
+/**
+ * Executes a SQL query and returns the results as a Markdown table
+ * @param sql The SQL query to execute
+ * @param params Optional parameters for prepared statement
+ * @returns Promise resolving to a Markdown formatted table string
+ * @throws {Error} If the query fails
+ */
+export async function queryToMarkdown(sql: string, params?: any[]): Promise<string> {
+  const result = await chatCraftQuery(sql, params);
+  const json = queryResultToJson(result);
+  return jsonToMarkdownTable(json);
+}

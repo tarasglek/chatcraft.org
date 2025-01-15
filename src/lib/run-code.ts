@@ -1,5 +1,5 @@
 import esbuildWasmUrl from "esbuild-wasm/esbuild.wasm?url";
-import { queryToMarkdown } from "./duckdb";
+import { queryToMarkdown } from "./duckdb-chatcraft";
 
 // By default, we haven't loaded the esbuild wasm module, and
 // the esbuild module doesn't have a concept of checking if it's
