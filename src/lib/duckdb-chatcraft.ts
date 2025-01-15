@@ -4,6 +4,7 @@ import { withConnection, insertJSON, QueryResult, query } from "./duckdb";
 
 /**
  * Extracts chatcraft schema table references from a SQL query
+ * TODO: Implement this function using json_serialize_sql and AST traversal
  * @param sql The SQL query to analyze
  * @returns Array of table names referenced in the chatcraft schema
  */
@@ -33,6 +34,8 @@ async function syncChatCraftTable(tableName: ChatCraftTableName): Promise<void> 
 
 /**
  * Enhanced query function that handles ChatCraft db data synchronization silently
+ * TODO: move lazy chatcraft table creation logic into queryToMarkdown so we could
+ * also add a message that we created these implicit tables and show their schema
  * @param sql The SQL query to execute
  * @param params Optional parameters for prepared statement
  * @returns Query results as an Arrow Table
@@ -45,6 +48,8 @@ export async function chatCraftQuery<T extends { [key: string]: DataType } = any
     // First attempt to execute the query
     return await query<T>(sql, params);
   } catch (error: unknown) {
+    // Rely on missing table error if if a user happens to want to create a called chatcraft.messages, we are fine with it
+    // this also reduces of risk of overhead of premature table creation
     // Check if error matches the catalog error pattern
     const catalogErrorPattern = /Catalog Error: Table with name (\w+) does not exist!/;
     const match = error instanceof Error && error.message.match(catalogErrorPattern);
