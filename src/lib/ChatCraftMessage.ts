@@ -526,6 +526,14 @@ export class ChatCraftAppMessage extends ChatCraftMessage {
   static isCommandsHelp(message: ChatCraftMessage) {
     return message instanceof ChatCraftAppMessage && message.text.startsWith("app:commands");
   }
+
+  // Analytics Message
+  static analytics() {
+    return new ChatCraftAppMessage({ text: "app:analytics" });
+  }
+  static isAnalytics(message: ChatCraftMessage) {
+    return message instanceof ChatCraftAppMessage && message.text === "app:analytics";
+  }
 }
 
 /**

@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { lazy, memo } from "react";
 import { Avatar } from "@chakra-ui/react";
 
 import MessageBase, { type MessageBaseProps } from "../MessageBase";
@@ -6,6 +6,9 @@ import { ChatCraftAppMessage } from "../../../lib/ChatCraftMessage";
 import Instructions from "./Instructions";
 import Help from "./Help";
 import { CommandsHelpCommand } from "../../../lib/commands/CommandsHelpCommand";
+
+// Lazy-load Analytics, since it also pulls in Recharts
+const Analytics = lazy(() => import("./Analytics"));
 
 type AppMessageProps = Omit<MessageBaseProps, "avatar">;
 
@@ -54,6 +57,10 @@ function AppMessage(props: AppMessageProps) {
         disableEdit={true}
       />
     );
+  }
+
+  if (ChatCraftAppMessage.isAnalytics(message)) {
+    return <Analytics />;
   }
 
   // Otherwise, use a basic message type and show the text

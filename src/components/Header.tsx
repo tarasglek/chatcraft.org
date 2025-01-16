@@ -27,6 +27,9 @@ import { Form } from "react-router-dom";
 import PreferencesModal from "./Preferences/PreferencesModal";
 import { useUser } from "../hooks/use-user";
 import useMobileBreakpoint from "../hooks/use-mobile-breakpoint";
+import { ChatCraftChat } from "../lib/ChatCraftChat";
+import { useAlert } from "../hooks/use-alert";
+import { ChatCraftAppMessage } from "../lib/ChatCraftMessage";
 
 type HeaderProps = {
   chatId?: string;
@@ -37,6 +40,7 @@ type HeaderProps = {
 
 function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderProps) {
   const { toggleColorMode } = useColorMode();
+  const { error } = useAlert();
   const {
     isOpen: isPrefModalOpen,
     onOpen: onPrefModalOpen,
@@ -53,6 +57,22 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
       }
     },
     [chatId, user, login, logout]
+  );
+
+  const handleShowAnalytics = useCallback(
+    async (chatId: string) => {
+      const chat = await ChatCraftChat.find(chatId);
+      if (!chat) {
+        console.error("Couldn't find chat with given chatId");
+        return error({
+          title: "Error Displaying Analytics",
+          message: "Unable to add Analytics message to chat: no chat found",
+        });
+      }
+
+      chat.addMessage(new ChatCraftAppMessage({ text: "app:analytics" }));
+    },
+    [error]
   );
 
   const isMobile = useMobileBreakpoint();
@@ -153,6 +173,9 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
             />
             <MenuList>
               <MenuItem onClick={onPrefModalOpen}>Settings...</MenuItem>
+              {!!chatId && (
+                <MenuItem onClick={() => handleShowAnalytics(chatId)}>Analytics</MenuItem>
+              )}
               {user ? (
                 <MenuItem
                   onClick={() => {
