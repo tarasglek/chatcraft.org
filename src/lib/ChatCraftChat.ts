@@ -9,13 +9,14 @@ import {
   ChatCraftSystemMessage,
   type SerializedChatCraftMessage,
 } from "./ChatCraftMessage";
-import db, { type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
+import db, { ChatCraftFileTable, type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
 import summarize from "./summarize";
 import { createSystemMessage } from "./system-prompt";
 import { createDataShareUrl, createShare } from "./share";
 import { SharedChatCraftChat } from "./SharedChatCraftChat";
 import { countTokensInMessages } from "./ai";
 import { parseFunctionNames, loadFunctions } from "./ChatCraftFunction";
+import { ChatCraftFile } from "./ChatCraftFile";
 
 export type SerializedChatCraftChat = {
   id: string;
@@ -44,6 +45,7 @@ export class ChatCraftChat {
   date: Date;
   private _summary?: string;
   private _messages: ChatCraftMessage[];
+  private _files?: ChatCraftFile[];
   readonly: boolean;
 
   constructor({
@@ -51,16 +53,19 @@ export class ChatCraftChat {
     date,
     summary,
     messages,
+    files,
     readonly,
   }: {
     id?: string;
     date?: Date;
     summary?: string;
     messages?: ChatCraftMessage[];
+    files?: ChatCraftFile[];
     readonly?: boolean;
   } = {}) {
     this.id = id ?? nanoid();
     this._messages = messages ?? [createSystemMessage()];
+    this._files = files;
     this.date = date ?? new Date();
     // If the user provides a summary, use it, otherwise we'll generate something
     this._summary = summary;
@@ -114,6 +119,10 @@ export class ChatCraftChat {
     });
   }
 
+  files() {
+    return this._files || [];
+  }
+
   // Get a list of functions mentioned via @fn or fn-url from db or remote servers
   async functions(onError?: (err: Error) => void) {
     // We scan the entire set of human and system messages in the chat for functions
@@ -165,6 +174,27 @@ export class ChatCraftChat {
     await ChatCraftMessage.delete(id);
     this._messages = this._messages.filter((message) => message.id !== id);
     return this.save();
+  }
+
+  async addFile(file: ChatCraftFile) {
+    if (this.readonly) {
+      return;
+    }
+
+    // Filter out any existing file with the same ID, then add the new one
+    this._files = [...this.files().filter((f) => f.id !== file.id), file];
+    return this.save();
+  }
+
+  async removeFile(id: string) {
+    if (this.readonly) {
+      return;
+    }
+
+    if (this._files) {
+      this._files = this._files.filter((file) => file.id !== id);
+      return this.save();
+    }
   }
 
   // Remove all messages in the chat *before* the message with the given id,
@@ -250,8 +280,14 @@ export class ChatCraftChat {
     // Rehydrate the messages from their IDs
     const messages = await db.messages.bulkGet(chat.messageIds);
 
-    // Return a new ChatCraftChat object for this chat/messages, skipping any
-    // that were not found (e.g., user deleted)
+    // Rehydrate the files from their IDs
+    if (chat.fileIds) {
+      const files = await db.files.bulkGet(chat.fileIds);
+      if (files) {
+        return ChatCraftChat.fromDB(chat, messages, files);
+      }
+    }
+
     return ChatCraftChat.fromDB(chat, messages);
   }
 
@@ -318,6 +354,7 @@ export class ChatCraftChat {
       messages: this.messages({ includeAppMessages: false, includeSystemMessages: true }).map(
         (message) => message.toJSON()
       ),
+      // We don't attempt to serialize files in JSON
     };
   }
 
@@ -332,6 +369,8 @@ export class ChatCraftChat {
       summary: this.summary,
       // In the DB, we store the app messages, since that's what we show in the UI
       messageIds: this._messages.map(({ id }) => id),
+      // In the DB, we store the files associated with a chat
+      fileIds: this._files?.map(({ id }) => id),
     };
   }
 
@@ -419,6 +458,7 @@ export class ChatCraftChat {
       messages: messages.map((message) => ChatCraftMessage.fromJSON(message)),
       // We can't modify a chat loaded outside the db
       readonly: true,
+      // We don't attempt to deserialize files in JSON
     });
   }
 
@@ -429,12 +469,19 @@ export class ChatCraftChat {
   // Parse from db representation, where chat and messages are separate.
   // Assumes all messages have already been obtained for messageIds, but
   // deals with any that are missing (undefined)
-  static fromDB(chat: ChatCraftChatTable, messages: (ChatCraftMessageTable | undefined)[]) {
+  static fromDB(
+    chat: ChatCraftChatTable,
+    messages: (ChatCraftMessageTable | undefined)[],
+    files?: (ChatCraftFileTable | undefined)[]
+  ) {
     return new ChatCraftChat({
       ...chat,
       messages: messages
         .filter((message): message is ChatCraftMessageTable => !!message)
         .map((message) => ChatCraftMessage.fromDB(message)),
+      files: files
+        ?.filter((file): file is ChatCraftFileTable => !!file)
+        .map((file) => ChatCraftFile.fromDB(file)),
     });
   }
 }

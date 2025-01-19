@@ -103,18 +103,21 @@ export async function query<T extends { [key: string]: arrow.DataType } = any>(
       if (DuckDBCatalogError.isCatalogError(err)) {
         throw new DuckDBCatalogError(err);
       }
+      if (DuckDBFileError.isFileError(err)) {
+        throw new DuckDBFileError(err);
+      }
       throw err;
     }
   });
 }
 
 /**
- * Loads text content from a File or URL
- * @param source the URL or File to load
+ * Loads text content from a File, Blob or URL
+ * @param source the URL, File, or Blob to load
  * @returns the text of the file
  */
-async function loadTextContent(source: URL | File): Promise<string> {
-  if (source instanceof File) {
+async function loadTextContent(source: URL | File | Blob): Promise<string> {
+  if (source instanceof File || source instanceof Blob) {
     return await source.text();
   }
   const response = await fetch(source);
@@ -206,7 +209,7 @@ export interface CSVOptions {
  */
 export async function insertCSV(
   tableName: string,
-  source: string | URL | File,
+  source: string | URL | File | Blob,
   options: CSVOptions = {}
 ): Promise<void> {
   return withConnection(async (conn, duckdb) => {
@@ -261,7 +264,7 @@ export interface JSONOptions {
  */
 export async function insertJSON(
   tableName: string,
-  source: string | URL | File,
+  source: string | URL | File | Blob,
   options: JSONOptions = {}
 ): Promise<void> {
   return withConnection(async (conn, duckdb) => {
@@ -329,6 +332,42 @@ export class DuckDBCatalogError extends Error {
 
   static extractTableName(error: Error): string | null {
     const match = error.message.match(DuckDBCatalogError.catalogErrorPattern);
+    return match?.[1] ?? null;
+  }
+}
+
+/**
+ * Custom error for identifying DuckDB IO Errors with missing files
+ */
+export class DuckDBFileError extends Error {
+  static readonly ERROR_NAME = "DuckDBFileError" as const;
+
+  private static readonly ioErrorPattern = /IO Error: No files found that match the pattern "(.+)"/;
+
+  readonly filePath: string;
+
+  constructor(error: unknown) {
+    if (!DuckDBFileError.isFileError(error)) {
+      throw new Error("Not a DuckDB IO error");
+    }
+
+    const filePath = DuckDBFileError.extractFilePath(error);
+    if (!filePath) {
+      throw new Error("Failed to extract file path from error message");
+    }
+
+    super(`File '${filePath}' not found`);
+
+    this.filePath = filePath;
+    this.name = DuckDBFileError.ERROR_NAME;
+  }
+
+  static isFileError(error: unknown): error is Error {
+    return error instanceof Error && DuckDBFileError.extractFilePath(error) !== null;
+  }
+
+  static extractFilePath(error: Error): string | null {
+    const match = error.message.match(DuckDBFileError.ioErrorPattern);
     return match?.[1] ?? null;
   }
 }

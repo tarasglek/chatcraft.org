@@ -5,6 +5,7 @@ import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
 import { compressImageToBase64, formatAsCodeBlock } from "../lib/utils";
 import { getSettings } from "../lib/settings";
 import { JinaAIProvider, type JinaAiReaderResponse } from "../lib/providers/JinaAIProvider";
+import { ChatCraftFile } from "../lib/ChatCraftFile";
 
 function readTextFile(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -180,22 +181,30 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
   const settings = getSettings();
 
   const importFile = useCallback(
-    (file: File, contents: string | JinaAiReaderResponse) => {
+    async (file: File, contents: string | JinaAiReaderResponse) => {
+      let chatCraftFile: ChatCraftFile;
+
       if (file.type.startsWith("image/")) {
         const base64 = contents as string;
+        chatCraftFile = await ChatCraftFile.findOrCreate(file, { text: base64 });
         onImageImport(base64);
       } else if (file.type === "application/pdf") {
         const document = (contents as JinaAiReaderResponse).data;
-        chat.addMessage(new ChatCraftHumanMessage({ text: `${document.content}\n` }));
+        chatCraftFile = await ChatCraftFile.findOrCreate(file, { text: document.content });
+        await chat.addMessage(new ChatCraftHumanMessage({ text: `${document.content}\n` }));
       } else if (
         file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       ) {
         const document = contents as string;
-        chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
+        chatCraftFile = await ChatCraftFile.findOrCreate(file, { text: document });
+        await chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
       } else {
         const document = contents as string;
-        chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
+        chatCraftFile = await ChatCraftFile.findOrCreate(file, { text: document });
+        await chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
       }
+
+      await chat.addFile(chatCraftFile);
     },
     [chat, onImageImport]
   );
