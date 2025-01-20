@@ -8,5 +8,7 @@ export async function get_secrets(environment: string, AGE_SECRET_KEY: string) {
         secretKey: AGE_SECRET_KEY,
       });
   }
-  throw new Error("Unknown environmentp");
+  // throw new Error("Unknown environmentp");
+  console.error("Unknown environment");
+  return production_json;
 }
