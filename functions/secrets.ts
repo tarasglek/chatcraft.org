@@ -1,5 +1,5 @@
 import { decryptSops } from "sops-age";
-import production_json from "production.json" with { type: "json" };
+import production_json from "production.json";
 
 export async function get_secrets(environment: string, AGE_SECRET_KEY: string) {
   switch (environment) {
