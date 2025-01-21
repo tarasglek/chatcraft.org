@@ -294,6 +294,38 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   const navigate = useNavigate();
   const [recentCount, setRecentCount] = useState(10);
 
+  const ACCORDION_STATE_KEY = "sidebar-accordion-index";
+
+  const getSavedAccordionIndex = () => {
+    try {
+      const saved = localStorage.getItem(ACCORDION_STATE_KEY);
+      return saved ? parseInt(saved) : 0;
+    } catch (err) {
+      console.warn("Unable to get accordion state: ", err);
+      return 0;
+    }
+  };
+
+  const [openIndex, setOpenIndex] = useState<number | number[] | undefined>(
+    getSavedAccordionIndex()
+  );
+
+  const handleAccordionChange = (expandedIndex: number | number[] | undefined) => {
+    // Use 0 if index undefined (all accordions closed, but first by default opened)
+    setOpenIndex(expandedIndex ?? 0);
+
+    try {
+      if (expandedIndex !== undefined) {
+        localStorage.setItem(ACCORDION_STATE_KEY, JSON.stringify(expandedIndex));
+      } else {
+        // Set accordion state to default '0', so Saved Chats opens
+        localStorage.setItem(ACCORDION_STATE_KEY, "0");
+      }
+    } catch (err) {
+      console.warn("Unable to save accordion state", err);
+    }
+  };
+
   const chatsTotal = useLiveQueryTraced<number, number>(
     "count-chats",
     () => db.chats.count(),
@@ -385,7 +417,7 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
 
   return (
     <Flex direction="column" h="100%" p={2} gap={4}>
-      <Accordion allowToggle defaultIndex={0}>
+      <Accordion allowToggle index={openIndex} onChange={handleAccordionChange}>
         <AccordionItem>
           <AccordionButton p={2} minH={10}>
             <Heading as="h3" size="xs">
