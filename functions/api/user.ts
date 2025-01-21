@@ -1,4 +1,4 @@
-// import { get_secrets } from "../secrets";
+import { get_secrets } from "../secrets";
 
 interface Env {
   JWT_SECRET: string;
@@ -6,10 +6,10 @@ interface Env {
 
 // GET https://chatcraft.org/api/proxy?url=<encoded url...>
 // Must include JWT in cookie, and user must match token owner
-export const onRequestGet: PagesFunction<Env> = async () => {
+export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   console.error("user-info.ts onRequestGet");
-  // get_secrets("production", env.JWT_SECRET)
-  return new Response(JSON.stringify({ hello: "world" }), {
+  const ret = get_secrets("production", env.JWT_SECRET);
+  return new Response(JSON.stringify(ret), {
     headers: { "content-type": "application/json" },
   });
 };
