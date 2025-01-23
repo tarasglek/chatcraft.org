@@ -27,15 +27,14 @@ export class DuckCommand extends ChatCraftCommand {
     if (!args?.length) {
       // Show all the tables, as well as the chatcraft.* virtual tables
       sql = "SHOW TABLES;";
-      markdown = await getTables();
-      messageParts.push(...this.formatSqlQueryAndResult(sql, markdown));
+      const tablesMarkdown = await getTables();
+      messageParts.push(...this.formatSqlQueryAndResult(sql, tablesMarkdown));
 
-      // Include files if there are any, including files in the chat
-      const files = await chat.files();
-      if (files.length) {
+      // Include files if there are any
+      const filesMarkdown = await getFiles(chat);
+      if (filesMarkdown) {
         sql = "SELECT * FROM glob('*');";
-        const markdown = await getFiles(chat);
-        messageParts.push(...this.formatSqlQueryAndResult(sql, markdown));
+        messageParts.push(...this.formatSqlQueryAndResult(sql, filesMarkdown));
       }
     } else {
       sql = args.join(" ");

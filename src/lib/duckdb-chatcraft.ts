@@ -167,7 +167,8 @@ export async function getTables() {
 /**
  * Get a list of all files available in DuckDB's virtual
  * filesystem, as well as any files that we could inject
- * from the chat's files.
+ * from the chat's files. If there are no files, we return
+ * the empty string
  * @param chat the ChatCraftChat, potentially with files
  */
 export async function getFiles(chat: ChatCraftChat) {
@@ -183,7 +184,7 @@ export async function getFiles(chat: ChatCraftChat) {
     }
   });
 
-  return jsonToMarkdownTable(json);
+  return json.length ? jsonToMarkdownTable(json) : "";
 }
 
 /**
