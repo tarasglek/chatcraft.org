@@ -182,29 +182,25 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
 
   const importFile = useCallback(
     async (file: File, contents: string | JinaAiReaderResponse) => {
-      let chatCraftFile: ChatCraftFile;
+      const isImage = file.type.startsWith("image/");
+      const isPDF = file.type === "application/pdf";
+      const isWordDoc =
+        file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-      if (file.type.startsWith("image/")) {
-        const base64 = contents as string;
-        chatCraftFile = await ChatCraftFile.findOrCreate(file, { text: base64 });
-        onImageImport(base64);
-      } else if (file.type === "application/pdf") {
-        const document = (contents as JinaAiReaderResponse).data;
-        chatCraftFile = await ChatCraftFile.findOrCreate(file, { text: document.content });
-        await chat.addMessage(new ChatCraftHumanMessage({ text: `${document.content}\n` }));
-      } else if (
-        file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      ) {
-        const document = contents as string;
-        chatCraftFile = await ChatCraftFile.findOrCreate(file, { text: document });
-        await chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
-      } else {
-        const document = contents as string;
-        chatCraftFile = await ChatCraftFile.findOrCreate(file, { text: document });
-        await chat.addMessage(new ChatCraftHumanMessage({ text: `${document}\n` }));
-      }
+      // Extract text based on file type
+      const text = isPDF ? (contents as JinaAiReaderResponse).data.content : (contents as string);
 
+      // Create or find the ChatCraftFile in the files table and add to the chat
+      const chatCraftFile = await ChatCraftFile.findOrCreate(file, { text });
       await chat.addFile(chatCraftFile);
+
+      // Add the file's contents to the chat as a message
+      if (isImage) {
+        onImageImport(text);
+      } else if (isPDF || isWordDoc || !isImage) {
+        // Add the content as a human message for non-image files
+        await chat.addMessage(new ChatCraftHumanMessage({ text: `${text}\n` }));
+      }
     },
     [chat, onImageImport]
   );
