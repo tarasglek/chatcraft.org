@@ -301,14 +301,11 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   );
 
   const handleAccordionChange = (expandedIndex: number | number[] | undefined) => {
-    // Use 0 if index undefined (all accordions closed, but first by default opened)
-    setOpenIndex(expandedIndex ?? 0);
-
+    // Check if expandedIndex isn't undefined and set index to this value, otherwise set index to 0
     try {
       if (expandedIndex !== undefined) {
         setOpenIndex(expandedIndex);
       } else {
-        // Set accordion state to default '0', so Saved Chats opens
         setOpenIndex(0);
       }
     } catch (err) {
