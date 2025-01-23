@@ -73,7 +73,6 @@ export type ChatCraftFileTable = {
   content: Blob; // binary content of file
   text?: string; // extracted text of file, base64 encoded version, etc
   created: Date; // when the file was created
-  expires?: Date; // if/when the file expires and can be deleted
   metadata?: Record<string, unknown>; // extra metadata
 };
 
@@ -197,7 +196,7 @@ class ChatCraftDatabase extends Dexie {
     this.version(11).stores({
       // Remove imageUrls from index for messages
       messages: "id, date, chatId, type, model, user, text, versions",
-      files: "id, name, type, size, text, created, expires",
+      files: "id, name, type, size, text, created",
     });
 
     this.chats = this.table("chats");

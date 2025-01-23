@@ -10,8 +10,6 @@ export type ChatCraftFileOptions = {
   content: Blob;
   /** Extracted/parsed text content, if any */
   text?: string;
-  /** When the file expires, if ever */
-  expires?: Date;
   /** Extra file metadata */
   metadata?: Record<string, unknown>;
 };
@@ -24,7 +22,6 @@ export class ChatCraftFile {
   readonly content: Blob;
   text?: string;
   readonly created: Date;
-  expires?: Date;
   metadata?: Record<string, unknown>;
 
   private constructor(id: string, options: ChatCraftFileOptions) {
@@ -46,7 +43,6 @@ export class ChatCraftFile {
     this.size = options.content.size;
     this.text = options.text;
     this.created = new Date();
-    this.expires = options.expires;
     this.metadata = options.metadata;
   }
 
@@ -176,16 +172,6 @@ export class ChatCraftFile {
   }
 
   /**
-   * Check if file has expired
-   */
-  isExpired(): boolean {
-    if (!this.expires) {
-      return false;
-    }
-    return new Date() > this.expires;
-  }
-
-  /**
    * Helper methods for common mime types
    */
   isImage(): boolean {
@@ -245,7 +231,6 @@ export class ChatCraftFile {
       content: this.content,
       text: this.text,
       created: this.created,
-      expires: this.expires,
       metadata: this.metadata,
     };
   }
@@ -305,11 +290,8 @@ export async function ls(
   let query = db.files.filter((file) => regex.test(file.name));
 
   // Apply options
-  if (opts.skipExpired) {
-    query = query.filter((file) => !file.expires || file.expires > new Date());
-  }
   if (options.limit) {
-    query = query.limit(options.limit);
+    query = query.limit(opts.limit);
   }
 
   const matches = await query.toArray();

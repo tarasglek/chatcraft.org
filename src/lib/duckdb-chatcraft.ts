@@ -55,7 +55,7 @@ async function syncChatCraftTable(tableName: ChatCraftTableName): Promise<void> 
   const data = await db.byTableName(tableName).toArray();
 
   const jsonData = data.map((record) => {
-    const dateFields = ["date", "created", "expires"];
+    const dateFields = ["date", "created"];
     return convertDatesToISOString({ ...record }, dateFields);
   });
 
