@@ -34,6 +34,7 @@ import { useUser } from "../../hooks/use-user";
 import { ChatCraftFunction } from "../../lib/ChatCraftFunction";
 import { useAlert } from "../../hooks/use-alert";
 import { convertToShareUrl } from "../../lib/share";
+import { useLocalStorage } from "react-use";
 
 /**
  * Chat Sidebar Items
@@ -294,20 +295,9 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   const navigate = useNavigate();
   const [recentCount, setRecentCount] = useState(10);
 
-  const ACCORDION_STATE_KEY = "sidebar-accordion-index";
-
-  const getSavedAccordionIndex = () => {
-    try {
-      const saved = localStorage.getItem(ACCORDION_STATE_KEY);
-      return saved ? parseInt(saved) : 0;
-    } catch (err) {
-      console.warn("Unable to get accordion state: ", err);
-      return 0;
-    }
-  };
-
-  const [openIndex, setOpenIndex] = useState<number | number[] | undefined>(
-    getSavedAccordionIndex()
+  const [openIndex, setOpenIndex] = useLocalStorage<number | number[] | undefined>(
+    "sidebar-accordion-index",
+    0
   );
 
   const handleAccordionChange = (expandedIndex: number | number[] | undefined) => {
@@ -316,10 +306,10 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
 
     try {
       if (expandedIndex !== undefined) {
-        localStorage.setItem(ACCORDION_STATE_KEY, JSON.stringify(expandedIndex));
+        setOpenIndex(expandedIndex);
       } else {
         // Set accordion state to default '0', so Saved Chats opens
-        localStorage.setItem(ACCORDION_STATE_KEY, "0");
+        setOpenIndex(0);
       }
     } catch (err) {
       console.warn("Unable to save accordion state", err);
