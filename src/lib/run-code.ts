@@ -201,6 +201,7 @@ export async function toJavaScript(tsCode: string) {
 
 async function runSQL(sql: string): Promise<ExecutionResult> {
   try {
+    // TODO: need to plumb the chat through to here, so we can inject files when we query...
     const result = await queryToMarkdown(sql);
     return { ret: result, logs: undefined };
   } catch (error) {

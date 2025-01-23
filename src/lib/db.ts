@@ -4,7 +4,14 @@ import { ChatCraftChat, SerializedChatCraftChat } from "./ChatCraftChat";
 import type { MessageType, FunctionCallParams, FunctionCallResult } from "./ChatCraftMessage";
 
 // List of all known table names
-export const CHATCRAFT_TABLES = ["chats", "messages", "shared", "functions", "starred"] as const;
+export const CHATCRAFT_TABLES = [
+  "chats",
+  "messages",
+  "shared",
+  "functions",
+  "starred",
+  "files",
+] as const;
 export type ChatCraftTableName = (typeof CHATCRAFT_TABLES)[number];
 
 /**
@@ -19,6 +26,7 @@ export type ChatCraftChatTable = {
   date: Date;
   summary?: string;
   messageIds: string[];
+  fileIds?: string[];
 };
 
 export type ChatCraftMessageTable = {
@@ -57,12 +65,24 @@ export type ChatCraftStarredSystemPromptTable = {
   usage: number;
 };
 
+export type ChatCraftFileTable = {
+  id: string; // unique hash of the file contents, for deduping
+  name: string; // original file name
+  type: string; // mime-type of the file (e.g., "text/csv")
+  size: number; // size of file in bytes
+  content: Blob; // binary content of file
+  text?: string; // extracted text of file, base64 encoded version, etc
+  created: Date; // when the file was created
+  metadata?: Record<string, unknown>; // extra metadata
+};
+
 class ChatCraftDatabase extends Dexie {
   chats: Table<ChatCraftChatTable, string>;
   messages: Table<ChatCraftMessageTable, string>;
   shared: Table<SharedChatCraftChatTable, string>;
   functions: Table<ChatCraftFunctionTable, string>;
   starred: Table<ChatCraftStarredSystemPromptTable, string>;
+  files: Table<ChatCraftFileTable, string>;
 
   constructor() {
     super("ChatCraftDatabase");
@@ -171,12 +191,20 @@ class ChatCraftDatabase extends Dexie {
             delete message.starred;
           });
       });
+    // Version 11 Migration - add files table. NOTE: we are not migrating imageUrls over to
+    // files in this migration, though we may do that in the future.
+    this.version(11).stores({
+      // Remove imageUrls from index for messages
+      messages: "id, date, chatId, type, model, user, text, versions",
+      files: "id, name, type, size, text, created",
+    });
 
     this.chats = this.table("chats");
     this.messages = this.table("messages");
     this.shared = this.table("shared");
     this.functions = this.table("functions");
     this.starred = this.table("starred");
+    this.files = this.table("files");
   }
 
   /**
@@ -194,6 +222,8 @@ class ChatCraftDatabase extends Dexie {
         return this.functions;
       case "starred":
         return this.starred;
+      case "files":
+        return this.files;
       default:
         throw new Error(`Unknown table name: ${tableName}`);
     }
