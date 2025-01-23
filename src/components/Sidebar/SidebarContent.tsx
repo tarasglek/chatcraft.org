@@ -302,15 +302,7 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
 
   const handleAccordionChange = (expandedIndex: number | number[] | undefined) => {
     // Check if expandedIndex isn't undefined and set index to this value, otherwise set index to 0
-    try {
-      if (expandedIndex !== undefined) {
-        setOpenIndex(expandedIndex);
-      } else {
-        setOpenIndex(0);
-      }
-    } catch (err) {
-      console.warn("Unable to save accordion state", err);
-    }
+    setOpenIndex(expandedIndex ?? 0);
   };
 
   const chatsTotal = useLiveQueryTraced<number, number>(
