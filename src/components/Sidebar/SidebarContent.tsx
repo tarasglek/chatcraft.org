@@ -58,6 +58,7 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
   );
   const { error } = useAlert();
   const [isEditing, setIsEditing] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   useKey("Escape", () => setIsEditing(false), { event: "keydown" }, [setIsEditing]);
   const selectedRef = useRef<HTMLDivElement>(null);
 
@@ -121,6 +122,15 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
       borderRadius={4}
       direction="column"
       ref={selectedRef}
+      style={{ transition: "background-color 0.2s ease, transform 0.2s ease" }}
+      _hover={{
+        bg: useColorModeValue(
+          !isSelected ? "gray.100" : undefined,
+          !isSelected ? "gray.700" : undefined
+        ),
+      }}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     >
       <Flex justify="space-between" align="center" minH="32px" w="100%">
         <Link to={url} style={{ width: "100%" }}>
@@ -133,7 +143,7 @@ function ChatSidebarItem({ chat, url, isSelected, canEdit, onDelete }: ChatSideb
             </Text>
           </Flex>
         </Link>
-        {isSelected && !isEditing && (
+        {(isSelected || isHovering) && !isEditing && (
           <Flex>
             {canEdit && (
               <IconButton
@@ -228,6 +238,7 @@ function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSideba
     isSelected ? "gray.900" : "gray.600"
   );
   const selectedRef = useRef<HTMLDivElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
 
   // Scroll this item into view if selected
   useEffect(() => {
@@ -245,6 +256,14 @@ function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSideba
       borderRadius={4}
       direction="column"
       ref={selectedRef}
+      _hover={{
+        bg: useColorModeValue(
+          !isSelected ? "gray.100" : undefined,
+          !isSelected ? "gray.700" : undefined
+        ),
+      }}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     >
       <Flex justify="space-between" align="center" minH="32px" w="100%">
         <Link to={url} style={{ width: "100%" }}>
@@ -257,7 +276,7 @@ function FunctionSidebarItem({ func, url, isSelected, onDelete }: FunctionSideba
             </Text>
           </Flex>
         </Link>
-        {isSelected && (
+        {(isSelected || isHovering) && (
           <IconButton
             variant="ghost"
             size="sm"
