@@ -22,6 +22,8 @@ import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { TbSearch } from "react-icons/tb";
+import { IoSettings } from "react-icons/io5";
+import { IoLogOutOutline } from "react-icons/io5";
 import { Form } from "react-router-dom";
 
 import PreferencesModal from "./Preferences/PreferencesModal";
@@ -152,14 +154,17 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
               variant="ghost"
             />
             <MenuList>
-              <MenuItem onClick={onPrefModalOpen}>Settings...</MenuItem>
+              <MenuItem onClick={onPrefModalOpen}>
+                <IoSettings /> <Text ml={2}>Settings...</Text>
+              </MenuItem>
               {user ? (
                 <MenuItem
                   onClick={() => {
                     handleLoginLogout("");
                   }}
                 >
-                  Logout
+                  <IoLogOutOutline />
+                  <Text ml={2}> Logout </Text>
                 </MenuItem>
               ) : (
                 <>
