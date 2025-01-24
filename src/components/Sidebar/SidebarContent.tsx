@@ -34,6 +34,7 @@ import { useUser } from "../../hooks/use-user";
 import { ChatCraftFunction } from "../../lib/ChatCraftFunction";
 import { useAlert } from "../../hooks/use-alert";
 import { convertToShareUrl } from "../../lib/share";
+import { useLocalStorage } from "react-use";
 
 /**
  * Chat Sidebar Items
@@ -313,6 +314,16 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
   const navigate = useNavigate();
   const [recentCount, setRecentCount] = useState(10);
 
+  const [openIndex, setOpenIndex] = useLocalStorage<number | number[] | undefined>(
+    "sidebar-accordion-index",
+    0
+  );
+
+  const handleAccordionChange = (expandedIndex: number | number[] | undefined) => {
+    // Check if expandedIndex isn't undefined and set index to this value, otherwise set index to 0
+    setOpenIndex(expandedIndex ?? 0);
+  };
+
   const chatsTotal = useLiveQueryTraced<number, number>(
     "count-chats",
     () => db.chats.count(),
@@ -404,7 +415,7 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
 
   return (
     <Flex direction="column" h="100%" p={2} gap={4}>
-      <Accordion allowToggle defaultIndex={0}>
+      <Accordion allowToggle index={openIndex} onChange={handleAccordionChange}>
         <AccordionItem>
           <AccordionButton p={2} minH={10}>
             <Heading as="h3" size="xs">
