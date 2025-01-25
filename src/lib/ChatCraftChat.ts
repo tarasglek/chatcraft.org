@@ -9,7 +9,13 @@ import {
   ChatCraftSystemMessage,
   type SerializedChatCraftMessage,
 } from "./ChatCraftMessage";
-import db, { ChatCraftFileTable, type ChatCraftChatTable, type ChatCraftMessageTable } from "./db";
+import db, {
+  ChatCraftFileTable,
+  FileRef,
+  isFileRef,
+  type ChatCraftChatTable,
+  type ChatCraftMessageTable,
+} from "./db";
 import summarize from "./summarize";
 import { createSystemMessage } from "./system-prompt";
 import { createDataShareUrl, createShare } from "./share";
@@ -40,13 +46,19 @@ function createSummary(chat: ChatCraftChat, maxLength = 200) {
   return summary.length > maxLength ? summary.slice(0, maxLength) + "..." : summary;
 }
 
+// We store both the fileRef and file object in files
+type FileRefWithFile = { ref: FileRef; file: ChatCraftFile };
+
 export class ChatCraftChat {
   id: string;
+  readonly: boolean;
   date: Date;
   private _summary?: string;
   private _messages: ChatCraftMessage[];
-  private _files?: ChatCraftFile[];
-  readonly: boolean;
+  // For files associated with a chat, we store both the hydrated ChatCraftFile objects (i.e., `files`)
+  // and also the actual FileRefs (`fileRefs`) that are part of the chat's database record. The filenames
+  // we use come from the fileRefs.
+  private _files?: Map<string, FileRefWithFile>;
 
   constructor({
     id,
@@ -54,6 +66,7 @@ export class ChatCraftChat {
     summary,
     messages,
     files,
+    fileRefs,
     readonly,
   }: {
     id?: string;
@@ -61,16 +74,49 @@ export class ChatCraftChat {
     summary?: string;
     messages?: ChatCraftMessage[];
     files?: ChatCraftFile[];
+    fileRefs?: FileRef[];
     readonly?: boolean;
   } = {}) {
     this.id = id ?? nanoid();
     this._messages = messages ?? [createSystemMessage()];
-    this._files = files;
     this.date = date ?? new Date();
     // If the user provides a summary, use it, otherwise we'll generate something
     this._summary = summary;
     // When we load a chat remotely (from JSON vs. DB) readonly=true
     this.readonly = readonly === true;
+
+    // Validate and initialize files
+    if (files || fileRefs) {
+      if (!files || !fileRefs) {
+        throw new Error("Both files and fileRefs must be provided together");
+      }
+
+      const fileIds = new Set(files.map((f) => f.id));
+      const refIds = new Set(fileRefs.map((r) => r.id));
+      const _files = new Map();
+
+      files.forEach((file) => {
+        const ref = fileRefs.find((r) => r.id === file.id);
+        if (ref) {
+          _files.set(file.id, { file, ref });
+        }
+      });
+
+      // Log any mismatches
+      const missingFiles = [...refIds].filter((id) => !fileIds.has(id));
+      if (missingFiles.length) {
+        console.warn(`Missing files for refs: ${missingFiles.join(", ")}`);
+      }
+
+      this._files = _files;
+    }
+  }
+
+  /**
+   * Helper for safely getting a value from `files` Map.
+   */
+  private getFileValues<T>(mapper: (f: FileRefWithFile) => T): T[] {
+    return Array.from(this._files?.values() ?? []).map(mapper);
   }
 
   /**
@@ -120,7 +166,7 @@ export class ChatCraftChat {
   }
 
   files() {
-    return this._files || [];
+    return this.getFileValues((f) => f.file);
   }
 
   // Get a list of functions mentioned via @fn or fn-url from db or remote servers
@@ -176,25 +222,60 @@ export class ChatCraftChat {
     return this.save();
   }
 
-  async addFile(file: ChatCraftFile) {
+  async addFile(file: ChatCraftFile, name?: string) {
     if (this.readonly) {
       return;
     }
 
-    // Filter out any existing file with the same ID, then add the new one
-    this._files = [...this.files().filter((f) => f.id !== file.id), file];
+    // Validate the name
+    const fileName = (name || file.name).trim();
+    if (!fileName) {
+      throw new Error("File name is required");
+    }
+
+    this._files = this._files ?? new Map();
+    this._files.set(file.id, { file, ref: { id: file.id, name: fileName } });
+
     return this.save();
   }
 
-  async removeFile(id: string) {
+  async removeFile(fileOrfileId: ChatCraftFile | string) {
     if (this.readonly) {
       return;
     }
 
-    if (this._files) {
-      this._files = this._files.filter((file) => file.id !== id);
-      return this.save();
+    const id = typeof fileOrfileId === "string" ? fileOrfileId : fileOrfileId.id;
+
+    if (!this._files?.has(id)) {
+      throw new Error(`No file found with id ${id}`);
     }
+
+    this._files.delete(id);
+    return this.save();
+  }
+
+  async renameFile(fileOrFileId: ChatCraftFile | string, newName: string) {
+    if (this.readonly) {
+      return;
+    }
+
+    const id = typeof fileOrFileId === "string" ? fileOrFileId : fileOrFileId.id;
+    newName = newName.trim();
+    if (!newName) {
+      throw new Error("File name is required");
+    }
+
+    if (!this._files?.has(id)) {
+      throw new Error(`No file found with id ${id}`);
+    }
+
+    const fileData = this._files.get(id)!;
+    this._files.set(id, {
+      ...fileData,
+      ref: { ...fileData.ref, name: newName },
+    });
+
+    return this.save();
   }
 
   // Remove all messages in the chat *before* the message with the given id,
@@ -280,12 +361,31 @@ export class ChatCraftChat {
     // Rehydrate the messages from their IDs
     const messages = await db.messages.bulkGet(chat.messageIds);
 
-    // Rehydrate the files from their IDs
-    if (chat.fileIds) {
-      const files = await db.files.bulkGet(chat.fileIds);
-      if (files) {
-        return ChatCraftChat.fromDB(chat, messages, files);
-      }
+    // Rehydrate the files from their IDs and use the filenames in the chat's fileRefs
+    const { fileRefs } = chat;
+    if (fileRefs?.length) {
+      const files = await db.files.bulkGet(fileRefs.map((ref) => ref.id));
+      // Update the filenames, based on the fileRefs, skipping any that don't have a matching file
+      const validFiles = files
+        .filter((file): file is ChatCraftFileTable => !!file)
+        .map((file) => {
+          const fileRef = fileRefs.find((ref) => ref.id === file.id);
+          if (!fileRef) {
+            // No matching fileRef for this file, skip it
+            return;
+          }
+
+          // Use the fileRef's name vs. the original file name
+          const chatFile = ChatCraftFile.fromDB(file);
+          Object.defineProperty(chatFile, "name", {
+            value: fileRef.name,
+            writable: false,
+          });
+          return chatFile;
+        })
+        .filter((file): file is ChatCraftFile => !!file);
+
+      return ChatCraftChat.fromDB(chat, messages, validFiles);
     }
 
     return ChatCraftChat.fromDB(chat, messages);
@@ -323,6 +423,8 @@ export class ChatCraftChat {
 
     const chat = new ChatCraftChat({
       messages: messages.map((message) => message.clone()),
+      files: this.getFileValues((f) => f.file),
+      fileRefs: this.getFileValues((f) => f.ref),
       summary: this.summary,
     });
     await chat.save();
@@ -335,6 +437,8 @@ export class ChatCraftChat {
       summary: this.summary,
       messages: this._messages,
       readonly: this.readonly,
+      files: this.getFileValues((f) => f.file),
+      fileRefs: this.getFileValues((f) => f.ref),
     });
   }
 
@@ -369,8 +473,8 @@ export class ChatCraftChat {
       summary: this.summary,
       // In the DB, we store the app messages, since that's what we show in the UI
       messageIds: this._messages.map(({ id }) => id),
-      // In the DB, we store the files associated with a chat
-      fileIds: this._files?.map(({ id }) => id),
+      // In the DB, we store only the fileRefs associated with a chat
+      fileRefs: this.getFileValues((f) => f.ref),
     };
   }
 
@@ -393,6 +497,7 @@ export class ChatCraftChat {
       date: cloned.date,
       summary: cloned.summary,
       chat: cloned,
+      // We don't include the files
     });
 
     // Cache this locally in our db as well
@@ -401,7 +506,6 @@ export class ChatCraftChat {
     return shared;
   }
 
-  //function to share single message
   async shareSingleMessage(user: User, messageId: string) {
     // Find the message to be shared
     const messageToShare = this._messages.find((message) => message.id === messageId);
@@ -434,19 +538,43 @@ export class ChatCraftChat {
   }
 
   static async delete(id: string) {
-    const chat = await ChatCraftChat.find(id);
-    if (chat) {
-      await Promise.all(
-        chat._messages.map((message) => {
-          try {
-            ChatCraftMessage.delete(message.id);
-          } catch (_) {
-            /* empty */
+    return db
+      .transaction("rw", [db.chats, db.messages, db.files], async () => {
+        // Lock the chat record first
+        const chat = await db.chats.get(id);
+        if (!chat?.fileRefs?.every(isFileRef)) {
+          throw new Error("Missing or invalid chat");
+        }
+
+        // Get all data we need to process while holding locks
+        const messageIds = chat.messageIds;
+        const fileRefs = chat.fileRefs ?? [];
+
+        // Delete the chat first to prevent new references
+        await db.chats.delete(id);
+
+        // Delete all messages
+        await db.messages.bulkDelete(messageIds);
+
+        // Handle orphaned files
+        for (const fileRef of fileRefs) {
+          // Count remaining references to this file
+          const remainingRefs = await db.chats
+            .filter(
+              (c) => Array.isArray(c.fileRefs) && c.fileRefs.some((ref) => ref.id === fileRef.id)
+            )
+            .count();
+
+          // If no more references, delete the associated file
+          if (remainingRefs === 0) {
+            await db.files.delete(fileRef.id);
           }
-        })
-      );
-      return db.chats.delete(id);
-    }
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to delete chat:", error);
+        throw new Error(`Failed to delete chat ${id}. Some data may be in an inconsistent state.`);
+      });
   }
 
   // Parse from serialized JSON
@@ -468,20 +596,42 @@ export class ChatCraftChat {
 
   // Parse from db representation, where chat and messages are separate.
   // Assumes all messages have already been obtained for messageIds, but
-  // deals with any that are missing (undefined)
+  // deals with any that are missing (undefined). The files are stored
+  // as FileRefs (id and name only)
   static fromDB(
     chat: ChatCraftChatTable,
     messages: (ChatCraftMessageTable | undefined)[],
     files?: (ChatCraftFileTable | undefined)[]
   ) {
+    // Create arrays of files and fileRefs that we'll pass to the constructor
+    const hydratedFiles: ChatCraftFile[] = [];
+    const validFileRefs: FileRef[] = [];
+
+    // Only create FileRefs for files that actually exist
+    if (files?.length && chat.fileRefs?.length) {
+      files
+        .filter((file): file is ChatCraftFileTable => !!file)
+        .forEach((file) => {
+          const fileRef = chat.fileRefs?.find((ref) => ref.id === file.id);
+          if (fileRef) {
+            const chatFile = ChatCraftFile.fromDB(file);
+            Object.defineProperty(chatFile, "name", {
+              value: fileRef.name,
+              writable: false,
+            });
+            hydratedFiles.push(chatFile);
+            validFileRefs.push(fileRef);
+          }
+        });
+    }
+
     return new ChatCraftChat({
       ...chat,
       messages: messages
         .filter((message): message is ChatCraftMessageTable => !!message)
         .map((message) => ChatCraftMessage.fromDB(message)),
-      files: files
-        ?.filter((file): file is ChatCraftFileTable => !!file)
-        .map((file) => ChatCraftFile.fromDB(file)),
+      files: hydratedFiles,
+      fileRefs: validFileRefs,
     });
   }
 }

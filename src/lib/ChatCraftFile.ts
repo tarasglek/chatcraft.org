@@ -50,6 +50,14 @@ export class ChatCraftFile {
     return this.name.split(".").pop() || "";
   }
 
+  // When we store files in a chat, we can use a different name (e.g., the same
+  // file contents stored in multiple chats, but in between each chat we've renamed
+  // the file). This is the original filename that was used when the file's contents
+  // were first stored.
+  get originalName(): string {
+    return this.name;
+  }
+
   /**
    * Calculate the sha-256 hash for file's content
    * @param blob content of file

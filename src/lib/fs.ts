@@ -168,7 +168,7 @@ export async function ls(chat: ChatCraftChat): Promise<VirtualFile[]> {
   }
 
   // Add ChatCraftFiles from Dexie, overwriting any dupes
-  const chatCraftFiles = await chat.files();
+  const chatCraftFiles = chat.files();
   chatCraftFiles.forEach((file) => {
     fileMap.set(file.name, new ChatCraftFileAdapter(file));
   });
