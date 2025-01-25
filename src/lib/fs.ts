@@ -32,9 +32,9 @@ export interface VirtualFile {
   /** MIME type of file */
   type: string;
 
-  read(): Promise<Blob>;
-  delete(): Promise<void>;
-  getUrl(): Promise<string>;
+  blob(): Promise<Blob>;
+  removeFile(): Promise<void>;
+  toURL(): Promise<string>;
   download(): Promise<void>;
 }
 
@@ -56,15 +56,15 @@ class ChatCraftFileAdapter implements VirtualFile {
     this.type = chatCraftFile.type;
   }
 
-  async read(): Promise<Blob> {
+  async blob(): Promise<Blob> {
     return this.chatCraftFile.content;
   }
 
-  async delete(): Promise<void> {
+  async removeFile(): Promise<void> {
     return await ChatCraftFile.delete(this.chatCraftFile.id);
   }
 
-  async getUrl(): Promise<string> {
+  async toURL(): Promise<string> {
     return await this.chatCraftFile.toURL();
   }
 
@@ -127,26 +127,26 @@ class WebFileAdapter implements VirtualFile {
     return mimeTypes[ext] || defaultType;
   }
 
-  async read(): Promise<Blob> {
+  async blob(): Promise<Blob> {
     return withConnection<Blob>(async (_conn, duckdb) => {
       const buf = await duckdb.copyFileToBuffer(this.name);
       return new Blob([buf], { type: this.type });
     });
   }
 
-  async delete(): Promise<void> {
+  async removeFile(): Promise<void> {
     return withConnection(async (_conn, duckdb) => {
       await duckdb.dropFile(this.name);
     });
   }
 
-  async getUrl(): Promise<string> {
-    const blob = await this.read();
+  async toURL(): Promise<string> {
+    const blob = await this.blob();
     return URL.createObjectURL(blob);
   }
 
   async download(): Promise<void> {
-    const blob = await this.read();
+    const blob = await this.blob();
     download(blob, this.name, this.type);
   }
 }
@@ -176,7 +176,7 @@ export async function ls(chat: ChatCraftChat): Promise<VirtualFile[]> {
   return Array.from(fileMap.values());
 }
 
-async function getFile(path: string, chat: ChatCraftChat): Promise<VirtualFile> {
+export async function getFile(path: string, chat: ChatCraftChat): Promise<VirtualFile> {
   const files = await ls(chat);
   const file = files.find((f) => f.name === path);
   if (!file) {
@@ -187,7 +187,7 @@ async function getFile(path: string, chat: ChatCraftChat): Promise<VirtualFile> 
 
 export async function readFile(path: string, chat: ChatCraftChat): Promise<Blob> {
   const file = await getFile(path, chat);
-  return file.read();
+  return file.blob();
 }
 
 export async function exists(path: string, chat: ChatCraftChat): Promise<boolean> {
@@ -202,14 +202,14 @@ export async function exists(path: string, chat: ChatCraftChat): Promise<boolean
   }
 }
 
-export async function rm(path: string, chat: ChatCraftChat): Promise<void> {
+export async function removeFile(path: string, chat: ChatCraftChat): Promise<void> {
   const file = await getFile(path, chat);
-  await file.delete();
+  await file.removeFile();
 }
 
-export async function getFileUrl(path: string, chat: ChatCraftChat): Promise<string> {
+export async function fileToUrl(path: string, chat: ChatCraftChat): Promise<string> {
   const file = await getFile(path, chat);
-  return file.getUrl();
+  return file.toURL();
 }
 
 export async function downloadFile(path: string, chat: ChatCraftChat): Promise<void> {
