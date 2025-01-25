@@ -13,6 +13,7 @@ import {
 import { jsonToMarkdownTable } from "./utils";
 import { ChatCraftFile } from "./ChatCraftFile";
 import { ChatCraftChat } from "./ChatCraftChat";
+import { ls } from "./fs";
 
 /**
  * Extracts chatcraft schema table references from a SQL query
@@ -172,18 +173,8 @@ export async function getTables() {
  * @param chat the ChatCraftChat, potentially with files
  */
 export async function getFiles(chat: ChatCraftChat) {
-  const result = await query("SELECT * FROM glob('*');");
-  const json = queryResultToJson(result);
-  // Add all the files that we *could* add from the chat
-  const files = await chat.files();
-  files.forEach((file) => {
-    // Make sure we don't add a virtual file if the actual file already exists
-    const exists = json.some((entry) => entry.file === file.name);
-    if (!exists) {
-      json.push({ file: file.name });
-    }
-  });
-
+  const files = await ls(chat);
+  const json = files.map((file) => ({ file: file.name }));
   return json.length ? jsonToMarkdownTable(json) : "";
 }
 
