@@ -240,6 +240,25 @@ export async function insertCSV(
 }
 
 /**
+ * Insert arbitrary data as a DuckDB File
+ * @param name the name of the file
+ * @param data the file data
+ * @throws {Error} If the insertion fails
+ */
+export async function insertFile(name: string, source: string | File | Blob): Promise<void> {
+  return withConnection(async (_conn, duckdb) => {
+    let buf: Uint8Array;
+    if (typeof source === "string") {
+      buf = new TextEncoder().encode(source);
+    } else {
+      buf = new Uint8Array(await source.arrayBuffer());
+    }
+
+    await duckdb.registerFileBuffer(name, buf);
+  });
+}
+
+/**
  * Options for JSON file imports, see docs:
  * https://duckdb.org/docs/data/json/loading_json#parameters
  */

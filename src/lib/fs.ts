@@ -9,7 +9,7 @@
 import { WebFile } from "@duckdb/duckdb-wasm";
 import { ChatCraftChat } from "./ChatCraftChat";
 import { ChatCraftFile } from "./ChatCraftFile";
-import { globFiles, isUsingDuckDB, withConnection } from "./duckdb";
+import { globFiles, insertFile, isUsingDuckDB, withConnection } from "./duckdb";
 import { download } from "./utils";
 
 export class FileNotFoundError extends Error {
@@ -34,6 +34,7 @@ export interface VirtualFile {
 
   blob(): Promise<Blob>;
   removeFile(): Promise<void>;
+  renameFile(newName: string): Promise<void>;
   toURL(): Promise<string>;
   download(): Promise<void>;
 }
@@ -47,9 +48,12 @@ class ChatCraftFileAdapter implements VirtualFile {
   readonly size: number;
   readonly type: string;
   readonly chatCraftFile: ChatCraftFile;
+  readonly chat: ChatCraftChat;
 
-  constructor(chatCraftFile: ChatCraftFile) {
+  constructor(chatCraftFile: ChatCraftFile, chat: ChatCraftChat) {
     this.chatCraftFile = chatCraftFile;
+    this.chat = chat;
+
     this.id = chatCraftFile.id;
     this.name = chatCraftFile.name;
     this.size = chatCraftFile.size;
@@ -61,7 +65,11 @@ class ChatCraftFileAdapter implements VirtualFile {
   }
 
   async removeFile(): Promise<void> {
-    return await ChatCraftFile.delete(this.chatCraftFile.id);
+    return await this.chat.removeFile(this.chatCraftFile);
+  }
+
+  async renameFile(newName: string): Promise<void> {
+    return await this.chat.renameFile(this.chatCraftFile, newName);
   }
 
   async toURL(): Promise<string> {
@@ -140,6 +148,12 @@ class WebFileAdapter implements VirtualFile {
     });
   }
 
+  async renameFile(newName: string): Promise<void> {
+    const blob = await this.blob();
+    this.removeFile();
+    insertFile(newName, blob);
+  }
+
   async toURL(): Promise<string> {
     const blob = await this.blob();
     return URL.createObjectURL(blob);
@@ -170,7 +184,7 @@ export async function ls(chat: ChatCraftChat): Promise<VirtualFile[]> {
   // Add ChatCraftFiles from Dexie, overwriting any dupes
   const chatCraftFiles = chat.files();
   chatCraftFiles.forEach((file) => {
-    fileMap.set(file.name, new ChatCraftFileAdapter(file));
+    fileMap.set(file.name, new ChatCraftFileAdapter(file, chat));
   });
 
   return Array.from(fileMap.values());
@@ -205,6 +219,15 @@ export async function exists(path: string, chat: ChatCraftChat): Promise<boolean
 export async function removeFile(path: string, chat: ChatCraftChat): Promise<void> {
   const file = await getFile(path, chat);
   await file.removeFile();
+}
+
+export async function renameFile(
+  currentPath: string,
+  newPath: string,
+  chat: ChatCraftChat
+): Promise<void> {
+  const file = await getFile(currentPath, chat);
+  await file.renameFile(newPath);
 }
 
 export async function fileToUrl(path: string, chat: ChatCraftChat): Promise<string> {
