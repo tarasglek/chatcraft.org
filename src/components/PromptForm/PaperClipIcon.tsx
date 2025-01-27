@@ -37,7 +37,7 @@ type PaperClipProps = {
   chat: ChatCraftChat;
 };
 
-export default function PaperClipIcon({ chat }: PaperClipProps) {
+export default function PaperclipIcon({ chat }: PaperClipProps) {
   const { files, loading, error } = useFiles(chat);
   const isAttached = files.length ? true : false;
   const { isOpen, onOpen, onClose } = useDisclosure();

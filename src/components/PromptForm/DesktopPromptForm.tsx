@@ -29,7 +29,7 @@ import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
-import PaperClipIcon from "./PaperclipIcon";
+import PaperclipIcon from "./PaperclipIcon";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -374,7 +374,7 @@ function DesktopPromptForm({
                         flex={1}
                       />
                     )}
-                    <PaperClipIcon chat={chat} />
+                    <PaperclipIcon chat={chat} />
                     <MicIcon
                       isDisabled={isLoading}
                       onRecording={handleRecording}
