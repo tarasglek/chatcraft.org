@@ -5,6 +5,7 @@ import {
   getJsDelivrBundles,
   selectBundle,
   AsyncDuckDBConnection,
+  WebFile,
 } from "@duckdb/duckdb-wasm";
 // NOTE: duckdb-wasm uses v17.0.0 currently vs. v18.x, see:
 // https://github.com/duckdb/duckdb-wasm/blob/b42a8e78d60b30363139a966e42bd33a3dd305a5/packages/duckdb-wasm/package.json#L26C9-L26C34
@@ -31,11 +32,17 @@ async function init(logToConsole = true) {
 let _duckdb: AsyncDuckDB | null;
 
 /**
+ * Whether or not we've currently loaded and are using DuckDB.
+ * Use `requireDuckDB()` to load or get the db.
+ */
+export const isUsingDuckDB = (): boolean => !!_duckdb;
+
+/**
  * Gets or initializes the DuckDB instance
  * @param logToConsole Whether to log DuckDB operations to console
  * @returns Promise resolving to the DuckDB instance
  */
-export const getDuckdb = async (logToConsole?: boolean) => {
+export const requireDuckDB = async (logToConsole?: boolean) => {
   if (!_duckdb) {
     _duckdb = await init(logToConsole);
   }
@@ -58,7 +65,7 @@ export async function withConnection<T>(
 ): Promise<T> {
   let conn: AsyncDuckDBConnection | null = null;
   try {
-    const duckdb = await getDuckdb();
+    const duckdb = await requireDuckDB();
     conn = await duckdb.connect();
     return await callback(conn, duckdb);
   } finally {
@@ -284,6 +291,17 @@ export async function insertJSON(
     } finally {
       await duckdb.dropFile(bufferName);
     }
+  });
+}
+
+/**
+ * Get metadata about files
+ * @param path the path or glob pattern to use. Defaults to '*'
+ * @returns list of WebFile objects, see https://github.com/duckdb/duckdb-wasm/blob/main/packages/duckdb-wasm/src/bindings/web_file.ts
+ */
+export async function globFiles(path = "*"): Promise<WebFile[]> {
+  return withConnection<WebFile[]>((_conn, duckdb) => {
+    return duckdb.globFiles(path);
   });
 }
 
