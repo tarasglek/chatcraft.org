@@ -35,7 +35,6 @@ import { FaDownload, FaTrash, FaPlus } from "react-icons/fa";
 
 type PaperClipProps = {
   chat: ChatCraftChat;
-  onAttachFiles?: (files: File[]) => Promise<void>;
 };
 
 export default function PaperClipIcon({ chat }: PaperClipProps) {
