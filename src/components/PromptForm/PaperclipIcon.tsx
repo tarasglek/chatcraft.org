@@ -12,6 +12,7 @@ import {
   Text,
   SimpleGrid,
   Flex,
+  Input,
 } from "@chakra-ui/react";
 import { FaPaperclip } from "react-icons/fa";
 import { IconType } from "react-icons";
@@ -27,20 +28,42 @@ import {
   BsFiletypeMd,
   BsFiletypeSvg,
   BsFileEarmark,
+  BsFileEarmarkPlus,
 } from "react-icons/bs";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFiles } from "../../hooks/use-fs";
 import { removeFile, downloadFile } from "../../lib/fs";
-import { FaDownload, FaTrash, FaPlus } from "react-icons/fa";
+import { FaDownload, FaTrash } from "react-icons/fa";
+import { useAlert } from "../../hooks/use-alert";
+import { useCallback, useRef } from "react";
 
 type PaperClipProps = {
   chat: ChatCraftChat;
+  onAttachFiles?: (files: File[]) => Promise<void>;
 };
 
-function PaperclipIcon({ chat }: PaperClipProps) {
+function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
   const { files, loading, error } = useFiles(chat);
   const isAttached = files.length ? true : false;
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { error: alertError } = useAlert();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!onAttachFiles || !event.target.files?.length) {
+        return;
+      }
+      await onAttachFiles(Array.from(event.target.files)).catch((err) =>
+        alertError({ title: "Unable to Attach Files", message: err.message })
+      );
+    },
+    [onAttachFiles, alertError]
+  );
+
+  const handleAttachFiles = useCallback(() => {
+    fileInputRef.current?.click();
+  }, [fileInputRef]);
 
   const handlePaperClipToggle = () => {
     onOpen();
@@ -82,46 +105,27 @@ function PaperclipIcon({ chat }: PaperClipProps) {
     return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
-  // plus button hover-effect helpers
-  const SLIDE_DISTANCE = "100%";
-  const ANIMATION_DURATION = "0.3s";
-
   return (
-    <Box
-      position="relative"
-      display="inline-block"
-      _hover={{
-        "& .plus-button": {
-          transform: `translateX(-${SLIDE_DISTANCE})`,
-          opacity: 1,
-        },
-      }}
-    >
-      <Tooltip label={isAttached ? "Add More Files" : "Attach One Or More Files"}>
-        <IconButton
-          className="plus-button"
-          aria-label="Add file"
-          icon={<FaPlus />}
-          isRound
-          variant="ghost"
-          size="md"
-          position="absolute"
-          right="0"
-          opacity="0"
-          transform={`translateX(${SLIDE_DISTANCE})`}
-          transition={`all ${ANIMATION_DURATION} ease-in-out`}
-        />
-      </Tooltip>
+    <>
       <Tooltip label={isAttached ? "View Attached Files" : "Please Attach Files. Nothing To View"}>
+        {!isAttached && (
+          <Input
+            multiple
+            type="file"
+            ref={fileInputRef}
+            hidden
+            onChange={handleFileChange}
+            accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
+          />
+        )}
         <IconButton
           isRound
-          isDisabled={!isAttached}
           icon={<FaPaperclip />}
           variant="ghost"
           size="md"
           fontSize="1rem"
           transition={"all 150ms ease-in-out"}
-          onClick={handlePaperClipToggle}
+          onClick={isAttached ? handlePaperClipToggle : handleAttachFiles}
           aria-label=""
         />
       </Tooltip>
@@ -137,6 +141,53 @@ function PaperclipIcon({ chat }: PaperClipProps) {
               <Text color="red.500">Error loading files!</Text>
             ) : (
               <SimpleGrid columns={3} spacing={6} width="full">
+                <Input
+                  multiple
+                  type="file"
+                  ref={fileInputRef}
+                  hidden
+                  onChange={handleFileChange}
+                  accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
+                />
+                <Box
+                  p={6}
+                  borderWidth="1px"
+                  borderRadius="md"
+                  minW="200px"
+                  maxW="200px"
+                  h="200px"
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  aspectRatio="1"
+                  position="relative"
+                  onClick={handleAttachFiles}
+                  _hover={{
+                    borderColor: "blue.500",
+                    bg: "gray",
+                    "& .hover-buttons": {
+                      opacity: 1,
+                      transform: "translateY(0)",
+                    },
+                  }}
+                  transform="all 0.2s ease-in-out"
+                >
+                  <Box
+                    position="absolute"
+                    top="40%"
+                    left="50%"
+                    transform="translate(-50%, -50%)"
+                    opacity="0.7"
+                  >
+                    <BsFileEarmarkPlus size="80px" />
+                  </Box>
+                  <Box position="absolute" bottom={6} width="full" textAlign="center">
+                    <Text fontSize="sm" mb={1} noOfLines={1} px={2}>
+                      Attach Files...
+                    </Text>
+                  </Box>
+                </Box>
                 {files.map((file) => (
                   <Box
                     key={file.id}
@@ -219,7 +270,7 @@ function PaperclipIcon({ chat }: PaperClipProps) {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </Box>
+    </>
   );
 }
 export default PaperclipIcon;
