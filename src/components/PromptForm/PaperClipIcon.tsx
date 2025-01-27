@@ -31,11 +31,11 @@ import {
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFiles } from "../../hooks/use-fs";
 import { removeFile, downloadFile } from "../../lib/fs";
-import { FaDownload, FaTrash } from "react-icons/fa";
+import { FaDownload, FaTrash, FaPlus } from "react-icons/fa";
 
 type PaperClipProps = {
-  isDisabled: boolean;
   chat: ChatCraftChat;
+  onAttachFiles?: (files: File[]) => Promise<void>;
 };
 
 export default function PaperClipIcon({ chat }: PaperClipProps) {
@@ -47,6 +47,7 @@ export default function PaperClipIcon({ chat }: PaperClipProps) {
     onOpen();
   };
 
+  // File icon map to use proper file icon based on extension
   const FILE_ICON_MAP: Record<string, IconType> = {
     // Images
     jpg: BsFiletypeJpg,
@@ -67,12 +68,14 @@ export default function PaperClipIcon({ chat }: PaperClipProps) {
     md: BsFiletypeMd,
   };
 
+  // Generates file icons based on file extension
   const fileIcon = (name: string) => {
     const extension = name.split(".").pop()?.toLowerCase() || "";
     const IconComponent = FILE_ICON_MAP[extension] || BsFileEarmark;
     return <IconComponent size="80px" />;
   };
 
+  // File size formator, generates file format
   const formatFileSize = (bytes: number) => {
     // If file less than 1MB, show in KB
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
@@ -80,8 +83,36 @@ export default function PaperClipIcon({ chat }: PaperClipProps) {
     return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
+  // plus button hover-effect helpers
+  const SLIDE_DISTANCE = "100%";
+  const ANIMATION_DURATION = "0.3s";
+
   return (
-    <>
+    <Box
+      position="relative"
+      display="inline-block"
+      _hover={{
+        "& .plus-button": {
+          transform: `translateX(-${SLIDE_DISTANCE})`,
+          opacity: 1,
+        },
+      }}
+    >
+      <Tooltip label={isAttached ? "Add More Files" : "Attach One Or More Files"}>
+        <IconButton
+          className="plus-button"
+          aria-label="Add file"
+          icon={<FaPlus />}
+          isRound
+          variant="ghost"
+          size="md"
+          position="absolute"
+          right="0"
+          opacity="0"
+          transform={`translateX(${SLIDE_DISTANCE})`}
+          transition={`all ${ANIMATION_DURATION} ease-in-out`}
+        />
+      </Tooltip>
       <Tooltip label={isAttached ? "View Attached Files" : "Please Attach Files. Nothing To View"}>
         <IconButton
           isRound
@@ -92,6 +123,7 @@ export default function PaperClipIcon({ chat }: PaperClipProps) {
           fontSize="1rem"
           transition={"all 150ms ease-in-out"}
           onClick={handlePaperClipToggle}
+          aria-label=""
         />
       </Tooltip>
       <Modal isCentered onClose={onClose} isOpen={isOpen}>
@@ -188,6 +220,6 @@ export default function PaperClipIcon({ chat }: PaperClipProps) {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </>
+    </Box>
   );
 }
