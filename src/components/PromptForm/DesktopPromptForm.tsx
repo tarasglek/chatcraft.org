@@ -29,6 +29,8 @@ import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
+import { GrAdd } from "react-icons/gr";
+import PaperClipIcon from "./PaperclipIcon";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -373,6 +375,7 @@ function DesktopPromptForm({
                         flex={1}
                       />
                     )}
+                    <PaperClipIcon chat={chat} />
                     <MicIcon
                       isDisabled={isLoading}
                       onRecording={handleRecording}
