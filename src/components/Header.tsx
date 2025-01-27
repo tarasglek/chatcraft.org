@@ -22,7 +22,7 @@ import { BiSun, BiMoon, BiMenu } from "react-icons/bi";
 import { BsGithub } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { TbSearch } from "react-icons/tb";
-import { IoSettings } from "react-icons/io5";
+import { PiGearBold } from "react-icons/pi";
 import { IoLogOutOutline } from "react-icons/io5";
 import { Form } from "react-router-dom";
 
@@ -155,7 +155,8 @@ function Header({ chatId, inputPromptRef, searchText, onToggleSidebar }: HeaderP
             />
             <MenuList>
               <MenuItem onClick={onPrefModalOpen}>
-                <IoSettings /> <Text ml={2}>Settings...</Text>
+                <PiGearBold />
+                <Text ml={2}>Settings...</Text>
               </MenuItem>
               {user ? (
                 <MenuItem
