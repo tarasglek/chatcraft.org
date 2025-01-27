@@ -374,7 +374,7 @@ function DesktopPromptForm({
                         flex={1}
                       />
                     )}
-                    <PaperclipIcon chat={chat} />
+                    <PaperclipIcon chat={chat} onAttachFiles={importFiles} />
                     <MicIcon
                       isDisabled={isLoading}
                       onRecording={handleRecording}
