@@ -8,10 +8,11 @@ import {
   ModalOverlay,
   ModalCloseButton,
   ModalBody,
-  Box,
   Text,
   SimpleGrid,
   Input,
+  ModalFooter,
+  Button,
 } from "@chakra-ui/react";
 import { FaPaperclip } from "react-icons/fa";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
@@ -20,7 +21,8 @@ import { useAlert } from "../../hooks/use-alert";
 import { useCallback, useRef } from "react";
 import { acceptableFileFormats } from "../../lib/utils";
 import FileIcon from "../FileIcon";
-import { BsFileEarmarkPlus } from "react-icons/bs";
+import { FaFileUpload } from "react-icons/fa";
+import { removeFile } from "../../lib/fs";
 
 type PaperClipProps = {
   chat: ChatCraftChat;
@@ -54,6 +56,12 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
     onOpen();
   };
 
+  const handleDeleteAll = () => {
+    files.map((file) => {
+      removeFile(file.name, chat);
+    });
+  };
+
   return (
     <>
       <Tooltip label="Attach Files..." placement="top">
@@ -81,7 +89,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
       <Modal isCentered onClose={onClose} isOpen={isOpen}>
         <ModalOverlay />
         <ModalContent maxW="900px" w="90vw" p={4} position="absolute">
-          <ModalHeader>You Have {files.length} Attached Files</ModalHeader>
+          <ModalHeader>{files.length} Attached Files</ModalHeader>
           <ModalCloseButton />
           <ModalBody maxH="70vh" overflowY="auto">
             {loading ? (
@@ -98,51 +106,21 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
                   onChange={handleFileChange}
                   accept={acceptableFileFormats}
                 />
-                <Box
-                  p={6}
-                  borderWidth="1px"
-                  borderRadius="md"
-                  minW="200px"
-                  maxW="200px"
-                  h="200px"
-                  display="flex"
-                  flexDirection="column"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  aspectRatio="1"
-                  position="relative"
-                  onClick={handleAttachFiles}
-                  _hover={{
-                    borderColor: "blue.500",
-                    bg: "gray",
-                    "& .hover-buttons": {
-                      opacity: 1,
-                      transform: "translateY(0)",
-                    },
-                  }}
-                  transform="all 0.2s ease-in-out"
-                >
-                  <Box
-                    position="absolute"
-                    top="40%"
-                    left="50%"
-                    transform="translate(-50%, -50%)"
-                    opacity="0.7"
-                  >
-                    <BsFileEarmarkPlus size="80px" />
-                  </Box>
-                  <Box position="absolute" bottom={6} width="full" textAlign="center">
-                    <Text fontSize="sm" mb={1} noOfLines={1} px={2}>
-                      Attach Files...
-                    </Text>
-                  </Box>
-                </Box>
                 {files.map((file) => (
                   <FileIcon key={file.id} file={file} chat={chat} onRefresh={refreshFiles} />
                 ))}
               </SimpleGrid>
             )}
           </ModalBody>
+          <ModalFooter gap={2}>
+            <Button gap={2} onClick={handleAttachFiles} maxH="30px">
+              Add Files
+              <FaFileUpload />
+            </Button>
+            <Button onClick={handleDeleteAll} maxH="30">
+              Delete All
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </>
