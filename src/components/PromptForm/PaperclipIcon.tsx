@@ -21,7 +21,6 @@ import { useAlert } from "../../hooks/use-alert";
 import { useCallback, useRef } from "react";
 import { acceptableFileFormats } from "../../lib/utils";
 import FileIcon from "../FileIcon";
-import { FaFileUpload } from "react-icons/fa";
 import { removeFile } from "../../lib/fs";
 
 type PaperClipProps = {
@@ -113,12 +112,17 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
             )}
           </ModalBody>
           <ModalFooter gap={2}>
+            <Button
+              onClick={handleDeleteAll}
+              maxH="30"
+              variant="ghost"
+              color="red"
+              colorScheme="red"
+            >
+              Remove All
+            </Button>
             <Button gap={2} onClick={handleAttachFiles} maxH="30px">
               Add Files
-              <FaFileUpload />
-            </Button>
-            <Button onClick={handleDeleteAll} maxH="30">
-              Delete All
             </Button>
           </ModalFooter>
         </ModalContent>
