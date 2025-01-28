@@ -101,7 +101,6 @@ const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
             aria-label="Remove file"
             icon={<IoClose />}
             size="sm"
-            colorScheme="red"
             variant="ghost"
             onClick={async () => {
               await removeFile(file.name, chat);
