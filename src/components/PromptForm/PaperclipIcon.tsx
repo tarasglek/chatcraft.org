@@ -33,10 +33,10 @@ import {
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFiles } from "../../hooks/use-fs";
 import { removeFile, downloadFile } from "../../lib/fs";
-import { FaDownload, FaTrash } from "react-icons/fa";
 import { useAlert } from "../../hooks/use-alert";
 import { useCallback, useRef } from "react";
 import { acceptableFileFormats, formatFileSize } from "../../lib/utils";
+import { IoClose } from "react-icons/io5";
 
 type PaperClipProps = {
   chat: ChatCraftChat;
@@ -56,7 +56,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
         return;
       }
       await onAttachFiles(Array.from(event.target.files))
-        .then(() => refreshFiles())
+        .then(() => refreshFiles)
         .catch((err) => alertError({ title: "Unable to Attach Files", message: err.message }));
     },
     [onAttachFiles, alertError, refreshFiles]
@@ -198,7 +198,6 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
                     position="relative"
                     _hover={{
                       borderColor: "blue.500",
-                      bg: "gray",
                       "& .hover-buttons": {
                         opacity: 1,
                         transform: "translateY(0)",
@@ -225,21 +224,10 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
                       transform="translateY(-10px)"
                       transition="all 0.2s ease-in-out"
                     >
-                      <Tooltip label="Download File">
-                        <IconButton
-                          aria-label="Download file"
-                          icon={<FaDownload />}
-                          size="sm"
-                          colorScheme="blue"
-                          variant="ghost"
-                          onClick={() => downloadFile(file.name, chat)}
-                          _hover={{ bg: "blue.100" }}
-                        />
-                      </Tooltip>
                       <Tooltip label="Delete File">
                         <IconButton
                           aria-label="Remove file"
-                          icon={<FaTrash />}
+                          icon={<IoClose />}
                           size="sm"
                           colorScheme="red"
                           variant="ghost"
@@ -247,14 +235,26 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
                             await removeFile(file.name, chat);
                             refreshFiles();
                           }}
-                          _hover={{ bg: "red.100" }}
                         />
                       </Tooltip>
                     </Flex>
                     <Box position="absolute" bottom={6} width="full" textAlign="center">
-                      <Text fontSize="sm" mb={1} noOfLines={1} px={2}>
-                        {file.name}
-                      </Text>
+                      <Tooltip label="Download File">
+                        <Text
+                          color="blue.300"
+                          fontSize="sm"
+                          mb={1}
+                          noOfLines={1}
+                          px={2}
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            await downloadFile(file.name, chat);
+                          }}
+                          cursor="pointer"
+                        >
+                          {file.name}
+                        </Text>
+                      </Tooltip>
                       <Text fontSize="xs" color="gray.400">
                         {formatFileSize(file.size)}
                       </Text>
