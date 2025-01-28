@@ -36,7 +36,7 @@ import { removeFile, downloadFile } from "../../lib/fs";
 import { FaDownload, FaTrash } from "react-icons/fa";
 import { useAlert } from "../../hooks/use-alert";
 import { useCallback, useRef } from "react";
-import { formatFileSize } from "../../lib/utils";
+import { acceptableFileFormats, formatFileSize } from "../../lib/utils";
 
 type PaperClipProps = {
   chat: ChatCraftChat;
@@ -108,7 +108,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
             ref={fileInputRef}
             hidden
             onChange={handleFileChange}
-            accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
+            accept={acceptableFileFormats}
           />
         )}
         <IconButton
@@ -140,7 +140,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
                   ref={fileInputRef}
                   hidden
                   onChange={handleFileChange}
-                  accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
+                  accept={acceptableFileFormats}
                 />
                 <Box
                   p={6}

@@ -11,7 +11,7 @@ import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useAlert } from "../hooks/use-alert";
 import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
-import { download } from "../lib/utils";
+import { acceptableFileFormats, download } from "../lib/utils";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
 
 function ShareMenuItem({ chat }: { chat: ChatCraftChat }) {
@@ -218,7 +218,7 @@ function OptionsButton({
             ref={fileInputRef}
             hidden
             onChange={handleFileChange}
-            accept="image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown"
+            accept={acceptableFileFormats}
           />
           <MenuItem icon={<BsPaperclip />} onClick={handleAttachFiles}>
             Attach Files...
