@@ -56,7 +56,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
 
   return (
     <>
-      <Tooltip label="Attach Files...">
+      <Tooltip label="Attach Files..." placement="top">
         {!isAttached && (
           <Input
             multiple
