@@ -1,4 +1,4 @@
-import { Box, Flex, IconButton, Text, Tooltip } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Text, Tooltip, useColorModeValue } from "@chakra-ui/react";
 import { IconType } from "react-icons";
 import { IoClose } from "react-icons/io5";
 import {
@@ -50,6 +50,8 @@ type FileIconProps = {
 };
 
 const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
+  const hoverBg = useColorModeValue("gray.300", "gray.600");
+
   // Moved the fileIcon function into the component
   const fileIcon = (name: string) => {
     const extension = name.split(".").pop()?.toLowerCase() || "";
@@ -78,6 +80,7 @@ const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
           opacity: 1,
           transform: "translateY(0)",
         },
+        bg: hoverBg,
       }}
       transition="all 0.2s ease-in-out"
     >
