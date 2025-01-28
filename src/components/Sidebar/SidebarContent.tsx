@@ -515,7 +515,7 @@ function SidebarContent({ selectedChat, selectedFunction }: SidebarContentProps)
               <VStack px={2} align="left">
                 <Text>You don&apos;t have any functions yet.</Text>
                 <Text>Functions can be called by some models to perform tasks.</Text>
-                <Link to="/f/new" target="_blank" style={{ textDecoration: "underline" }}>
+                <Link to="/f/new" style={{ textDecoration: "underline" }}>
                   Create a function
                 </Link>
               </VStack>
