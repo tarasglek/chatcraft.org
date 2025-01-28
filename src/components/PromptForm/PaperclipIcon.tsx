@@ -11,32 +11,16 @@ import {
   Box,
   Text,
   SimpleGrid,
-  Flex,
   Input,
 } from "@chakra-ui/react";
 import { FaPaperclip } from "react-icons/fa";
-import { IconType } from "react-icons";
-import {
-  BsFiletypeJpg,
-  BsFiletypeCsv,
-  BsFiletypeDoc,
-  BsFiletypePdf,
-  BsFiletypePng,
-  BsFiletypeXls,
-  BsFiletypeTxt,
-  BsFiletypeJson,
-  BsFiletypeMd,
-  BsFiletypeSvg,
-  BsFileEarmark,
-  BsFileEarmarkPlus,
-} from "react-icons/bs";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFiles } from "../../hooks/use-fs";
-import { removeFile, downloadFile } from "../../lib/fs";
 import { useAlert } from "../../hooks/use-alert";
 import { useCallback, useRef } from "react";
-import { acceptableFileFormats, formatFileSize } from "../../lib/utils";
-import { IoClose } from "react-icons/io5";
+import { acceptableFileFormats } from "../../lib/utils";
+import FileIcon from "../FileIcon";
+import { BsFileEarmarkPlus } from "react-icons/bs";
 
 type PaperClipProps = {
   chat: ChatCraftChat;
@@ -70,37 +54,9 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
     onOpen();
   };
 
-  // File icon map to use proper file icon based on extension
-  const FILE_ICON_MAP: Record<string, IconType> = {
-    // Images
-    jpg: BsFiletypeJpg,
-    jpeg: BsFiletypeJpg,
-    png: BsFiletypePng,
-    svg: BsFiletypeSvg,
-    // Documents
-    doc: BsFiletypeDoc,
-    docx: BsFiletypeDoc,
-    pdf: BsFiletypePdf,
-    txt: BsFiletypeTxt,
-    // Spreadsheets
-    csv: BsFiletypeCsv,
-    xls: BsFiletypeXls,
-    xlsx: BsFiletypeXls,
-    // Code
-    json: BsFiletypeJson,
-    md: BsFiletypeMd,
-  };
-
-  // Generates file icons based on file extension
-  const fileIcon = (name: string) => {
-    const extension = name.split(".").pop()?.toLowerCase() || "";
-    const IconComponent = FILE_ICON_MAP[extension] || BsFileEarmark;
-    return <IconComponent size="80px" />;
-  };
-
   return (
     <>
-      <Tooltip label={isAttached ? "View Attached Files" : "Please Attach Files. Nothing To View"}>
+      <Tooltip label="Attach Files...">
         {!isAttached && (
           <Input
             multiple
@@ -127,7 +83,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
         <ModalContent maxW="900px" w="90vw" p={4} position="absolute">
           <ModalHeader>Attached Files</ModalHeader>
           <ModalCloseButton />
-          <ModalBody>
+          <ModalBody maxH="70vh" overflowY="auto">
             {loading ? (
               <Text>Loading Files...</Text>
             ) : error ? (
@@ -182,84 +138,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
                   </Box>
                 </Box>
                 {files.map((file) => (
-                  <Box
-                    key={file.id}
-                    p={6}
-                    borderWidth="1px"
-                    borderRadius="md"
-                    minW="200px"
-                    maxW="200px"
-                    h="200px"
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    aspectRatio="1"
-                    position="relative"
-                    _hover={{
-                      borderColor: "blue.500",
-                      "& .hover-buttons": {
-                        opacity: 1,
-                        transform: "translateY(0)",
-                      },
-                    }}
-                    transition="all 0.2s ease-in-out"
-                  >
-                    <Box
-                      position="absolute"
-                      top="40%"
-                      left="50%"
-                      transform="translate(-50%, -50%)"
-                      opacity="0.7"
-                    >
-                      {fileIcon(file.name)}
-                    </Box>
-                    <Flex
-                      className="hover-buttons"
-                      position="absolute"
-                      top="4"
-                      right="4"
-                      gap={2}
-                      opacity={0}
-                      transform="translateY(-10px)"
-                      transition="all 0.2s ease-in-out"
-                    >
-                      <Tooltip label="Delete File">
-                        <IconButton
-                          aria-label="Remove file"
-                          icon={<IoClose />}
-                          size="sm"
-                          colorScheme="red"
-                          variant="ghost"
-                          onClick={async () => {
-                            await removeFile(file.name, chat);
-                            refreshFiles();
-                          }}
-                        />
-                      </Tooltip>
-                    </Flex>
-                    <Box position="absolute" bottom={6} width="full" textAlign="center">
-                      <Tooltip label="Download File">
-                        <Text
-                          color="blue.300"
-                          fontSize="sm"
-                          mb={1}
-                          noOfLines={1}
-                          px={2}
-                          onClick={async (e) => {
-                            e.preventDefault();
-                            await downloadFile(file.name, chat);
-                          }}
-                          cursor="pointer"
-                        >
-                          {file.name}
-                        </Text>
-                      </Tooltip>
-                      <Text fontSize="xs" color="gray.400">
-                        {formatFileSize(file.size)}
-                      </Text>
-                    </Box>
-                  </Box>
+                  <FileIcon key={file.id} file={file} chat={chat} onRefresh={refreshFiles} />
                 ))}
               </SimpleGrid>
             )}
