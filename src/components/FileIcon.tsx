@@ -94,7 +94,6 @@ const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
         right="4"
         gap={2}
         opacity={0}
-        transform="translateY(-10px)"
         transition="all 0.2s ease-in-out"
       >
         <Tooltip label="Delete File">
