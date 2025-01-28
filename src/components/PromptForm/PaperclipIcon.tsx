@@ -36,6 +36,7 @@ import { removeFile, downloadFile } from "../../lib/fs";
 import { FaDownload, FaTrash } from "react-icons/fa";
 import { useAlert } from "../../hooks/use-alert";
 import { useCallback, useRef } from "react";
+import { formatFileSize } from "../../lib/utils";
 
 type PaperClipProps = {
   chat: ChatCraftChat;
@@ -95,14 +96,6 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
     const extension = name.split(".").pop()?.toLowerCase() || "";
     const IconComponent = FILE_ICON_MAP[extension] || BsFileEarmark;
     return <IconComponent size="80px" />;
-  };
-
-  // File size formator, generates file format
-  const formatFileSize = (bytes: number) => {
-    // If file less than 1MB, show in KB
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
-    // If file 1MB or more show in MB
-    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
   return (
