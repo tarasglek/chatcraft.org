@@ -81,7 +81,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
       <Modal isCentered onClose={onClose} isOpen={isOpen}>
         <ModalOverlay />
         <ModalContent maxW="900px" w="90vw" p={4} position="absolute">
-          <ModalHeader>Attached Files</ModalHeader>
+          <ModalHeader>You Have {files.length} Attached Files</ModalHeader>
           <ModalCloseButton />
           <ModalBody maxH="70vh" overflowY="auto">
             {loading ? (
