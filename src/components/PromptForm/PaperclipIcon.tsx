@@ -44,7 +44,7 @@ type PaperClipProps = {
 };
 
 function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
-  const { files, loading, error } = useFiles(chat);
+  const { files, loading, error, refreshFiles } = useFiles(chat);
   const isAttached = files.length ? true : false;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { error: alertError } = useAlert();
@@ -55,11 +55,11 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
       if (!onAttachFiles || !event.target.files?.length) {
         return;
       }
-      await onAttachFiles(Array.from(event.target.files)).catch((err) =>
-        alertError({ title: "Unable to Attach Files", message: err.message })
-      );
+      await onAttachFiles(Array.from(event.target.files))
+        .then(() => refreshFiles())
+        .catch((err) => alertError({ title: "Unable to Attach Files", message: err.message }));
     },
-    [onAttachFiles, alertError]
+    [onAttachFiles, alertError, refreshFiles]
   );
 
   const handleAttachFiles = useCallback(() => {
@@ -124,7 +124,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
       </Tooltip>
       <Modal isCentered onClose={onClose} isOpen={isOpen}>
         <ModalOverlay />
-        <ModalContent maxW="900px" w="90vw" p={4}>
+        <ModalContent maxW="900px" w="90vw" p={4} position="absolute">
           <ModalHeader>Attached Files</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -243,7 +243,10 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
                           size="sm"
                           colorScheme="red"
                           variant="ghost"
-                          onClick={() => removeFile(file.name, chat)}
+                          onClick={async () => {
+                            await removeFile(file.name, chat);
+                            refreshFiles();
+                          }}
                           _hover={{ bg: "red.100" }}
                         />
                       </Tooltip>
