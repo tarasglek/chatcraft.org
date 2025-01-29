@@ -17,6 +17,7 @@ import {
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { downloadFile, removeFile } from "../lib/fs";
 import { formatFileSize } from "../lib/utils";
+import { IoMdDownload } from "react-icons/io";
 
 // File icon map moved to the new component
 const FILE_ICON_MAP: Record<string, IconType> = {
@@ -104,6 +105,28 @@ const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
             variant="ghost"
             onClick={async () => {
               await removeFile(file.name, chat);
+              onRefresh();
+            }}
+          />
+        </Tooltip>
+      </Flex>
+      <Flex
+        className="hover-buttons"
+        position="absolute"
+        top="4"
+        left="4"
+        gap={2}
+        opacity={0}
+        transition="all 0.2s ease-in-out"
+      >
+        <Tooltip label="Download File">
+          <IconButton
+            aria-label="Download File"
+            icon={<IoMdDownload />}
+            size="sm"
+            variant="ghost"
+            onClick={async () => {
+              await downloadFile(file.name, chat);
               onRefresh();
             }}
           />
