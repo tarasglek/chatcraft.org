@@ -1,4 +1,14 @@
-import { Box, Flex, IconButton, Text, Tooltip, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Editable,
+  EditablePreview,
+  EditableInput,
+  Flex,
+  IconButton,
+  Text,
+  Tooltip,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { IconType } from "react-icons";
 import { IoClose } from "react-icons/io5";
 import {
@@ -15,7 +25,7 @@ import {
   BsFileEarmark,
 } from "react-icons/bs";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
-import { downloadFile, removeFile } from "../lib/fs";
+import { downloadFile, removeFile, renameFile } from "../lib/fs";
 import { formatFileSize } from "../lib/utils";
 import { IoMdDownload } from "react-icons/io";
 
@@ -133,21 +143,35 @@ const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
         </Tooltip>
       </Flex>
       <Box position="absolute" bottom={6} width="full" textAlign="center">
-        <Tooltip label="Download File">
-          <Text
-            color="blue.300"
-            fontSize="sm"
-            mb={1}
-            noOfLines={1}
-            px={2}
-            onClick={async (e) => {
-              e.preventDefault();
-              await downloadFile(file.name, chat);
+        <Tooltip label="Edit Name">
+          <Editable
+            defaultValue={file.name}
+            mx="auto"
+            w="90%"
+            onSubmit={async (newVal) => {
+              await renameFile(file.name, chat, newVal);
+              onRefresh();
             }}
-            cursor="pointer"
           >
-            {file.name}
-          </Text>
+            <EditablePreview
+              fontSize="sm"
+              color="blue.300"
+              noOfLines={1}
+              px={2}
+              cursor="pointer"
+              textOverflow="ellipsis"
+              overflow="hidden"
+              whiteSpace="nowrap"
+            />
+            <EditableInput
+              fontSize="sm"
+              color="blue.300"
+              px={2}
+              textOverflow="ellipsis"
+              overflow="hidden"
+              whiteSpace="nowrap"
+            />
+          </Editable>
         </Tooltip>
         <Text fontSize="xs" color="gray.400">
           {formatFileSize(file.size)}
