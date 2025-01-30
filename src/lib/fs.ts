@@ -11,7 +11,6 @@ import { ChatCraftChat } from "./ChatCraftChat";
 import { ChatCraftFile } from "./ChatCraftFile";
 import { globFiles, insertFile, isUsingDuckDB, withConnection } from "./duckdb";
 import { download } from "./utils";
-import db from "./db";
 
 export class FileNotFoundError extends Error {
   constructor(path: string) {
@@ -239,47 +238,4 @@ export async function fileToUrl(path: string, chat: ChatCraftChat): Promise<stri
 export async function downloadFile(path: string, chat: ChatCraftChat): Promise<void> {
   const file = await getFile(path, chat);
   await file.download();
-}
-
-export async function renameFile(
-  path: string,
-  chat: ChatCraftChat,
-  newName: string
-): Promise<string> {
-  // check if new file name is empty return old name
-  if (!newName || newName.trim() === "") {
-    return path;
-  }
-
-  const oldExt = path.split(".").pop();
-  const newExt = newName.split(".").pop();
-  // check if extension differ or absent concat to new value
-  if (oldExt !== newExt) {
-    newName = `${newName}.${oldExt}`;
-  }
-
-  // check if the same file name exists, return old name
-  const nameExists = await exists(newName, chat);
-  if (nameExists) {
-    return path;
-  }
-
-  const file = await getFile(path, chat);
-
-  // if file instanceof chatcraftfileadapter we update file name in the db,
-  // else we are updating file in duckdb
-  if (file instanceof ChatCraftFileAdapter) {
-    await db.transaction("rw", db.files, async () => {
-      await db.files.update(file.id, {
-        name: newName,
-      });
-    });
-  } else if (file instanceof WebFileAdapter) {
-    await withConnection(async (_conn, duckdb) => {
-      const buffer = await duckdb.copyFileToBuffer(file.name);
-      await duckdb.registerFileBuffer(newName, buffer);
-      await duckdb.dropFile(file.name);
-    });
-  }
-  return newName;
 }
