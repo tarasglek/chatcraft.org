@@ -149,7 +149,7 @@ const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
             mx="auto"
             w="90%"
             onSubmit={async (newVal) => {
-              await renameFile(file.name, chat, newVal);
+              await renameFile(file.name, newVal, chat);
               onRefresh();
             }}
           >
