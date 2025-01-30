@@ -137,7 +137,6 @@ const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
             variant="ghost"
             onClick={async () => {
               await downloadFile(file.name, chat);
-              onRefresh();
             }}
           />
         </Tooltip>
