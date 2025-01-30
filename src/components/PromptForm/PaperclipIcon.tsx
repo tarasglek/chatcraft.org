@@ -18,7 +18,7 @@ import { FaPaperclip } from "react-icons/fa";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFiles } from "../../hooks/use-fs";
 import { useAlert } from "../../hooks/use-alert";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { acceptableFileFormats } from "../../lib/utils";
 import FileIcon from "../FileIcon";
 import { removeFile } from "../../lib/fs";
@@ -32,8 +32,10 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
   const { files, loading, error, refreshFiles } = useFiles(chat);
   const isAttached = files.length ? true : false;
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isErrorOpen, onOpen: onErrorOpen, onClose: onErrorClose } = useDisclosure();
   const { error: alertError } = useAlert();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteError, setDeleteError] = useState<string>("");
 
   const handleFileChange = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,10 +57,15 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
     onOpen();
   };
 
-  const handleDeleteAll = () => {
-    files.map((file) => {
-      removeFile(file.name, chat);
-    });
+  const handleDeleteAll = async () => {
+    try {
+      await Promise.all(files.map((file) => removeFile(file.name, chat)));
+      refreshFiles();
+      onClose();
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : "Failed to delete files");
+      onErrorOpen();
+    }
   };
 
   return (
@@ -125,6 +132,25 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
               Add Files
             </Button>
           </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Error modal */}
+      <Modal isCentered isOpen={isErrorOpen} onClose={onErrorClose} size="sm">
+        <ModalOverlay backdropFilter="blur(2px)" />
+        <ModalContent>
+          <ModalHeader
+            color="red"
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            Error !
+            <ModalCloseButton color="white" />
+          </ModalHeader>
+          <ModalBody color="red" pb={6}>
+            {deleteError}
+          </ModalBody>
         </ModalContent>
       </Modal>
     </>
