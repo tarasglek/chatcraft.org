@@ -19,7 +19,7 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFiles } from "../../hooks/use-fs";
 import { useAlert } from "../../hooks/use-alert";
 import { useCallback, useRef, useState } from "react";
-import { acceptableFileFormats } from "../../lib/utils";
+import { acceptableFileFormats } from "../../hooks/use-file-import";
 import FileIcon from "../FileIcon";
 import { removeFile } from "../../lib/fs";
 

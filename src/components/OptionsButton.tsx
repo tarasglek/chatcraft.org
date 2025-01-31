@@ -11,8 +11,9 @@ import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { useAlert } from "../hooks/use-alert";
 import { useSettings } from "../hooks/use-settings";
 import ShareModal from "./ShareModal";
-import { acceptableFileFormats, download } from "../lib/utils";
+import { download } from "../lib/utils";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
+import { acceptableFileFormats } from "../hooks/use-file-import";
 
 function ShareMenuItem({ chat }: { chat: ChatCraftChat }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
