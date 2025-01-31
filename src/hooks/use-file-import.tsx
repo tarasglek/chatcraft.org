@@ -8,7 +8,7 @@ import { JinaAIProvider, type JinaAiReaderResponse } from "../lib/providers/Jina
 import { ChatCraftFile } from "../lib/ChatCraftFile";
 
 export const acceptableFileFormats =
-  "image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown";
+  "image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,.jsonl,application/x-jsonlines,application/jsonl,application/markdown";
 
 function readTextFile(file: File) {
   return new Promise<string>((resolve, reject) => {
