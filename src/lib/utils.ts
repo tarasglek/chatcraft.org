@@ -3,9 +3,6 @@ export const isWindows = () => !isMac();
 
 export const formatNumber = (n: number) => (n ? n.toLocaleString() : "0");
 
-export const acceptableFileFormats =
-  "image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown";
-
 export const formatCurrency = (n: number) =>
   Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(n);
 

@@ -7,6 +7,9 @@ import { getSettings } from "../lib/settings";
 import { JinaAIProvider, type JinaAiReaderResponse } from "../lib/providers/JinaAIProvider";
 import { ChatCraftFile } from "../lib/ChatCraftFile";
 
+export const acceptableFileFormats =
+  "image/*,text/*,.pdf,application/pdf,*.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.json,application/json,application/markdown";
+
 function readTextFile(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
