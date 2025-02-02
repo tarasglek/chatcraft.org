@@ -29,6 +29,7 @@ import { useKeyDownHandler } from "../../hooks/use-key-down-handler";
 import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
+import PaperclipIcon from "./PaperclipIcon";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -380,6 +381,7 @@ function DesktopPromptForm({
                       onTranscriptionAvailable={handleTranscriptionAvailable}
                       onCancel={handleRecordingCancel}
                     />
+                    <PaperclipIcon chat={chat} onAttachFiles={importFiles} />
                   </Flex>
                 </Flex>
               </InputGroup>
