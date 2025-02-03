@@ -17,6 +17,11 @@ export const formatSeconds = (seconds: number) => {
   return `${minutesString}:${secondsString}`;
 };
 
+export const formatFileSize = (bytes: number) => {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+};
+
 export const formatDate = (d: Date, short = false) =>
   short
     ? new Intl.DateTimeFormat(undefined, {

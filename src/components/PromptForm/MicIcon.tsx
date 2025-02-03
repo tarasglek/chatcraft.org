@@ -134,7 +134,7 @@ export default function MicIcon({
   };
 
   return (
-    <Tooltip label={isRecording ? "Finish Recording" : "Start Recording"}>
+    <Tooltip label={isRecording ? "Finish Recording" : "Start Recording"} placement="top">
       <IconButton
         isRound
         isDisabled={isDisabled}

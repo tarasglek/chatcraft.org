@@ -21,12 +21,31 @@ export function isChatCraftTableName(name: string): name is ChatCraftTableName {
   return CHATCRAFT_TABLES.includes(name as ChatCraftTableName);
 }
 
+/** Represents a file reference within a chat */
+export type FileRef = {
+  /** Unique identifier of the file (content hash) */
+  id: string;
+  /** Display name of the file in this chat context */
+  name: string;
+};
+
+export function isFileRef(value: unknown): value is FileRef {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    typeof (value as FileRef).id === "string" &&
+    "name" in value &&
+    typeof (value as FileRef).name === "string"
+  );
+}
+
 export type ChatCraftChatTable = {
   id: string;
   date: Date;
   summary?: string;
   messageIds: string[];
-  fileIds?: string[];
+  fileRefs?: FileRef[];
 };
 
 export type ChatCraftMessageTable = {
@@ -197,6 +216,45 @@ class ChatCraftDatabase extends Dexie {
       // Remove imageUrls from index for messages
       messages: "id, date, chatId, type, model, user, text, versions",
       files: "id, name, type, size, text, created",
+    });
+    // Version 12 Migration - update the fileIds to files and FileRefs with
+    // both file id and name, so files can have different names per-chat.
+    this.version(12).upgrade(async (tx) => {
+      // Get all chats with fileIds
+      const chats = await tx
+        .table("chats")
+        .filter((chat) => Array.isArray(chat.fileIds) && chat.fileIds.length > 0)
+        .toArray();
+
+      // Update each chat's fileIds to files with FileRefs
+      for (const chat of chats) {
+        const { fileIds } = chat;
+        if (!fileIds?.length) {
+          continue;
+        }
+
+        const fileRefs: FileRef[] = (
+          await Promise.all(
+            fileIds.map(async (fileId: string) => {
+              const file = await tx.table<ChatCraftFileTable>("files").get(fileId);
+              if (!file) {
+                return null;
+              }
+              return {
+                id: fileId,
+                name: file.name,
+              };
+            })
+          )
+        ).filter((fileRef: FileRef | null): fileRef is FileRef => fileRef !== null);
+
+        // Update the chat with the new fileRefs array and remove old fileIds
+        await tx.table<ChatCraftChatTable>("chats").update(chat.id, {
+          ...chat,
+          fileRefs,
+          fileIds: undefined, // Remove the old property
+        });
+      }
     });
 
     this.chats = this.table("chats");

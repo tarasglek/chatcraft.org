@@ -11,7 +11,7 @@ export class ListFilesCommand extends ChatCraftCommand {
   async execute(chat: ChatCraftChat) {
     let markdown = "";
 
-    const files = await chat.files();
+    const files = chat.files();
     if (!files.length) {
       markdown += "No files.";
     } else {
