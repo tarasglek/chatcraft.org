@@ -33,10 +33,6 @@ export default function MicIcon({
 
   const { getSpeechToTextClient, isSpeechToTextSupported, allProvidersWithModels } = useModels();
 
-  if (!isSpeechToTextSupported) {
-    return <></>;
-  }
-
   const onRecordingStart = async () => {
     clearAudioQueue();
 
@@ -137,7 +133,7 @@ export default function MicIcon({
     <Tooltip label={isRecording ? "Finish Recording" : "Start Recording"} placement="top">
       <IconButton
         isRound
-        isDisabled={isDisabled}
+        isDisabled={!isSpeechToTextSupported || isDisabled}
         icon={<TbMicrophone />}
         variant={isRecording ? "solid" : isMobile ? "outline" : "ghost"}
         colorScheme={isRecording ? "red" : "blue"}
