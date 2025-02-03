@@ -81,6 +81,7 @@ const FILE_EXTENSIONS: Record<string, string> = {
   yaml: "yaml",
   yml: "yaml",
   json: "json",
+  jsonl: "json",
   xml: "xml",
   r: "r",
   csv: "csv",
@@ -109,6 +110,8 @@ const MIME_TYPES: Record<string, string> = {
   "application/json": "json",
   "text/xml": "xml",
   "application/xml": "xml",
+  "application/x-jsonlines": "json",
+  "text/x-jsonlines": "json",
 };
 
 function detectLanguage(filename: string, mimeType: string): string | undefined {
@@ -150,6 +153,12 @@ async function processFile(
     const contents = await JinaAIProvider.pdfToMarkdown(file);
     assertContents(contents);
     return contents;
+  }
+
+  if (file.name.endsWith(".jsonl")) {
+    const text = await readTextFile(file);
+    assertContents(text);
+    return formatTextContent(file.name, "application/x-jsonlines", text);
   }
 
   if (file.type === "application/markdown" || file.type === "text/markdown") {
