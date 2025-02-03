@@ -47,6 +47,7 @@ const FILE_ICON_MAP: Record<string, IconType> = {
   xlsx: BsFiletypeXls,
   // Code
   json: BsFiletypeJson,
+  jsonl: BsFiletypeJson,
   md: BsFiletypeMd,
 };
 
