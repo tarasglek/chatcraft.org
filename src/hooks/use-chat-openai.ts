@@ -131,7 +131,7 @@ function useChatOpenAI() {
                 text: currentText,
               })
             );
-            incrementScrollProgress();
+            // incrementScrollProgress();
           }
         },
       });
