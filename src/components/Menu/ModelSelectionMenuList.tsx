@@ -216,7 +216,7 @@ function DesktopModelSelectionMenuList({ onItemSelect }: ModelSelectionMenuListP
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </InputGroup>
-        <div style={{ height: "40dvh", width: "60dvh", overflowY: "auto" }}>
+        <div style={{ height: "40dvh", width: "27.5em", overflowY: "auto" }}>
           {models
             .filter((model) => isChatModel(model.id))
             .filter((model) =>
