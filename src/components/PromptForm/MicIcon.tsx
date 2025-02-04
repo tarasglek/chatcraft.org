@@ -1,6 +1,6 @@
 import { useModels } from "../../hooks/use-models";
 import { IconButton, Tooltip } from "@chakra-ui/react";
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { TbMicrophone } from "react-icons/tb";
 
 import { useAlert } from "../../hooks/use-alert";
@@ -129,8 +129,18 @@ export default function MicIcon({
     }
   };
 
+  const tooltipLabel = useMemo(
+    () =>
+      !isSpeechToTextSupported
+        ? "No configured provider supports speech to text conversion!"
+        : isRecording
+          ? "Finish Recording"
+          : "Start Recording",
+    [isRecording, isSpeechToTextSupported]
+  );
+
   return (
-    <Tooltip label={isRecording ? "Finish Recording" : "Start Recording"} placement="top">
+    <Tooltip label={tooltipLabel} placement="top">
       <IconButton
         isRound
         isDisabled={!isSpeechToTextSupported || isDisabled}
