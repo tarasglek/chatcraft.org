@@ -674,27 +674,29 @@ function MessageBase({
                   </VStack>
                 </form>
               ) : (
-                <Box ref={messageContent} p={1}>
-                  {imageUrls.map((imageUrl, index) => (
-                    <Box key={`${id}-${index}`}>
-                      <Image
-                        src={imageUrl}
-                        alt={`Images# ${index}`}
-                        margin={"auto"}
-                        maxWidth={"100%"}
-                        cursor={"pointer"}
-                        onClick={() => openModalWithImage(imageUrl)}
-                      />
-                    </Box>
-                  ))}
-                  <Markdown
-                    previewCode={!hidePreviews && !displaySummaryText}
-                    isLoading={isLoading}
-                    onPrompt={onPrompt}
-                    className={displaySummaryText ? "message-text message-text-blur" : undefined}
-                  >
-                    {displaySummaryText ? summaryText || text.slice(0, 500).trim() : text}
-                  </Markdown>
+                <Box>
+                  <Box ref={messageContent} p={1}>
+                    {imageUrls.map((imageUrl, index) => (
+                      <Box key={`${id}-${index}`}>
+                        <Image
+                          src={imageUrl}
+                          alt={`Images# ${index}`}
+                          margin={"auto"}
+                          maxWidth={"100%"}
+                          cursor={"pointer"}
+                          onClick={() => openModalWithImage(imageUrl)}
+                        />
+                      </Box>
+                    ))}
+                    <Markdown
+                      previewCode={!hidePreviews && !displaySummaryText}
+                      isLoading={isLoading}
+                      onPrompt={onPrompt}
+                      className={displaySummaryText ? "message-text message-text-blur" : undefined}
+                    >
+                      {displaySummaryText ? summaryText || text.slice(0, 500).trim() : text}
+                    </Markdown>
+                  </Box>
                   <Flex w="100%" justify="space-between" align="center">
                     <Button
                       hidden={!isLongMessage || editing}
