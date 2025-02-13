@@ -357,7 +357,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, , streamingMessage, setLoading, setShouldAutoScroll, callChatApi, error]
+    [user, chat, streamingMessage, setLoading, setShouldAutoScroll, callChatApi, error]
   );
 
   // Restart auto-scrolling and resume a paused response when Follow Chat is clicked
