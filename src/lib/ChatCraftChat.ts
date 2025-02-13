@@ -23,6 +23,8 @@ import { SharedChatCraftChat } from "./SharedChatCraftChat";
 import { countTokensInMessages } from "./ai";
 import { parseFunctionNames, loadFunctions } from "./ChatCraftFunction";
 import { ChatCraftFile } from "./ChatCraftFile";
+import { ChatCraftCommandRegistry } from "./ChatCraftCommandRegistry";
+import { ChatCraftCommand } from "./ChatCraftCommand";
 
 export type SerializedChatCraftChat = {
   id: string;
@@ -117,6 +119,57 @@ export class ChatCraftChat {
    */
   private getFileValues<T>(mapper: (f: FileRefWithFile) => T): T[] {
     return Array.from(this._files?.values() ?? []).map(mapper);
+  }
+
+  async completion(
+    prompt: string,
+    chat: ChatCraftChat,
+    user: any,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type, prettier/prettier
+    callChatApi: Function,
+    forceScroll: Function,
+    error: Function
+  ) {
+    try {
+      // Handle commands (slash commands)
+      if (ChatCraftCommandRegistry.isCommand(prompt)) {
+        const commandFunction = ChatCraftCommandRegistry.getCommand(prompt);
+        if (commandFunction) {
+          await commandFunction(chat, user);
+          forceScroll();
+        } else {
+          // If command is not recognized
+          const { command } = ChatCraftCommand.parseCommand(prompt)!;
+          const commandFunction = ChatCraftCommandRegistry.getCommand(`/commands ${command}`)!;
+          await commandFunction(chat, user);
+          forceScroll();
+        }
+        return;
+      }
+
+      // If not a command, treat as a prompt to LLM (or another AI model)
+      const promptMessage = new ChatCraftHumanMessage({ text: prompt, user });
+      await chat.addMessage(promptMessage);
+
+      // Handle any functions associated with the prompt
+      const functions = await chat.functions((err) =>
+        error({
+          title: `Error Loading Function`,
+          message: err.message,
+        })
+      );
+
+      const messages = chat.messages({ includeAppMessages: false });
+      const response = await callChatApi(messages, { functions });
+
+      await chat.addMessage(response);
+      //forceScroll();
+    } catch (err: any) {
+      error({
+        title: `Response Error`,
+        message: err.message,
+      });
+    }
   }
 
   /**
