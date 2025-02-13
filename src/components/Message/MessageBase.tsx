@@ -133,8 +133,9 @@ function MessageBase({
   const isSystemMessage = message instanceof ChatCraftSystemMessage;
   const isLongMessage =
     text.length > 5000 || (isSystemMessage && summaryText && text.length > summaryText.length);
-  const isMediumMessage =
-    text.length > 1500 || (isSystemMessage && summaryText && text.length > summaryText.length);
+  const isOverflowing =
+    (messageContent.current?.offsetHeight ?? 0) > window.innerHeight * 1.1 ||
+    (isSystemMessage && summaryText && text.length > summaryText.length);
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
   const shouldShowDeleteMenu =
     Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick) && !disableEdit;
@@ -710,7 +711,7 @@ function MessageBase({
                       {isOpen ? "Show Less" : "Show More..."}
                     </Button>
                     <Button
-                      hidden={isSystemMessage || !isMediumMessage}
+                      hidden={isSystemMessage || !isOverflowing}
                       size="sm"
                       variant="ghost"
                       ml="auto"
