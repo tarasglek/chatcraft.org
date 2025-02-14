@@ -7,6 +7,7 @@ import rehypeExternalLinks from "rehype-external-links";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
+import MarkdownTable from "./MarkdownTable";
 import "katex/dist/katex.min.css";
 
 // Use highlight.js (via lowlight) vs. prism.js (via refractor) due to
@@ -162,6 +163,7 @@ function Markdown({
             </>
           );
         },
+        table: ({ children }) => <MarkdownTable children={children} />,
       }}
     />
   );
