@@ -3,6 +3,7 @@ import { getSettings } from "../settings";
 import { OPENAI_API_URL, OpenAiProvider } from "./OpenAiProvider";
 import { OPENROUTER_API_URL, OpenRouterProvider } from "./OpenRouterProvider";
 import { FREEMODELPROVIDER_API_URL, FreeModelProvider } from "./DefaultProvider/FreeModelProvider";
+import { COHERE_API_URL, CohereProvider } from "./CohereProvider";
 import { CustomProvider } from "./CustomProvider";
 
 export const usingOfficialOpenAI = () => getSettings().currentProvider.apiUrl === OPENAI_API_URL;
@@ -24,6 +25,10 @@ export function providerFromUrl(url: string, key?: string, name?: string, defaul
 
   if (trimmedUrl === FREEMODELPROVIDER_API_URL) {
     return new FreeModelProvider();
+  }
+
+  if (trimmedUrl === COHERE_API_URL) {
+    return new CohereProvider(key, name);
   }
 
   if (name) {
@@ -49,6 +54,10 @@ export function providerFromJSON({
     return OpenRouterProvider.fromJSON({ id, name, apiUrl, apiKey, defaultModel });
   }
 
+  if (apiUrl === COHERE_API_URL) {
+    return CohereProvider.fromJSON({ id, name, apiUrl, apiKey, defaultModel });
+  }
+
   if (apiUrl === FREEMODELPROVIDER_API_URL) {
     return new FreeModelProvider();
   }
@@ -60,10 +69,12 @@ export const supportedProviders: ProviderData = (() => {
   const freeModel = new FreeModelProvider();
   const openRouter = new OpenRouterProvider();
   const openAi = new OpenAiProvider();
+  const cohere = new CohereProvider();
 
   return {
     [freeModel.name]: freeModel,
     [openRouter.name]: openRouter,
     [openAi.name]: openAi,
+    [cohere.name]: cohere,
   };
 })();
