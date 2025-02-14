@@ -24,6 +24,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@eslint/compat": "^1.2.4",
+    "@pomdtr/lastlogin": "npm:@jsr/pomdtr__lastlogin@^0.5.13",
     "@szhsin/react-menu": "^4.2.3",
     "@uiw/react-codemirror": "^4.23.7",
     "apache-arrow": "^17.0.0",

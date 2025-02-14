@@ -1,6 +1,7 @@
 import { createResourcesForEnv } from "../utils";
 import { handleGithubLogin } from "../github";
 import { handleGoogleLogin } from "../google";
+import { handleLastLogin } from "../lastlogin";
 
 interface Env {
   ENVIRONMENT: string;
@@ -47,7 +48,17 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const code = reqUrl.searchParams.get("code");
 
   const { appUrl, isDev, tokenProvider } = createResourcesForEnv(env.ENVIRONMENT, request.url);
-
+  // use lastlogin for dev
+  if (isDev) {
+    return handleLastLogin(
+      request,
+      provider === "google" ? provider : "github",
+      chatId,
+      JWT_SECRET,
+      tokenProvider,
+      appUrl
+    );
+  }
   if (provider === "google") {
     return handleGoogleLogin({
       isDev,

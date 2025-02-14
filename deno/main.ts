@@ -1,10 +1,10 @@
 // watchexec --verbose -i deno/** pnpm build
 // deno run --unstable-net --unstable-sloppy-imports --watch -A serve-ssl.ts
 import { serveDir } from "jsr:@std/http/file-server";
+import { byPattern } from "jsr:@http/route/by-pattern";
 import freshPathMapper from "jsr:@http/discovery/fresh-path-mapper";
 import { discoverRoutes } from "jsr:@http/discovery/discover-routes";
 import { asSerializablePattern } from "jsr:@http/discovery/as-serializable-pattern";
-import { byPattern } from "jsr:@http/route/by-pattern";
 import { handle } from "jsr:@http/route/handle";
 import * as path from "jsr:@std/path";
 
@@ -27,12 +27,6 @@ const env = {
  * @param {string} modulePath - The full path to the module to import
  * @param {boolean} [verbose=false] - Whether to enable verbose logging
  * @returns {Function|null} - A fetch handler function or null if the module is invalid
- *
- * @example
- * const handler = adaptCloudflareHandler('/path/to/module.ts');
- * if (handler) {
- *   app.get('/route', handler);
- * }
  */
 function adaptCloudflareHandler(modulePath: string, verbose = false) {
   const modulePathShort = modulePath.substring(
@@ -119,8 +113,12 @@ async function cfRoutes(fileRootUrl: string, prefix: string, verbose = false) {
   return handlers;
 }
 
-const verbose = false;
-const cfHandlers = await cfRoutes(import.meta.resolve("../functions"), "/api", verbose);
+const verbose = true;
+
+const cfHandlers = [
+  ...(await cfRoutes(import.meta.resolve("../functions"), "/api", verbose)),
+  ...(await cfRoutes(import.meta.resolve("../functions"), "/_auth", verbose)), // will remove this once we have more customization in lastlogin lib
+];
 
 const serveOpts = { fsRoot: "build" };
 
