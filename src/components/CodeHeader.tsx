@@ -15,6 +15,7 @@ import { TbCopy, TbDownload, TbExternalLink, TbRun } from "react-icons/tb";
 import { download, formatAsCodeBlock } from "../lib/utils";
 import { useAlert } from "../hooks/use-alert";
 import { isRunnableInBrowser, runCode } from "../lib/run-code";
+import { useChat } from "../hooks/use-chat";
 
 type PreHeaderProps = {
   language: string;
@@ -38,6 +39,7 @@ function CodeHeader({
   const [isRunning, setIsRunning] = useState(false);
   // Only show the "Run" button for JS code blocks, and only when we aren't already loading
   const shouldShowRunButton = isRunnableInBrowser(language) && onPrompt;
+  const { chat } = useChat();
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -62,7 +64,7 @@ function CodeHeader({
     setIsRunning(true);
 
     try {
-      let { logs, ret } = await runCode(code, language);
+      let { logs, ret } = await runCode(code, language, chat);
 
       if (typeof ret === "string") {
         // catch corner cases with strings
@@ -109,7 +111,7 @@ function CodeHeader({
     } finally {
       setIsRunning(false);
     }
-  }, [onPrompt, code, language]);
+  }, [onPrompt, code, language, chat]);
 
   const toUrl = (code: string) =>
     URL.createObjectURL(new Blob([code], { type: "text/plain;charset=utf-8" }));

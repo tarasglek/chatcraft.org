@@ -11,6 +11,7 @@ import { ModelsProvider } from "./hooks/use-models";
 import { CostProvider } from "./hooks/use-cost";
 import { AudioPlayerProvider } from "./hooks/use-audio-player";
 import { WebHandlersProvider } from "./hooks/use-web-handlers";
+import { ChatProvider } from "./hooks/use-chat";
 
 ReactDOM.createRoot(document.querySelector("main") as HTMLElement).render(
   <React.StrictMode>
@@ -21,8 +22,10 @@ ReactDOM.createRoot(document.querySelector("main") as HTMLElement).render(
             <CostProvider>
               <ModelsProvider>
                 <UserProvider>
-                  <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-                  <RouterProvider router={router} />
+                  <ChatProvider>
+                    <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+                    <RouterProvider router={router} />
+                  </ChatProvider>
                 </UserProvider>
               </ModelsProvider>
             </CostProvider>
