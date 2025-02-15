@@ -99,8 +99,8 @@ importers:
         specifier: ^1.7.0
         version: 1.7.0
       openai:
-        specifier: ^4.83.0
-        version: 4.83.0(ws@8.18.0)(zod@3.24.1)
+        specifier: ^4.85.1
+        version: 4.85.1(ws@8.18.0)(zod@3.24.1)
       p-limit:
         specifier: ^6.2.0
         version: 6.2.0
@@ -241,8 +241,8 @@ importers:
         specifier: ^6.1.0
         version: 6.1.0(@types/node@22.13.1)(terser@5.38.1)(yaml@2.7.0)
       vite-plugin-node-polyfills:
-        specifier: ^0.22.0
-        version: 0.22.0(rollup@2.79.2)(vite@6.1.0(@types/node@22.13.1)(terser@5.38.1)(yaml@2.7.0))
+        specifier: ^0.23.0
+        version: 0.23.0(rollup@2.79.2)(vite@6.1.0(@types/node@22.13.1)(terser@5.38.1)(yaml@2.7.0))
       vite-plugin-pwa:
         specifier: ^0.21.1
         version: 0.21.1(vite@6.1.0(@types/node@22.13.1)(terser@5.38.1)(yaml@2.7.0))(workbox-build@7.3.0(@types/babel__core@7.20.5))(workbox-window@7.3.0)
@@ -4344,8 +4344,8 @@ packages:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
     engines: {node: '>=12'}
 
-  openai@4.83.0:
-    resolution: {integrity: sha512-fmTsqud0uTtRKsPC7L8Lu55dkaTwYucqncDHzVvO64DKOpNTuiYwjbR/nVgpapXuYy8xSnhQQPUm+3jQaxICgw==}
+  openai@4.85.1:
+    resolution: {integrity: sha512-jkX2fntHljUvSH3MkWh4jShl10oNkb+SsCj4auKlbu2oF4KWAnmHLNR5EpnUHK1ZNW05Rp0fjbJzYwQzMsH8ZA==}
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
@@ -5467,10 +5467,10 @@ packages:
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
 
-  vite-plugin-node-polyfills@0.22.0:
-    resolution: {integrity: sha512-F+G3LjiGbG8QpbH9bZ//GSBr9i1InSTkaulfUHFa9jkLqVGORFBoqc2A/Yu5Mmh1kNAbiAeKeK+6aaQUf3x0JA==}
+  vite-plugin-node-polyfills@0.23.0:
+    resolution: {integrity: sha512-4n+Ys+2bKHQohPBKigFlndwWQ5fFKwaGY6muNDMTb0fSQLyBzS+jjUNRZG9sKF0S/Go4ApG6LFnUGopjkILg3w==}
     peerDependencies:
-      vite: ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
+      vite: ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
 
   vite-plugin-pwa@0.21.1:
     resolution: {integrity: sha512-rkTbKFbd232WdiRJ9R3u+hZmf5SfQljX1b45NF6oLA6DSktEKpYllgTo1l2lkiZWMWV78pABJtFjNXfBef3/3Q==}
@@ -10628,7 +10628,7 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  openai@4.83.0(ws@8.18.0)(zod@3.24.1):
+  openai@4.85.1(ws@8.18.0)(zod@3.24.1):
     dependencies:
       '@types/node': 18.19.75
       '@types/node-fetch': 2.6.12
@@ -11916,7 +11916,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite-plugin-node-polyfills@0.22.0(rollup@2.79.2)(vite@6.1.0(@types/node@22.13.1)(terser@5.38.1)(yaml@2.7.0)):
+  vite-plugin-node-polyfills@0.23.0(rollup@2.79.2)(vite@6.1.0(@types/node@22.13.1)(terser@5.38.1)(yaml@2.7.0)):
     dependencies:
       '@rollup/plugin-inject': 5.0.5(rollup@2.79.2)
       node-stdlib-browser: 1.3.1
