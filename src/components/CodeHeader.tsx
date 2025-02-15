@@ -111,7 +111,7 @@ function CodeHeader({
     } finally {
       setIsRunning(false);
     }
-  }, [onPrompt, code, language]);
+  }, [onPrompt, code, language, chat]);
 
   const toUrl = (code: string) =>
     URL.createObjectURL(new Blob([code], { type: "text/plain;charset=utf-8" }));
