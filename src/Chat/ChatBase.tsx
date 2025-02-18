@@ -201,21 +201,13 @@ function ChatBase({ chat }: ChatBaseProps) {
       setLoading(true);
 
       try {
-        await chat.completion(
-          prompt ?? "",
-          chat,
-          user,
-          settings,
-          clearAudioQueue,
-          callChatApi,
-          forceScroll,
-          error,
-          imageUrls
-        );
+        await chat.completion(prompt ?? "", chat, user, settings, callChatApi, error, imageUrls);
       } catch (err) {
         console.error("Error during completion: ", err);
       } finally {
         setLoading(false);
+        // Clear any previous audio clips
+        clearAudioQueue();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

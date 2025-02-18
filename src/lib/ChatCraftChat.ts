@@ -127,9 +127,7 @@ export class ChatCraftChat {
     user: any,
     settings: any,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    clearAudioQueue: Function,
     callChatApi: Function,
-    forceScroll: Function,
     error: Function,
     imageUrls?: string[]
   ) {
@@ -145,7 +143,6 @@ export class ChatCraftChat {
         const result = await handler.executeHandler(prompt);
 
         chat.addMessage(new ChatCraftHumanMessage({ user, text: result }));
-        forceScroll();
       } catch (err: any) {
         error({
           title: "Error running Web Handler",
@@ -161,7 +158,6 @@ export class ChatCraftChat {
       if (commandFunction) {
         try {
           await commandFunction(chat, user);
-          forceScroll();
         } catch (err: any) {
           error({
             title: `Error Running Command`,
@@ -178,7 +174,6 @@ export class ChatCraftChat {
         const commandFunction = ChatCraftCommandRegistry.getCommand(`/commands ${command}`)!;
         try {
           await commandFunction(chat, user);
-          forceScroll();
         } catch (err: any) {
           error({
             title: `Error Running Command`,
@@ -224,9 +219,6 @@ export class ChatCraftChat {
       // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
       const messages = chat.messages({ includeAppMessages: false });
 
-      // Clear any previous audio clips
-      clearAudioQueue();
-
       const response = await callChatApi(messages, {
         functions,
         functionToCall,
@@ -252,19 +244,8 @@ export class ChatCraftChat {
 
         // If the user has opted to always send function results back to LLM, do it now
         if (settings.alwaysSendFunctionResult) {
-          await chat.completion(
-            prompt ?? "",
-            chat,
-            user,
-            settings,
-            clearAudioQueue,
-            callChatApi,
-            forceScroll,
-            error
-          );
+          await chat.completion(prompt ?? "", chat, user, settings, callChatApi, error);
         }
-
-        forceScroll();
       }
     } catch (err: any) {
       if (err instanceof ChatCompletionError && err.incompleteResponse) {
