@@ -1,5 +1,6 @@
 import esbuildWasmUrl from "esbuild-wasm/esbuild.wasm?url";
 import { queryToMarkdown } from "./duckdb-chatcraft";
+import { ChatCraftChat } from "./ChatCraftChat";
 
 // By default, we haven't loaded the esbuild wasm module, and
 // the esbuild module doesn't have a concept of checking if it's
@@ -199,17 +200,20 @@ export async function toJavaScript(tsCode: string) {
   return js.code;
 }
 
-async function runSQL(sql: string): Promise<ExecutionResult> {
+async function runSQL(sql: string, chat?: ChatCraftChat): Promise<ExecutionResult> {
   try {
-    // TODO: need to plumb the chat through to here, so we can inject files when we query...
-    const result = await queryToMarkdown(sql);
+    const result = await queryToMarkdown(sql, { chat });
     return { ret: result, logs: undefined };
   } catch (error) {
     return { ret: "", logs: error instanceof Error ? error.stack : String(error) };
   }
 }
 
-export async function runCode(code: string, language: string): Promise<ExecutionResult> {
+export async function runCode(
+  code: string,
+  language: string,
+  chat?: ChatCraftChat
+): Promise<ExecutionResult> {
   if (isTypeScript(language)) {
     code = await toJavaScript(code);
     language = "js";
@@ -222,7 +226,7 @@ export async function runCode(code: string, language: string): Promise<Execution
   } else if (isRuby(language)) {
     return runInWasi(code, "ruby");
   } else if (language === "sql") {
-    return runSQL(code);
+    return runSQL(code, chat);
   } else {
     return { ret: "", logs: `Unsupported language: ${language}` };
   }
