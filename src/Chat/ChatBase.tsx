@@ -203,7 +203,10 @@ function ChatBase({ chat }: ChatBaseProps) {
       try {
         await chat.completion(prompt ?? "", chat, user, settings, callChatApi, error, imageUrls);
       } catch (err) {
-        console.error("Error during completion: ", err);
+        error({
+          title: `Completion Error`,
+          message: `Error with chat completion: ${err}`,
+        });
       } finally {
         setLoading(false);
         // Clear any previous audio clips

@@ -128,6 +128,7 @@ export class ChatCraftChat {
     settings: any,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     callChatApi: Function,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     error: Function,
     imageUrls?: string[]
   ) {
