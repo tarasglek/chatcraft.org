@@ -68,7 +68,7 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
 
   const handleDeleteAll = async () => {
     try {
-      await Promise.all(files.map((file) => removeFile(file.id, chat)));
+      await Promise.all(files.map((file) => removeFile(file.name, chat)));
       refreshFiles();
       onClose();
     } catch (error) {
