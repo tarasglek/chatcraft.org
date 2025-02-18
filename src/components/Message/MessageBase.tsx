@@ -36,6 +36,7 @@ import {
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { TbDownload, TbShare3, TbTrash } from "react-icons/tb";
+import { FaArrowUp } from "react-icons/fa";
 import { Link as ReactRouterLink } from "react-router-dom";
 import ResizeTextarea from "react-textarea-autosize";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "../Menu";
@@ -712,15 +713,20 @@ function MessageBase({
                     >
                       {isOpen ? "Show Less" : "Show More..."}
                     </Button>
-                    <Button
-                      hidden={isSystemMessage || !isOverflowing}
-                      size="sm"
-                      variant="ghost"
-                      ml="auto"
-                      onClick={() => scrollToTop()}
-                    >
-                      {"Back to Top"}
-                    </Button>
+                    <Flex />
+                    <Flex justifyContent="flex-end">
+                      {isOverflowing && !isSystemMessage && (
+                        <IconButton
+                          variant="ghost"
+                          icon={<FaArrowUp />}
+                          ml="auto"
+                          aria-label="Scroll back to the top of the message"
+                          title="Scroll Back To Top"
+                          onClick={() => scrollToTop()}
+                        />
+                      )}
+                    </Flex>
+
                     <Button
                       hidden={!!disableEdit || !isSystemMessage}
                       size="sm"
