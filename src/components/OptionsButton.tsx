@@ -14,8 +14,6 @@ import ShareModal from "./ShareModal";
 import { download } from "../lib/utils";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "./Menu";
 import { acceptableFileFormats } from "../hooks/use-file-import";
-import { generateUniqueFilename } from "../lib/utils";
-import { useFiles } from "../hooks/use-fs";
 
 function ShareMenuItem({ chat }: { chat: ChatCraftChat }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -31,7 +29,7 @@ function ShareMenuItem({ chat }: { chat: ChatCraftChat }) {
 }
 
 type OptionsButtonProps = {
-  chat: ChatCraftChat;
+  chat?: ChatCraftChat;
   forkUrl?: string;
   variant?: "outline" | "solid" | "ghost";
   iconOnly?: boolean;
@@ -52,25 +50,17 @@ function OptionsButton({
   const [, copyToClipboard] = useCopyToClipboard();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { settings } = useSettings();
-  const { refreshFiles, files } = useFiles(chat);
 
   const handleFileChange = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!onAttachFiles || !event.target.files?.length) {
         return;
       }
-
-      const newFiles = Array.from(event.target.files);
-      const uniqueFiles = newFiles.map((file) => {
-        const uniqueName = generateUniqueFilename(file.name, files);
-        return new File([file], uniqueName, { type: file.type });
-      });
-
-      await onAttachFiles(uniqueFiles)
-        .then(() => refreshFiles)
-        .catch((err) => error({ title: "Unable to Attach Files", message: err.message }));
+      await onAttachFiles(Array.from(event.target.files)).catch((err) =>
+        error({ title: "Unable to Attach Files", message: err.message })
+      );
     },
-    [onAttachFiles, error, refreshFiles, files]
+    [onAttachFiles, error]
   );
 
   const handleAttachFiles = useCallback(() => {
