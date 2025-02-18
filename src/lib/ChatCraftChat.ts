@@ -126,7 +126,7 @@ export class ChatCraftChat {
     chat: ChatCraftChat,
     user: any,
     settings: any,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type, prettier/prettier
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     clearAudioQueue: Function,
     callChatApi: Function,
     forceScroll: Function,
