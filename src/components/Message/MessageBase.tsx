@@ -134,9 +134,7 @@ function MessageBase({
   const isSystemMessage = message instanceof ChatCraftSystemMessage;
   const isLongMessage =
     text.length > 5000 || (isSystemMessage && summaryText && text.length > summaryText.length);
-  const isOverflowing =
-    (messageContent.current?.offsetHeight ?? 0) > window.innerHeight * 1.1 ||
-    (isSystemMessage && summaryText && text.length > summaryText.length);
+  const isOverflowing = (messageContent.current?.offsetHeight ?? 0) > window.innerHeight * 1.1;
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
   const shouldShowDeleteMenu =
     Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick) && !disableEdit;
