@@ -715,7 +715,7 @@ function MessageBase({
                     </Button>
                     <Flex />
                     <Flex justifyContent="flex-end">
-                      {isOverflowing && !isSystemMessage && (
+                      {isOverflowing && (
                         <IconButton
                           variant="ghost"
                           icon={<IoChevronUpCircleOutline />}
