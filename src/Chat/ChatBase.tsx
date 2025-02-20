@@ -28,6 +28,7 @@ import useChatOpenAI from "../hooks/use-chat-openai";
 import { useModels } from "../hooks/use-models";
 import { useSettings } from "../hooks/use-settings";
 import { useUser } from "../hooks/use-user";
+import useChatCompletion from "../hooks/use-chat-completion";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import ChatHeader from "./ChatHeader";
 
@@ -39,6 +40,7 @@ function ChatBase({ chat }: ChatBaseProps) {
   const { error: apiError } = useModels();
   // When chatting with OpenAI, a streaming message is returned during loading
   const { streamingMessage, callChatApi, cancel, paused, resume, togglePause } = useChatOpenAI();
+  const { chatCompletion } = useChatCompletion();
   const { settings, setSettings } = useSettings();
   const { isOpen: isSidebarVisible, onToggle: toggleSidebarVisible } = useDisclosure({
     defaultIsOpen: settings.sidebarVisible,
@@ -201,7 +203,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       setLoading(true);
 
       try {
-        await chat.completion(prompt ?? "", chat, user, settings, callChatApi, error, imageUrls);
+        await chatCompletion(prompt ?? "", chat, imageUrls);
       } catch (err) {
         error({
           title: `Completion Error`,
