@@ -35,7 +35,7 @@ export const generateUniqueFilename = (
 
   // Keep incrementing counter until we find a unique name
   do {
-    newName = `${baseName}-${counter}${extension}`;
+    newName = `${baseName}(${counter})${extension}`;
     counter++;
   } while (existingFiles.some((file) => file.name === newName));
 
