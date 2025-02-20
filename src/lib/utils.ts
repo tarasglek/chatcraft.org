@@ -17,6 +17,31 @@ export const formatSeconds = (seconds: number) => {
   return `${minutesString}:${secondsString}`;
 };
 
+export const generateUniqueFilename = (
+  filename: string,
+  existingFiles: { name: string }[]
+): string => {
+  const lastDotIndex = filename.lastIndexOf(".");
+  const baseName = lastDotIndex === -1 ? filename : filename.slice(0, lastDotIndex);
+  const extension = lastDotIndex === -1 ? "" : filename.slice(lastDotIndex);
+
+  // If no duplicate exists, return original filename
+  if (!existingFiles.some((file) => file.name === filename)) {
+    return filename;
+  }
+
+  let counter = 1;
+  let newName: string;
+
+  // Keep incrementing counter until we find a unique name
+  do {
+    newName = `${baseName}(${counter})${extension}`;
+    counter++;
+  } while (existingFiles.some((file) => file.name === newName));
+
+  return newName;
+};
+
 export const formatFileSize = (bytes: number) => {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
