@@ -36,6 +36,7 @@ import {
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { TbDownload, TbShare3, TbTrash } from "react-icons/tb";
+import { IoChevronUpCircleOutline } from "react-icons/io5";
 import { Link as ReactRouterLink } from "react-router-dom";
 import ResizeTextarea from "react-textarea-autosize";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "../Menu";
@@ -133,6 +134,7 @@ function MessageBase({
   const isSystemMessage = message instanceof ChatCraftSystemMessage;
   const isLongMessage =
     text.length > 5000 || (isSystemMessage && summaryText && text.length > summaryText.length);
+  const isOverflowing = (messageContent.current?.offsetHeight ?? 0) > window.innerHeight * 1.1;
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
   const shouldShowDeleteMenu =
     Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick) && !disableEdit;
@@ -453,6 +455,9 @@ function MessageBase({
     },
     [clearAudioQueue, settings.textToSpeech, addToAudioQueue, textToSpeech, error]
   );
+  const scrollToTop = () => {
+    messageContent.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <Box
@@ -706,6 +711,20 @@ function MessageBase({
                     >
                       {isOpen ? "Show Less" : "Show More..."}
                     </Button>
+                    <Flex />
+                    <Flex justifyContent="flex-end">
+                      {isOverflowing && (
+                        <IconButton
+                          variant="ghost"
+                          icon={<IoChevronUpCircleOutline />}
+                          ml="auto"
+                          aria-label="Scroll back to the top of the message"
+                          title="Scroll Back To Top"
+                          onClick={() => scrollToTop()}
+                        />
+                      )}
+                    </Flex>
+
                     <Button
                       hidden={!!disableEdit || !isSystemMessage}
                       size="sm"
