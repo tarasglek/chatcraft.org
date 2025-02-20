@@ -36,7 +36,7 @@ import {
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdContentCopy } from "react-icons/md";
 import { TbDownload, TbShare3, TbTrash } from "react-icons/tb";
-import { FaArrowUp } from "react-icons/fa";
+import { IoChevronUpCircleOutline } from "react-icons/io5";
 import { Link as ReactRouterLink } from "react-router-dom";
 import ResizeTextarea from "react-textarea-autosize";
 import { Menu, MenuDivider, MenuItem, MenuItemLink, SubMenu } from "../Menu";
@@ -718,7 +718,7 @@ function MessageBase({
                       {isOverflowing && !isSystemMessage && (
                         <IconButton
                           variant="ghost"
-                          icon={<FaArrowUp />}
+                          icon={<IoChevronUpCircleOutline />}
                           ml="auto"
                           aria-label="Scroll back to the top of the message"
                           title="Scroll Back To Top"
