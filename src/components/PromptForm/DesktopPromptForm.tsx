@@ -30,6 +30,7 @@ import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
 import PaperclipIcon from "./PaperclipIcon";
+import { ChatCraftCommandRegistry } from "../../lib/ChatCraftCommandRegistry";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -177,7 +178,7 @@ function DesktopPromptForm({
     onMetaEnter: handlePromptSubmit,
   });
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = async (e: KeyboardEvent<HTMLTextAreaElement>) => {
     switch (e.key) {
       // Allow the user to cursor-up to repeat last prompt
       case "ArrowUp":
@@ -196,6 +197,19 @@ function DesktopPromptForm({
           if (!e.shiftKey && !isPromptEmpty) {
             handlePromptSubmit(e);
           }
+        }
+        break;
+
+      // Shortcut to "/clear" the chat
+      case "l":
+        if (e.ctrlKey) {
+          e.preventDefault();
+          const clearCommand = ChatCraftCommandRegistry.getCommand("/clear");
+
+          if (!clearCommand) {
+            return console.error("Could not find '/clear' command in ChatCraftCommandRegistry!");
+          }
+          await clearCommand(chat, undefined);
         }
         break;
 
@@ -406,7 +420,7 @@ function DesktopPromptForm({
                         _dark={{ bg: "gray.700" }}
                         placeholder={
                           !isLoading && !isRecording && !isTranscribing
-                            ? "Ask a question or use /help to learn more"
+                            ? "Ask a question or use /help to learn more ('CTRL+L' to clear chat)"
                             : undefined
                         }
                         overflowY="auto"
