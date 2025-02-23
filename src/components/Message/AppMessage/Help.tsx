@@ -12,9 +12,9 @@ function getCommandsHelpText(supportedCommands: ChatCraftCommand[]) {
   with a "/" (e.g., "/help") will be interpreted as a command that ChatCraft should run.
   Some commands accept arguments as well.
 
-  | Command | Description |
-  |-----|------|
-  ${supportedCommands.map((command) => `| ${command.helpTitle} | ${command.helpDescription} |`).join("\n")}
+  | Command | Description | Keyboard Shortcut |
+  |-----|------|------|
+  ${supportedCommands.map((command) => `| ${command.helpTitle} | ${command.helpDescription} |  ${command.keyboardShortcutDescription || "N/A"} |`).join("\n")}
   `;
 }
 
