@@ -10,7 +10,7 @@ export class ImageCommand extends ChatCraftCommand {
     super(
       "image",
       "/image [layout-option]<prompt>",
-      "/image&nbsp;[layout-option]<prompt> | Creates an image using the provided prompt. By default, the image will be square, and you can also change the layout to landscape or portrait by specifying `layout=[l\\|landscape\\|p\\|portrait]`"
+      "/image&nbsp;[layout-option]<prompt> \\| Creates an image using the provided prompt. By default, the image will be square, and you can also change the layout to landscape or portrait by specifying `layout=[l\\|landscape\\|p\\|portrait]`"
     );
   }
 
