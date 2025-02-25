@@ -1,4 +1,3 @@
-// src/index.jsx
 import { scan } from "react-scan"; // must be imported before React and React DOM
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -7,7 +6,7 @@ import { RouterProvider } from "react-router-dom";
 
 import router from "./router";
 import theme from "./theme";
-import { SettingsProvider, useSettings } from "./hooks/use-settings";
+import { SettingsProvider } from "./hooks/use-settings";
 import { UserProvider } from "./hooks/use-user";
 import { ModelsProvider } from "./hooks/use-models";
 import { CostProvider } from "./hooks/use-cost";
