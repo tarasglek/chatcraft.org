@@ -13,7 +13,7 @@ interface Provider {
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const { tokenProvider } = createResourcesForEnv(env.ENVIRONMENT, request.url);
-  const { accessToken, username } = tokenProvider.getTokens(request);
+  const { accessToken, sub } = tokenProvider.getTokens(request);
 
   const freeAINonLoggedIn: Provider = {
     name: "Free AI",
