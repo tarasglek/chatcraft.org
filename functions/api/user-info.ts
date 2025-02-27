@@ -12,14 +12,14 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     name: "Free AI",
     apiUrl: "https://free-chatcraft-ai.deno.dev/api/v1",
     defaultModel: "auto",
-    apiKey: ""
+    apiKey: "",
   };
 
   const freeAILoggedIn = {
     name: "Free AI",
     apiUrl: "https://free-chatcraft-ai.coolness.fyi/api/v1",
     defaultModel: "auto",
-    apiKey: ""
+    apiKey: "",
   };
 
   const jsonHeaders = { "Content-Type": "application/json" };
