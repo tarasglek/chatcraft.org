@@ -8,15 +8,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const { tokenProvider } = createResourcesForEnv(env.ENVIRONMENT, request.url);
   const { accessToken } = tokenProvider.getTokens(request);
 
-  if (accessToken) {
-    return new Response(JSON.stringify({ providers: [] }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  const jsonHeaders = { "Content-Type": "application/json" };
+  const responseBody = accessToken ? { providers: [] } : {};
 
-  return new Response(JSON.stringify({}), {
+  return new Response(JSON.stringify(responseBody), {
     status: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: jsonHeaders,
   });
 };
