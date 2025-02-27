@@ -18,6 +18,8 @@ interface Provider {
  * b) if user already has a provider of same name marked 'system', then we are free to replace it
  * c) if user does not have a provider as returned by systemProviders, we add it
  * d) if user has no other providers, the provider that just got added becomes the default
+ * e) if the current provider is a system one..newly added system provider becomes the default
+ * f) we don't currently support deleting providers only replacing em...so if you get free provider while not logged in, then log in and get another one..the old free provider remains but is no longer the default
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const { tokenProvider } = createResourcesForEnv(env.ENVIRONMENT, request.url);
