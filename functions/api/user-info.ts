@@ -16,10 +16,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const { tokenProvider } = createResourcesForEnv(env.ENVIRONMENT, request.url);
   const { accessToken } = tokenProvider.getTokens(request);
 
-  let username = "";
+  let username: string | null = null;
   if (accessToken) {
     const payload = await tokenProvider.verifyToken(accessToken, env.JWT_SECRET);
-    username = payload?.sub || "";
+    username = payload?.sub ?? null;
   }
 
   const freeAINonLoggedIn: Provider = {
@@ -37,7 +37,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   };
 
   const jsonHeaders = { "Content-Type": "application/json" };
-  const responseBody = { providers: [accessToken ? freeAILoggedIn : freeAINonLoggedIn] };
+  const responseBody = { providers: [username ? freeAILoggedIn : freeAINonLoggedIn] };
 
   return new Response(JSON.stringify(responseBody), {
     status: 200,
