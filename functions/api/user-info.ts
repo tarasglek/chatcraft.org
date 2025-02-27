@@ -2,6 +2,7 @@ import { createResourcesForEnv } from "../utils";
 
 interface Env {
   ENVIRONMENT: string;
+  JWT_SECRET: string;
 }
 
 interface Provider {
@@ -13,7 +14,13 @@ interface Provider {
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const { tokenProvider } = createResourcesForEnv(env.ENVIRONMENT, request.url);
-  const { accessToken, sub } = tokenProvider.getTokens(request);
+  const { accessToken } = tokenProvider.getTokens(request);
+
+  let username = "";
+  if (accessToken) {
+    const payload = await tokenProvider.verifyToken(accessToken, env.JWT_SECRET);
+    username = payload?.sub || "";
+  }
 
   const freeAINonLoggedIn: Provider = {
     name: "Free AI",
