@@ -6,7 +6,7 @@ interface Env {
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const { tokenProvider } = createResourcesForEnv(env.ENVIRONMENT, request.url);
-  const { accessToken } = tokenProvider.getTokens(request);
+  const { accessToken, username } = tokenProvider.getTokens(request);
 
   const freeAINonLoggedIn = {
     name: "Free AI",
@@ -19,7 +19,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     name: "Free AI",
     apiUrl: "https://free-chatcraft-ai.coolness.fyi/api/v1",
     defaultModel: "auto",
-    apiKey: "",
+    apiKey: username,
   };
 
   const jsonHeaders = { "Content-Type": "application/json" };
