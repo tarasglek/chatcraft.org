@@ -1,4 +1,5 @@
 import { createResourcesForEnv } from "../utils";
+import { decodeJwt } from "jose";
 
 interface Env {
   ENVIRONMENT: string;
@@ -22,11 +23,11 @@ interface Provider {
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const { tokenProvider } = createResourcesForEnv(env.ENVIRONMENT, request.url);
-  const { accessToken } = tokenProvider.getTokens(request);
+  const tokens = tokenProvider.getTokens(request);
 
   let username: string | null = null;
-  if (accessToken) {
-    const payload = await tokenProvider.verifyToken(accessToken, env.JWT_SECRET);
+  if (tokens.accessToken) {
+    const payload = await tokenProvider.verifyToken(tokens.accessToken, env.JWT_SECRET);
     username = payload?.sub ?? null;
   }
 
@@ -47,6 +48,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     systemProviders = { "Custom AI Providers": freeAILoggedIn };
   }
 
-  const responseBody = { systemProviders };
+  const decoded = tokens.idToken ? decodeJwt(tokens.idToken) : null;
+  const responseBody = { ...decoded, systemProviders };
   return Response.json(responseBody, { status: 200 });
 };
