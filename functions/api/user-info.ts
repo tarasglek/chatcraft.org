@@ -49,6 +49,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   const decoded = tokens.idToken ? decodeJwt(tokens.idToken) : null;
-  const responseBody = { ...decoded, systemProviders };
+  const filteredDecoded = decoded
+    ? {
+        username: decoded.username,
+        name: decoded.name,
+        avatarUrl: decoded.avatarUrl,
+      }
+    : {};
+  const responseBody = { ...filteredDecoded, systemProviders };
   return Response.json(responseBody, { status: 200 });
 };
