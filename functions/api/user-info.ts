@@ -41,7 +41,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   let systemProviders = { [freeAINonLoggedIn.name]: freeAINonLoggedIn };
   if (username) {
     const freeAILoggedIn: Provider = {
-      name: "Free AI",
+      name: "Custom AI Providers",
       apiUrl: "https://free-chatcraft-ai.coolness.fyi/api/v1",
       defaultModel: "auto",
       apiKey: username,
