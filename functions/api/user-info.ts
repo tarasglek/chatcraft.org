@@ -6,7 +6,6 @@ interface Env {
 }
 
 interface Provider {
-  name: string;
   apiUrl: string;
   defaultModel: string;
   apiKey: string;
@@ -32,22 +31,20 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   const freeAINonLoggedIn: Provider = {
-    name: "Free AI",
     apiUrl: "https://free-chatcraft-ai.deno.dev/api/v1",
     defaultModel: "auto",
     apiKey: "",
   };
 
-  let systemProviders = { [freeAINonLoggedIn.name]: freeAINonLoggedIn };
+  let systemProviders = { "Free AI": freeAINonLoggedIn };
   if (username) {
     const freeAILoggedIn: Provider = {
-      name: "Custom AI Providers",
       apiUrl: "https://free-chatcraft-ai.coolness.fyi/api/v1",
       defaultModel: "auto",
       apiKey: username,
     };
 
-    systemProviders = { [freeAILoggedIn.name]: freeAILoggedIn };
+    systemProviders = { "Custom AI Providers": freeAILoggedIn };
   }
 
   const responseBody = { systemProviders };
