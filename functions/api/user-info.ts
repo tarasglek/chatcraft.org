@@ -38,7 +38,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     apiKey: "",
   };
 
-  let systemProviders = [freeAINonLoggedIn];
+  let systemProviders = { [freeAINonLoggedIn.name]: freeAINonLoggedIn };
   if (username) {
     const freeAILoggedIn: Provider = {
       name: "Free AI",
@@ -47,14 +47,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       apiKey: username,
     };
 
-    systemProviders = [freeAILoggedIn];
+    systemProviders = { [freeAILoggedIn.name]: freeAILoggedIn };
   }
 
-  const jsonHeaders = { "Content-Type": "application/json" };
   const responseBody = { systemProviders };
-
-  return new Response(JSON.stringify(responseBody), {
-    status: 200,
-    headers: jsonHeaders,
-  });
+  return Response.json(responseBody, { status: 200 });
 };
