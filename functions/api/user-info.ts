@@ -36,7 +36,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     apiKey: "",
   };
 
-  let systemProviders = { "Free AI": freeAINonLoggedIn };
+  let systemProviders: Record<string, Provider> = { "Free AI": freeAINonLoggedIn };
   if (username) {
     const freeAILoggedIn: Provider = {
       apiUrl: "https://free-chatcraft-ai.coolness.fyi/api/v1",
