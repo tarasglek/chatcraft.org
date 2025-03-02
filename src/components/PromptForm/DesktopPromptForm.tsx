@@ -1,4 +1,12 @@
-import { FormEvent, KeyboardEvent, type RefObject, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  KeyboardEvent,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Box,
   Card,
@@ -30,6 +38,7 @@ import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
 import PaperclipIcon from "./PaperclipIcon";
+import { ChatCraftCommandRegistry } from "../../lib/ChatCraftCommandRegistry";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -158,51 +167,78 @@ function DesktopPromptForm({
   }, []);
 
   // Handle prompt form submission
-  const handlePromptSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const textValue = inputPromptRef.current?.value.trim() || "";
-    // Clone the current image urls so we don't lose them when we update state below
-    const currentImageUrls = [...inputImageUrls];
+  const handlePromptSubmit = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault();
+      const textValue = inputPromptRef.current?.value.trim() || "";
+      // Clone the current image urls so we don't lose them when we update state below
+      const currentImageUrls = [...inputImageUrls];
 
-    if (inputPromptRef.current) {
-      inputPromptRef.current.value = "";
-    }
-    setIsPromptEmpty(true);
-    setInputImageUrls([]);
+      if (inputPromptRef.current) {
+        inputPromptRef.current.value = "";
+      }
+      setIsPromptEmpty(true);
+      setInputImageUrls([]);
 
-    onSendClick(textValue, currentImageUrls);
-  };
+      onSendClick(textValue, currentImageUrls);
+    },
+    [inputImageUrls, inputPromptRef, onSendClick]
+  );
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
     onMetaEnter: handlePromptSubmit,
   });
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    switch (e.key) {
-      // Allow the user to cursor-up to repeat last prompt
-      case "ArrowUp":
-        if (isPromptEmpty && previousMessage && inputPromptRef.current) {
-          e.preventDefault();
-          inputPromptRef.current.value = previousMessage;
-          setIsPromptEmpty(false);
-        }
-        break;
-
-      // Prevent blank submissions and allow for multiline input.
-      case "Enter":
-        if (settings.enterBehaviour === "newline") {
-          handleMetaEnter(e);
-        } else if (settings.enterBehaviour === "send") {
-          if (!e.shiftKey && !isPromptEmpty) {
-            handlePromptSubmit(e);
+  const handleKeyDown = useCallback(
+    async (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      switch (e.key) {
+        // Allow the user to cursor-up to repeat last prompt
+        case "ArrowUp":
+          if (isPromptEmpty && previousMessage && inputPromptRef.current) {
+            e.preventDefault();
+            inputPromptRef.current.value = previousMessage;
+            setIsPromptEmpty(false);
           }
-        }
-        break;
+          break;
 
-      default:
-        return;
-    }
-  };
+        // Prevent blank submissions and allow for multiline input.
+        case "Enter":
+          if (settings.enterBehaviour === "newline") {
+            handleMetaEnter(e);
+          } else if (settings.enterBehaviour === "send") {
+            if (!e.shiftKey && !isPromptEmpty) {
+              handlePromptSubmit(e);
+            }
+          }
+          break;
+
+        // Shortcut to "/clear" the chat
+        case "l":
+          if (e.ctrlKey) {
+            e.preventDefault();
+            const clearCommand = ChatCraftCommandRegistry.getCommand("/clear");
+
+            if (!clearCommand) {
+              return console.error("Could not find '/clear' command in ChatCraftCommandRegistry!");
+            }
+            await clearCommand(chat, undefined);
+          }
+          break;
+
+        default:
+          return;
+      }
+    },
+    [
+      chat,
+      handleMetaEnter,
+      handlePromptSubmit,
+      inputPromptRef,
+      isPromptEmpty,
+      previousMessage,
+      settings.enterBehaviour,
+    ]
+  );
 
   const handlePaste = (e: ClipboardEvent) => {
     const { clipboardData } = e;
@@ -406,7 +442,7 @@ function DesktopPromptForm({
                         _dark={{ bg: "gray.700" }}
                         placeholder={
                           !isLoading && !isRecording && !isTranscribing
-                            ? "Ask a question or use /help to learn more"
+                            ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
                             : undefined
                         }
                         overflowY="auto"

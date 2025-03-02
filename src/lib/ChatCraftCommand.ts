@@ -10,7 +10,8 @@ export abstract class ChatCraftCommand {
   constructor(
     public command: string,
     public helpTitle: string,
-    public helpDescription: string
+    public helpDescription: string,
+    public keyboardShortcutDescription?: string
   ) {}
 
   // This method should be overridden by subclasses to implement the command
