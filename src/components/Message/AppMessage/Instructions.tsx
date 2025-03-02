@@ -19,6 +19,7 @@ import PasswordInput from "../../PasswordInput";
 import { useSettings } from "../../../hooks/use-settings";
 import { FreeModelProvider } from "../../../lib/providers/DefaultProvider/FreeModelProvider";
 import { ProviderData } from "../../../lib/ChatCraftProvider";
+import { useProviders } from "../../../hooks/use-providers";
 
 const ApiKeyInstructionsText = `## Getting Started with ChatCraft
 
@@ -58,6 +59,7 @@ function Instructions(props: MessageBaseProps) {
   const [isValidating, setIsValidating] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState(settings.currentProvider);
+  const { providers } = useProviders();
 
   useEffect(() => {
     setSelectedProvider(settings.currentProvider);
@@ -65,7 +67,7 @@ function Instructions(props: MessageBaseProps) {
 
   const providersList: ProviderData = {
     ...supportedProviders,
-    ...settings.providers,
+    ...providers,
   };
 
   // Override the text of the message

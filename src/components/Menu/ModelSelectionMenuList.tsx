@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useDebounce } from "react-use";
 import { MenuItem, MenuDivider } from "../Menu";
 import { MenuGroup, MenuHeader } from "@szhsin/react-menu";
@@ -7,12 +7,12 @@ import { useModels } from "../../hooks/use-models";
 import { IoMdCheckmark } from "react-icons/io";
 import { TbSearch } from "react-icons/tb";
 import { Input, InputGroup, InputLeftElement } from "@chakra-ui/react";
-import { FreeModelProvider } from "../../lib/providers/DefaultProvider/FreeModelProvider";
 import { isChatModel } from "../../lib/ai";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useTextToSpeech } from "../../hooks/use-text-to-speech";
 import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
 import useAudioPlayer from "../../hooks/use-audio-player";
+import { useProviders } from "../../hooks/use-providers";
 
 interface ModelSelectionMenuListProps {
   onItemSelect: (modelId: string) => void;
@@ -24,27 +24,46 @@ function MobileModelSelectionMenuList({ onItemSelect }: ModelSelectionMenuListPr
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { isTextToSpeechSupported } = useTextToSpeech();
   const { clearAudioQueue } = useAudioPlayer();
-  const providersList = useMemo(
-    () => ({
-      ...settings.providers,
-      "Free AI Models": new FreeModelProvider(),
-    }),
-    [settings.providers]
-  );
+  const { systemProviders, userProviders } = useProviders();
 
   useDebounce(() => setDebouncedSearchQuery(searchQuery), 250, [searchQuery]);
   return (
     <>
       {/* Providers Section */}
-      <MenuHeader>Providers</MenuHeader>
-      <MenuGroup title="Providers">
-        {Object.entries(providersList).map(([providerName, providerObject]) => (
+      <MenuHeader>System Providers</MenuHeader>
+      <MenuGroup title="System defined providers for logged-in user">
+        {Object.entries(systemProviders).map(([providerName, providerObject]) => (
           <MenuItem
             style={{
               paddingInline: "16px",
             }}
             key={providerName}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation = true;
+              e.keepOpen = true;
+              setSettings({ ...settings, currentProvider: providerObject });
+            }}
+          >
+            {settings.currentProvider.name === providerName ? (
+              <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+            ) : (
+              <span style={{ width: "1.6rem", display: "inline-block" }} />
+            )}
+            {providerName}
+          </MenuItem>
+        ))}
+      </MenuGroup>
+      <MenuHeader>User Providers</MenuHeader>
+      <MenuGroup title="User defined providers from settings">
+        {Object.entries(userProviders).map(([providerName, providerObject]) => (
+          <MenuItem
+            style={{
+              paddingInline: "16px",
+            }}
+            key={providerName}
+            onClick={(e) => {
+              e.stopPropagation = true;
+              e.keepOpen = true;
               setSettings({ ...settings, currentProvider: providerObject });
             }}
           >
@@ -152,13 +171,7 @@ function DesktopModelSelectionMenuList({ onItemSelect }: ModelSelectionMenuListP
   const { models } = useModels();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const providersList = useMemo(
-    () => ({
-      ...settings.providers,
-      "Free AI Models": new FreeModelProvider(),
-    }),
-    [settings.providers]
-  );
+  const { systemProviders, userProviders } = useProviders();
 
   useDebounce(() => setDebouncedSearchQuery(searchQuery), 250, [searchQuery]);
 
@@ -171,16 +184,20 @@ function DesktopModelSelectionMenuList({ onItemSelect }: ModelSelectionMenuListP
           fontSize: "0.9rem",
         }}
       >
-        Providers
+        System Providers
       </MenuHeader>
-      <MenuGroup title="Providers">
-        {Object.entries(providersList).map(([providerName, providerObject]) => (
+      <MenuGroup title="System defined providers for logged-in user">
+        {Object.entries(systemProviders).map(([providerName, providerObject]) => (
           <MenuItem
             style={{
               paddingInline: "16px",
             }}
             key={providerName}
-            onClick={() => setSettings({ ...settings, currentProvider: providerObject })}
+            onClick={(e) => {
+              e.stopPropagation = true;
+              e.keepOpen = true;
+              setSettings({ ...settings, currentProvider: providerObject });
+            }}
           >
             {settings.currentProvider.name === providerName ? (
               <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
@@ -191,6 +208,39 @@ function DesktopModelSelectionMenuList({ onItemSelect }: ModelSelectionMenuListP
           </MenuItem>
         ))}
       </MenuGroup>
+
+      <MenuHeader
+        style={{
+          textTransform: "none", // default from MenuHeader is all caps
+          fontWeight: "bold", // default from MenuHeader is normal text
+          fontSize: "0.9rem",
+        }}
+      >
+        User Providers
+      </MenuHeader>
+      <MenuGroup title="User defined providers from settings">
+        {Object.entries(userProviders).map(([providerName, providerObject]) => (
+          <MenuItem
+            style={{
+              paddingInline: "16px",
+            }}
+            key={providerName}
+            onClick={(e) => {
+              e.stopPropagation = true;
+              e.keepOpen = true;
+              setSettings({ ...settings, currentProvider: providerObject });
+            }}
+          >
+            {settings.currentProvider.name === providerName ? (
+              <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
+            ) : (
+              <span style={{ width: "1.6rem", display: "inline-block" }} />
+            )}
+            {providerName}
+          </MenuItem>
+        ))}
+      </MenuGroup>
+
       <MenuDivider />
       <MenuHeader
         style={{
