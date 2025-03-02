@@ -208,7 +208,12 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
 
       // Add the file's contents to the chat as a message
       if (isImage) {
-        onImageImport(text);
+        // Import the image, but give the state update a chance to complete
+        await new Promise<void>((resolve) => {
+          onImageImport(text);
+          // Give React a chance to update state
+          setTimeout(resolve, 0);
+        });
       } else if (isPDF || isWordDoc || !isImage) {
         // Add the content as a human message for non-image files
         await chat.addMessage(new ChatCraftHumanMessage({ text: `${text}\n` }));
@@ -233,7 +238,7 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
         for (const file of files) {
           try {
             const contents = await processFile(file, settings);
-            importFile(file, contents);
+            await importFile(file, contents);
           } catch (err: any) {
             if (err.cause?.code === "EmptyFile") {
               info({

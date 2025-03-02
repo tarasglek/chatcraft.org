@@ -79,32 +79,67 @@ function MobilePromptForm({
       return;
     }
 
-    // See if we have meaningful text. Some apps will place multiple versions in
-    // the clipboard. For example, MS Word will include text/plain, text/html,
-    // text/rtf, and finally image/png. Each is a different version that tries to
-    // preserve formatting (the image is a bitmap of the formatted text). If we
-    // have a usable text version, but also an image, we should prefer the text
-    // over images. The most common are text, html, or uri-list.
-    if (
-      clipboardData.getData("text/plain") !== "" ||
-      clipboardData.getData("text/html") !== "" ||
-      clipboardData.getData("text/uri-list") !== ""
-    ) {
-      return;
-    }
+    // Get all items from clipboard
+    const items = Array.from(clipboardData.items || []);
 
-    // Maybe there are files we can import...
-    const items = Array.from(clipboardData?.items || []);
+    // Extract all valid files from the items
     const files = items
       .filter((item) => item.kind === "file")
       .map((item) => item.getAsFile())
       .filter((file): file is File => file != null);
+
+    // Get text content, being explicit about trimming
+    const plainText = clipboardData.getData("text/plain").trim();
+    const htmlContent = clipboardData.getData("text/html").trim();
+    const uriList = clipboardData.getData("text/uri-list").trim();
+
+    // Special Case 1. check for MS Word-style paste (typically includes plain text,
+    // html, rtf, image and the image is a bitmap of the text, which isn't helpful).
+    // Here we want to ignore the image and let the default clipboard handling extract
+    // useful text.
+    const hasRtf = items.some((item) => item.type === "text/rtf");
+    const isWordPaste =
+      hasRtf && files.some((file) => file.type.startsWith("image/")) && items.length >= 3;
+    if (isWordPaste) {
+      // Let the default paste handler deal with the text content
+      return;
+    }
+
+    // Special Case 2: copy/paste image from browser (has image file + <img> HTML)
+    if (files.some((file) => file.type.startsWith("image/")) && htmlContent) {
+      // See if the HTML content is really just a simple HTML wrapper for an img
+      const isImageMarkup = /^[\s]*(?:<meta[^>]+>)?[\s]*<img[^>]+>[\s]*$/i.test(htmlContent);
+
+      if (!htmlContent || isImageMarkup) {
+        e.preventDefault();
+        importFiles(files);
+        return;
+      }
+    }
+
+    // Special Case 3: Safari image paste (has image file + image URL as text)
+    if (files.some((file) => file.type.startsWith("image/"))) {
+      const isImageUrl = /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)/i.test(plainText);
+      if (isImageUrl) {
+        e.preventDefault();
+        importFiles(files);
+        return;
+      }
+    }
+
+    // Special Case 4: if we have meaningful text content, use that
+    if (plainText || uriList || htmlContent) {
+      return; // Let default paste handle the text
+    }
+
+    // Special Case 5: since we have no meaningful text, process any files that remain
     if (files.length) {
       e.preventDefault();
       importFiles(files);
+      return;
     }
 
-    // Otherwise, let the default paste handling happen
+    // Otherwise, let the default paste handling occur
   };
 
   // Attach paste event listener to the textarea
