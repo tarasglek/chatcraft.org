@@ -442,7 +442,7 @@ function DesktopPromptForm({
                         _dark={{ bg: "gray.700" }}
                         placeholder={
                           !isLoading && !isRecording && !isTranscribing
-                            ? "Ask a question or use /help to learn more ('CTRL+L' to clear chat)"
+                            ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
                             : undefined
                         }
                         overflowY="auto"
