@@ -6,15 +6,53 @@ import {
   type FC,
   type ReactNode,
   useState,
+  useMemo,
 } from "react";
 import { useCookie } from "react-use";
 import { decodeJwt } from "jose";
+import useSWR from "swr";
 import { isProd } from "../lib/utils";
 
 type UserContextType = {
   user?: User;
   login: (provider: string, chatId?: string) => void;
   logout: (chatId?: string) => Promise<void>;
+};
+
+interface UserInfoResponse {
+  username?: string;
+  name?: string;
+  avatarUrl?: string;
+  systemProviders?: Record<
+    string,
+    {
+      apiUrl: string;
+      defaultModel: string;
+      apiKey: string;
+    }
+  >;
+}
+
+const fetchUserInfo = async (url: string): Promise<UserInfoResponse> => {
+  // XXX - just for testing
+  const systemProviders = {
+    "Custom AI Providers": {
+      apiUrl: "https://free-chatcraft-ai.coolness.fyi/api/v1",
+      defaultModel: "auto",
+      apiKey: "api-key",
+    },
+  };
+
+  return {
+    username: "username",
+    name: "name",
+    avatarUrl: "avatar-url",
+    systemProviders,
+  };
+
+  // const res = await fetch(url, { credentials: "same-origin" });
+  // if (!res.ok) throw new Error("Failed to fetch user info");
+  // return res.json();
 };
 
 const UserContext = createContext<UserContextType>({
@@ -38,8 +76,15 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
   // only the id_token is available to the browser.
   const cookieName = isProd() ? "__Host-id_token" : "id_token";
   const [idToken] = useCookie(cookieName);
-  const [user, setUser] = useState<User | undefined>();
+  const [cookieUser, setCookieUser] = useState<User | undefined>();
 
+  // Try to fetch user info from the /api/user-info endpoint
+  const { data: apiUserInfo, mutate } = useSWR("/api/user-info", fetchUserInfo, {
+    revalidateOnFocus: false,
+    dedupingInterval: 5000,
+  });
+
+  // Also parse the cookie-based user info (eventually we'll do this via /api/user-info)
   useEffect(() => {
     if (!idToken) {
       return;
@@ -53,7 +98,7 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
         typeof name === "string" &&
         typeof avatarUrl === "string"
       ) {
-        setUser({ username, name, avatarUrl });
+        setCookieUser({ username, name, avatarUrl });
       } else {
         console.warn("ChatCraft ID Token missing expected values, ignoring", {
           username,
@@ -64,7 +109,26 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
     } catch (err) {
       console.error("Unable to decode id token", { err, idToken });
     }
-  }, [idToken, setUser]);
+  }, [idToken]);
+
+  // Merge cookie and API user info, preferring API data
+  const user = useMemo(() => {
+    if (!apiUserInfo && !cookieUser) {
+      return undefined;
+    }
+
+    const merged = {
+      ...cookieUser,
+      ...apiUserInfo,
+    };
+
+    // Only return a valid User if we have all required fields
+    if (merged.username && merged.name && merged.avatarUrl) {
+      return merged as User;
+    }
+
+    return undefined;
+  }, [apiUserInfo, cookieUser]);
 
   const logout = useCallback(
     async (chatId?: string) => {
@@ -78,11 +142,12 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
       } catch (err) {
         console.warn("Logout error", err);
       } finally {
-        // No matter what, remove the user in storage
-        setUser(undefined);
+        // Clear both cookie user and API cache
+        setCookieUser(undefined);
+        await mutate(undefined, { revalidate: false });
       }
     },
-    [setUser]
+    [mutate]
   );
 
   const value = {

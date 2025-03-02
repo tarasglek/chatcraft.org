@@ -16,6 +16,7 @@ import { isSpeechToTextModel } from "../lib/ai";
 import { ChatCraftProvider, ChatCraftProviderWithModels } from "../lib/ChatCraftProvider";
 import OpenAI from "openai";
 import { supportedProviders } from "../lib/providers";
+import { useProviders } from "./use-providers";
 
 const defaultModels = [getSettings().currentProvider.defaultModelForProvider()];
 
@@ -57,6 +58,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [error, setError] = useState<Error | null>(null);
   const isFetchingModels = useRef(false);
   const { settings, setSettings } = useSettings();
+  const { providers } = useProviders();
 
   // This is a list of all the models, based on configured providers
   const [allProvidersWithModels, setAllProvidersWithModels] = useState<
@@ -66,7 +68,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     const defaultSupportedProviders = Object.values(supportedProviders);
-    const settingsProviders = Object.values(settings.providers);
+    const settingsProviders = Object.values(providers);
 
     // Merge default and settings providers
     const availableProviders = [
@@ -120,7 +122,7 @@ export const ModelsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     };
 
     fetchModelsForAllProviders();
-  }, [settings.providers]);
+  }, [providers]);
 
   const allAvailableModels = useMemo(() => {
     return allProvidersWithModels.map((provider) => provider.models).flat();

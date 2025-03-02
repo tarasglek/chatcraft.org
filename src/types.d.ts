@@ -11,6 +11,14 @@ type User = {
   name: string;
   username: string;
   avatarUrl: string;
+  systemProviders?: Record<
+    string,
+    {
+      apiUrl: string;
+      defaultModel: string;
+      apiKey: string;
+    }
+  >;
 };
 
 type JwtTokenPayload = {
