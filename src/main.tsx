@@ -1,3 +1,4 @@
+import { scan } from "react-scan"; // must be imported before React and React DOM
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
@@ -12,6 +13,14 @@ import { CostProvider } from "./hooks/use-cost";
 import { AudioPlayerProvider } from "./hooks/use-audio-player";
 import { WebHandlersProvider } from "./hooks/use-web-handlers";
 import { ChatProvider } from "./hooks/use-chat";
+
+// need to import and call it
+scan({
+  enabled: false,
+});
+
+// enable perf profiling by typing in dev console: window.scan({enabled:true})
+(globalThis.window as any).scan = scan;
 
 ReactDOM.createRoot(document.querySelector("main") as HTMLElement).render(
   <React.StrictMode>
