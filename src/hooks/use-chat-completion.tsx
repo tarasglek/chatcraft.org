@@ -16,7 +16,10 @@ function useChatCompletion() {
   const { user } = useUser();
   const { settings } = useSettings();
 
-  const chatCompletion = async (prompt: string, chat: ChatCraftChat, imageUrls?: string[]) => {
+  const chatCompletion = async (prompt: string = "", chat: ChatCraftChat, imageUrls?: string[]) => {
+    if (!chat) {
+      throw new Error("Chat is not defined");
+    }
     // Special-case for "help", to invoke /help command
     if (prompt?.toLowerCase() === "help") {
       prompt = "/help";
@@ -130,7 +133,7 @@ function useChatCompletion() {
 
         // If the user has opted to always send function results back to LLM, do it now
         if (settings.alwaysSendFunctionResult) {
-          await chatCompletion(prompt ?? "", chat, imageUrls);
+          await chatCompletion(prompt, chat, imageUrls);
         }
       }
     } catch (err: any) {

@@ -122,7 +122,7 @@ export class ChatCraftChat {
   }
 
   async completion(
-    prompt: string,
+    prompt: string = "",
     chat: ChatCraftChat,
     user: any,
     settings: any,
@@ -245,7 +245,7 @@ export class ChatCraftChat {
 
         // If the user has opted to always send function results back to LLM, do it now
         if (settings.alwaysSendFunctionResult) {
-          await chat.completion(prompt ?? "", chat, user, settings, callChatApi, error);
+          await chat.completion(prompt, chat, user, settings, callChatApi, error);
         }
       }
     } catch (err: any) {

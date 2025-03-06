@@ -203,7 +203,7 @@ function ChatBase({ chat }: ChatBaseProps) {
       setLoading(true);
 
       try {
-        await chatCompletion(prompt ?? "", chat, imageUrls);
+        await chatCompletion(prompt, chat, imageUrls);
       } catch (err) {
         error({
           title: `Completion Error`,
