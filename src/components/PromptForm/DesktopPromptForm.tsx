@@ -1,4 +1,12 @@
-import { FormEvent, KeyboardEvent, type RefObject, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  KeyboardEvent,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Box,
   Card,
@@ -30,6 +38,7 @@ import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
 import PaperclipIcon from "./PaperclipIcon";
+import { ChatCraftCommandRegistry } from "../../lib/ChatCraftCommandRegistry";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -158,46 +167,146 @@ function DesktopPromptForm({
   }, []);
 
   // Handle prompt form submission
-  const handlePromptSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const textValue = inputPromptRef.current?.value.trim() || "";
-    if (inputPromptRef.current) {
-      inputPromptRef.current.value = "";
-    }
-    setIsPromptEmpty(true);
-    setInputImageUrls([]);
-    onSendClick(textValue, inputImageUrls);
-  };
+  const handlePromptSubmit = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault();
+      const textValue = inputPromptRef.current?.value.trim() || "";
+      // Clone the current image urls so we don't lose them when we update state below
+      const currentImageUrls = [...inputImageUrls];
+
+      if (inputPromptRef.current) {
+        inputPromptRef.current.value = "";
+      }
+      setIsPromptEmpty(true);
+      setInputImageUrls([]);
+
+      onSendClick(textValue, currentImageUrls);
+    },
+    [inputImageUrls, inputPromptRef, onSendClick]
+  );
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
     onMetaEnter: handlePromptSubmit,
   });
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    switch (e.key) {
-      // Allow the user to cursor-up to repeat last prompt
-      case "ArrowUp":
-        if (isPromptEmpty && previousMessage && inputPromptRef.current) {
-          e.preventDefault();
-          inputPromptRef.current.value = previousMessage;
-          setIsPromptEmpty(false);
-        }
-        break;
-
-      // Prevent blank submissions and allow for multiline input.
-      case "Enter":
-        if (settings.enterBehaviour === "newline") {
-          handleMetaEnter(e);
-        } else if (settings.enterBehaviour === "send") {
-          if (!e.shiftKey && !isPromptEmpty) {
-            handlePromptSubmit(e);
+  const handleKeyDown = useCallback(
+    async (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      switch (e.key) {
+        // Allow the user to cursor-up to repeat last prompt
+        case "ArrowUp":
+          if (isPromptEmpty && previousMessage && inputPromptRef.current) {
+            e.preventDefault();
+            inputPromptRef.current.value = previousMessage;
+            setIsPromptEmpty(false);
           }
-        }
-        break;
+          break;
 
-      default:
-        return;
+        // Prevent blank submissions and allow for multiline input.
+        case "Enter":
+          if (settings.enterBehaviour === "newline") {
+            handleMetaEnter(e);
+          } else if (settings.enterBehaviour === "send") {
+            if (!e.shiftKey && !isPromptEmpty) {
+              handlePromptSubmit(e);
+            }
+          }
+          break;
+
+        // Shortcut to "/clear" the chat
+        case "l":
+          if (e.ctrlKey) {
+            e.preventDefault();
+            const clearCommand = ChatCraftCommandRegistry.getCommand("/clear");
+
+            if (!clearCommand) {
+              return console.error("Could not find '/clear' command in ChatCraftCommandRegistry!");
+            }
+            await clearCommand(chat, undefined);
+          }
+          break;
+
+        default:
+          return;
+      }
+    },
+    [
+      chat,
+      handleMetaEnter,
+      handlePromptSubmit,
+      inputPromptRef,
+      isPromptEmpty,
+      previousMessage,
+      settings.enterBehaviour,
+    ]
+  );
+
+  const handlePaste = (e: ClipboardEvent) => {
+    const { clipboardData } = e;
+    if (!clipboardData) {
+      return;
     }
+
+    // Get all items from clipboard
+    const items = Array.from(clipboardData.items || []);
+
+    // Extract all valid files from the items
+    const files = items
+      .filter((item) => item.kind === "file")
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => file != null);
+
+    // Get text content, being explicit about trimming
+    const plainText = clipboardData.getData("text/plain").trim();
+    const htmlContent = clipboardData.getData("text/html").trim();
+    const uriList = clipboardData.getData("text/uri-list").trim();
+
+    // Special Case 1. check for MS Word-style paste (typically includes plain text,
+    // html, rtf, image and the image is a bitmap of the text, which isn't helpful).
+    // Here we want to ignore the image and let the default clipboard handling extract
+    // useful text.
+    const hasRtf = items.some((item) => item.type === "text/rtf");
+    const isWordPaste =
+      hasRtf && files.some((file) => file.type.startsWith("image/")) && items.length >= 3;
+    if (isWordPaste) {
+      // Let the default paste handler deal with the text content
+      return;
+    }
+
+    // Special Case 2: copy/paste image from browser (has image file + <img> HTML)
+    if (files.some((file) => file.type.startsWith("image/")) && htmlContent) {
+      // See if the HTML content is really just a simple HTML wrapper for an img
+      const isImageMarkup = /^[\s]*(?:<meta[^>]+>)?[\s]*<img[^>]+>[\s]*$/i.test(htmlContent);
+
+      if (!htmlContent || isImageMarkup) {
+        e.preventDefault();
+        importFiles(files);
+        return;
+      }
+    }
+
+    // Special Case 3: Safari image paste (has image file + image URL as text)
+    if (files.some((file) => file.type.startsWith("image/"))) {
+      const isImageUrl = /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)/i.test(plainText);
+      if (isImageUrl) {
+        e.preventDefault();
+        importFiles(files);
+        return;
+      }
+    }
+
+    // Special Case 4: if we have meaningful text content, use that
+    if (plainText || uriList || htmlContent) {
+      return; // Let default paste handle the text
+    }
+
+    // Special Case 5: since we have no meaningful text, process any files that remain
+    if (files.length) {
+      e.preventDefault();
+      importFiles(files);
+      return;
+    }
+
+    // Otherwise, let the default paste handling occur
   };
 
   const handleRecording = () => {
@@ -234,40 +343,6 @@ function DesktopPromptForm({
     setImageModalOpen(true);
   };
   const closeModal = () => setImageModalOpen(false);
-
-  const handlePaste = (e: ClipboardEvent) => {
-    const { clipboardData } = e;
-    if (!clipboardData) {
-      return;
-    }
-
-    // See if we have meaningful text. Some apps will place multiple versions in
-    // the clipboard. For example, MS Word will include text/plain, text/html,
-    // text/rtf, and finally image/png. Each is a different version that tries to
-    // preserve formatting (the image is a bitmap of the formatted text). If we
-    // have a usable text version, but also an image, we should prefer the text
-    // over images. The most common are text, html, or uri-list.
-    if (
-      clipboardData.getData("text/plain") !== "" ||
-      clipboardData.getData("text/html") !== "" ||
-      clipboardData.getData("text/uri-list") !== ""
-    ) {
-      return;
-    }
-
-    // Maybe there are files we can import...
-    const items = Array.from(clipboardData?.items || []);
-    const files = items
-      .filter((item) => item.kind === "file")
-      .map((item) => item.getAsFile())
-      .filter((file): file is File => file != null);
-    if (files.length) {
-      e.preventDefault();
-      importFiles(files);
-    }
-
-    // Otherwise, let the default paste handling happen
-  };
 
   const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
 
@@ -367,7 +442,7 @@ function DesktopPromptForm({
                         _dark={{ bg: "gray.700" }}
                         placeholder={
                           !isLoading && !isRecording && !isTranscribing
-                            ? "Ask a question or use /help to learn more"
+                            ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
                             : undefined
                         }
                         overflowY="auto"

@@ -22,6 +22,7 @@ import { useCallback, useRef, useState } from "react";
 import { acceptableFileFormats } from "../../hooks/use-file-import";
 import FileIcon from "../FileIcon";
 import { removeFile } from "../../lib/fs";
+import { generateUniqueFilename } from "../../lib/utils";
 
 type PaperClipProps = {
   chat: ChatCraftChat;
@@ -42,11 +43,19 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
       if (!onAttachFiles || !event.target.files?.length) {
         return;
       }
-      await onAttachFiles(Array.from(event.target.files))
+
+      const newFiles = Array.from(event.target.files);
+      const uniqueFiles = newFiles.map((file) => {
+        // Create a new File object with potentially modified name
+        const uniqueName = generateUniqueFilename(file.name, files);
+        return new File([file], uniqueName, { type: file.type });
+      });
+
+      await onAttachFiles(uniqueFiles)
         .then(() => refreshFiles)
         .catch((err) => alertError({ title: "Unable to Attach Files", message: err.message }));
     },
-    [onAttachFiles, alertError, refreshFiles]
+    [onAttachFiles, alertError, refreshFiles, files]
   );
 
   const handleAttachFiles = useCallback(() => {

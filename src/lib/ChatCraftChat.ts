@@ -352,7 +352,7 @@ export class ChatCraftChat {
     }
 
     this._messages = [...this._messages, message];
-    return this.save();
+    await this.save();
   }
 
   async removeMessage(id: string) {
@@ -362,7 +362,7 @@ export class ChatCraftChat {
 
     await ChatCraftMessage.delete(id);
     this._messages = this._messages.filter((message) => message.id !== id);
-    return this.save();
+    await this.save();
   }
 
   async addFile(file: ChatCraftFile, name?: string) {
@@ -376,10 +376,11 @@ export class ChatCraftChat {
       throw new Error("File name is required");
     }
 
-    this._files = this._files ?? new Map();
-    this._files.set(file.id, { file, ref: { id: file.id, name: fileName } });
+    const newFiles = new Map(this._files || new Map());
+    newFiles.set(file.id, { file, ref: { id: file.id, name: fileName } });
+    this._files = newFiles;
 
-    return this.save();
+    await this.save();
   }
 
   async removeFile(fileOrfileId: ChatCraftFile | string) {
@@ -394,7 +395,7 @@ export class ChatCraftChat {
     }
 
     this._files.delete(id);
-    return this.save();
+    await this.save();
   }
 
   async renameFile(fileOrFileId: ChatCraftFile | string, newName: string) {
@@ -418,7 +419,7 @@ export class ChatCraftChat {
       ref: { ...fileData.ref, name: newName },
     });
 
-    return this.save();
+    await this.save();
   }
 
   // Remove all messages in the chat *before* the message with the given id,
@@ -469,7 +470,7 @@ export class ChatCraftChat {
 
     // Remove these messages from chat and save
     this._messages = this._messages.filter((m) => !idsToDelete.includes(m.id));
-    return this.save();
+    await this.save();
   }
 
   async resetMessages() {
@@ -482,7 +483,7 @@ export class ChatCraftChat {
     // Make a new set of messages
     this._messages = [createSystemMessage()];
     // Update the db
-    return this.save();
+    await this.save();
   }
 
   toMarkdown() {
