@@ -120,7 +120,15 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
             ) : (
               <SimpleGrid columns={3} spacing={6} width="full">
                 {files.map((file) => (
-                  <FileIcon key={file.id} file={file} chat={chat} onRefresh={refreshFiles} />
+                  <FileIcon
+                    key={file.id}
+                    file={file}
+                    chat={chat}
+                    onRefresh={refreshFiles}
+                    fileInputRef={fileInputRef}
+                    totalFiles={files.length}
+                    onClose={onClose}
+                  />
                 ))}
               </SimpleGrid>
             )}
