@@ -536,86 +536,88 @@ function MessageBase({
                   )}
                 </Flex>
               )}
-              <Menu align="end" isDisabled={isLoading}>
-                <MenuItem onClick={handleCopy} icon={<MdContentCopy />}>
-                  Copy
-                </MenuItem>
-                <SubMenu label="Export" icon={<TbDownload />}>
-                  <MenuItem onClick={handleDownloadMarkdown}>Export as Markdown</MenuItem>
-                  <MenuItem onClick={handleDownloadPlainText}>Export as Text</MenuItem>
-                  {isTextToSpeechSupported && (
-                    <MenuItem onClick={handleDownloadAudio}>Export as Audio</MenuItem>
-                  )}
-                  <MenuItem
-                    onClick={handleDownloadImage}
-                    isDisabled={displaySummaryText !== false || editing}
-                  >
-                    Export as Image
+              <Flex>
+                <Menu align="end" isDisabled={isLoading}>
+                  <MenuItem onClick={handleCopy} icon={<MdContentCopy />}>
+                    Copy
                   </MenuItem>
-                </SubMenu>
-                {isTextToSpeechSupported && (
-                  <MenuItem
-                    onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
-                  >
-                    Speak
-                  </MenuItem>
-                )}
-                {!disableFork && (
-                  <MenuItemLink to={`./fork/${id}`} target="_blank">
-                    Duplicate Chat until Message...
-                  </MenuItemLink>
-                )}
-                {onRetryClick && (
-                  <>
-                    <MenuDivider />
-                    <SubMenu label="Retry with...">
-                      <ModelSelectionMenuList
-                        onItemSelect={(modelId) => {
-                          const model = models.find((m) => m.id === modelId);
-                          if (model) onRetryClick(model);
-                        }}
-                      />
-                    </SubMenu>
-                  </>
-                )}
-                <MenuDivider />
-                <MenuItem onClick={() => handleShareMessage()} icon={<TbShare3 />}>
-                  Share Message
-                </MenuItem>
-                {(!disableEdit || shouldShowDeleteMenu) && <MenuDivider />}
-                {!disableEdit && (
-                  <MenuItem onClick={() => onEditingChange(!editing)} icon={<AiOutlineEdit />}>
-                    {editing ? "Cancel Editing" : "Edit"}
-                  </MenuItem>
-                )}
-                {shouldShowDeleteMenu && (
-                  <>
-                    {onDeleteClick && !onDeleteBeforeClick && !onDeleteAfterClick ? (
-                      <MenuItem onClick={onDeleteClick} color="red.400" icon={<TbTrash />}>
-                        Delete Message
-                      </MenuItem>
-                    ) : (
-                      <SubMenu label="Delete" color="red.400" icon={<TbTrash />}>
-                        {onDeleteBeforeClick && (
-                          <MenuItem onClick={onDeleteBeforeClick} color="red.400">
-                            Delete Messages Before
-                          </MenuItem>
-                        )}
-                        {onDeleteClick && (
-                          <MenuItem color="red.400" onClick={onDeleteClick}>
-                            Delete Message
-                          </MenuItem>
-                        )}
-                        {onDeleteAfterClick && (
-                          <MenuItem onClick={onDeleteAfterClick} color="red.400">
-                            Delete Messages After
-                          </MenuItem>
-                        )}
-                      </SubMenu>
+                  <SubMenu label="Export" icon={<TbDownload />}>
+                    <MenuItem onClick={handleDownloadMarkdown}>Export as Markdown</MenuItem>
+                    <MenuItem onClick={handleDownloadPlainText}>Export as Text</MenuItem>
+                    {isTextToSpeechSupported && (
+                      <MenuItem onClick={handleDownloadAudio}>Export as Audio</MenuItem>
                     )}
-                  </>
-                )}
-              </Menu>
+                    <MenuItem
+                      onClick={handleDownloadImage}
+                      isDisabled={displaySummaryText !== false || editing}
+                    >
+                      Export as Image
+                    </MenuItem>
+                  </SubMenu>
+                  {isTextToSpeechSupported && (
+                    <MenuItem
+                      onClick={() => handleSpeakMessage(messageContent.current?.textContent ?? "")}
+                    >
+                      Speak
+                    </MenuItem>
+                  )}
+                  {!disableFork && (
+                    <MenuItemLink to={`./fork/${id}`} target="_blank">
+                      Duplicate Chat until Message...
+                    </MenuItemLink>
+                  )}
+                  {onRetryClick && (
+                    <>
+                      <MenuDivider />
+                      <SubMenu label="Retry with...">
+                        <ModelSelectionMenuList
+                          onItemSelect={(modelId) => {
+                            const model = models.find((m) => m.id === modelId);
+                            if (model) onRetryClick(model);
+                          }}
+                        />
+                      </SubMenu>
+                    </>
+                  )}
+                  <MenuDivider />
+                  <MenuItem onClick={() => handleShareMessage()} icon={<TbShare3 />}>
+                    Share Message
+                  </MenuItem>
+                  {(!disableEdit || shouldShowDeleteMenu) && <MenuDivider />}
+                  {!disableEdit && (
+                    <MenuItem onClick={() => onEditingChange(!editing)} icon={<AiOutlineEdit />}>
+                      {editing ? "Cancel Editing" : "Edit"}
+                    </MenuItem>
+                  )}
+                  {shouldShowDeleteMenu && (
+                    <>
+                      {onDeleteClick && !onDeleteBeforeClick && !onDeleteAfterClick ? (
+                        <MenuItem onClick={onDeleteClick} color="red.400" icon={<TbTrash />}>
+                          Delete Message
+                        </MenuItem>
+                      ) : (
+                        <SubMenu label="Delete" color="red.400" icon={<TbTrash />}>
+                          {onDeleteBeforeClick && (
+                            <MenuItem onClick={onDeleteBeforeClick} color="red.400">
+                              Delete Messages Before
+                            </MenuItem>
+                          )}
+                          {onDeleteClick && (
+                            <MenuItem color="red.400" onClick={onDeleteClick}>
+                              Delete Message
+                            </MenuItem>
+                          )}
+                          {onDeleteAfterClick && (
+                            <MenuItem onClick={onDeleteAfterClick} color="red.400">
+                              Delete Messages After
+                            </MenuItem>
+                          )}
+                        </SubMenu>
+                      )}
+                    </>
+                  )}
+                </Menu>
+              </Flex>
             </Flex>
           </Flex>
         </CardHeader>
