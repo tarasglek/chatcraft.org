@@ -59,7 +59,10 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
   );
 
   const handleAttachFiles = useCallback(() => {
-    fileInputRef.current?.click();
+    if (fileInputRef.current) {
+      fileInputRef.current?.click();
+    }
+    console.log("fileInputRef: ", fileInputRef.current);
   }, [fileInputRef]);
 
   const handlePaperClipToggle = () => {
@@ -69,8 +72,13 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
   const handleDeleteAll = async () => {
     try {
       await Promise.all(files.map((file) => removeFile(file.name, chat)));
-      refreshFiles();
+      await refreshFiles();
       onClose();
+
+      // Reset file input to insure it's available for future use
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error) {
       setDeleteError(error instanceof Error ? error.message : "Failed to delete files");
       onErrorOpen();
@@ -80,16 +88,14 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
   return (
     <>
       <Tooltip label="Attach Files..." placement="top">
-        {!isAttached && (
-          <Input
-            multiple
-            type="file"
-            ref={fileInputRef}
-            hidden
-            onChange={handleFileChange}
-            accept={acceptableFileFormats}
-          />
-        )}
+        <Input
+          multiple
+          type="file"
+          ref={fileInputRef}
+          hidden
+          onChange={handleFileChange}
+          accept={acceptableFileFormats}
+        />
         <IconButton
           isRound
           icon={<FaPaperclip />}
@@ -113,16 +119,16 @@ function PaperclipIcon({ chat, onAttachFiles }: PaperClipProps) {
               <Text color="red.500">Error loading files!</Text>
             ) : (
               <SimpleGrid columns={3} spacing={6} width="full">
-                <Input
-                  multiple
-                  type="file"
-                  ref={fileInputRef}
-                  hidden
-                  onChange={handleFileChange}
-                  accept={acceptableFileFormats}
-                />
                 {files.map((file) => (
-                  <FileIcon key={file.id} file={file} chat={chat} onRefresh={refreshFiles} />
+                  <FileIcon
+                    key={file.id}
+                    file={file}
+                    chat={chat}
+                    onRefresh={refreshFiles}
+                    fileInputRef={fileInputRef}
+                    totalFiles={files.length}
+                    onClose={onClose}
+                  />
                 ))}
               </SimpleGrid>
             )}

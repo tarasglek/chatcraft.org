@@ -59,9 +59,12 @@ type FileIconProps = {
   };
   chat: ChatCraftChat;
   onRefresh: () => void;
+  fileInputRef?: React.RefObject<HTMLInputElement>;
+  totalFiles: number;
+  onClose: () => void;
 };
 
-const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
+const FileIcon = ({ file, chat, onRefresh, fileInputRef, totalFiles, onClose }: FileIconProps) => {
   const hoverBg = useColorModeValue("gray.300", "gray.600");
 
   // Moved the fileIcon function into the component
@@ -116,7 +119,13 @@ const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
             variant="ghost"
             onClick={async () => {
               await removeFile(file.name, chat);
-              onRefresh();
+
+              if (totalFiles == 1 && fileInputRef?.current) {
+                fileInputRef.current.value = "";
+                onClose();
+              }
+
+              await onRefresh();
             }}
           />
         </Tooltip>
@@ -150,7 +159,7 @@ const FileIcon = ({ file, chat, onRefresh }: FileIconProps) => {
             w="90%"
             onSubmit={async (newVal) => {
               await renameFile(file.name, newVal, chat);
-              onRefresh();
+              await onRefresh();
             }}
           >
             <EditablePreview
