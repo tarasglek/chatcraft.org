@@ -12,7 +12,6 @@ import {
 import db, {
   ChatCraftFileTable,
   FileRef,
-  isFileRef,
   type ChatCraftChatTable,
   type ChatCraftMessageTable,
 } from "./db";
@@ -543,7 +542,7 @@ export class ChatCraftChat {
       .transaction("rw", [db.chats, db.messages, db.files], async () => {
         // Lock the chat record first
         const chat = await db.chats.get(id);
-        if (!chat?.fileRefs?.every(isFileRef)) {
+        if (!chat) {
           throw new Error("Missing or invalid chat");
         }
 
