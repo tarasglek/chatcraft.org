@@ -4,6 +4,7 @@ import {
   type RefObject,
   useCallback,
   useEffect,
+  useRef,
   useMemo,
   useState,
 } from "react";
@@ -22,6 +23,7 @@ import {
   useColorModeValue,
   VStack,
 } from "@chakra-ui/react";
+import { createPortal } from "react-dom";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 import { useDropzone } from "react-dropzone";
 
@@ -103,7 +105,37 @@ function DesktopPromptForm({
     chat,
     onImageImport: (base64) => updateImageUrls(base64, setInputImageUrls),
   });
-
+  const inputBoxRef = useRef<HTMLDivElement | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement | null>(null);
+  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number; width: number }>({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
+  const [suggestions, setSuggestions] = useState<
+    { command: string; description: string; placeholder: string }[]
+  >([]);
+  const availablePrompts = [
+    { command: "/new", description: "Creates a new chat." },
+    { command: "/clear", description: "	Erases all messages in the current chat." },
+    {
+      command: "/summary ",
+      description: "Uses ChatGPT to create a summary of the current chat.",
+      placeholder: "[max-length]",
+    },
+    { command: "/help", description: "Shows this help message." },
+    { command: "/commands", description: "Shows a list of supported commands in ChatCraft" },
+    { command: "/import", description: "Loads the provided URL and imports the text." },
+    {
+      command: "/image ",
+      description: "Creates an image using the provided prompt.",
+      placeholder: "[layout-option]",
+    },
+    { command: "/stats", description: "Shows performance statistics for all operations." },
+    { command: "/duck", description: "Do some SQL queries." },
+    { command: "/ls", description: "List files attached to chat	" },
+  ];
+  const [inputValue, setInputValue] = useState<string>("");
   const { getRootProps, isDragActive } = useDropzone({
     onDrop: importFiles,
     multiple: true,
@@ -166,6 +198,34 @@ function DesktopPromptForm({
     // eslint-disable-next-line
   }, []);
 
+  // Update when input or suggestions change
+  useEffect(() => {
+    if (inputBoxRef.current) {
+      const rect = inputBoxRef.current.getBoundingClientRect();
+      setPopupPosition({
+        top: rect.top + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  }, [inputValue, suggestions.length]);
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputPromptRef.current &&
+        !inputPromptRef.current.contains(event.target as Node)
+      ) {
+        setSuggestions([]); // Close autocomplete popup
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [inputPromptRef]);
+
   // Handle prompt form submission
   const handlePromptSubmit = useCallback(
     (e: FormEvent) => {
@@ -179,7 +239,7 @@ function DesktopPromptForm({
       }
       setIsPromptEmpty(true);
       setInputImageUrls([]);
-
+      setInputValue("");
       onSendClick(textValue, currentImageUrls);
     },
     [inputImageUrls, inputPromptRef, onSendClick]
@@ -349,6 +409,47 @@ function DesktopPromptForm({
   return (
     <Flex dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
+        {suggestions.length > 0 &&
+          createPortal(
+            <Box
+              ref={suggestionsRef}
+              bg="gray.700"
+              position="absolute"
+              top={`${popupPosition.top}px`}
+              left={`${popupPosition.left}px`}
+              width={`${popupPosition.width}px`}
+              maxHeight="50%"
+              overflowY="auto"
+              boxShadow="0px 4px 12px rgba(0,0,0,0.3)"
+              borderRadius="5px"
+              zIndex="10"
+              transform="translateY(-100%)"
+              flex={1}
+            >
+              {suggestions.map((suggestion, index) => (
+                <Box
+                  key={index}
+                  p={3}
+                  _hover={{ bg: "gray.700" }}
+                  cursor="pointer"
+                  borderRadius="5px"
+                  transition="background 0.2s ease-in-out"
+                  onClick={() => {
+                    setInputValue(suggestion.command);
+                    setSuggestions([]);
+                    inputPromptRef.current?.focus();
+                  }}
+                >
+                  <strong>{suggestion.command}</strong> {suggestion.placeholder}
+                  <Box fontSize="sm" color="gray.400">
+                    {suggestion.description}
+                  </Box>
+                </Box>
+              ))}
+            </Box>,
+            document.body // Render in a separate layer
+          )}
+
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
             h="100%"
@@ -389,7 +490,7 @@ function DesktopPromptForm({
                           top="2px"
                           left="2px"
                           bg="whiteAlpha.600"
-                          borderRadius="full"
+                          borderRadius="5px"
                           p="1"
                           zIndex="2"
                           _hover={{
@@ -419,45 +520,62 @@ function DesktopPromptForm({
                       </Box>
                     ))}
                   </Flex>
-                  <Flex flexWrap="wrap">
-                    {inputType === "audio" ? (
-                      <Box py={2} px={1} flex={1}>
-                        <AudioStatus
-                          isRecording={isRecording}
-                          isTranscribing={isTranscribing}
-                          recordingSeconds={recordingSeconds}
+                  <Box ref={inputBoxRef} style={{ position: "relative", width: "100%" }}>
+                    <Flex flexWrap="wrap">
+                      {inputType === "audio" ? (
+                        <Box py={2} px={1} flex={1}>
+                          <AudioStatus
+                            isRecording={isRecording}
+                            isTranscribing={isTranscribing}
+                            recordingSeconds={recordingSeconds}
+                          />
+                        </Box>
+                      ) : (
+                        <AutoResizingTextarea
+                          ref={inputPromptRef}
+                          variant="unstyled"
+                          onKeyDown={handleKeyDown}
+                          isDisabled={isLoading}
+                          autoFocus={true}
+                          value={inputValue}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setInputValue(val);
+                            setIsPromptEmpty(e.target.value.trim().length === 0);
+                            setSuggestions(
+                              val
+                                ? availablePrompts
+                                    .filter((p) =>
+                                      p.command.toLowerCase().startsWith(val.toLowerCase())
+                                    )
+                                    .map((p) => ({
+                                      ...p,
+                                      placeholder: p.placeholder ?? "",
+                                    }))
+                                : []
+                            );
+                          }}
+                          bg="white"
+                          _dark={{ bg: "gray.700" }}
+                          placeholder={
+                            !isLoading && !isRecording && !isTranscribing
+                              ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
+                              : undefined
+                          }
+                          overflowY="auto"
+                          flex={1}
                         />
-                      </Box>
-                    ) : (
-                      <AutoResizingTextarea
-                        ref={inputPromptRef}
-                        variant="unstyled"
-                        onKeyDown={handleKeyDown}
+                      )}
+                      <MicIcon
                         isDisabled={isLoading}
-                        autoFocus={true}
-                        onChange={(e) => {
-                          setIsPromptEmpty(e.target.value.trim().length === 0);
-                        }}
-                        bg="white"
-                        _dark={{ bg: "gray.700" }}
-                        placeholder={
-                          !isLoading && !isRecording && !isTranscribing
-                            ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
-                            : undefined
-                        }
-                        overflowY="auto"
-                        flex={1}
+                        onRecording={handleRecording}
+                        onTranscribing={handleTranscribing}
+                        onTranscriptionAvailable={handleTranscriptionAvailable}
+                        onCancel={handleRecordingCancel}
                       />
-                    )}
-                    <MicIcon
-                      isDisabled={isLoading}
-                      onRecording={handleRecording}
-                      onTranscribing={handleTranscribing}
-                      onTranscriptionAvailable={handleTranscriptionAvailable}
-                      onCancel={handleRecordingCancel}
-                    />
-                    <PaperclipIcon chat={chat} onAttachFiles={importFiles} />
-                  </Flex>
+                      <PaperclipIcon chat={chat} onAttachFiles={importFiles} />
+                    </Flex>
+                  </Box>
                 </Flex>
               </InputGroup>
 
