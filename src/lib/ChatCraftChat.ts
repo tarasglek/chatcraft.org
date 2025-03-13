@@ -4,6 +4,7 @@ import * as yaml from "yaml";
 import {
   ChatCraftAiMessage,
   ChatCraftAppMessage,
+  ChatCraftFunctionCallMessage,
   ChatCraftHumanMessage,
   ChatCraftMessage,
   ChatCraftSystemMessage,
@@ -19,9 +20,12 @@ import summarize from "./summarize";
 import { createSystemMessage } from "./system-prompt";
 import { createDataShareUrl, createShare } from "./share";
 import { SharedChatCraftChat } from "./SharedChatCraftChat";
-import { countTokensInMessages } from "./ai";
-import { parseFunctionNames, loadFunctions } from "./ChatCraftFunction";
+import { ChatCompletionError, countTokensInMessages } from "./ai";
+import { parseFunctionNames, loadFunctions, ChatCraftFunction } from "./ChatCraftFunction";
 import { ChatCraftFile } from "./ChatCraftFile";
+import { ChatCraftCommand } from "./ChatCraftCommand";
+import { WebHandler } from "../lib/WebHandler";
+import { ChatCraftCommandRegistry } from "../lib/commands";
 
 export type SerializedChatCraftChat = {
   id: string;
@@ -29,7 +33,6 @@ export type SerializedChatCraftChat = {
   summary?: string;
   messages: SerializedChatCraftMessage[];
 };
-
 function createSummary(chat: ChatCraftChat, maxLength = 200) {
   // We only want to consider human prompts and ai responses for our summary
   const messages = chat
@@ -89,7 +92,6 @@ export class ChatCraftChat {
       if (!files || !fileRefs) {
         throw new Error("Both files and fileRefs must be provided together");
       }
-
       const fileIds = new Set(files.map((f) => f.id));
       const refIds = new Set(fileRefs.map((r) => r.id));
       const _files = new Map();
@@ -116,6 +118,147 @@ export class ChatCraftChat {
    */
   private getFileValues<T>(mapper: (f: FileRefWithFile) => T): T[] {
     return Array.from(this._files?.values() ?? []).map(mapper);
+  }
+
+  async completion(
+    prompt: string = "",
+    chat: ChatCraftChat,
+    user: any,
+    settings: any,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    callChatApi: Function,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    error: Function,
+    imageUrls?: string[]
+  ) {
+    // Special-case for "help", to invoke /help command
+    if (prompt?.toLowerCase() === "help") {
+      prompt = "/help";
+    }
+    // If we have a web handler registered for this url
+    const handler = WebHandler.getMatchingHandler(prompt ?? "");
+
+    if (prompt && handler) {
+      try {
+        const result = await handler.executeHandler(prompt);
+
+        chat.addMessage(new ChatCraftHumanMessage({ user, text: result }));
+      } catch (err: any) {
+        error({
+          title: "Error running Web Handler",
+          message: err.message,
+        });
+      }
+      return;
+    }
+    // If this is a slash command, execute that instead of prompting LLM
+    if (prompt && ChatCraftCommandRegistry.isCommand(prompt)) {
+      const commandFunction = ChatCraftCommandRegistry.getCommand(prompt);
+
+      if (commandFunction) {
+        try {
+          await commandFunction(chat, user);
+        } catch (err: any) {
+          error({
+            title: `Error Running Command`,
+            message: `There was an error running the command: ${err.message}.`,
+          });
+        }
+      } else {
+        // The input was a command, but not a recognized one.
+        // Handle this case as appropriate for your application.
+
+        // We are sure that this won't return null
+        // since prompt is definitely a command
+        const { command } = ChatCraftCommand.parseCommand(prompt)!;
+        const commandFunction = ChatCraftCommandRegistry.getCommand(`/commands ${command}`)!;
+        try {
+          await commandFunction(chat, user);
+        } catch (err: any) {
+          error({
+            title: `Error Running Command`,
+            message: `There was an error running the command: ${err.message}.`,
+          });
+        }
+      }
+      return;
+    }
+    try {
+      let promptMessage: ChatCraftHumanMessage | undefined;
+      if (prompt) {
+        // Add this prompt message to the chat
+        promptMessage = new ChatCraftHumanMessage({ text: prompt, imageUrls, user });
+        await chat.addMessage(promptMessage);
+      } else if (imageUrls?.length) {
+        // Add only image to the chat
+        promptMessage = new ChatCraftHumanMessage({ text: "", imageUrls, user });
+        await chat.addMessage(promptMessage);
+      }
+
+      // If there's any problem loading referenced functions, show an error
+      const onError = (err: Error) => {
+        error({
+          title: `Error Loading Function`,
+          message: err.message,
+        });
+      };
+
+      // If there are any functions mentioned in the chat (via @fn or @fn-url),
+      // pass those through to the LLM to use if necessary.
+      const functions = await chat.functions(onError);
+
+      // If the user has specified a single function in this prompt, ask LLM to call it.
+      let functionToCall: ChatCraftFunction | undefined;
+      if (promptMessage && functions) {
+        const messageFunctions = await promptMessage.functions(onError);
+        if (messageFunctions?.length === 1) {
+          functionToCall = messageFunctions[0];
+        }
+      }
+
+      // NOTE: we strip out the ChatCraft App messages before sending to OpenAI.
+      const messages = chat.messages({ includeAppMessages: false });
+
+      const response = await callChatApi(messages, {
+        functions,
+        functionToCall,
+      });
+
+      // Add this response message to the chat
+      await chat.addMessage(response);
+
+      // If it's a function call message, invoke the function
+      if (response instanceof ChatCraftFunctionCallMessage) {
+        const func = await ChatCraftFunction.find(response.func.id);
+        if (!func) {
+          error({
+            title: `Function Error`,
+            message: `No such function: ${response.func.name} (${response.func.id}`,
+          });
+          return;
+        }
+
+        const result = await func.invoke(response.func.params);
+        // Add this result message to the chat
+        await chat.addMessage(result);
+
+        // If the user has opted to always send function results back to LLM, do it now
+        if (settings.alwaysSendFunctionResult) {
+          await chat.completion(prompt, chat, user, settings, callChatApi, error);
+        }
+      }
+    } catch (err: any) {
+      if (err instanceof ChatCompletionError && err.incompleteResponse) {
+        // Add this partial response to the chat
+        await chat.addMessage(err.incompleteResponse);
+      }
+
+      error({
+        title: `Response Error`,
+        message: err.message,
+      });
+      console.error(err);
+    }
   }
 
   /**
