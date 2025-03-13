@@ -448,7 +448,7 @@ function DesktopPromptForm({
                 <Box
                   key={index}
                   p={3}
-                  _hover={{ bg: "gray.700" }}
+                  _hover={{ bg: "gray.600" }}
                   cursor="pointer"
                   borderRadius="5px"
                   transition="background 0.2s ease-in-out"
