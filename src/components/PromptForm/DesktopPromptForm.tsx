@@ -107,11 +107,12 @@ function DesktopPromptForm({
   });
   const inputBoxRef = useRef<HTMLDivElement | null>(null);
   const suggestionsRef = useRef<HTMLDivElement | null>(null);
-  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number; width: number }>({
+  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number }>({
     top: 0,
     left: 0,
-    width: 0,
   });
+  const parentFlexRef = useRef<HTMLDivElement | null>(null);
+  const [popupWidth, setPopupWidth] = useState<number>(0);
   const [suggestions, setSuggestions] = useState<
     { command: string; description: string; placeholder: string }[]
   >([]);
@@ -204,11 +205,11 @@ function DesktopPromptForm({
       const rect = inputBoxRef.current.getBoundingClientRect();
       setPopupPosition({
         top: rect.top + window.scrollY,
-        left: rect.left + window.scrollX,
-        width: rect.width,
+        left: rect.left + window.scrollX - (popupWidth - rect.width) / 2,
       });
     }
-  }, [inputValue, suggestions.length]);
+  }, [inputValue, popupWidth, suggestions.length]);
+  // Close autocomplete popup
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -217,7 +218,7 @@ function DesktopPromptForm({
         inputPromptRef.current &&
         !inputPromptRef.current.contains(event.target as Node)
       ) {
-        setSuggestions([]); // Close autocomplete popup
+        setSuggestions([]);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -225,6 +226,23 @@ function DesktopPromptForm({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [inputPromptRef]);
+  // Set popup width to match Flex container
+  useEffect(() => {
+    if (parentFlexRef.current) {
+      const rect = parentFlexRef.current.getBoundingClientRect();
+      setPopupWidth(rect.width);
+    }
+  }, [inputValue, suggestions.length]);
+  // Update width on window resize
+  useEffect(() => {
+    const updateWidth = () => {
+      if (parentFlexRef.current) {
+        setPopupWidth(parentFlexRef.current.getBoundingClientRect().width);
+      }
+    };
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   // Handle prompt form submission
   const handlePromptSubmit = useCallback(
@@ -407,7 +425,7 @@ function DesktopPromptForm({
   const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
 
   return (
-    <Flex dir="column" w="100%" h="100%">
+    <Flex ref={parentFlexRef} dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
         {suggestions.length > 0 &&
           createPortal(
@@ -417,7 +435,7 @@ function DesktopPromptForm({
               position="absolute"
               top={`${popupPosition.top}px`}
               left={`${popupPosition.left}px`}
-              width={`${popupPosition.width}px`}
+              width={`${popupWidth}px`}
               maxHeight="50%"
               overflowY="auto"
               boxShadow="0px 4px 12px rgba(0,0,0,0.3)"
