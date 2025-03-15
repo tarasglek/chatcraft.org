@@ -7,18 +7,20 @@ type TokenInfo = {
   cost?: number;
 };
 
+interface SystemProvider {
+  apiUrl: string;
+  defaultModel: string;
+  apiKey: string;
+  isSystemProvider: true;
+}
+
+type SystemProviders = Record<string, SystemProvider>;
+
 type User = {
   name: string;
   username: string;
   avatarUrl: string;
-  systemProviders?: Record<
-    string,
-    {
-      apiUrl: string;
-      defaultModel: string;
-      apiKey: string;
-    }
-  >;
+  email: string | null;
 };
 
 type JwtTokenPayload = {

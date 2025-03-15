@@ -65,7 +65,6 @@ function ChatBase({ chat }: ChatBaseProps) {
     onClose: onPrefModalClose,
   } = useDisclosure();
   const { providers } = useProviders();
-  console.log({ providers });
 
   useEffect(() => {
     const providersLength = Object.keys(providers).length;

@@ -24,38 +24,15 @@ function MobileModelSelectionMenuList({ onItemSelect }: ModelSelectionMenuListPr
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { isTextToSpeechSupported } = useTextToSpeech();
   const { clearAudioQueue } = useAudioPlayer();
-  const { systemProviders, userProviders } = useProviders();
+  const { providers } = useProviders();
 
   useDebounce(() => setDebouncedSearchQuery(searchQuery), 250, [searchQuery]);
   return (
     <>
       {/* Providers Section */}
-      <MenuHeader>System Providers</MenuHeader>
-      <MenuGroup title="System defined providers for logged-in user">
-        {Object.entries(systemProviders).map(([providerName, providerObject]) => (
-          <MenuItem
-            style={{
-              paddingInline: "16px",
-            }}
-            key={providerName}
-            onClick={(e) => {
-              e.stopPropagation = true;
-              e.keepOpen = true;
-              setSettings({ ...settings, currentProvider: providerObject });
-            }}
-          >
-            {settings.currentProvider.name === providerName ? (
-              <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-            ) : (
-              <span style={{ width: "1.6rem", display: "inline-block" }} />
-            )}
-            {providerName}
-          </MenuItem>
-        ))}
-      </MenuGroup>
-      <MenuHeader>User Providers</MenuHeader>
-      <MenuGroup title="User defined providers from settings">
-        {Object.entries(userProviders).map(([providerName, providerObject]) => (
+      <MenuHeader>Providers</MenuHeader>
+      <MenuGroup title="AI Providers">
+        {Object.entries(providers).map(([providerName, providerObject]) => (
           <MenuItem
             style={{
               paddingInline: "16px",
@@ -171,7 +148,7 @@ function DesktopModelSelectionMenuList({ onItemSelect }: ModelSelectionMenuListP
   const { models } = useModels();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const { systemProviders, userProviders } = useProviders();
+  const { providers } = useProviders();
 
   useDebounce(() => setDebouncedSearchQuery(searchQuery), 250, [searchQuery]);
 
@@ -184,42 +161,10 @@ function DesktopModelSelectionMenuList({ onItemSelect }: ModelSelectionMenuListP
           fontSize: "0.9rem",
         }}
       >
-        System Providers
+        Providers
       </MenuHeader>
-      <MenuGroup title="System defined providers for logged-in user">
-        {Object.entries(systemProviders).map(([providerName, providerObject]) => (
-          <MenuItem
-            style={{
-              paddingInline: "16px",
-            }}
-            key={providerName}
-            onClick={(e) => {
-              e.stopPropagation = true;
-              e.keepOpen = true;
-              setSettings({ ...settings, currentProvider: providerObject });
-            }}
-          >
-            {settings.currentProvider.name === providerName ? (
-              <IoMdCheckmark style={{ marginRight: "0.6rem" }} />
-            ) : (
-              <span style={{ width: "1.6rem", display: "inline-block" }} />
-            )}
-            {providerName}
-          </MenuItem>
-        ))}
-      </MenuGroup>
-
-      <MenuHeader
-        style={{
-          textTransform: "none", // default from MenuHeader is all caps
-          fontWeight: "bold", // default from MenuHeader is normal text
-          fontSize: "0.9rem",
-        }}
-      >
-        User Providers
-      </MenuHeader>
-      <MenuGroup title="User defined providers from settings">
-        {Object.entries(userProviders).map(([providerName, providerObject]) => (
+      <MenuGroup title="Providers">
+        {Object.entries(providers).map(([providerName, providerObject]) => (
           <MenuItem
             style={{
               paddingInline: "16px",
