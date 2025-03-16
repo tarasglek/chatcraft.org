@@ -1,4 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
+import { useEffect, useState } from "react";
 
 const PERF_PREFIX = "--chatcraft-";
 
@@ -54,11 +55,8 @@ export function getPerformanceStats(): Map<string, PerfStats> {
 }
 
 /**
- * A custom React hook that wraps useLiveQuery with performance tracing.
- * Measures execution time of the query function.
- *
- * Usage:
- * const result = useLiveQueryTraced("name", queryFn, deps, defaultValue)
+ * A custom React hook that wraps useLiveQuery with performance tracing and
+ * tab visibility awareness.
  *
  * @template T The type of data returned by the query
  * @template TDefault The type of the default value
@@ -74,15 +72,47 @@ export function useLiveQueryTraced<T, TDefault = T>(
   deps: any[] = [],
   defaultValue?: TDefault
 ): T | TDefault {
-  return useLiveQuery(
-    () =>
-      measure(name, async () => {
-        const result = await queryFn();
-        return result;
-      }),
-    deps,
-    defaultValue
-  ) as T | TDefault;
+  // Create a wrapped query function that checks for visibility and stops running queries
+  // until the page is actually visible.
+  const visibilityAwareQueryFn = () => {
+    if (typeof document !== "undefined" && document.hidden) {
+      // If we have a cached value in measurements, return it
+      const stats = measurements.get(name);
+      if (stats?.lastDuration !== undefined) {
+        return Promise.resolve(defaultValue as T);
+      }
+      return Promise.resolve(defaultValue as T);
+    }
+
+    return measure(name, async () => {
+      const result = await queryFn();
+      return result;
+    });
+  };
+
+  // Add document.hidden to dependencies to re-run when visibility changes
+  const visibilityDeps = [...deps];
+  if (typeof document !== "undefined") {
+    visibilityDeps.push(document.hidden);
+  }
+
+  // Set up visibility change listener
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Force re-render when visibility changes
+      forceUpdate({});
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  // Use a state to force re-render
+  const [, forceUpdate] = useState({});
+
+  return useLiveQuery(visibilityAwareQueryFn, visibilityDeps, defaultValue) as T | TDefault;
 }
 
 export async function measure<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -90,17 +120,27 @@ export async function measure<T>(name: string, fn: () => Promise<T>): Promise<T>
   const startMark = `${fullName}-start`;
   const endMark = `${fullName}-end`;
 
+  // Start timing
+  const startTime = performance.now();
   performance.mark(startMark);
+
   try {
     const result = await fn();
+    // End timing immediately after result
+    const endTime = performance.now();
     performance.mark(endMark);
+
+    // Measure and fall back to manual timing if needed
     try {
       performance.measure(fullName, startMark, endMark);
-    } catch (e) {
-      console.error(`Failed to measure ${startMark} to ${endMark}: ${e}`);
+    } catch (_e) {
+      // If measure fails, use the manual timing
+      updateStats(name, endTime - startTime);
     }
+
     return result;
   } finally {
+    // Always clean up marks
     performance.clearMarks(startMark);
     performance.clearMarks(endMark);
   }
