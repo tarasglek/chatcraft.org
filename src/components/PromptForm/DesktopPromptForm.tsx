@@ -22,8 +22,11 @@ import {
   Text,
   useColorModeValue,
   VStack,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
 } from "@chakra-ui/react";
-import { createPortal } from "react-dom";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 import { useDropzone } from "react-dropzone";
 
@@ -107,12 +110,12 @@ function DesktopPromptForm({
   });
   const inputBoxRef = useRef<HTMLDivElement | null>(null);
   const suggestionsRef = useRef<HTMLDivElement | null>(null);
-  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number }>({
-    top: 0,
+  const parentFlexRef = useRef<HTMLDivElement | null>(null);
+  const [popupPosition, setPopupPosition] = useState<{ left: number }>({
     left: 0,
   });
-  const parentFlexRef = useRef<HTMLDivElement | null>(null);
-  const [popupWidth, setPopupWidth] = useState<number>(0);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [inputWidth, setInputWidth] = useState<number>(0);
   const [suggestions, setSuggestions] = useState<
     { command: string; description: string; placeholder: string }[]
   >([]);
@@ -201,47 +204,38 @@ function DesktopPromptForm({
 
   // Update when input or suggestions change
   useEffect(() => {
-    if (inputBoxRef.current) {
-      const rect = inputBoxRef.current.getBoundingClientRect();
-      setPopupPosition({
-        top: rect.top + window.scrollY,
-        left: rect.left + window.scrollX - (popupWidth - rect.width) / 2,
-      });
-    }
-  }, [inputValue, popupWidth, suggestions.length]);
-  // Close autocomplete popup
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target as Node) &&
-        inputPromptRef.current &&
-        !inputPromptRef.current.contains(event.target as Node)
-      ) {
-        setSuggestions([]);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [inputPromptRef]);
-  // Set popup width to match Flex container
-  useEffect(() => {
-    if (parentFlexRef.current) {
+    if (parentFlexRef.current && inputBoxRef.current) {
       const rect = parentFlexRef.current.getBoundingClientRect();
-      setPopupWidth(rect.width);
+      setInputWidth(rect.width);
+      setPopupPosition({
+        left: (rect.left + window.scrollX) / 10,
+      });
     }
   }, [inputValue, suggestions.length]);
   // Update width on window resize
   useEffect(() => {
     const updateWidth = () => {
       if (parentFlexRef.current) {
-        setPopupWidth(parentFlexRef.current.getBoundingClientRect().width);
+        setInputWidth(parentFlexRef.current.getBoundingClientRect().width);
       }
     };
     window.addEventListener("resize", updateWidth);
     return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        inputBoxRef.current &&
+        !inputBoxRef.current.contains(event.target as Node) &&
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node)
+      ) {
+        setIsPopoverOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Handle prompt form submission
@@ -423,51 +417,12 @@ function DesktopPromptForm({
   const closeModal = () => setImageModalOpen(false);
 
   const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
+  const bgColor = useColorModeValue("white", "gray.700");
+  const hoverBg = useColorModeValue("gray.200", "gray.600");
 
   return (
     <Flex ref={parentFlexRef} dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
-        {suggestions.length > 0 &&
-          createPortal(
-            <Box
-              ref={suggestionsRef}
-              bg="gray.700"
-              position="absolute"
-              top={`${popupPosition.top}px`}
-              left={`${popupPosition.left}px`}
-              width={`${popupWidth}px`}
-              maxHeight="50%"
-              overflowY="auto"
-              boxShadow="0px 4px 12px rgba(0,0,0,0.3)"
-              borderRadius="5px"
-              zIndex="10"
-              transform="translateY(-100%)"
-              flex={1}
-            >
-              {suggestions.map((suggestion, index) => (
-                <Box
-                  key={index}
-                  p={3}
-                  _hover={{ bg: "gray.600" }}
-                  cursor="pointer"
-                  borderRadius="5px"
-                  transition="background 0.2s ease-in-out"
-                  onClick={() => {
-                    setInputValue(suggestion.command);
-                    setSuggestions([]);
-                    inputPromptRef.current?.focus();
-                  }}
-                >
-                  <strong>{suggestion.command}</strong> {suggestion.placeholder}
-                  <Box fontSize="sm" color="gray.400">
-                    {suggestion.description}
-                  </Box>
-                </Box>
-              ))}
-            </Box>,
-            document.body // Render in a separate layer
-          )}
-
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
             h="100%"
@@ -549,40 +504,83 @@ function DesktopPromptForm({
                           />
                         </Box>
                       ) : (
-                        <AutoResizingTextarea
-                          ref={inputPromptRef}
-                          variant="unstyled"
-                          onKeyDown={handleKeyDown}
-                          isDisabled={isLoading}
-                          autoFocus={true}
-                          value={inputValue}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setInputValue(val);
-                            setIsPromptEmpty(e.target.value.trim().length === 0);
-                            setSuggestions(
-                              val
-                                ? availablePrompts
-                                    .filter((p) =>
-                                      p.command.toLowerCase().startsWith(val.toLowerCase())
-                                    )
-                                    .map((p) => ({
-                                      ...p,
-                                      placeholder: p.placeholder ?? "",
-                                    }))
-                                : []
-                            );
-                          }}
-                          bg="white"
-                          _dark={{ bg: "gray.700" }}
-                          placeholder={
-                            !isLoading && !isRecording && !isTranscribing
-                              ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
-                              : undefined
-                          }
-                          overflowY="auto"
-                          flex={1}
-                        />
+                        <Popover
+                          isOpen={isPopoverOpen}
+                          onClose={() => setIsPopoverOpen(false)}
+                          autoFocus={false}
+                          placement="top"
+                        >
+                          <PopoverTrigger>
+                            <Box ref={inputBoxRef} style={{ width: "90%" }}>
+                              <AutoResizingTextarea
+                                ref={inputPromptRef}
+                                variant="unstyled"
+                                onKeyDown={handleKeyDown}
+                                isDisabled={isLoading}
+                                autoFocus={true}
+                                value={inputValue}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setInputValue(val);
+                                  setIsPromptEmpty(e.target.value.trim().length === 0);
+                                  setSuggestions(
+                                    val
+                                      ? availablePrompts
+                                          .filter((p) =>
+                                            p.command.toLowerCase().startsWith(val.toLowerCase())
+                                          )
+                                          .map((p) => ({
+                                            ...p,
+                                            placeholder: p.placeholder ?? "",
+                                          }))
+                                      : []
+                                  );
+                                  setIsPopoverOpen(!!val);
+                                }}
+                                bg="white"
+                                _dark={{ bg: "gray.700" }}
+                                placeholder={
+                                  !isLoading && !isRecording && !isTranscribing
+                                    ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
+                                    : undefined
+                                }
+                                overflowY="auto"
+                                flex={1}
+                              />
+                            </Box>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            width={`${inputWidth}px`}
+                            borderRadius="10px"
+                            boxShadow="lg"
+                            bg={bgColor}
+                            zIndex="1000"
+                            left={popupPosition.left}
+                          >
+                            <PopoverBody maxHeight="250px" overflowY="auto" p={2} width="100%">
+                              {suggestions.map((suggestion, index) => (
+                                <Box
+                                  key={index}
+                                  p={3}
+                                  _hover={{ bg: hoverBg }}
+                                  cursor="pointer"
+                                  borderRadius="8px"
+                                  transition="background 0.2s ease-in-out"
+                                  onClick={() => {
+                                    setInputValue(suggestion.command);
+                                    setSuggestions([]);
+                                    inputPromptRef.current?.focus();
+                                  }}
+                                >
+                                  <strong>{suggestion.command}</strong>
+                                  <Box fontSize="sm" color="gray.400">
+                                    {suggestion.description}
+                                  </Box>
+                                </Box>
+                              ))}
+                            </PopoverBody>
+                          </PopoverContent>
+                        </Popover>
                       )}
                       <MicIcon
                         isDisabled={isLoading}
