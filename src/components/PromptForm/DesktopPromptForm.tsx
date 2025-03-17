@@ -119,7 +119,7 @@ function DesktopPromptForm({
   const [suggestions, setSuggestions] = useState<
     { command: string; helpTitle: string; helpDescription: string }[]
   >([]);
-
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const availablePrompts = ChatCraftCommandRegistry.getCommands();
   const [inputValue, setInputValue] = useState<string>("");
   const { getRootProps, isDragActive } = useDropzone({
@@ -249,22 +249,44 @@ function DesktopPromptForm({
       switch (e.key) {
         // Allow the user to cursor-up to repeat last prompt
         case "ArrowUp":
-          if (isPromptEmpty && previousMessage && inputPromptRef.current) {
+          if (isPromptEmpty && previousMessage && inputPromptRef.current && !isPopoverOpen) {
             e.preventDefault();
             inputPromptRef.current.value = previousMessage;
             setIsPromptEmpty(false);
+          }
+          if (isPopoverOpen) {
+            e.preventDefault();
+            setSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+          }
+          break;
+        case "ArrowDown":
+          if (isPopoverOpen) {
+            e.preventDefault();
+            setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev));
           }
           break;
 
         // Prevent blank submissions and allow for multiline input.
         case "Enter":
-          if (settings.enterBehaviour === "newline") {
-            handleMetaEnter(e);
-          } else if (settings.enterBehaviour === "send") {
-            if (!e.shiftKey && !isPromptEmpty) {
-              handlePromptSubmit(e);
+          if (!isPopoverOpen) {
+            if (settings.enterBehaviour === "newline") {
+              handleMetaEnter(e);
+            } else if (settings.enterBehaviour === "send") {
+              if (!e.shiftKey && !isPromptEmpty) {
+                handlePromptSubmit(e);
+              }
+            }
+          } else {
+            e.preventDefault();
+            if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+              const selectedSuggestion = suggestions[selectedIndex];
+              setInputValue("/" + selectedSuggestion.command); // Clear input
+              setIsPopoverOpen(false); // Close popover
+              //onSendClick(selectedSuggestion.command, []); // Submit selected command
+              inputPromptRef.current?.focus(); // Refocus input box
             }
           }
+
           break;
 
         // Shortcut to "/clear" the chat
@@ -289,9 +311,12 @@ function DesktopPromptForm({
       handleMetaEnter,
       handlePromptSubmit,
       inputPromptRef,
+      isPopoverOpen,
       isPromptEmpty,
       previousMessage,
+      selectedIndex,
       settings.enterBehaviour,
+      suggestions,
     ]
   );
 
@@ -538,6 +563,7 @@ function DesktopPromptForm({
                                 <Box
                                   key={index}
                                   p={3}
+                                  bg={selectedIndex === index ? hoverBg : bgColor} // Dynamic background
                                   _hover={{ bg: hoverBg }}
                                   cursor="pointer"
                                   borderRadius="8px"
