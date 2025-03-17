@@ -117,28 +117,10 @@ function DesktopPromptForm({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [inputWidth, setInputWidth] = useState<number>(0);
   const [suggestions, setSuggestions] = useState<
-    { command: string; description: string; placeholder: string }[]
+    { command: string; helpTitle: string; helpDescription: string }[]
   >([]);
-  const availablePrompts = [
-    { command: "/new", description: "Creates a new chat." },
-    { command: "/clear", description: "	Erases all messages in the current chat." },
-    {
-      command: "/summary ",
-      description: "Uses ChatGPT to create a summary of the current chat.",
-      placeholder: "[max-length]",
-    },
-    { command: "/help", description: "Shows this help message." },
-    { command: "/commands", description: "Shows a list of supported commands in ChatCraft" },
-    { command: "/import", description: "Loads the provided URL and imports the text." },
-    {
-      command: "/image ",
-      description: "Creates an image using the provided prompt.",
-      placeholder: "[layout-option]",
-    },
-    { command: "/stats", description: "Shows performance statistics for all operations." },
-    { command: "/duck", description: "Do some SQL queries." },
-    { command: "/ls", description: "List files attached to chat	" },
-  ];
+
+  const availablePrompts = ChatCraftCommandRegistry.getCommands();
   const [inputValue, setInputValue] = useState<string>("");
   const { getRootProps, isDragActive } = useDropzone({
     onDrop: importFiles,
@@ -252,6 +234,7 @@ function DesktopPromptForm({
       setIsPromptEmpty(true);
       setInputImageUrls([]);
       setInputValue("");
+      setIsPopoverOpen(false);
       onSendClick(textValue, currentImageUrls);
     },
     [inputImageUrls, inputPromptRef, onSendClick]
@@ -419,7 +402,6 @@ function DesktopPromptForm({
   const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
   const bgColor = useColorModeValue("white", "gray.700");
   const hoverBg = useColorModeValue("gray.200", "gray.600");
-
   return (
     <Flex ref={parentFlexRef} dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
@@ -523,19 +505,13 @@ function DesktopPromptForm({
                                   const val = e.target.value;
                                   setInputValue(val);
                                   setIsPromptEmpty(e.target.value.trim().length === 0);
-                                  setSuggestions(
-                                    val
-                                      ? availablePrompts
-                                          .filter((p) =>
-                                            p.command.toLowerCase().startsWith(val.toLowerCase())
-                                          )
-                                          .map((p) => ({
-                                            ...p,
-                                            placeholder: p.placeholder ?? "",
-                                          }))
-                                      : []
-                                  );
-                                  setIsPopoverOpen(!!val);
+                                  const filteredSuggestions = val
+                                    ? availablePrompts.filter((p) =>
+                                        p.helpTitle.toLowerCase().startsWith(val.toLowerCase())
+                                      )
+                                    : [];
+                                  setSuggestions(filteredSuggestions);
+                                  setIsPopoverOpen(filteredSuggestions.length > 0);
                                 }}
                                 bg="white"
                                 _dark={{ bg: "gray.700" }}
@@ -567,14 +543,15 @@ function DesktopPromptForm({
                                   borderRadius="8px"
                                   transition="background 0.2s ease-in-out"
                                   onClick={() => {
-                                    setInputValue(suggestion.command);
+                                    setInputValue("/" + suggestion.command);
                                     setSuggestions([]);
+                                    setIsPopoverOpen(false);
                                     inputPromptRef.current?.focus();
                                   }}
                                 >
-                                  <strong>{suggestion.command}</strong>
+                                  <strong>{suggestion.helpTitle}</strong>
                                   <Box fontSize="sm" color="gray.400">
-                                    {suggestion.description}
+                                    {suggestion.helpDescription.split(".")[0]}.
                                   </Box>
                                 </Box>
                               ))}
