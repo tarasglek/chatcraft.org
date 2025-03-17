@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAlert } from "./use-alert";
 import { ChatCraftChat } from "../lib/ChatCraftChat";
 import { ChatCraftHumanMessage } from "../lib/ChatCraftMessage";
-import { compressImageToBase64, formatAsCodeBlock } from "../lib/utils";
+import { compressImageToBase64, formatAsCodeBlock, generateUniqueFilename } from "../lib/utils";
 import { getSettings } from "../lib/settings";
 import { JinaAIProvider, type JinaAiReaderResponse } from "../lib/providers/JinaAIProvider";
 import { ChatCraftFile } from "../lib/ChatCraftFile";
@@ -201,6 +201,16 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
 
       // Extract text based on file type
       const text = isPDF ? (contents as JinaAiReaderResponse).data.content : (contents as string);
+
+      // Make sure we don't store the same filename twice (e.g., pasting a screenshot uses `image.png` each time)
+      const uniqueFilename = generateUniqueFilename(file.name, chat.files());
+      if (uniqueFilename !== file.name) {
+        // Update the file with the unique filename before we store it
+        file = new File([file], uniqueFilename, {
+          type: file.type,
+          lastModified: file.lastModified,
+        });
+      }
 
       // Create or find the ChatCraftFile in the files table and add to the chat
       const chatCraftFile = await ChatCraftFile.findOrCreate(file, { text });
