@@ -120,8 +120,9 @@ function DesktopPromptForm({
     { command: string; helpTitle: string; helpDescription: string }[]
   >([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+
   const availablePrompts = ChatCraftCommandRegistry.getCommands();
-  const [inputValue, setInputValue] = useState<string>("");
   const { getRootProps, isDragActive } = useDropzone({
     onDrop: importFiles,
     multiple: true,
@@ -193,7 +194,7 @@ function DesktopPromptForm({
         left: (rect.left + window.scrollX) / 10,
       });
     }
-  }, [inputValue, suggestions.length]);
+  }, [suggestions.length]);
   // Update width on window resize
   useEffect(() => {
     const updateWidth = () => {
@@ -233,7 +234,6 @@ function DesktopPromptForm({
       }
       setIsPromptEmpty(true);
       setInputImageUrls([]);
-      setInputValue("");
       setIsPopoverOpen(false);
       onSendClick(textValue, currentImageUrls);
     },
@@ -256,13 +256,35 @@ function DesktopPromptForm({
           }
           if (isPopoverOpen) {
             e.preventDefault();
-            setSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+            if (selectedIndex == -1) {
+              setSelectedIndex(0);
+            } else {
+              setSelectedIndex((prev) => {
+                const nextIndex = prev > 0 ? prev - 1 : 0;
+                suggestionRefs.current[nextIndex]?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest",
+                });
+                return nextIndex;
+              });
+            }
           }
           break;
         case "ArrowDown":
           if (isPopoverOpen) {
             e.preventDefault();
-            setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev));
+            if (selectedIndex == -1) {
+              setSelectedIndex(0);
+            } else {
+              setSelectedIndex((prev) => {
+                const nextIndex = prev < suggestions.length - 1 ? prev + 1 : prev;
+                suggestionRefs.current[nextIndex]?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest",
+                });
+                return nextIndex;
+              });
+            }
           }
           break;
 
@@ -278,9 +300,13 @@ function DesktopPromptForm({
             }
           } else {
             e.preventDefault();
-            if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+            if (
+              selectedIndex >= 0 &&
+              selectedIndex < suggestions.length &&
+              inputPromptRef.current
+            ) {
               const selectedSuggestion = suggestions[selectedIndex];
-              setInputValue("/" + selectedSuggestion.command); // Clear input
+              inputPromptRef.current.value = "/" + selectedSuggestion.command;
               setIsPopoverOpen(false); // Close popover
               //onSendClick(selectedSuggestion.command, []); // Submit selected command
               inputPromptRef.current?.focus(); // Refocus input box
@@ -520,15 +546,14 @@ function DesktopPromptForm({
                           <PopoverTrigger>
                             <Box ref={inputBoxRef} style={{ width: "90%" }}>
                               <AutoResizingTextarea
+                                id="test"
                                 ref={inputPromptRef}
                                 variant="unstyled"
                                 onKeyDown={handleKeyDown}
                                 isDisabled={isLoading}
                                 autoFocus={true}
-                                value={inputValue}
                                 onChange={(e) => {
                                   const val = e.target.value;
-                                  setInputValue(val);
                                   setIsPromptEmpty(e.target.value.trim().length === 0);
                                   const filteredSuggestions = val
                                     ? availablePrompts.filter((p) =>
@@ -537,6 +562,7 @@ function DesktopPromptForm({
                                     : [];
                                   setSuggestions(filteredSuggestions);
                                   setIsPopoverOpen(filteredSuggestions.length > 0);
+                                  setSelectedIndex(-1);
                                 }}
                                 bg="white"
                                 _dark={{ bg: "gray.700" }}
@@ -562,6 +588,7 @@ function DesktopPromptForm({
                               {suggestions.map((suggestion, index) => (
                                 <Box
                                   key={index}
+                                  ref={(el) => (suggestionRefs.current[index] = el)}
                                   p={3}
                                   bg={selectedIndex === index ? hoverBg : bgColor} // Dynamic background
                                   _hover={{ bg: hoverBg }}
@@ -569,7 +596,9 @@ function DesktopPromptForm({
                                   borderRadius="8px"
                                   transition="background 0.2s ease-in-out"
                                   onClick={() => {
-                                    setInputValue("/" + suggestion.command);
+                                    if (inputPromptRef.current) {
+                                      inputPromptRef.current.value = "/" + suggestion.command;
+                                    }
                                     setSuggestions([]);
                                     setIsPopoverOpen(false);
                                     inputPromptRef.current?.focus();
