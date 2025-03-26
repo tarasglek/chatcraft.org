@@ -60,5 +60,6 @@ describe("google.ts", () => {
     expect(user.username).toEqual("email");
     expect(user.name).toEqual("name");
     expect(user.avatarUrl).toEqual("picture");
+    expect(user.email).toEqual("email");
   });
 });

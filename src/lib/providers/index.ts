@@ -46,12 +46,19 @@ export function providerFromJSON({
   }
 
   if (apiUrl === OPENROUTER_API_URL) {
-    return OpenRouterProvider.fromJSON({ id, name, apiUrl, apiKey, defaultModel });
+    return OpenRouterProvider.fromJSON({
+      id,
+      name,
+      apiUrl,
+      apiKey,
+      defaultModel,
+    });
   }
 
-  if (apiUrl === FREEMODELPROVIDER_API_URL) {
-    return new FreeModelProvider();
-  }
+  // needed?
+  // if (apiUrl === FREEMODELPROVIDER_API_URL) {
+  //   return new FreeModelProvider();
+  // }
 
   return CustomProvider.fromJSON({ id, name, apiUrl, apiKey, defaultModel });
 }

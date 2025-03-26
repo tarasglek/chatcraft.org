@@ -23,6 +23,7 @@ export abstract class ChatCraftProvider {
   apiUrl: string;
   apiKey?: string;
   defaultModel: string;
+  protected readonly _isSystemProvider: boolean = false;
 
   constructor(name: string, url: string, defaultModel: string, key?: string) {
     this.id = nanoid();
@@ -30,6 +31,10 @@ export abstract class ChatCraftProvider {
     this.apiUrl = url;
     this.apiKey = key;
     this.defaultModel = defaultModel;
+  }
+
+  public get isSystemProvider(): boolean {
+    return this._isSystemProvider;
   }
 
   createClient(key: string) {
@@ -80,7 +85,35 @@ export abstract class ChatCraftProvider {
   }
 
   static areSameProviders(p1: ChatCraftProvider, p2: ChatCraftProvider) {
-    return p1.apiUrl === p2.apiUrl && p1.apiKey === p2.apiKey;
+    return (
+      p1.apiUrl === p2.apiUrl &&
+      p1.apiKey === p2.apiKey &&
+      p1.isSystemProvider === p2.isSystemProvider
+    );
+  }
+}
+
+export class ChatCraftSystemProvider extends ChatCraftProvider {
+  protected readonly _isSystemProvider: boolean = true;
+
+  // API Keys for System Providers are always valid
+  async validateApiKey(_key: string): Promise<boolean> {
+    return true;
+  }
+
+  // Helper to convert an existing provider to a system provider.
+  static fromProvider(provider: ChatCraftProvider) {
+    const systemProvider = new ChatCraftSystemProvider(
+      provider.name,
+      provider.apiUrl,
+      provider.defaultModel,
+      provider.apiKey
+    );
+
+    // Keep the existing ID
+    systemProvider.id = provider.id;
+
+    return systemProvider;
   }
 }
 

@@ -50,13 +50,15 @@ export async function requestUserInfo(token: string): Promise<User> {
     throw new Error(`Failed to get GitHub User info: ${res.status} ${await res.text()}`);
   }
 
-  const { login, name, avatar_url } = (await res.json()) as {
+  const { login, name, avatar_url, email } = (await res.json()) as {
     login: string;
+    email: string | null;
+    // We may or may not get an email (not all users make this info available)
     name: string | null;
     avatar_url: string;
   };
 
-  return { username: login, name: name ?? login, avatarUrl: avatar_url };
+  return { username: login, name: name ?? login, avatarUrl: avatar_url, email: email ?? null };
 }
 
 // In development environments, we automatically log the user in without involving GitHub
@@ -65,6 +67,7 @@ export function requestDevUserInfo() {
     username: "chatcraft_dev",
     name: "ChatCraftDev",
     avatarUrl: "https://github.com/github.png?size=402",
+    email: "dev@chatcraft.org",
   };
 }
 

@@ -56,7 +56,7 @@ export async function requestGoogleUserInfo(token: string): Promise<User> {
     picture: string;
   };
 
-  return { username: email, name: name, avatarUrl: picture };
+  return { username: email, name: name, avatarUrl: picture, email };
 }
 
 // In development environments, we automatically log the user in without involving Google
