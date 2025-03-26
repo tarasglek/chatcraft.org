@@ -66,6 +66,7 @@ export function requestGoogleDevUserInfo() {
     name: "ChatCraftDevGoogle",
     avatarUrl:
       "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg?size=402",
+    email: "dev@chatcraft.org",
   };
 }
 
@@ -150,7 +151,13 @@ export async function handleGoogleProdLogin({
     // User info goes in a non HTTP-Only cookie that browser can read
     const idToken = await tokenProvider.createToken(user.username, user, JWT_SECRET);
     // API authorization goes in an HTTP-Only cookie that only functions can read
-    const accessToken = await tokenProvider.createToken(user.username, { role: "api" }, JWT_SECRET);
+    const accessToken = await tokenProvider.createToken(
+      user.username,
+      {
+        role: "api",
+      },
+      JWT_SECRET
+    );
 
     // Return to the root or a specific chat if we have an id
     const url = new URL(chatId ? `/c/${chatId}` : "/", appUrl).href;
@@ -186,7 +193,13 @@ export async function handleGoogleDevLogin({
     // User info goes in a non HTTP-Only cookie that browser can read
     const idToken = await tokenProvider.createToken(user.username, user, JWT_SECRET);
     // API authorization goes in an HTTP-Only cookie that only functions can read
-    const accessToken = await tokenProvider.createToken(user.username, { role: "api" }, JWT_SECRET);
+    const accessToken = await tokenProvider.createToken(
+      user.username,
+      {
+        role: "api",
+      },
+      JWT_SECRET
+    );
 
     // Return to the root or a specific chat if we have an id
     const url = new URL(chatId ? `/c/${chatId}` : "/", appUrl).href;
