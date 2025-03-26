@@ -163,7 +163,7 @@ function DesktopModelSelectionMenuList({ onItemSelect }: ModelSelectionMenuListP
       >
         Providers
       </MenuHeader>
-      <MenuGroup title="Providers">
+      <MenuGroup title="AI Providers">
         {Object.entries(providers).map(([providerName, providerObject]) => (
           <MenuItem
             style={{

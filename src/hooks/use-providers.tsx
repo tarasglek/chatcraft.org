@@ -43,7 +43,7 @@ export function useProviders() {
   const systemProviders = useMemo(() => {
     const systemProviders = systemProvidersResponse || {};
 
-    // Otherwise, process all the system providers into something we can use locally
+    // Process all the system providers into something we can use locally
     const processedSystemProviders: ProviderData = {};
     for (const key in systemProviders) {
       const provider = providerFromJSON({ ...systemProviders[key], name: key, id: nanoid() });
