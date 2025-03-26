@@ -1,12 +1,4 @@
-import {
-  createContext,
-  useEffect,
-  useContext,
-  type FC,
-  type ReactNode,
-  useState,
-  useCallback,
-} from "react";
+import { createContext, useEffect, useContext, type FC, type ReactNode, useState } from "react";
 import { useCookie } from "react-use";
 import { decodeJwt } from "jose";
 import { isProd } from "../lib/utils";
