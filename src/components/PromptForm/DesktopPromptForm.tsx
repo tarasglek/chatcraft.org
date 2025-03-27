@@ -578,22 +578,28 @@ function DesktopPromptForm({
                           </PopoverTrigger>
                           <PopoverContent
                             width={`${inputWidth}px`}
-                            borderRadius="10px"
+                            borderRadius="sm"
                             boxShadow="lg"
                             bg={bgColor}
                             zIndex="1000"
                             left={popupPosition.left}
                           >
-                            <PopoverBody maxHeight="250px" overflowY="auto" p={2} width="100%">
+                            <PopoverBody
+                              maxHeight="250px"
+                              overflowY="auto"
+                              py={1}
+                              px={0}
+                              width="100%"
+                            >
                               {suggestions.map((suggestion, index) => (
                                 <Box
                                   key={index}
                                   ref={(el) => (suggestionRefs.current[index] = el)}
-                                  p={3}
+                                  p={2}
                                   bg={selectedIndex === index ? hoverBg : bgColor} // Dynamic background
                                   _hover={{ bg: hoverBg }}
                                   cursor="pointer"
-                                  borderRadius="8px"
+                                  borderRadius="sm"
                                   transition="background 0.2s ease-in-out"
                                   onClick={() => {
                                     if (inputPromptRef.current) {
@@ -604,7 +610,7 @@ function DesktopPromptForm({
                                     inputPromptRef.current?.focus();
                                   }}
                                 >
-                                  <strong>{suggestion.helpTitle}</strong>
+                                  <Text fontWeight={"semi-bold"}>{suggestion.helpTitle}</Text>
                                   <Box fontSize="sm" color="gray.400">
                                     {suggestion.helpDescription.split(".")[0]}.
                                   </Box>
