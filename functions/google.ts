@@ -5,12 +5,12 @@ import { buildUrl } from "./utils";
 export async function requestGoogleAccessToken(
   code: string,
   GOOGLE_OAUTH_CLIENT_ID: string,
-  GOOGLE_OUATH_CLIENT_SECRET: string
+  GOOGLE_OAUTH_CLIENT_SECRET: string
 ) {
   const url = buildUrl("https://accounts.google.com/o/oauth2/token", {
     code: code,
     client_id: GOOGLE_OAUTH_CLIENT_ID,
-    client_secret: GOOGLE_OUATH_CLIENT_SECRET,
+    client_secret: GOOGLE_OAUTH_CLIENT_SECRET,
     redirect_uri: "https://chatcraft.org/api/login",
     grant_type: "authorization_code",
   });
@@ -75,7 +75,7 @@ export function handleGoogleLogin({
   code,
   chatId,
   GOOGLE_OAUTH_CLIENT_ID,
-  GOOGLE_OUATH_CLIENT_SECRET,
+  GOOGLE_OAUTH_CLIENT_SECRET,
   JWT_SECRET,
   tokenProvider,
   appUrl,
@@ -91,7 +91,7 @@ export function handleGoogleLogin({
         code,
         chatId,
         GOOGLE_OAUTH_CLIENT_ID,
-        GOOGLE_OUATH_CLIENT_SECRET,
+        GOOGLE_OAUTH_CLIENT_SECRET,
         JWT_SECRET,
         tokenProvider,
         appUrl,
@@ -102,7 +102,7 @@ export async function handleGoogleProdLogin({
   code,
   chatId,
   GOOGLE_OAUTH_CLIENT_ID,
-  GOOGLE_OUATH_CLIENT_SECRET,
+  GOOGLE_OAUTH_CLIENT_SECRET,
   JWT_SECRET,
   tokenProvider,
   appUrl,
@@ -110,7 +110,7 @@ export async function handleGoogleProdLogin({
   code: string | null;
   chatId: string | null;
   GOOGLE_OAUTH_CLIENT_ID: string;
-  GOOGLE_OUATH_CLIENT_SECRET: string;
+  GOOGLE_OAUTH_CLIENT_SECRET: string;
   JWT_SECRET: string;
   tokenProvider: TokenProvider;
   appUrl: string;
@@ -145,7 +145,7 @@ export async function handleGoogleProdLogin({
     const googleAccessToken = await requestGoogleAccessToken(
       code,
       GOOGLE_OAUTH_CLIENT_ID,
-      GOOGLE_OUATH_CLIENT_SECRET
+      GOOGLE_OAUTH_CLIENT_SECRET
     );
     const user = await requestGoogleUserInfo(googleAccessToken);
     // User info goes in a non HTTP-Only cookie that browser can read
