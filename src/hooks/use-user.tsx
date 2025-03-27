@@ -1,12 +1,4 @@
-import {
-  createContext,
-  useEffect,
-  useCallback,
-  useContext,
-  type FC,
-  type ReactNode,
-  useState,
-} from "react";
+import { createContext, useEffect, useContext, type FC, type ReactNode, useState } from "react";
 import { useCookie } from "react-use";
 import { decodeJwt } from "jose";
 import { isProd } from "../lib/utils";
@@ -40,6 +32,7 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [idToken] = useCookie(cookieName);
   const [user, setUser] = useState<User | undefined>();
 
+  // Also parse the cookie-based user info (eventually we'll do this via /api/user-info)
   useEffect(() => {
     if (!idToken) {
       return;
@@ -47,43 +40,47 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     // Try to extract user info from the idToken's payload
     try {
-      const { username, name, avatarUrl } = decodeJwt(idToken);
+      const { username, name, avatarUrl, email } = decodeJwt(idToken);
       if (
         typeof username === "string" &&
         typeof name === "string" &&
         typeof avatarUrl === "string"
       ) {
-        setUser({ username, name, avatarUrl });
+        setUser({
+          username,
+          name,
+          avatarUrl,
+          // We may or may not have an email for the user (GitHub doesn't always reveal it)
+          email: typeof email === "string" ? email : null,
+        });
       } else {
         console.warn("ChatCraft ID Token missing expected values, ignoring", {
           username,
           name,
           avatarUrl,
+          email,
         });
       }
     } catch (err) {
       console.error("Unable to decode id token", { err, idToken });
     }
-  }, [idToken, setUser]);
+  }, [idToken]);
 
-  const logout = useCallback(
-    async (chatId?: string) => {
-      const logoutUrl = chatId ? `/api/logout?chat_id=${chatId}` : `/api/login`;
+  const logout = async (chatId?: string) => {
+    const logoutUrl = chatId ? `/api/logout?chat_id=${chatId}` : `/api/login`;
 
-      try {
-        const res = await fetch(logoutUrl, { credentials: "same-origin" });
-        if (!res.ok) {
-          throw new Error("Unable to logout");
-        }
-      } catch (err) {
-        console.warn("Logout error", err);
-      } finally {
-        // No matter what, remove the user in storage
-        setUser(undefined);
+    try {
+      const res = await fetch(logoutUrl, { credentials: "same-origin" });
+      if (!res.ok) {
+        throw new Error("Unable to logout");
       }
-    },
-    [setUser]
-  );
+    } catch (err) {
+      console.warn("Logout error", err);
+    } finally {
+      // Clear the cookie
+      setUser(undefined);
+    }
+  };
 
   const value = {
     user,

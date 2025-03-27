@@ -36,6 +36,7 @@ import { WebHandler } from "../lib/WebHandler";
 import { ChatCraftCommandRegistry } from "../lib/commands";
 import ChatHeader from "./ChatHeader";
 import { ChatCompletionError } from "../lib/ai";
+import { useProviders } from "../hooks/use-providers";
 
 type ChatBaseProps = {
   chat: ChatCraftChat;
@@ -63,11 +64,12 @@ function ChatBase({ chat }: ChatBaseProps) {
     onOpen: onPrefModalOpen,
     onClose: onPrefModalClose,
   } = useDisclosure();
+  const { providers } = useProviders();
 
   useEffect(() => {
-    const providersLength = Object.keys(settings.providers).length;
+    const providersLength = Object.keys(providers).length;
     setShowAlert(providersLength === 0);
-  }, [settings.providers]);
+  }, [providers]);
 
   // Set focus on Prompt Input text area
   const handleChatInputFocus = useCallback((e: KeyboardEvent) => {
