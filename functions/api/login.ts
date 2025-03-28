@@ -8,7 +8,7 @@ interface Env {
   GITHUB_OAUTH_CLIENT_SECRET: string;
   JWT_SECRET: string;
   GOOGLE_OAUTH_CLIENT_ID: string;
-  GOOGLE_OUATH_CLIENT_SECRET: string;
+  GOOGLE_OAUTH_CLIENT_SECRET: string;
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
@@ -17,7 +17,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     GITHUB_OAUTH_CLIENT_SECRET,
     JWT_SECRET,
     GOOGLE_OAUTH_CLIENT_ID,
-    GOOGLE_OUATH_CLIENT_SECRET,
+    GOOGLE_OAUTH_CLIENT_SECRET,
   } = env;
   const reqUrl = new URL(request.url);
 
@@ -54,7 +54,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       code,
       chatId,
       GOOGLE_OAUTH_CLIENT_ID,
-      GOOGLE_OUATH_CLIENT_SECRET,
+      GOOGLE_OAUTH_CLIENT_SECRET,
       JWT_SECRET,
       tokenProvider,
       appUrl,
