@@ -700,17 +700,11 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                                     : "API Key is required."}
                                 </FormErrorMessage>
                               )}
-                              {provider instanceof OpenRouterProvider &&
-                                provider.name === focusedProvider?.name &&
-                                !provider.apiKey && (
-                                  <Button
-                                    mt="3"
-                                    size="xs"
-                                    onClick={provider.openRouterPkceRedirect}
-                                  >
-                                    Get OpenRouter key{" "}
-                                  </Button>
-                                )}
+                              {provider instanceof OpenRouterProvider && !provider.apiKey && (
+                                <Button mt="3" size="xs" onClick={provider.openRouterPkceRedirect}>
+                                  Get OpenRouter key{" "}
+                                </Button>
+                              )}
                             </FormControl>
                           )}
                         </Td>
