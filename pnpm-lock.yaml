@@ -12,8 +12,8 @@ importers:
         specifier: ^0.6.1
         version: 0.6.1
       '@chakra-ui/react':
-        specifier: ^2.10.6
-        version: 2.10.6(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(framer-motion@11.18.2(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^2.10.7
+        version: 2.10.7(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(framer-motion@11.18.2(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@codemirror/lang-javascript':
         specifier: ^6.2.3
         version: 6.2.3
@@ -810,8 +810,8 @@ packages:
     peerDependencies:
       react: '>=18'
 
-  '@chakra-ui/react@2.10.6':
-    resolution: {integrity: sha512-9cdzcUR3LV3E2as0QhZhHAH5qjbyspV12kU1E1Ibcv6/uKUi6bIfPfMSC6R/Tw8Beqhn2ClJFPqjtXzL+C0knQ==}
+  '@chakra-ui/react@2.10.7':
+    resolution: {integrity: sha512-GX1dCmnvrxxyZEofDX9GMAtRakZJKnUqFM9k8qhaycPaeyfkiTNNTjhPNX917hgVx1yhC3kcJOs5IeC7yW56/g==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'
@@ -6665,7 +6665,7 @@ snapshots:
       framesync: 6.1.2
       react: 18.3.1
 
-  '@chakra-ui/react@2.10.6(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(framer-motion@11.18.2(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@chakra-ui/react@2.10.7(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(framer-motion@11.18.2(@emotion/is-prop-valid@1.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@chakra-ui/hooks': 2.4.4(react@18.3.1)
       '@chakra-ui/styled-system': 2.12.2(react@18.3.1)
