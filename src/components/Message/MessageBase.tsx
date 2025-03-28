@@ -59,15 +59,14 @@ import ImageModal from "../ImageModal";
 import Markdown from "../Markdown";
 
 // Styles for the message text are defined in CSS vs. Chakra-UI
-import { useLiveQuery } from "dexie-react-hooks";
 import useAudioPlayer from "../../hooks/use-audio-player";
 import useMobileBreakpoint from "../../hooks/use-mobile-breakpoint";
 import { useUser } from "../../hooks/use-user";
-import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { getSentenceChunksFrom } from "../../lib/summarize";
 import "./Message.css";
 import { useTextToSpeech } from "../../hooks/use-text-to-speech";
 import ModelSelectionMenuList from "../Menu/ModelSelectionMenuList";
+import { useChat } from "../../hooks/use-chat";
 
 export interface MessageBaseProps {
   message: ChatCraftMessage;
@@ -138,7 +137,7 @@ function MessageBase({
   const displaySummaryText = !isOpen && (summaryText || isLongMessage);
   const shouldShowDeleteMenu =
     Boolean(onDeleteBeforeClick || onDeleteClick || onDeleteAfterClick) && !disableEdit;
-  const chat = useLiveQuery(() => ChatCraftChat.find(chatId), [chatId]);
+  const { chat } = useChat();
   const { user } = useUser();
   const handleShareMessage = useCallback(async () => {
     if (!user) {
