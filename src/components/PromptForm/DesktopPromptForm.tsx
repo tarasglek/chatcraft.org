@@ -39,7 +39,6 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
 import PaperclipIcon from "./PaperclipIcon";
 import { ChatCraftCommandRegistry } from "../../lib/ChatCraftCommandRegistry";
-import { ClearCommand } from "../../lib/commands/ClearCommand";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -445,7 +444,7 @@ function DesktopPromptForm({
                         _dark={{ bg: "gray.700" }}
                         placeholder={
                           !isLoading && !isRecording && !isTranscribing
-                            ? `Ask a question or use /help to learn more${ClearCommand.isShortcutEnabled() ? " ('CTRL+l' to clear chat)" : ""}`
+                            ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
                             : undefined
                         }
                         overflowY="auto"
