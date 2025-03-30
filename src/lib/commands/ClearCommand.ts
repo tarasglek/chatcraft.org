@@ -7,8 +7,6 @@ export class ClearCommand extends ChatCraftCommand {
   }
 
   async execute(chat: ChatCraftChat) {
-    if (ClearCommand.isShortcutEnabled()) {
-      return chat.resetMessages();
-    }
+    return chat.resetMessages();
   }
 }
