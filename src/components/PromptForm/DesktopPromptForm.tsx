@@ -221,9 +221,7 @@ function DesktopPromptForm({
             if (!clearCommand) {
               return console.error("Could not find '/clear' command in ChatCraftCommandRegistry!");
             }
-            if (ClearCommand.isShortcutEnabled()) {
-              await clearCommand(chat, undefined);
-            }
+            await clearCommand(chat, undefined);
           }
           break;
 
