@@ -22,10 +22,6 @@ import {
   Text,
   useColorModeValue,
   VStack,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverBody,
 } from "@chakra-ui/react";
 import AutoResizingTextarea from "../AutoResizingTextarea";
 import { useDropzone } from "react-dropzone";
@@ -44,6 +40,7 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
 import PaperclipIcon from "./PaperclipIcon";
 import { ChatCraftCommandRegistry } from "../../lib/ChatCraftCommandRegistry";
+import AutoComplete from "./AutoCompleteInput";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -537,88 +534,57 @@ function DesktopPromptForm({
                           />
                         </Box>
                       ) : (
-                        <Popover
+                        <AutoComplete
                           isOpen={isPopoverOpen}
                           onClose={() => setIsPopoverOpen(false)}
-                          autoFocus={false}
-                          placement="top"
+                          inputWidth={inputWidth}
+                          popupPosition={popupPosition}
+                          bgColor={bgColor}
+                          suggestions={suggestions}
+                          suggestionRefs={suggestionRefs}
+                          selectedIndex={selectedIndex}
+                          hoverBg={hoverBg}
+                          onSelect={(suggestion: { command: string }) => {
+                            if (inputPromptRef.current) {
+                              inputPromptRef.current.value = "/" + suggestion.command;
+                            }
+                            setSuggestions([]);
+                            setIsPopoverOpen(false);
+                            inputPromptRef.current?.focus();
+                          }}
                         >
-                          <PopoverTrigger>
-                            <Box ref={inputBoxRef} style={{ width: "90%" }}>
-                              <AutoResizingTextarea
-                                id="test"
-                                ref={inputPromptRef}
-                                variant="unstyled"
-                                onKeyDown={handleKeyDown}
-                                isDisabled={isLoading}
-                                autoFocus={true}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setIsPromptEmpty(e.target.value.trim().length === 0);
-                                  const filteredSuggestions = val
-                                    ? availablePrompts.filter((p) =>
-                                        p.helpTitle.toLowerCase().startsWith(val.toLowerCase())
-                                      )
-                                    : [];
-                                  setSuggestions(filteredSuggestions);
-                                  setIsPopoverOpen(filteredSuggestions.length > 0);
-                                  setSelectedIndex(-1);
-                                }}
-                                bg="white"
-                                _dark={{ bg: "gray.700" }}
-                                placeholder={
-                                  !isLoading && !isRecording && !isTranscribing
-                                    ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
-                                    : undefined
-                                }
-                                overflowY="auto"
-                                flex={1}
-                              />
-                            </Box>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            width={`${inputWidth}px`}
-                            borderRadius="sm"
-                            boxShadow="lg"
-                            bg={bgColor}
-                            zIndex="1000"
-                            left={popupPosition.left}
-                          >
-                            <PopoverBody
-                              maxHeight="250px"
+                          <Box ref={inputBoxRef} style={{ width: "90%" }}>
+                            <AutoResizingTextarea
+                              id="test"
+                              ref={inputPromptRef}
+                              variant="unstyled"
+                              onKeyDown={handleKeyDown}
+                              isDisabled={isLoading}
+                              autoFocus={true}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setIsPromptEmpty(e.target.value.trim().length === 0);
+                                const filteredSuggestions = val
+                                  ? availablePrompts.filter((p) =>
+                                      p.helpTitle.toLowerCase().startsWith(val.toLowerCase())
+                                    )
+                                  : [];
+                                setSuggestions(filteredSuggestions);
+                                setIsPopoverOpen(filteredSuggestions.length > 0);
+                                setSelectedIndex(-1);
+                              }}
+                              bg="white"
+                              _dark={{ bg: "gray.700" }}
+                              placeholder={
+                                !isLoading && !isRecording && !isTranscribing
+                                  ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
+                                  : undefined
+                              }
                               overflowY="auto"
-                              py={1}
-                              px={0}
-                              width="100%"
-                            >
-                              {suggestions.map((suggestion, index) => (
-                                <Box
-                                  key={index}
-                                  ref={(el) => (suggestionRefs.current[index] = el)}
-                                  p={2}
-                                  bg={selectedIndex === index ? hoverBg : bgColor} // Dynamic background
-                                  _hover={{ bg: hoverBg }}
-                                  cursor="pointer"
-                                  borderRadius="sm"
-                                  transition="background 0.2s ease-in-out"
-                                  onClick={() => {
-                                    if (inputPromptRef.current) {
-                                      inputPromptRef.current.value = "/" + suggestion.command;
-                                    }
-                                    setSuggestions([]);
-                                    setIsPopoverOpen(false);
-                                    inputPromptRef.current?.focus();
-                                  }}
-                                >
-                                  <Text fontWeight={"semi-bold"}>{suggestion.helpTitle}</Text>
-                                  <Box fontSize="sm" color="gray.400">
-                                    {suggestion.helpDescription.split(".")[0]}.
-                                  </Box>
-                                </Box>
-                              ))}
-                            </PopoverBody>
-                          </PopoverContent>
-                        </Popover>
+                              flex={1}
+                            />
+                          </Box>
+                        </AutoComplete>
                       )}
                       <MicIcon
                         isDisabled={isLoading}
