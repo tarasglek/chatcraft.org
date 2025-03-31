@@ -114,8 +114,8 @@ export const screenshotElement = (element: HTMLElement): Promise<Blob> => {
     .then((module) => {
       const html2canvas = module.default;
       return html2canvas(element, {
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
+        windowWidth: element.scrollWidth * 2.5,
+        backgroundColor: null,
       });
     })
     .then(
