@@ -270,6 +270,11 @@ function DesktopPromptForm({
           } else {
             setSelectedIndex((prev) => {
               const nextIndex = prev < suggestions.length - 1 ? prev + 1 : prev;
+              if (nextIndex === prev) {
+                setIsPopoverOpen(false);
+                inputPromptRef.current?.focus();
+                return prev;
+              }
               suggestionRefs.current[nextIndex]?.scrollIntoView({
                 behavior: "smooth",
                 block: "nearest",
@@ -302,6 +307,14 @@ function DesktopPromptForm({
         }
         break;
 
+      // Close autocomplete command suggestion box when pressing 'Esc'
+      case "Escape":
+        if (isPopoverOpen) {
+          e.preventDefault();
+          setIsPopoverOpen(false); // Close popover
+          inputPromptRef.current?.focus();
+        }
+        break;
       default:
         return;
     }
