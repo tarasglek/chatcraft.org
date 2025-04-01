@@ -93,6 +93,8 @@ export type ChatCraftFileTable = {
   text?: string; // extracted text of file, base64 encoded version, etc
   created: Date; // when the file was created
   metadata?: Record<string, unknown>; // extra metadata
+  chunks?: string[];
+  embeddings?: number[][];
 };
 
 class ChatCraftDatabase extends Dexie {
