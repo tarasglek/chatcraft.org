@@ -1,6 +1,16 @@
 import db, { ChatCraftFileTable } from "./db";
 import { download } from "./utils";
 
+export type FileChunk = {
+  text: string;
+  index: number;
+};
+
+export type FileEmbedding = {
+  embedding: number[];
+  chunkIndex: number;
+};
+
 export type ChatCraftFileOptions = {
   /** Filename */
   name: string;
@@ -12,6 +22,10 @@ export type ChatCraftFileOptions = {
   text?: string;
   /** Extra file metadata */
   metadata?: Record<string, unknown>;
+  /** File chunks */
+  chunks?: FileChunk[];
+  /** File Embeddings */
+  embeddings?: FileEmbedding[];
 };
 
 export class ChatCraftFile {
@@ -23,6 +37,8 @@ export class ChatCraftFile {
   text?: string;
   readonly created: Date;
   metadata?: Record<string, unknown>;
+  readonly chunks?: FileChunk[];
+  readonly embeddings?: FileEmbedding[];
 
   private constructor(id: string, options: ChatCraftFileOptions) {
     this.id = id;
@@ -44,6 +60,8 @@ export class ChatCraftFile {
     this.text = options.text;
     this.created = new Date();
     this.metadata = options.metadata;
+    this.embeddings = options.embeddings;
+    this.chunks = options.chunks;
   }
 
   get extension(): string {
@@ -240,6 +258,8 @@ export class ChatCraftFile {
       text: this.text,
       created: this.created,
       metadata: this.metadata,
+      chunks: this.chunks,
+      embeddings: this.embeddings,
     };
   }
 
