@@ -173,6 +173,13 @@ export class ChatCraftFile {
   }
 
   /**
+   * Get a specific chunk by array index
+   */
+  getChunk(index: number): FileChunk | undefined {
+    return this.chunks?.[index];
+  }
+
+  /**
    * Set metadata value
    */
   setMetadata(key: string, value: unknown): void {
@@ -180,6 +187,21 @@ export class ChatCraftFile {
       this.metadata = {};
     }
     this.metadata[key] = value;
+  }
+
+  /**
+   * Set chunks value
+   */
+  async setChunks(chunks: FileChunk[]): Promise<void> {
+    this.chunks = chunks;
+    await db.files.update(this.id, { chunks });
+  }
+
+  /**
+   * Check if file has been chunked
+   */
+  hasChunks(): boolean {
+    return !!this.chunks && this.chunks.length > 0;
   }
 
   /**
