@@ -674,7 +674,7 @@ function ModelsSettings(isOpen: ModelsSettingsProps) {
                                 paddingRight={"2rem"}
                                 paddingLeft={"0.5rem"}
                                 fontSize="md"
-                                value={provider.apiKey || ""}
+                                value={provider.apiKey}
                                 onChange={(e) => handleApiKeyChange(provider, e.target.value)}
                                 onFocus={() => setFocusedProvider(provider)}
                                 isDisabled={provider instanceof FreeModelProvider}
