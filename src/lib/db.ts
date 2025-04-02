@@ -93,8 +93,8 @@ export type ChatCraftFileTable = {
   text?: string; // extracted text of file, base64 encoded version, etc
   created: Date; // when the file was created
   metadata?: Record<string, unknown>; // extra metadata
-  chunks?: string[]; // array of text chunks from the document
-  embeddings?: number[][]; // array of the embeddings vectors, one per chunk
+  chunks?: { text: string; index: number }; // Text chunks for RAG
+  embeddings?: { embedding: number[]; chunkIndex: number }[]; // Vector embeddings for chunks
 };
 
 class ChatCraftDatabase extends Dexie {
