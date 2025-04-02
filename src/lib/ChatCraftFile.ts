@@ -3,12 +3,8 @@ import { download } from "./utils";
 
 export type FileChunk = {
   text: string;
-  index: number;
-};
-
-export type FileEmbedding = {
-  embedding: number[];
-  chunkIndex: number;
+  embeddings: number[];
+  metadata?: Record<string, unknown>;
 };
 
 export type ChatCraftFileOptions = {
@@ -24,8 +20,6 @@ export type ChatCraftFileOptions = {
   metadata?: Record<string, unknown>;
   /** File chunks */
   chunks?: FileChunk[];
-  /** File Embeddings */
-  embeddings?: FileEmbedding[];
 };
 
 export class ChatCraftFile {
@@ -37,8 +31,7 @@ export class ChatCraftFile {
   text?: string;
   readonly created: Date;
   metadata?: Record<string, unknown>;
-  readonly chunks?: FileChunk[];
-  readonly embeddings?: FileEmbedding[];
+  chunks?: FileChunk[];
 
   private constructor(id: string, options: ChatCraftFileOptions) {
     this.id = id;
@@ -60,7 +53,6 @@ export class ChatCraftFile {
     this.text = options.text;
     this.created = new Date();
     this.metadata = options.metadata;
-    this.embeddings = options.embeddings;
     this.chunks = options.chunks;
   }
 
@@ -259,7 +251,6 @@ export class ChatCraftFile {
       created: this.created,
       metadata: this.metadata,
       chunks: this.chunks,
-      embeddings: this.embeddings,
     };
   }
 
