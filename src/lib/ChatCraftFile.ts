@@ -1,5 +1,6 @@
 import db, { ChatCraftFileTable } from "./db";
 import { download } from "./utils";
+import { chunkText, ChunkingOptions, DEFAULT_CHUNKING_OPTIONS } from "./chunking";
 
 export type FileChunk = {
   text: string;
@@ -202,6 +203,20 @@ export class ChatCraftFile {
    */
   hasChunks(): boolean {
     return !!this.chunks && this.chunks.length > 0;
+  }
+
+  /**
+   * Generates chunks and stores in db
+   */
+  async generateChunks(options: ChunkingOptions = DEFAULT_CHUNKING_OPTIONS): Promise<FileChunk[]> {
+    if (!this.text) {
+      throw new Error("File has no text content to chunk!");
+    }
+
+    const chunks = chunkText(this.text, options);
+    await this.setChunks(chunks);
+
+    return chunks;
   }
 
   /**
