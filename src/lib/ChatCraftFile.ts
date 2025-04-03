@@ -1,5 +1,12 @@
 import db, { ChatCraftFileTable } from "./db";
 import { download } from "./utils";
+import { chunkText, ChunkingOptions, DEFAULT_CHUNKING_OPTIONS } from "./chunking";
+
+export type FileChunk = {
+  text: string;
+  embeddings: number[];
+  metadata?: Record<string, unknown>;
+};
 
 export type ChatCraftFileOptions = {
   /** Filename */
@@ -12,6 +19,8 @@ export type ChatCraftFileOptions = {
   text?: string;
   /** Extra file metadata */
   metadata?: Record<string, unknown>;
+  /** File chunks */
+  chunks?: FileChunk[];
 };
 
 export class ChatCraftFile {
@@ -23,6 +32,7 @@ export class ChatCraftFile {
   text?: string;
   readonly created: Date;
   metadata?: Record<string, unknown>;
+  chunks?: FileChunk[];
 
   private constructor(id: string, options: ChatCraftFileOptions) {
     this.id = id;
@@ -44,6 +54,7 @@ export class ChatCraftFile {
     this.text = options.text;
     this.created = new Date();
     this.metadata = options.metadata;
+    this.chunks = options.chunks;
   }
 
   get extension(): string {
@@ -163,6 +174,13 @@ export class ChatCraftFile {
   }
 
   /**
+   * Get a specific chunk by array index
+   */
+  getChunk(index: number): FileChunk | undefined {
+    return this.chunks?.[index];
+  }
+
+  /**
    * Set metadata value
    */
   setMetadata(key: string, value: unknown): void {
@@ -170,6 +188,35 @@ export class ChatCraftFile {
       this.metadata = {};
     }
     this.metadata[key] = value;
+  }
+
+  /**
+   * Set chunks value
+   */
+  async setChunks(chunks: FileChunk[]): Promise<void> {
+    this.chunks = chunks;
+    await db.files.update(this.id, { chunks });
+  }
+
+  /**
+   * Check if file has been chunked
+   */
+  hasChunks(): boolean {
+    return !!this.chunks && this.chunks.length > 0;
+  }
+
+  /**
+   * Generates chunks and stores in db
+   */
+  async generateChunks(options: ChunkingOptions = DEFAULT_CHUNKING_OPTIONS): Promise<FileChunk[]> {
+    if (!this.text) {
+      throw new Error("File has no text content to chunk!");
+    }
+
+    const chunks = chunkText(this.text, options);
+    await this.setChunks(chunks);
+
+    return chunks;
   }
 
   /**
@@ -240,6 +287,7 @@ export class ChatCraftFile {
       text: this.text,
       created: this.created,
       metadata: this.metadata,
+      chunks: this.chunks,
     };
   }
 
