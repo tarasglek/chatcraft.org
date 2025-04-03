@@ -1,4 +1,12 @@
-import { FormEvent, KeyboardEvent, type RefObject, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  KeyboardEvent,
+  type RefObject,
+  useRef,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Box,
   Card,
@@ -30,6 +38,8 @@ import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
 import PaperclipIcon from "./PaperclipIcon";
+import { ChatCraftCommandRegistry } from "../../lib/ChatCraftCommandRegistry";
+import AutoComplete from "./AutoCompleteInput";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -94,7 +104,21 @@ function DesktopPromptForm({
     chat,
     onImageImport: (base64) => updateImageUrls(base64, setInputImageUrls),
   });
+  const inputBoxRef = useRef<HTMLDivElement | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement | null>(null);
+  const parentFlexRef = useRef<HTMLDivElement | null>(null);
+  const [popupPosition, setPopupPosition] = useState<{ left: number }>({
+    left: 0,
+  });
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [inputWidth, setInputWidth] = useState<number>(0);
+  const [suggestions, setSuggestions] = useState<
+    { command: string; helpTitle: string; helpDescription: string }[]
+  >([]);
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  const availablePrompts = ChatCraftCommandRegistry.getCommands();
   const { getRootProps, isDragActive } = useDropzone({
     onDrop: importFiles,
     multiple: true,
@@ -157,6 +181,42 @@ function DesktopPromptForm({
     // eslint-disable-next-line
   }, []);
 
+  // Update when input or suggestions change
+  useEffect(() => {
+    if (parentFlexRef.current && inputBoxRef.current) {
+      const rect = parentFlexRef.current.getBoundingClientRect();
+      setInputWidth(rect.width);
+      setPopupPosition({
+        left: (rect.left + window.scrollX) / 10,
+      });
+    }
+  }, [suggestions.length]);
+  // Update width on window resize
+  useEffect(() => {
+    const updateWidth = () => {
+      if (parentFlexRef.current) {
+        setInputWidth(parentFlexRef.current.getBoundingClientRect().width);
+      }
+    };
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        inputBoxRef.current &&
+        !inputBoxRef.current.contains(event.target as Node) &&
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node)
+      ) {
+        setIsPopoverOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Handle prompt form submission
   const handlePromptSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -169,7 +229,7 @@ function DesktopPromptForm({
     }
     setIsPromptEmpty(true);
     setInputImageUrls([]);
-
+    setIsPopoverOpen(false);
     onSendClick(textValue, currentImageUrls);
   };
 
@@ -181,24 +241,80 @@ function DesktopPromptForm({
     switch (e.key) {
       // Allow the user to cursor-up to repeat last prompt
       case "ArrowUp":
-        if (isPromptEmpty && previousMessage && inputPromptRef.current) {
+        if (isPromptEmpty && previousMessage && inputPromptRef.current && !isPopoverOpen) {
           e.preventDefault();
           inputPromptRef.current.value = previousMessage;
           setIsPromptEmpty(false);
+        }
+        if (isPopoverOpen) {
+          e.preventDefault();
+          if (selectedIndex == -1) {
+            setSelectedIndex(0);
+          } else {
+            setSelectedIndex((prev) => {
+              const nextIndex = prev > 0 ? prev - 1 : 0;
+              suggestionRefs.current[nextIndex]?.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+              });
+              return nextIndex;
+            });
+          }
+        }
+        break;
+      case "ArrowDown":
+        if (isPopoverOpen) {
+          e.preventDefault();
+          if (selectedIndex == -1) {
+            setSelectedIndex(0);
+          } else {
+            setSelectedIndex((prev) => {
+              const nextIndex = prev < suggestions.length - 1 ? prev + 1 : prev;
+              if (nextIndex === prev) {
+                setIsPopoverOpen(false);
+                inputPromptRef.current?.focus();
+                return prev;
+              }
+              suggestionRefs.current[nextIndex]?.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+              });
+              return nextIndex;
+            });
+          }
         }
         break;
 
       // Prevent blank submissions and allow for multiline input.
       case "Enter":
-        if (settings.enterBehaviour === "newline") {
-          handleMetaEnter(e);
-        } else if (settings.enterBehaviour === "send") {
-          if (!e.shiftKey && !isPromptEmpty) {
-            handlePromptSubmit(e);
+        if (!isPopoverOpen) {
+          if (settings.enterBehaviour === "newline") {
+            handleMetaEnter(e);
+          } else if (settings.enterBehaviour === "send") {
+            if (!e.shiftKey && !isPromptEmpty) {
+              handlePromptSubmit(e);
+            }
+          }
+        } else {
+          e.preventDefault();
+          if (selectedIndex >= 0 && selectedIndex < suggestions.length && inputPromptRef.current) {
+            const selectedSuggestion = suggestions[selectedIndex];
+            inputPromptRef.current.value = "/" + selectedSuggestion.command;
+            setIsPopoverOpen(false); // Close popover
+            //onSendClick(selectedSuggestion.command, []); // Submit selected command
+            inputPromptRef.current?.focus(); // Refocus input box
           }
         }
         break;
 
+      // Close autocomplete command suggestion box when pressing 'Esc'
+      case "Escape":
+        if (isPopoverOpen) {
+          e.preventDefault();
+          setIsPopoverOpen(false); // Close popover
+          inputPromptRef.current?.focus();
+        }
+        break;
       default:
         return;
     }
@@ -309,9 +425,10 @@ function DesktopPromptForm({
   const closeModal = () => setImageModalOpen(false);
 
   const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
-
+  const bgColor = useColorModeValue("white", "gray.700");
+  const hoverBg = useColorModeValue("gray.200", "gray.600");
   return (
-    <Flex dir="column" w="100%" h="100%">
+    <Flex ref={parentFlexRef} dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
@@ -353,7 +470,7 @@ function DesktopPromptForm({
                           top="2px"
                           left="2px"
                           bg="whiteAlpha.600"
-                          borderRadius="full"
+                          borderRadius="5px"
                           p="1"
                           zIndex="2"
                           _hover={{
@@ -383,45 +500,79 @@ function DesktopPromptForm({
                       </Box>
                     ))}
                   </Flex>
-                  <Flex flexWrap="wrap">
-                    {inputType === "audio" ? (
-                      <Box py={2} px={1} flex={1}>
-                        <AudioStatus
-                          isRecording={isRecording}
-                          isTranscribing={isTranscribing}
-                          recordingSeconds={recordingSeconds}
-                        />
-                      </Box>
-                    ) : (
-                      <AutoResizingTextarea
-                        ref={inputPromptRef}
-                        variant="unstyled"
-                        onKeyDown={handleKeyDown}
+                  <Box ref={inputBoxRef} style={{ position: "relative", width: "100%" }}>
+                    <Flex flexWrap="wrap">
+                      {inputType === "audio" ? (
+                        <Box py={2} px={1} flex={1}>
+                          <AudioStatus
+                            isRecording={isRecording}
+                            isTranscribing={isTranscribing}
+                            recordingSeconds={recordingSeconds}
+                          />
+                        </Box>
+                      ) : (
+                        <AutoComplete
+                          isOpen={isPopoverOpen}
+                          onClose={() => setIsPopoverOpen(false)}
+                          inputWidth={inputWidth}
+                          popupPosition={popupPosition}
+                          bgColor={bgColor}
+                          suggestions={suggestions}
+                          suggestionRefs={suggestionRefs}
+                          selectedIndex={selectedIndex}
+                          hoverBg={hoverBg}
+                          onSelect={(suggestion: { command: string }) => {
+                            if (inputPromptRef.current) {
+                              inputPromptRef.current.value = "/" + suggestion.command;
+                            }
+                            setSuggestions([]);
+                            setIsPopoverOpen(false);
+                            inputPromptRef.current?.focus();
+                          }}
+                        >
+                          <Box ref={inputBoxRef} style={{ width: "90%" }}>
+                            <AutoResizingTextarea
+                              id="test"
+                              ref={inputPromptRef}
+                              variant="unstyled"
+                              onKeyDown={handleKeyDown}
+                              isDisabled={isLoading}
+                              autoFocus={true}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setIsPromptEmpty(e.target.value.trim().length === 0);
+                                const filteredSuggestions = val
+                                  ? availablePrompts.filter((p) =>
+                                      p.helpTitle.toLowerCase().startsWith(val.toLowerCase())
+                                    )
+                                  : [];
+                                setSuggestions(filteredSuggestions);
+                                setIsPopoverOpen(filteredSuggestions.length > 0);
+                                setSelectedIndex(-1);
+                              }}
+                              bg="white"
+                              _dark={{ bg: "gray.700" }}
+                              placeholder={
+                                !isLoading && !isRecording && !isTranscribing
+                                  ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
+                                  : undefined
+                              }
+                              overflowY="auto"
+                              flex={1}
+                            />
+                          </Box>
+                        </AutoComplete>
+                      )}
+                      <MicIcon
                         isDisabled={isLoading}
-                        autoFocus={true}
-                        onChange={(e) => {
-                          setIsPromptEmpty(e.target.value.trim().length === 0);
-                        }}
-                        bg="white"
-                        _dark={{ bg: "gray.700" }}
-                        placeholder={
-                          !isLoading && !isRecording && !isTranscribing
-                            ? "Ask a question or use /help to learn more"
-                            : undefined
-                        }
-                        overflowY="auto"
-                        flex={1}
+                        onRecording={handleRecording}
+                        onTranscribing={handleTranscribing}
+                        onTranscriptionAvailable={handleTranscriptionAvailable}
+                        onCancel={handleRecordingCancel}
                       />
-                    )}
-                    <MicIcon
-                      isDisabled={isLoading}
-                      onRecording={handleRecording}
-                      onTranscribing={handleTranscribing}
-                      onTranscriptionAvailable={handleTranscriptionAvailable}
-                      onCancel={handleRecordingCancel}
-                    />
-                    <PaperclipIcon chat={chat} onAttachFiles={importFiles} />
-                  </Flex>
+                      <PaperclipIcon chat={chat} onAttachFiles={importFiles} />
+                    </Flex>
+                  </Box>
                 </Flex>
               </InputGroup>
 
