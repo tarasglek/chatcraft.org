@@ -2,8 +2,9 @@ import {
   FormEvent,
   KeyboardEvent,
   type RefObject,
-  useRef,
+  useCallback,
   useEffect,
+  useRef,
   useMemo,
   useState,
 } from "react";
@@ -104,14 +105,14 @@ function DesktopPromptForm({
     chat,
     onImageImport: (base64) => updateImageUrls(base64, setInputImageUrls),
   });
-  const inputBoxRef = useRef<HTMLDivElement | null>(null);
-  const suggestionsRef = useRef<HTMLDivElement | null>(null);
-  const parentFlexRef = useRef<HTMLDivElement | null>(null);
-  const [popupPosition, setPopupPosition] = useState<{ left: number }>({
-    left: 0,
-  });
+  // const inputBoxRef = useRef<HTMLDivElement | null>(null);
+  // const suggestionsRef = useRef<HTMLDivElement | null>(null);
+  // const parentFlexRef = useRef<HTMLDivElement | null>(null);
+  // const [popupPosition, setPopupPosition] = useState<{ left: number }>({
+  //   left: 0,
+  // });
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [inputWidth, setInputWidth] = useState<number>(0);
+  // const [inputWidth, setInputWidth] = useState<number>(0);
   const [suggestions, setSuggestions] = useState<
     { command: string; helpTitle: string; helpDescription: string }[]
   >([]);
@@ -182,143 +183,165 @@ function DesktopPromptForm({
   }, []);
 
   // Update when input or suggestions change
-  useEffect(() => {
-    if (parentFlexRef.current && inputBoxRef.current) {
-      const rect = parentFlexRef.current.getBoundingClientRect();
-      setInputWidth(rect.width);
-      setPopupPosition({
-        left: (rect.left + window.scrollX) / 10,
-      });
-    }
-  }, [suggestions.length]);
+  // useEffect(() => {
+  //   if (parentFlexRef.current && inputBoxRef.current) {
+  //     const rect = parentFlexRef.current.getBoundingClientRect();
+  //     setInputWidth(rect.width);
+  //     setPopupPosition({
+  //       left: (rect.left + window.scrollX) / 10,
+  //     });
+  //   }
+  // }, [suggestions.length]);
   // Update width on window resize
-  useEffect(() => {
-    const updateWidth = () => {
-      if (parentFlexRef.current) {
-        setInputWidth(parentFlexRef.current.getBoundingClientRect().width);
-      }
-    };
-    window.addEventListener("resize", updateWidth);
-    return () => window.removeEventListener("resize", updateWidth);
-  }, []);
+  // useEffect(() => {
+  //   const updateWidth = () => {
+  //     if (parentFlexRef.current) {
+  //       setInputWidth(parentFlexRef.current.getBoundingClientRect().width);
+  //     }
+  //   };
+  //   window.addEventListener("resize", updateWidth);
+  //   return () => window.removeEventListener("resize", updateWidth);
+  // }, []);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        inputBoxRef.current &&
-        !inputBoxRef.current.contains(event.target as Node) &&
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target as Node)
-      ) {
-        setIsPopoverOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // useEffect(() => {
+  //   function handleClickOutside(event: MouseEvent) {
+  //     if (
+  //       inputBoxRef.current &&
+  //       !inputBoxRef.current.contains(event.target as Node)
+  //       // suggestionsRef.current &&
+  //       // !suggestionsRef.current.contains(event.target as Node)
+  //     ) {
+  //       setIsPopoverOpen(false);
+  //     }
+  //   }
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
 
   // Handle prompt form submission
-  const handlePromptSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const textValue = inputPromptRef.current?.value.trim() || "";
-    // Clone the current image urls so we don't lose them when we update state below
-    const currentImageUrls = [...inputImageUrls];
+  const handlePromptSubmit = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault();
+      const textValue = inputPromptRef.current?.value.trim() || "";
+      // Clone the current image urls so we don't lose them when we update state below
+      const currentImageUrls = [...inputImageUrls];
 
-    if (inputPromptRef.current) {
-      inputPromptRef.current.value = "";
-    }
-    setIsPromptEmpty(true);
-    setInputImageUrls([]);
-    setIsPopoverOpen(false);
-    onSendClick(textValue, currentImageUrls);
-  };
+      if (inputPromptRef.current) {
+        inputPromptRef.current.value = "";
+      }
+      setIsPromptEmpty(true);
+      setInputImageUrls([]);
+      setIsPopoverOpen(false);
+      onSendClick(textValue, currentImageUrls);
+    },
+    [inputImageUrls, inputPromptRef, onSendClick]
+  );
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
     onMetaEnter: handlePromptSubmit,
   });
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    switch (e.key) {
-      // Allow the user to cursor-up to repeat last prompt
-      case "ArrowUp":
-        if (isPromptEmpty && previousMessage && inputPromptRef.current && !isPopoverOpen) {
-          e.preventDefault();
-          inputPromptRef.current.value = previousMessage;
-          setIsPromptEmpty(false);
-        }
-        if (isPopoverOpen) {
-          e.preventDefault();
-          if (selectedIndex == -1) {
-            setSelectedIndex(0);
-          } else {
-            setSelectedIndex((prev) => {
-              const nextIndex = prev > 0 ? prev - 1 : 0;
-              suggestionRefs.current[nextIndex]?.scrollIntoView({
-                behavior: "smooth",
-                block: "nearest",
-              });
-              return nextIndex;
-            });
+  const handleKeyDown = useCallback(
+    async (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      switch (e.key) {
+        // Allow the user to cursor-up to repeat last prompt
+        case "ArrowUp":
+          if (isPromptEmpty && previousMessage && inputPromptRef.current && !isPopoverOpen) {
+            e.preventDefault();
+            inputPromptRef.current.value = previousMessage;
+            setIsPromptEmpty(false);
           }
-        }
-        break;
-      case "ArrowDown":
-        if (isPopoverOpen) {
-          e.preventDefault();
-          if (selectedIndex == -1) {
-            setSelectedIndex(0);
-          } else {
-            setSelectedIndex((prev) => {
-              const nextIndex = prev < suggestions.length - 1 ? prev + 1 : prev;
-              if (nextIndex === prev) {
-                setIsPopoverOpen(false);
-                inputPromptRef.current?.focus();
-                return prev;
-              }
-              suggestionRefs.current[nextIndex]?.scrollIntoView({
-                behavior: "smooth",
-                block: "nearest",
+          if (isPopoverOpen) {
+            e.preventDefault();
+            if (selectedIndex == -1) {
+              setSelectedIndex(0);
+            } else {
+              setSelectedIndex((prev) => {
+                const nextIndex = prev > 0 ? prev - 1 : 0;
+                suggestionRefs.current[nextIndex]?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest",
+                });
+                return nextIndex;
               });
-              return nextIndex;
-            });
-          }
-        }
-        break;
-
-      // Prevent blank submissions and allow for multiline input.
-      case "Enter":
-        if (!isPopoverOpen) {
-          if (settings.enterBehaviour === "newline") {
-            handleMetaEnter(e);
-          } else if (settings.enterBehaviour === "send") {
-            if (!e.shiftKey && !isPromptEmpty) {
-              handlePromptSubmit(e);
             }
           }
-        } else {
-          e.preventDefault();
-          if (selectedIndex >= 0 && selectedIndex < suggestions.length && inputPromptRef.current) {
-            const selectedSuggestion = suggestions[selectedIndex];
-            inputPromptRef.current.value = "/" + selectedSuggestion.command;
-            setIsPopoverOpen(false); // Close popover
-            //onSendClick(selectedSuggestion.command, []); // Submit selected command
-            inputPromptRef.current?.focus(); // Refocus input box
+          break;
+        case "ArrowDown":
+          if (isPopoverOpen) {
+            e.preventDefault();
+            if (selectedIndex == -1) {
+              setSelectedIndex(0);
+            } else {
+              setSelectedIndex((prev) => {
+                const nextIndex = prev < suggestions.length - 1 ? prev + 1 : prev;
+                suggestionRefs.current[nextIndex]?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest",
+                });
+                return nextIndex;
+              });
+            }
           }
-        }
-        break;
+          break;
 
-      // Close autocomplete command suggestion box when pressing 'Esc'
-      case "Escape":
-        if (isPopoverOpen) {
-          e.preventDefault();
-          setIsPopoverOpen(false); // Close popover
-          inputPromptRef.current?.focus();
-        }
-        break;
-      default:
-        return;
-    }
-  };
+        // Prevent blank submissions and allow for multiline input.
+        case "Enter":
+          if (!isPopoverOpen) {
+            if (settings.enterBehaviour === "newline") {
+              handleMetaEnter(e);
+            } else if (settings.enterBehaviour === "send") {
+              if (!e.shiftKey && !isPromptEmpty) {
+                handlePromptSubmit(e);
+              }
+            }
+          } else {
+            e.preventDefault();
+            if (
+              selectedIndex >= 0 &&
+              selectedIndex < suggestions.length &&
+              inputPromptRef.current
+            ) {
+              const selectedSuggestion = suggestions[selectedIndex];
+              inputPromptRef.current.value = "/" + selectedSuggestion.command;
+              setIsPopoverOpen(false); // Close popover
+              //onSendClick(selectedSuggestion.command, []); // Submit selected command
+              inputPromptRef.current?.focus(); // Refocus input box
+            }
+          }
+
+          break;
+
+        // Shortcut to "/clear" the chat
+        case "l":
+          if (e.ctrlKey) {
+            e.preventDefault();
+            const clearCommand = ChatCraftCommandRegistry.getCommand("/clear");
+
+            if (!clearCommand) {
+              return console.error("Could not find '/clear' command in ChatCraftCommandRegistry!");
+            }
+            await clearCommand(chat, undefined);
+          }
+          break;
+
+        default:
+          return;
+      }
+    },
+    [
+      chat,
+      handleMetaEnter,
+      handlePromptSubmit,
+      inputPromptRef,
+      isPopoverOpen,
+      isPromptEmpty,
+      previousMessage,
+      selectedIndex,
+      settings.enterBehaviour,
+      suggestions,
+    ]
+  );
 
   const handlePaste = (e: ClipboardEvent) => {
     const { clipboardData } = e;
@@ -428,7 +451,7 @@ function DesktopPromptForm({
   const bgColor = useColorModeValue("white", "gray.700");
   const hoverBg = useColorModeValue("gray.200", "gray.600");
   return (
-    <Flex ref={parentFlexRef} dir="column" w="100%" h="100%">
+    <Flex id="parent" dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
@@ -500,7 +523,7 @@ function DesktopPromptForm({
                       </Box>
                     ))}
                   </Flex>
-                  <Box ref={inputBoxRef} style={{ position: "relative", width: "100%" }}>
+                  <Box style={{ position: "relative", width: "100%" }}>
                     <Flex flexWrap="wrap">
                       {inputType === "audio" ? (
                         <Box py={2} px={1} flex={1}>
@@ -514,8 +537,8 @@ function DesktopPromptForm({
                         <AutoComplete
                           isOpen={isPopoverOpen}
                           onClose={() => setIsPopoverOpen(false)}
-                          inputWidth={inputWidth}
-                          popupPosition={popupPosition}
+                          // inputWidth={inputWidth}
+                          // popupPosition={popupPosition}
                           bgColor={bgColor}
                           suggestions={suggestions}
                           suggestionRefs={suggestionRefs}
@@ -530,7 +553,7 @@ function DesktopPromptForm({
                             inputPromptRef.current?.focus();
                           }}
                         >
-                          <Box ref={inputBoxRef} style={{ width: "90%" }}>
+                          <Box style={{ width: "90%" }}>
                             <AutoResizingTextarea
                               id="test"
                               ref={inputPromptRef}
