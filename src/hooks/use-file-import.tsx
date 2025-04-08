@@ -216,7 +216,7 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
       const chatCraftFile = await ChatCraftFile.findOrCreate(file, { text });
       await chat.addFile(chatCraftFile);
 
-      // Generate chunks for the file
+      // Generate chunks for the file if its size > 300
       if (!chatCraftFile.hasChunks()) {
         try {
           await chatCraftFile.generateChunks();
@@ -224,7 +224,7 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
             `Generated ${chatCraftFile.chunks?.length || 0} chunks for file: ${chatCraftFile.name}`
           );
         } catch (err) {
-          throw new Error(`Error generating chunks: ${err}`);
+          throw new Error(`Error generating chunks: ${err}, continue without chunking...`);
         }
       }
 
