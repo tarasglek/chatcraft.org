@@ -1,6 +1,6 @@
 import db, { ChatCraftFileTable } from "./db";
 import { download } from "./utils";
-import { chunkText, ChunkingOptions, DEFAULT_CHUNKING_OPTIONS } from "./chunking";
+import { getSentenceChunksFrom } from "./summarize";
 
 export type FileChunk = {
   text: string;
@@ -206,17 +206,102 @@ export class ChatCraftFile {
   }
 
   /**
-   * Generates chunks and stores in db
+   * Generates chunks from file text content with overlap
+   * Skips files less than 300KB
    */
-  async generateChunks(options: ChunkingOptions = DEFAULT_CHUNKING_OPTIONS): Promise<FileChunk[]> {
+  async generateChunks(
+    maxCharsPerChunk: number = 1000,
+    overlapPercentage: number = 20
+  ): Promise<FileChunk[]> {
     if (!this.text) {
       throw new Error("File has no text content to chunk!");
     }
 
-    const chunks = chunkText(this.text, options);
+    const MIN_SIZE = 300000; // 300KB in bytes
+
+    if (this.size <= MIN_SIZE) {
+      console.log(
+        `File ${this.name} is too small (${this.size} bytes / ${Math.round(this.size / 1024)}KB), skipping chunking`
+      );
+      return [];
+    }
+
+    const baseChunks = getSentenceChunksFrom(this.text, maxCharsPerChunk);
+
+    const chunksWithOverlap = this.addOverlapToChunks(
+      baseChunks,
+      maxCharsPerChunk,
+      overlapPercentage
+    );
+
+    const chunks: FileChunk[] = chunksWithOverlap.map((text, index) => ({
+      text,
+      embeddings: [],
+      // Some metadata loaded, since we added it :)
+      metadata: {
+        index,
+        length: text.length,
+        fileSize: this.size,
+        fileName: this.name,
+        strategy: "fixed-size-with-overlap",
+        overlapPercentage,
+      },
+    }));
+
     await this.setChunks(chunks);
 
+    console.log(
+      `Generated ${chunks.length} chunks with ${overlapPercentage}% overlap for file: ${this.name} (${Math.round(this.size / 1024)}KB)`
+    );
+
     return chunks;
+  }
+
+  /**
+   * Helper method to add overlap between chunks
+   */
+  private addOverlapToChunks(
+    chunks: string[],
+    maxCharsPerChunk: number,
+    overlapPercentage: number
+  ): string[] {
+    // If we have 0 or 1 chunks, we don't need an overlap
+    if (chunks.length <= 1) return chunks;
+
+    const result: string[] = [];
+    const overlapSize = Math.max(50, Math.floor((maxCharsPerChunk * overlapPercentage) / 100));
+
+    for (let i = 0; i < chunks.length; i++) {
+      if (i === 0) {
+        result.push(chunks[i]);
+      } else {
+        const prevChunk = chunks[i - 1];
+        const currentChunk = chunks[i];
+
+        // Take the last part of the previous chunk for overlap
+        let overlapText = "";
+        if (prevChunk.length > overlapSize) {
+          const startPos = prevChunk.length - overlapSize;
+          const firstSpacePos = prevChunk.indexOf(" ", startPos);
+
+          if (firstSpacePos !== -1) {
+            overlapText = prevChunk.substring(firstSpacePos + 1);
+          } else {
+            // No space found, using raw overlap
+            overlapText = prevChunk.substring(startPos);
+          }
+        }
+
+        // Create new chunk with overlap
+        if (overlapText && !currentChunk.startsWith(overlapText)) {
+          result.push(overlapText + " " + currentChunk);
+        } else {
+          result.push(currentChunk);
+        }
+      }
+    }
+
+    return result;
   }
 
   /**
