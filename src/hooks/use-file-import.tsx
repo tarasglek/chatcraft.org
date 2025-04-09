@@ -223,6 +223,16 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
           console.log(
             `Generated ${chatCraftFile.chunks?.length || 0} chunks for file: ${chatCraftFile.name}`
           );
+
+          if (settings.autogenerateEmbeddings && chatCraftFile.hasChunks()) {
+            try {
+              await chatCraftFile.generateEmbeddings();
+            } catch (err) {
+              throw new Error(
+                `Error generating embeddings: ${err}, continue without embeddings...`
+              );
+            }
+          }
         } catch (err) {
           throw new Error(`Error generating chunks: ${err}, continue without chunking...`);
         }
@@ -241,7 +251,7 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
         await chat.addMessage(new ChatCraftHumanMessage({ text: `${text}\n` }));
       }
     },
-    [chat, onImageImport]
+    [chat, onImageImport, settings]
   );
 
   const importFiles = useCallback(
