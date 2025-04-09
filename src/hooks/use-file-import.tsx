@@ -216,6 +216,18 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
       const chatCraftFile = await ChatCraftFile.findOrCreate(file, { text });
       await chat.addFile(chatCraftFile);
 
+      // Generate chunks for the file if its size > 300
+      if (!chatCraftFile.hasChunks()) {
+        try {
+          await chatCraftFile.generateChunks();
+          console.log(
+            `Generated ${chatCraftFile.chunks?.length || 0} chunks for file: ${chatCraftFile.name}`
+          );
+        } catch (err) {
+          throw new Error(`Error generating chunks: ${err}, continue without chunking...`);
+        }
+      }
+
       // Add the file's contents to the chat as a message
       if (isImage) {
         // Import the image, but give the state update a chance to complete
