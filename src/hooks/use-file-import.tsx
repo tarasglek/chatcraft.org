@@ -217,14 +217,14 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
       await chat.addFile(chatCraftFile);
 
       // Generate chunks for the file if its size > 300
-      if (!chatCraftFile.hasChunks()) {
+      if (!chatCraftFile.hasChunks() && settings.autogenerateEmbeddings) {
         try {
           await chatCraftFile.generateChunks();
           console.log(
             `Generated ${chatCraftFile.chunks?.length || 0} chunks for file: ${chatCraftFile.name}`
           );
 
-          if (settings.autogenerateEmbeddings && chatCraftFile.hasChunks()) {
+          if (!chatCraftFile.hasEmbeddings()) {
             try {
               await chatCraftFile.generateEmbeddings();
             } catch (err) {
