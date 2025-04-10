@@ -10,46 +10,22 @@ import React, { useCallback, useEffect } from "react";
 import { useRef, useState } from "react";
 
 type AutoCompleteProps = {
-  // isOpen: boolean;
-  // onClose: () => void;
-  // inputWidth: number;
-  // popupPosition: {
-  //   left: number;
-  // };
-  // bgColor: string;
   children: React.ReactNode;
-  // triggerRef: React.RefObject<HTMLInputElement>;
+  triggerRef: React.RefObject<HTMLTextAreaElement>;
   availablePrompts: {
     command: string;
     helpTitle: string;
     helpDescription: string;
   }[];
-  // suggestionRefs: React.MutableRefObject<(HTMLDivElement | null)[]>;
-  // selectedIndex: number;
-  // hoverBg: string;
-  // onSelect: (suggestion: { command: string }) => void;
 };
 
-const AutoCompleteInput = ({
-  // isOpen,
-  // onClose,
-  // inputWidth,
-  // popupPosition,
-  // bgColor,
-  children,
-  // triggerRef,
-  availablePrompts,
-  // suggestionRefs,
-  // selectedIndex,
-  // hoverBg,
-  // onSelect,
-}: AutoCompleteProps) => {
+const AutoCompleteInput = ({ children, triggerRef, availablePrompts }: AutoCompleteProps) => {
   const [popupPosition, setPopupPosition] = useState<number>(0);
   const [inputWidth, setInputWidth] = useState<number>(0);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const triggerRef = useRef<HTMLInputElement>(null); // Create the ref inside the component
+  // const triggerRef = useRef<HTMLInputElement>(null);
 
   const bgColor = useColorModeValue("white", "gray.700");
   const hoverBg = useColorModeValue("gray.200", "gray.600");
@@ -60,7 +36,6 @@ const AutoCompleteInput = ({
 
   // Set possition and width
   useEffect(() => {
-    // const triggerRect = triggerRef.current.getBoundingClientRect();
     if (triggerRef.current) {
       const ancestor = triggerRef.current.closest("#parent");
 
@@ -85,7 +60,7 @@ const AutoCompleteInput = ({
     window.addEventListener("resize", updateWidth);
     return () => window.removeEventListener("resize", updateWidth);
   }, [triggerRef]);
-
+  // Onchange event for popup content
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     const filteredSuggestions = val
@@ -95,7 +70,7 @@ const AutoCompleteInput = ({
     setIsPopoverOpen(filteredSuggestions.length > 0);
     setSelectedIndex(0);
   };
-
+  // Key down events
   const handleKeyDown = useCallback(
     async (e: React.KeyboardEvent<HTMLInputElement>) => {
       switch (e.key) {
@@ -123,6 +98,10 @@ const AutoCompleteInput = ({
               setSelectedIndex(0);
             } else {
               setSelectedIndex((prev) => {
+                if (prev >= suggestions.length - 1) {
+                  setIsPopoverOpen(false);
+                  return prev;
+                }
                 const nextIndex = prev < suggestions.length - 1 ? prev + 1 : prev;
                 suggestionRefs.current[nextIndex]?.scrollIntoView({
                   behavior: "smooth",
@@ -144,12 +123,17 @@ const AutoCompleteInput = ({
             e.preventDefault();
             const selectedSuggestion = suggestions[selectedIndex];
             triggerRef.current.value = "/" + selectedSuggestion.command;
-            setIsPopoverOpen(false); // Close popover
-            //onSendClick(selectedSuggestion.command, []); // Submit selected command
-            triggerRef.current?.focus(); // Refocus input box
+            setIsPopoverOpen(false);
+            triggerRef.current?.focus();
           }
 
           break;
+        case "Escape":
+          if (isPopoverOpen) {
+            setIsPopoverOpen(false);
+          }
+          break;
+
         default:
           return;
       }
@@ -166,24 +150,20 @@ const AutoCompleteInput = ({
     >
       <PopoverTrigger>
         <PopoverTrigger>
-          {React.isValidElement(children) && typeof children.type !== "string"
-            ? (() => {
-                const child = children as React.ReactElement<any>;
-
-                return React.cloneElement(child, {
-                  ref: triggerRef,
-                  onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                    child.props.onChange?.(e);
-                    handleChange(e);
-                  },
-                  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (!isPopoverOpen) {
-                      child.props.onKeyDown?.(e);
-                    }
-                    handleKeyDown(e);
-                  },
-                });
-              })()
+          {React.isValidElement(children)
+            ? React.cloneElement(children as React.ReactElement, {
+                ref: triggerRef,
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                  children.props.onChange?.(e);
+                  handleChange(e);
+                },
+                onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (!isPopoverOpen) {
+                    children.props.onKeyDown?.(e);
+                  }
+                  handleKeyDown(e);
+                },
+              })
             : children}
         </PopoverTrigger>
       </PopoverTrigger>

@@ -39,7 +39,7 @@ import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
 import PaperclipIcon from "./PaperclipIcon";
 import { ChatCraftCommandRegistry } from "../../lib/ChatCraftCommandRegistry";
-import AutoComplete from "./AutoCompleteInput";
+import AutoComplete from "../AutoCompleteInput";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -104,19 +104,6 @@ function DesktopPromptForm({
     chat,
     onImageImport: (base64) => updateImageUrls(base64, setInputImageUrls),
   });
-  // const inputBoxRef = useRef<HTMLDivElement | null>(null);
-  // const suggestionsRef = useRef<HTMLDivElement | null>(null);
-  // const parentFlexRef = useRef<HTMLDivElement | null>(null);
-  // const [popupPosition, setPopupPosition] = useState<{ left: number }>({
-  //   left: 0,
-  // });
-  // const [isPopoverOpen] = useState();
-  // const [inputWidth, setInputWidth] = useState<number>(0);
-  // const [suggestions, setSuggestions] = useState<
-  //   { command: string; helpTitle: string; helpDescription: string }[]
-  // >([]);
-  // const [selectedIndex, setSelectedIndex] = useState<number>(-1);
-  // const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const availablePrompts = ChatCraftCommandRegistry.getCommands();
   const { getRootProps, isDragActive } = useDropzone({
@@ -181,42 +168,6 @@ function DesktopPromptForm({
     // eslint-disable-next-line
   }, []);
 
-  // Update when input or suggestions change
-  // useEffect(() => {
-  //   if (parentFlexRef.current && inputBoxRef.current) {
-  //     const rect = parentFlexRef.current.getBoundingClientRect();
-  //     setInputWidth(rect.width);
-  //     setPopupPosition({
-  //       left: (rect.left + window.scrollX) / 10,
-  //     });
-  //   }
-  // }, [suggestions.length]);
-  // Update width on window resize
-  // useEffect(() => {
-  //   const updateWidth = () => {
-  //     if (parentFlexRef.current) {
-  //       setInputWidth(parentFlexRef.current.getBoundingClientRect().width);
-  //     }
-  //   };
-  //   window.addEventListener("resize", updateWidth);
-  //   return () => window.removeEventListener("resize", updateWidth);
-  // }, []);
-
-  // useEffect(() => {
-  //   function handleClickOutside(event: MouseEvent) {
-  //     if (
-  //       inputBoxRef.current &&
-  //       !inputBoxRef.current.contains(event.target as Node)
-  //       // suggestionsRef.current &&
-  //       // !suggestionsRef.current.contains(event.target as Node)
-  //     ) {
-  //       setIsPopoverOpen(false);
-  //     }
-  //   }
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => document.removeEventListener("mousedown", handleClickOutside);
-  // }, []);
-
   // Handle prompt form submission
   const handlePromptSubmit = useCallback(
     (e: FormEvent) => {
@@ -250,39 +201,7 @@ function DesktopPromptForm({
             inputPromptRef.current.value = previousMessage;
             setIsPromptEmpty(false);
           }
-          // if (isPopoverOpen) {
-          //   e.preventDefault();
-          //   if (selectedIndex == -1) {
-          //     setSelectedIndex(0);
-          //   } else {
-          //     setSelectedIndex((prev) => {
-          //       const nextIndex = prev > 0 ? prev - 1 : 0;
-          //       suggestionRefs.current[nextIndex]?.scrollIntoView({
-          //         behavior: "smooth",
-          //         block: "nearest",
-          //       });
-          //       return nextIndex;
-          //     });
-          //   }
-          // }
           break;
-        // case "ArrowDown":
-        //   if (isPopoverOpen) {
-        //     e.preventDefault();
-        //     if (selectedIndex == -1) {
-        //       setSelectedIndex(0);
-        //     } else {
-        //       setSelectedIndex((prev) => {
-        //         const nextIndex = prev < suggestions.length - 1 ? prev + 1 : prev;
-        //         suggestionRefs.current[nextIndex]?.scrollIntoView({
-        //           behavior: "smooth",
-        //           block: "nearest",
-        //         });
-        //         return nextIndex;
-        //       });
-        //     }
-        //   }
-        //   break;
 
         // Prevent blank submissions and allow for multiline input.
         case "Enter":
@@ -293,20 +212,6 @@ function DesktopPromptForm({
               handlePromptSubmit(e);
             }
           }
-          // } else {
-          //   e.preventDefault();
-          //   if (
-          //     selectedIndex >= 0 &&
-          //     selectedIndex < suggestions.length &&
-          //     inputPromptRef.current
-          //   ) {
-          //     const selectedSuggestion = suggestions[selectedIndex];
-          //     inputPromptRef.current.value = "/" + selectedSuggestion.command;
-          //     setIsPopoverOpen(false); // Close popover
-          //     //onSendClick(selectedSuggestion.command, []); // Submit selected command
-          //     inputPromptRef.current?.focus(); // Refocus input box
-          //   }
-          // }
 
           break;
 
@@ -530,24 +435,8 @@ function DesktopPromptForm({
                         </Box>
                       ) : (
                         <AutoComplete
-                          // isOpen={isPopoverOpen}
-                          // onClose={() => setIsPopoverOpen(false)}
-                          // inputWidth={inputWidth}
-                          // popupPosition={popupPosition}
-                          // bgColor={bgColor}
-                          // triggerRef={inputPromptRef}
+                          triggerRef={inputPromptRef}
                           availablePrompts={availablePrompts}
-                          // suggestionRefs={suggestionRefs}
-                          // selectedIndex={selectedIndex}
-                          // hoverBg={hoverBg}
-                          // onSelect={(suggestion: { command: string }) => {
-                          //   if (inputPromptRef.current) {
-                          //     inputPromptRef.current.value = "/" + suggestion.command;
-                          //   }
-                          //   // setSuggestions([]);
-                          //   // setIsPopoverOpen(false);
-                          //   inputPromptRef.current?.focus();
-                          // }}
                         >
                           <AutoResizingTextarea
                             id="test"
@@ -557,16 +446,7 @@ function DesktopPromptForm({
                             isDisabled={isLoading}
                             autoFocus={true}
                             onChange={(e) => {
-                              // const val = e.target.value;
                               setIsPromptEmpty(e.target.value.trim().length === 0);
-                              // const filteredSuggestions = val
-                              //   ? availablePrompts.filter((p) =>
-                              //       p.helpTitle.toLowerCase().startsWith(val.toLowerCase())
-                              //     )
-                              //   : [];
-                              // setSuggestions(filteredSuggestions);
-                              // setIsPopoverOpen(filteredSuggestions.length > 0);
-                              // setSelectedIndex(-1);
                             }}
                             bg="white"
                             _dark={{ bg: "gray.700" }}
