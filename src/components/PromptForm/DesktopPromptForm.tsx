@@ -1,4 +1,13 @@
-import { FormEvent, KeyboardEvent, type RefObject, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  KeyboardEvent,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Box,
   Card,
@@ -30,6 +39,8 @@ import ImageModal from "../ImageModal";
 import { ChatCraftChat } from "../../lib/ChatCraftChat";
 import { useFileImport } from "../../hooks/use-file-import";
 import PaperclipIcon from "./PaperclipIcon";
+import { ChatCraftCommandRegistry } from "../../lib/ChatCraftCommandRegistry";
+import AutoComplete from "../AutoCompleteInput";
 
 type KeyboardHintProps = {
   isVisible: boolean;
@@ -95,6 +106,9 @@ function DesktopPromptForm({
     onImageImport: (base64) => updateImageUrls(base64, setInputImageUrls),
   });
 
+  const availablePrompts = ChatCraftCommandRegistry.getCommands();
+  const parentRef = useRef<HTMLDivElement | null>(null);
+
   const { getRootProps, isDragActive } = useDropzone({
     onDrop: importFiles,
     multiple: true,
@@ -158,51 +172,79 @@ function DesktopPromptForm({
   }, []);
 
   // Handle prompt form submission
-  const handlePromptSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const textValue = inputPromptRef.current?.value.trim() || "";
-    // Clone the current image urls so we don't lose them when we update state below
-    const currentImageUrls = [...inputImageUrls];
+  const handlePromptSubmit = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault();
+      const textValue = inputPromptRef.current?.value.trim() || "";
+      // Clone the current image urls so we don't lose them when we update state below
+      const currentImageUrls = [...inputImageUrls];
 
-    if (inputPromptRef.current) {
-      inputPromptRef.current.value = "";
-    }
-    setIsPromptEmpty(true);
-    setInputImageUrls([]);
-
-    onSendClick(textValue, currentImageUrls);
-  };
+      if (inputPromptRef.current) {
+        inputPromptRef.current.value = "";
+      }
+      setIsPromptEmpty(true);
+      setInputImageUrls([]);
+      // setIsPopoverOpen(false);
+      onSendClick(textValue, currentImageUrls);
+    },
+    [inputImageUrls, inputPromptRef, onSendClick]
+  );
 
   const handleMetaEnter = useKeyDownHandler<HTMLTextAreaElement>({
     onMetaEnter: handlePromptSubmit,
   });
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    switch (e.key) {
-      // Allow the user to cursor-up to repeat last prompt
-      case "ArrowUp":
-        if (isPromptEmpty && previousMessage && inputPromptRef.current) {
-          e.preventDefault();
-          inputPromptRef.current.value = previousMessage;
-          setIsPromptEmpty(false);
-        }
-        break;
-
-      // Prevent blank submissions and allow for multiline input.
-      case "Enter":
-        if (settings.enterBehaviour === "newline") {
-          handleMetaEnter(e);
-        } else if (settings.enterBehaviour === "send") {
-          if (!e.shiftKey && !isPromptEmpty) {
-            handlePromptSubmit(e);
+  const handleKeyDown = useCallback(
+    async (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      switch (e.key) {
+        // Allow the user to cursor-up to repeat last prompt
+        case "ArrowUp":
+          if (isPromptEmpty && previousMessage && inputPromptRef.current /*&& !isPopoverOpen*/) {
+            e.preventDefault();
+            inputPromptRef.current.value = previousMessage;
+            setIsPromptEmpty(false);
           }
-        }
-        break;
+          break;
 
-      default:
-        return;
-    }
-  };
+        // Prevent blank submissions and allow for multiline input.
+        case "Enter":
+          if (settings.enterBehaviour === "newline") {
+            handleMetaEnter(e);
+          } else if (settings.enterBehaviour === "send") {
+            if (!e.shiftKey && !isPromptEmpty) {
+              handlePromptSubmit(e);
+            }
+          }
+
+          break;
+
+        // Shortcut to "/clear" the chat
+        case "l":
+          if (e.ctrlKey) {
+            e.preventDefault();
+            const clearCommand = ChatCraftCommandRegistry.getCommand("/clear");
+
+            if (!clearCommand) {
+              return console.error("Could not find '/clear' command in ChatCraftCommandRegistry!");
+            }
+            await clearCommand(chat, undefined);
+          }
+          break;
+
+        default:
+          return;
+      }
+    },
+    [
+      chat,
+      handleMetaEnter,
+      handlePromptSubmit,
+      inputPromptRef,
+      isPromptEmpty,
+      previousMessage,
+      settings.enterBehaviour,
+    ]
+  );
 
   const handlePaste = (e: ClipboardEvent) => {
     const { clipboardData } = e;
@@ -309,9 +351,8 @@ function DesktopPromptForm({
   const closeModal = () => setImageModalOpen(false);
 
   const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
-
   return (
-    <Flex dir="column" w="100%" h="100%">
+    <Flex ref={parentRef} id="parent" dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
@@ -353,7 +394,7 @@ function DesktopPromptForm({
                           top="2px"
                           left="2px"
                           bg="whiteAlpha.600"
-                          borderRadius="full"
+                          borderRadius="5px"
                           p="1"
                           zIndex="2"
                           _hover={{
@@ -383,45 +424,54 @@ function DesktopPromptForm({
                       </Box>
                     ))}
                   </Flex>
-                  <Flex flexWrap="wrap">
-                    {inputType === "audio" ? (
-                      <Box py={2} px={1} flex={1}>
-                        <AudioStatus
-                          isRecording={isRecording}
-                          isTranscribing={isTranscribing}
-                          recordingSeconds={recordingSeconds}
-                        />
-                      </Box>
-                    ) : (
-                      <AutoResizingTextarea
-                        ref={inputPromptRef}
-                        variant="unstyled"
-                        onKeyDown={handleKeyDown}
+                  <Box style={{ position: "relative", width: "100%" }}>
+                    <Flex flexWrap="wrap">
+                      {inputType === "audio" ? (
+                        <Box py={2} px={1} flex={1}>
+                          <AudioStatus
+                            isRecording={isRecording}
+                            isTranscribing={isTranscribing}
+                            recordingSeconds={recordingSeconds}
+                          />
+                        </Box>
+                      ) : (
+                        <AutoComplete
+                          triggerRef={inputPromptRef}
+                          parentRef={parentRef}
+                          availablePrompts={availablePrompts}
+                        >
+                          <AutoResizingTextarea
+                            id="test"
+                            ref={inputPromptRef}
+                            variant="unstyled"
+                            onKeyDown={handleKeyDown}
+                            isDisabled={isLoading}
+                            autoFocus={true}
+                            onChange={(e) => {
+                              setIsPromptEmpty(e.target.value.trim().length === 0);
+                            }}
+                            bg="white"
+                            _dark={{ bg: "gray.700" }}
+                            placeholder={
+                              !isLoading && !isRecording && !isTranscribing
+                                ? "Ask a question or use /help to learn more ('CTRL+l' to clear chat)"
+                                : undefined
+                            }
+                            overflowY="auto"
+                            flex={1}
+                          />
+                        </AutoComplete>
+                      )}
+                      <MicIcon
                         isDisabled={isLoading}
-                        autoFocus={true}
-                        onChange={(e) => {
-                          setIsPromptEmpty(e.target.value.trim().length === 0);
-                        }}
-                        bg="white"
-                        _dark={{ bg: "gray.700" }}
-                        placeholder={
-                          !isLoading && !isRecording && !isTranscribing
-                            ? "Ask a question or use /help to learn more"
-                            : undefined
-                        }
-                        overflowY="auto"
-                        flex={1}
+                        onRecording={handleRecording}
+                        onTranscribing={handleTranscribing}
+                        onTranscriptionAvailable={handleTranscriptionAvailable}
+                        onCancel={handleRecordingCancel}
                       />
-                    )}
-                    <MicIcon
-                      isDisabled={isLoading}
-                      onRecording={handleRecording}
-                      onTranscribing={handleTranscribing}
-                      onTranscriptionAvailable={handleTranscriptionAvailable}
-                      onCancel={handleRecordingCancel}
-                    />
-                    <PaperclipIcon chat={chat} onAttachFiles={importFiles} />
-                  </Flex>
+                      <PaperclipIcon chat={chat} onAttachFiles={importFiles} />
+                    </Flex>
+                  </Box>
                 </Flex>
               </InputGroup>
 
