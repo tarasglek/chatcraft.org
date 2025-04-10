@@ -69,7 +69,7 @@ export const defaults: Settings = {
   maxCompressedFileSizeMB: 20,
   maxImageDimension: 2048,
   embeddingProvider: "tensorflow",
-  autogenerateEmbeddings: true,
+  autogenerateEmbeddings: false,
   embeddingBatchSize: 20,
 };
 

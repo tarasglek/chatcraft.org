@@ -24,12 +24,14 @@ import ModelsSettings from "./ModelsSettings";
 import WebHandlersConfig from "./WebHandlersConfig";
 import DefaultSystemPrompt from "./DefaultSystemPrompt";
 import CustomizationSettings from "./CustomizationSettings";
+import RagSettings from "./RagSettings";
 import Database from "./Database";
 import { MdOutlineDashboardCustomize, MdSignalCellularAlt } from "react-icons/md";
 import { IconType } from "react-icons";
 import { TbPrompt } from "react-icons/tb";
 import { FaRobot } from "react-icons/fa";
 import { FaDatabase } from "react-icons/fa";
+import { GiBladeDrag } from "react-icons/gi";
 
 type PreferencesModalProps = {
   isOpen: boolean;
@@ -56,6 +58,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
     { name: "Web Handlers", icon: MdSignalCellularAlt },
     { name: "Customization", icon: MdOutlineDashboardCustomize },
     { name: "Database", icon: FaDatabase },
+    { name: "RAG (Experimental)", icon: GiBladeDrag },
   ];
 
   const handleSettingClick = (setting: Setting) => {
@@ -193,6 +196,7 @@ function PreferencesModal({ isOpen, onClose, finalFocusRef }: PreferencesModalPr
               {selectedSetting.name === "Web Handlers" && <WebHandlersConfig />}
               {selectedSetting.name === "Customization" && <CustomizationSettings />}
               {selectedSetting.name === "Database" && <Database />}
+              {selectedSetting.name === "RAG (Experimental)" && <RagSettings />}
             </Box>
           </Flex>
         </ModalBody>
