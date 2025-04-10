@@ -2,7 +2,6 @@ import {
   Checkbox,
   FormControl,
   FormErrorMessage,
-  FormHelperText,
   FormLabel,
   Radio,
   RadioGroup,
