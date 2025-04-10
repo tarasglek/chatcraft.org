@@ -1,6 +1,8 @@
 import db, { ChatCraftFileTable } from "./db";
 import { download } from "./utils";
 import { getSentenceChunksFrom } from "./summarize";
+import { getEmbeddingProvider, EmbeddingProviderType } from "./embeddings";
+import { getSettings } from "./settings";
 
 export type FileChunk = {
   text: string;
@@ -181,6 +183,28 @@ export class ChatCraftFile {
   }
 
   /**
+   * Get the embedding provider used for this file's chunks
+   */
+  getEmbeddingProviderId(): string | undefined {
+    if (!this.hasEmbeddings() || !this.chunks?.[0]?.metadata) {
+      return undefined;
+    }
+
+    return this.chunks[0].metadata.embeddingProvider as string;
+  }
+
+  /**
+   * Get embedding dimensions
+   */
+  getEmbeddingDimensions(): number | undefined {
+    if (!this.hasEmbeddings() || !this.chunks?.[0]?.metadata) {
+      return undefined;
+    }
+
+    return this.chunks[0].metadata.embeddingDimensions as number;
+  }
+
+  /**
    * Set metadata value
    */
   setMetadata(key: string, value: unknown): void {
@@ -203,6 +227,64 @@ export class ChatCraftFile {
    */
   hasChunks(): boolean {
     return !!this.chunks && this.chunks.length > 0;
+  }
+
+  /**
+   * Check if all chunks have embeddings
+   */
+  hasEmbeddings(): boolean {
+    return (
+      this.hasChunks() &&
+      this.chunks!.every((chunk) => Array.isArray(chunk.embeddings) && chunk.embeddings.length > 0)
+    );
+  }
+
+  /**
+   * Generate embeddings for all chunks
+   */
+  async generateEmbeddings(providerType?: EmbeddingProviderType): Promise<void> {
+    if (!this.hasChunks()) {
+      throw new Error("File has no chunks to generate embeddings for");
+    }
+
+    const settings = getSettings();
+    const provider = getEmbeddingProvider(providerType || settings.embeddingProvider);
+    const chunks = this.chunks!;
+
+    console.log(`Generating embeddings for ${chunks.length} chunks using ${provider.name}...`);
+
+    const BATCH_SIZE = settings.embeddingBatchSize || 20;
+
+    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+      const batch = chunks.slice(i, i + BATCH_SIZE);
+      const texts = batch.map((chunk) => chunk.text);
+
+      try {
+        const embeddings = await provider.generateBatchEmbeddings(texts);
+
+        // Update each chunk
+        for (let j = 0; j < batch.length; j++) {
+          chunks[i + j].embeddings = embeddings[j];
+
+          chunks[i + j].metadata = {
+            ...(chunks[i + j].metadata || {}),
+            embeddingProvider: provider.id,
+            embeddingDimensions: provider.dimensions,
+            embeddingDate: new Date().toISOString(),
+          };
+        }
+
+        console.log(
+          `Generated embeddings for batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(chunks.length / BATCH_SIZE)}`
+        );
+      } catch (error) {
+        console.error(`Error generating embeddings for batch starting at chunk ${i}:`, error);
+        throw error;
+      }
+    }
+
+    await this.setChunks(chunks);
+    console.log(`Successfully generated embeddings for all ${chunks.length} chunks`);
   }
 
   /**
