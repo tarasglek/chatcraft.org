@@ -348,10 +348,8 @@ function DesktopPromptForm({
   const closeModal = () => setImageModalOpen(false);
 
   const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
-  // const bgColor = useColorModeValue("white", "gray.700");
-  // const hoverBg = useColorModeValue("gray.200", "gray.600");
   return (
-    <Flex id="parent" dir="column" w="100%" h="100%">
+    <Flex dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody

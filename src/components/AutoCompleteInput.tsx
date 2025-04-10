@@ -47,11 +47,23 @@ const AutoCompleteInput = ({ children, triggerRef, availablePrompts }: AutoCompl
     }
   }, [suggestions.length, triggerRef]);
 
+  function getFarthestAncestor(el: HTMLElement | null): HTMLElement | null {
+    let current = el;
+    let farthest: HTMLElement | null = null;
+
+    while (current?.parentElement && current.parentElement.tagName !== "BODY") {
+      current = current.parentElement;
+      farthest = current;
+    }
+
+    return farthest;
+  }
+
   // Update width on window resize
   useEffect(() => {
     const updateWidth = () => {
       if (triggerRef.current) {
-        const ancestor = triggerRef.current.closest("#parent");
+        const ancestor = getFarthestAncestor(triggerRef.current);
         if (ancestor) {
           setInputWidth(ancestor.getBoundingClientRect().width);
         }
