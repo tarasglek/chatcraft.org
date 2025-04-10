@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -106,6 +107,8 @@ function DesktopPromptForm({
   });
 
   const availablePrompts = ChatCraftCommandRegistry.getCommands();
+  const parentRef = useRef<HTMLDivElement | null>(null);
+
   const { getRootProps, isDragActive } = useDropzone({
     onDrop: importFiles,
     multiple: true,
@@ -349,7 +352,7 @@ function DesktopPromptForm({
 
   const dragDropBorderColor = useColorModeValue("blue.200", "blue.600");
   return (
-    <Flex dir="column" w="100%" h="100%">
+    <Flex ref={parentRef} id="parent" dir="column" w="100%" h="100%">
       <Card flex={1} my={3} mx={1}>
         <chakra.form onSubmit={handlePromptSubmit} h="100%">
           <CardBody
@@ -434,6 +437,7 @@ function DesktopPromptForm({
                       ) : (
                         <AutoComplete
                           triggerRef={inputPromptRef}
+                          parentRef={parentRef}
                           availablePrompts={availablePrompts}
                         >
                           <AutoResizingTextarea

@@ -12,6 +12,7 @@ import { useRef, useState } from "react";
 type AutoCompleteProps = {
   children: React.ReactNode;
   triggerRef: React.RefObject<HTMLTextAreaElement>;
+  parentRef: React.RefObject<HTMLDivElement>;
   availablePrompts: {
     command: string;
     helpTitle: string;
@@ -19,7 +20,12 @@ type AutoCompleteProps = {
   }[];
 };
 
-const AutoCompleteInput = ({ children, triggerRef, availablePrompts }: AutoCompleteProps) => {
+const AutoCompleteInput = ({
+  children,
+  triggerRef,
+  parentRef,
+  availablePrompts,
+}: AutoCompleteProps) => {
   const [popupPosition, setPopupPosition] = useState<number>(0);
   const [inputWidth, setInputWidth] = useState<number>(0);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -36,42 +42,23 @@ const AutoCompleteInput = ({ children, triggerRef, availablePrompts }: AutoCompl
 
   // Set possition and width
   useEffect(() => {
-    if (triggerRef.current) {
-      const ancestor = triggerRef.current.closest("#parent");
-
-      if (ancestor) {
-        const parentRect = ancestor.getBoundingClientRect();
-        setInputWidth(parentRect.width);
-        setPopupPosition((parentRect.left + window.scrollX) / 10);
-      }
+    if (triggerRef.current && parentRef.current) {
+      const parentRect = parentRef.current.getBoundingClientRect();
+      setInputWidth(parentRect.width);
+      setPopupPosition((parentRect.left + window.scrollX) / 10);
     }
-  }, [suggestions.length, triggerRef]);
-
-  function getFarthestAncestor(el: HTMLElement | null): HTMLElement | null {
-    let current = el;
-    let farthest: HTMLElement | null = null;
-
-    while (current?.parentElement && current.parentElement.tagName !== "BODY") {
-      current = current.parentElement;
-      farthest = current;
-    }
-
-    return farthest;
-  }
+  }, [parentRef, suggestions.length, triggerRef]);
 
   // Update width on window resize
   useEffect(() => {
     const updateWidth = () => {
-      if (triggerRef.current) {
-        const ancestor = getFarthestAncestor(triggerRef.current);
-        if (ancestor) {
-          setInputWidth(ancestor.getBoundingClientRect().width);
-        }
+      if (triggerRef.current && parentRef.current) {
+        setInputWidth(parentRef.current.getBoundingClientRect().width);
       }
     };
     window.addEventListener("resize", updateWidth);
     return () => window.removeEventListener("resize", updateWidth);
-  }, [triggerRef]);
+  }, [parentRef, triggerRef]);
   // Onchange event for popup content
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
