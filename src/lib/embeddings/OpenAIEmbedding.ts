@@ -31,7 +31,6 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
   async generateBatchEmbeddings(texts: string[]): Promise<number[][]> {
     try {
       const settings = getSettings();
-      console.log(`Current API KEY is: ${settings.currentProvider.apiKey}`);
       const response = await fetch(`${this.url}`, {
         method: "POST",
         headers: {
