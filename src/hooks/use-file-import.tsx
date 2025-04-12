@@ -216,7 +216,8 @@ export function useFileImport({ chat, onImageImport }: UseFileImportOptions) {
       const chatCraftFile = await ChatCraftFile.findOrCreate(file, { text });
       await chat.addFile(chatCraftFile);
 
-      // Generate chunks for the file if its size > 300
+      // generates chunks and embeddings only when user decided to turn on
+      // experimental feature
       if (!chatCraftFile.hasChunks() && settings.autogenerateEmbeddings) {
         try {
           await chatCraftFile.generateChunks();
