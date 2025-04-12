@@ -1,5 +1,5 @@
-import { getSettings } from "../settings";
 import { EmbeddingProvider } from "./EmbeddingProvider";
+import OpenAI from "openai";
 
 /**
  * OpenAI embedding provider - uses the OpenAI API to generate embeddings
@@ -11,10 +11,10 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
   readonly dimensions = 1536;
   readonly url = `https://api.openai.com/v1/embeddings`;
 
-  private apiKey: string;
+  private openai: OpenAI;
 
   constructor(apiKey: string) {
-    this.apiKey = apiKey;
+    this.openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
   }
 
   /**
@@ -30,26 +30,13 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
    */
   async generateBatchEmbeddings(texts: string[]): Promise<number[][]> {
     try {
-      const settings = getSettings();
-      const response = await fetch(`${this.url}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${settings.currentProvider.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: `text-embedding-3-small`,
-          input: texts,
-          encoding_format: "float",
-        }),
+      const response = await this.openai.embeddings.create({
+        model: "text-embedding-3-small",
+        input: texts,
+        encoding_format: "float",
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
-      }
-      const res = await response.json();
-      return res.data.map((item: any) => item.embedding);
+      return response.data.map((item) => item.embedding);
     } catch (error: any) {
       console.error("Error generating OpenAI embeddings:", error);
       throw new Error(`OpenAI API error: ${error.message || "Unknown error"}`);
