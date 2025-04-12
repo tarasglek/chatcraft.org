@@ -95,6 +95,7 @@ export class ChatCraftFile {
     input: File | ChatCraftFileOptions,
     additionalOptions: Partial<ChatCraftFileOptions>
   ): Promise<ChatCraftFile> {
+    console.log("findOrCreate invoked");
     let options: ChatCraftFileOptions;
 
     if (input instanceof File) {
@@ -107,6 +108,8 @@ export class ChatCraftFile {
         },
       };
 
+      console.log("Metadata that is getting used", options.metadata);
+      console.log("Additional Metadata: ", additionalOptions);
       // Merge any additional options provided
       if (additionalOptions) {
         options = {
@@ -186,32 +189,33 @@ export class ChatCraftFile {
    * Get the embedding provider used for this file's chunks
    */
   getEmbeddingProviderId(): string | undefined {
-    if (!this.hasEmbeddings() || !this.chunks?.[0]?.metadata) {
+    if (!this.hasEmbeddings() || !this.metadata) {
       return undefined;
     }
 
-    return this.chunks[0].metadata.embeddingProvider as string;
+    return this.metadata.embeddingProvider as string;
   }
 
   /**
    * Get embedding dimensions
    */
   getEmbeddingDimensions(): number | undefined {
-    if (!this.hasEmbeddings() || !this.chunks?.[0]?.metadata) {
+    if (!this.hasEmbeddings() || !this.metadata) {
       return undefined;
     }
 
-    return this.chunks[0].metadata.embeddingDimensions as number;
+    return this.metadata.embeddingDimensions as number;
   }
 
   /**
    * Set metadata value
    */
-  setMetadata(key: string, value: unknown): void {
+  async setMetadata(key: string, value: unknown): Promise<void> {
     if (!this.metadata) {
       this.metadata = {};
     }
     this.metadata[key] = value;
+    await db.files.update(this.id, this.metadata);
   }
 
   /**
@@ -232,11 +236,12 @@ export class ChatCraftFile {
   /**
    * Check if all chunks have embeddings
    */
-  hasEmbeddings(): boolean {
-    return (
-      this.hasChunks() &&
-      this.chunks!.every((chunk) => Array.isArray(chunk.embeddings) && chunk.embeddings.length > 0)
-    );
+  hasEmbeddings(): boolean | undefined {
+    if (!this.hasChunks()) {
+      return false;
+    }
+
+    return this.chunks?.some((chunk) => chunk.embeddings.length > 0);
   }
 
   /**
@@ -265,13 +270,6 @@ export class ChatCraftFile {
         // Update each chunk
         for (let j = 0; j < batch.length; j++) {
           chunks[i + j].embeddings = embeddings[j];
-
-          chunks[i + j].metadata = {
-            ...(chunks[i + j].metadata || {}),
-            embeddingProvider: provider.id,
-            embeddingDimensions: provider.dimensions,
-            embeddingDate: new Date().toISOString(),
-          };
         }
 
         console.log(
@@ -282,7 +280,9 @@ export class ChatCraftFile {
         throw error;
       }
     }
-
+    this.setMetadata("embeddingProvider", provider.id);
+    this.setMetadata("embeddingDimensions", provider.dimensions);
+    this.setMetadata("embeddingData", new Date().toISOString());
     await this.setChunks(chunks);
     console.log(`Successfully generated embeddings for all ${chunks.length} chunks`);
   }
