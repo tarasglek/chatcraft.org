@@ -20,7 +20,9 @@ export class TensorflowEmbeddingProvider implements EmbeddingProvider {
    * Load the model if it hasn't been loaded yet
    */
   private async loadModelIfNeeded(): Promise<void> {
-    if (this.model) return;
+    if (this.model) {
+      return;
+    }
 
     if (!this.loadPromise) {
       this.isLoading = true;
