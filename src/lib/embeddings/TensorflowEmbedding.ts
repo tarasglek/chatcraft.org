@@ -62,19 +62,22 @@ export class TensorflowEmbeddingProvider implements EmbeddingProvider {
    * Generate embedding vectors for multiple texts in batch
    */
   async generateBatchEmbeddings(texts: string[]): Promise<number[][]> {
+    let embeddings;
     try {
       await this.loadModelIfNeeded();
 
-      const embeddings = await this.model.embed(texts);
+      embeddings = await this.model.embed(texts);
 
       const arrays = await embeddings.array();
-
-      embeddings.dispose();
 
       return arrays;
     } catch (error: any) {
       console.error("Error generating TensorFlow embeddings:", error);
       throw new Error(`TensorFlow embedding error: ${error.message || "Unknown error"}`);
+    } finally {
+      if (embeddings) {
+        embeddings.dispose();
+      }
     }
   }
 }
