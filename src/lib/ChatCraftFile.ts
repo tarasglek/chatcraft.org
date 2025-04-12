@@ -282,7 +282,7 @@ export class ChatCraftFile {
     }
     this.setMetadata("embeddingProvider", provider.id);
     this.setMetadata("embeddingDimensions", provider.dimensions);
-    this.setMetadata("embeddingData", new Date().toISOString());
+    this.setMetadata("embeddingDate", new Date().toISOString());
     await this.setChunks(chunks);
     console.log(`Successfully generated embeddings for all ${chunks.length} chunks`);
   }
