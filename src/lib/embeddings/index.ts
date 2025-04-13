@@ -1,14 +1,19 @@
-import { EmbeddingProvider } from "./EmbeddingProvider";
-import { OpenAIEmbeddingProvider } from "./OpenAIEmbedding";
-import { TensorflowEmbeddingProvider } from "./TensorflowEmbedding";
+import { EmbeddingsProvider } from "./EmbeddingProvider";
+import { OpenAIEmbeddingsProvider } from "./OpenAIEmbedding";
+import { TensorflowEmbeddingsProvider } from "./TensorflowEmbedding";
 import { getSettings } from "../settings";
 
 /**
  * Supported embedding provider types
  */
-export type EmbeddingProviderType = "openai" | "tensorflow";
+export type EmbeddingsProviderType = "openai" | "tensorflow";
 
-const providers: Record<EmbeddingProviderType, EmbeddingProvider | null> = {
+export const EMBEDDINGS_PROVIDER_CONFIG = {
+  openai: OpenAIEmbeddingsProvider.CONFIG,
+  tensorflow: TensorflowEmbeddingsProvider.CONFIG,
+};
+
+const providers: Record<EmbeddingsProviderType, EmbeddingsProvider | null> = {
   openai: null,
   tensorflow: null,
 };
@@ -16,7 +21,7 @@ const providers: Record<EmbeddingProviderType, EmbeddingProvider | null> = {
 /**
  * Get an embedding provider instance
  */
-export function getEmbeddingProvider(type: EmbeddingProviderType): EmbeddingProvider {
+export function getEmbeddingsProvider(type: EmbeddingsProviderType): EmbeddingsProvider {
   const settings = getSettings();
 
   if (!providers[type]) {
@@ -25,22 +30,22 @@ export function getEmbeddingProvider(type: EmbeddingProviderType): EmbeddingProv
         if (!settings.currentProvider.apiKey) {
           throw new Error("OpenAI API key is required for embeddings");
         }
-        providers[type] = new OpenAIEmbeddingProvider(settings.currentProvider.apiKey);
+        providers[type] = new OpenAIEmbeddingsProvider(settings.currentProvider.apiKey);
 
         break;
 
       case "tensorflow":
-        providers[type] = new TensorflowEmbeddingProvider();
+        providers[type] = new TensorflowEmbeddingsProvider();
         break;
 
       default:
         throw new Error(`Unknown embedding provider type: ${type}`);
     }
 
-    settings.embeddingMaxBatchSize = providers[type].maxBatchSize;
+    settings.embeddingsBatchSize = providers[type].defaultBatchSize;
   }
 
-  return providers[type]!;
+  return providers[type];
 }
 
 /**
@@ -48,6 +53,6 @@ export function getEmbeddingProvider(type: EmbeddingProviderType): EmbeddingProv
  */
 export function clearEmbeddingProviders(): void {
   Object.keys(providers).forEach((key) => {
-    providers[key as EmbeddingProviderType] = null;
+    providers[key as EmbeddingsProviderType] = null;
   });
 }

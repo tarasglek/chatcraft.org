@@ -1,7 +1,7 @@
 /**
  * Base interface for embedding providers
  */
-export interface EmbeddingProvider {
+export interface EmbeddingsProvider {
   /**
    * Unique identifier for the provider
    */
@@ -28,11 +28,21 @@ export interface EmbeddingProvider {
   readonly maxBatchSize: number;
 
   /**
+   * Minimum batch size of the provider
+   */
+  readonly minBatchSize: number;
+
+  /**
+   * Default batch size of the provider
+   */
+  readonly defaultBatchSize: number;
+
+  /**
    * Generate an embedding vector for a single text
    * @param text The text to embed
    * @returns A promise resolving to a vector of numbers
    */
-  generateEmbedding(text: string): Promise<number[]>;
+  generateEmbeddings(text: string): Promise<number[]>;
 
   /**
    * Generate embedding vectors for multiple texts in batch
