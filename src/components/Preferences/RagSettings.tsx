@@ -13,10 +13,23 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useSettings } from "../../hooks/use-settings";
-import { EmbeddingProviderType } from "../../lib/embeddings";
+import { EmbeddingsProviderType, EMBEDDINGS_PROVIDER_CONFIG } from "../../lib/embeddings";
 
 function RagSettings() {
   const { settings, setSettings } = useSettings();
+
+  const currentProviderConfig = EMBEDDINGS_PROVIDER_CONFIG[settings.embeddingsProvider];
+
+  const handleProviderChange = (value: string) => {
+    const providerType = value as EmbeddingsProviderType;
+    const providerConfig = EMBEDDINGS_PROVIDER_CONFIG[providerType];
+
+    setSettings({
+      ...settings,
+      embeddingsProvider: providerType,
+      embeddingsBatchSize: providerConfig.defaultBatchSize,
+    });
+  };
 
   return (
     <VStack gap={6} my={3}>
@@ -32,30 +45,24 @@ function RagSettings() {
       <FormControl>
         <FormLabel>Embedding Strategy:</FormLabel>
         <RadioGroup
-          value={settings.embeddingProvider}
-          onChange={(value) =>
-            setSettings({
-              ...settings,
-              embeddingProvider: value as EmbeddingProviderType,
-              embeddingMaxBatchSize: value === "openai" ? 4000 : 256,
-            })
-          }
+          value={settings.embeddingsProvider}
+          onChange={handleProviderChange}
           isDisabled={!settings.autogenerateEmbeddings}
         >
           <Stack>
-            <Radio value="openai">Open-AI (Requires API KEY!)</Radio>
-            <Radio value="tensorflow">Tensorflow</Radio>
+            <Radio value="openai">Use OpenAI (Requires API KEY!)</Radio>
+            <Radio value="tensorflow">Generate In Browser (tensorflow.js)</Radio>
           </Stack>
         </RadioGroup>
       </FormControl>
       <FormControl>
-        <FormLabel>Embedding Batch Size {settings.embeddingMaxBatchSize} Chunks</FormLabel>
+        <FormLabel>Embedding Batch Size {settings.embeddingsBatchSize} Chunks</FormLabel>
         <Slider
-          value={settings.embeddingMaxBatchSize}
-          onChange={(value) => setSettings({ ...settings, embeddingMaxBatchSize: value })}
-          min={settings.embeddingProvider === "openai" ? 500 : 16}
-          max={settings.embeddingProvider === "openai" ? 4000 : 256}
-          step={settings.embeddingMaxBatchSize > 256 ? 500 : 16}
+          value={settings.embeddingsBatchSize}
+          onChange={(value) => setSettings({ ...settings, embeddingsBatchSize: value })}
+          min={currentProviderConfig.minBatchSize}
+          max={currentProviderConfig.maxBatchSize}
+          step={currentProviderConfig.minBatchSize}
           isDisabled={!settings.autogenerateEmbeddings}
         >
           <SliderTrack>
@@ -63,7 +70,10 @@ function RagSettings() {
           </SliderTrack>
           <SliderThumb />
         </Slider>
-        <FormErrorMessage>Maximum batch size must be between 20 and 80 chunks</FormErrorMessage>
+        <FormErrorMessage>
+          Maximum batch size must be between {currentProviderConfig.minBatchSize} and{" "}
+          {currentProviderConfig.maxBatchSize} chunks
+        </FormErrorMessage>
       </FormControl>
     </VStack>
   );
