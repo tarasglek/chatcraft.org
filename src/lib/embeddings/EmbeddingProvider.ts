@@ -23,6 +23,11 @@ export interface EmbeddingProvider {
   readonly dimensions: number;
 
   /**
+   * Maximum batch size of the provider
+   */
+  readonly maxBatchSize: number;
+
+  /**
    * Generate an embedding vector for a single text
    * @param text The text to embed
    * @returns A promise resolving to a vector of numbers

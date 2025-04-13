@@ -46,7 +46,7 @@ export type Settings = {
   maxImageDimension: number;
   embeddingProvider: EmbeddingProviderType;
   autogenerateEmbeddings: boolean;
-  embeddingBatchSize: number;
+  embeddingMaxBatchSize: number;
 };
 
 export const defaults: Settings = {
@@ -70,7 +70,7 @@ export const defaults: Settings = {
   maxImageDimension: 2048,
   embeddingProvider: "tensorflow",
   autogenerateEmbeddings: false,
-  embeddingBatchSize: 20,
+  embeddingMaxBatchSize: 256,
 };
 
 export const key = "settings";

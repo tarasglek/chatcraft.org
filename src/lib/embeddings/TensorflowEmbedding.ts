@@ -9,6 +9,7 @@ export class TensorflowEmbeddingProvider implements EmbeddingProvider {
   readonly name = "TensorFlow Universal Sentence Encoder";
   readonly description = "Local embedding model using TensorFlow.js (512 dimensions)";
   readonly dimensions = 512;
+  readonly maxBatchSize = 256;
 
   private model: any = null;
   private isLoading: boolean = false;

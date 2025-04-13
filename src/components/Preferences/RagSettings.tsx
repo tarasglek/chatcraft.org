@@ -33,8 +33,12 @@ function RagSettings() {
         <FormLabel>Embedding Strategy:</FormLabel>
         <RadioGroup
           value={settings.embeddingProvider}
-          onChange={(nextValue) =>
-            setSettings({ ...settings, embeddingProvider: nextValue as EmbeddingProviderType })
+          onChange={(value) =>
+            setSettings({
+              ...settings,
+              embeddingProvider: value as EmbeddingProviderType,
+              embeddingMaxBatchSize: value === "openai" ? 4000 : 256,
+            })
           }
           isDisabled={!settings.autogenerateEmbeddings}
         >
@@ -45,13 +49,13 @@ function RagSettings() {
         </RadioGroup>
       </FormControl>
       <FormControl>
-        <FormLabel>Embedding Batch Size {settings.embeddingBatchSize} Chunks</FormLabel>
+        <FormLabel>Embedding Batch Size {settings.embeddingMaxBatchSize} Chunks</FormLabel>
         <Slider
-          value={settings.embeddingBatchSize}
-          onChange={(value) => setSettings({ ...settings, embeddingBatchSize: value })}
-          min={20}
-          max={80}
-          step={20}
+          value={settings.embeddingMaxBatchSize}
+          onChange={(value) => setSettings({ ...settings, embeddingMaxBatchSize: value })}
+          min={settings.embeddingProvider === "openai" ? 500 : 16}
+          max={settings.embeddingProvider === "openai" ? 4000 : 256}
+          step={settings.embeddingMaxBatchSize > 256 ? 500 : 16}
           isDisabled={!settings.autogenerateEmbeddings}
         >
           <SliderTrack>

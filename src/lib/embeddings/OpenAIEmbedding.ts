@@ -10,6 +10,7 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
   readonly description = "OpenAI's text-embedding-3-small model (1536 dimensions)";
   readonly dimensions = 1536;
   readonly url = `https://api.openai.com/v1/embeddings`;
+  readonly maxBatchSize = 4000;
 
   private openai: OpenAI;
 

@@ -26,6 +26,7 @@ export function getEmbeddingProvider(type: EmbeddingProviderType): EmbeddingProv
           throw new Error("OpenAI API key is required for embeddings");
         }
         providers[type] = new OpenAIEmbeddingProvider(settings.currentProvider.apiKey);
+
         break;
 
       case "tensorflow":
@@ -35,6 +36,8 @@ export function getEmbeddingProvider(type: EmbeddingProviderType): EmbeddingProv
       default:
         throw new Error(`Unknown embedding provider type: ${type}`);
     }
+
+    settings.embeddingMaxBatchSize = providers[type].maxBatchSize;
   }
 
   return providers[type]!;

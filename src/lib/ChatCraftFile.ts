@@ -258,7 +258,7 @@ export class ChatCraftFile {
 
     console.log(`Generating embeddings for ${chunks.length} chunks using ${provider.name}...`);
 
-    const BATCH_SIZE = settings.embeddingBatchSize || 20;
+    const BATCH_SIZE = settings.embeddingMaxBatchSize || 128;
 
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
       const batch = chunks.slice(i, i + BATCH_SIZE);
