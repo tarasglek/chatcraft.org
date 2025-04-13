@@ -9,7 +9,7 @@ import { ChatCraftModel } from "../lib/ChatCraftModel";
 import { ChatCraftProvider, NonLLMProviderData, ProviderData } from "../lib/ChatCraftProvider";
 import { providerFromJSON, providerFromUrl } from "./providers";
 import { FreeModelProvider } from "./providers/DefaultProvider/FreeModelProvider";
-import { EmbeddingProviderType } from "./embeddings";
+import { EmbeddingsProviderType } from "./embeddings";
 /**
  * We can use models from OpenAI or OpenRouter (https://openrouter.ai/docs).
  * If using the latter, we need to override the basePath to use the OpenRouter URL.
@@ -44,9 +44,9 @@ export type Settings = {
   compressionFactor: number;
   maxCompressedFileSizeMB: number;
   maxImageDimension: number;
-  embeddingProvider: EmbeddingProviderType;
+  embeddingsProvider: EmbeddingsProviderType;
   autogenerateEmbeddings: boolean;
-  embeddingMaxBatchSize: number;
+  embeddingsBatchSize: number;
 };
 
 export const defaults: Settings = {
@@ -68,9 +68,9 @@ export const defaults: Settings = {
   compressionFactor: 1,
   maxCompressedFileSizeMB: 20,
   maxImageDimension: 2048,
-  embeddingProvider: "tensorflow",
+  embeddingsProvider: "tensorflow",
   autogenerateEmbeddings: false,
-  embeddingMaxBatchSize: 256,
+  embeddingsBatchSize: 128,
 };
 
 export const key = "settings";
