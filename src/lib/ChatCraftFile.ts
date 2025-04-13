@@ -1,7 +1,7 @@
 import db, { ChatCraftFileTable } from "./db";
 import { download } from "./utils";
 import { getSentenceChunksFrom } from "./summarize";
-import { getEmbeddingProvider, EmbeddingProviderType } from "./embeddings";
+import { getEmbeddingsProvider, EmbeddingsProviderType } from "./embeddings";
 import { getSettings } from "./settings";
 
 export type FileChunk = {
@@ -95,7 +95,6 @@ export class ChatCraftFile {
     input: File | ChatCraftFileOptions,
     additionalOptions: Partial<ChatCraftFileOptions>
   ): Promise<ChatCraftFile> {
-    console.log("findOrCreate invoked");
     let options: ChatCraftFileOptions;
 
     if (input instanceof File) {
@@ -108,8 +107,6 @@ export class ChatCraftFile {
         },
       };
 
-      console.log("Metadata that is getting used", options.metadata);
-      console.log("Additional Metadata: ", additionalOptions);
       // Merge any additional options provided
       if (additionalOptions) {
         options = {
@@ -185,26 +182,30 @@ export class ChatCraftFile {
     return this.chunks?.[index];
   }
 
-  /**
-   * Get the embedding provider used for this file's chunks
-   */
-  getEmbeddingProviderId(): string | undefined {
+  getEmbeddingsProvider():
+    | {
+        id: string;
+        dimensions: number;
+        date: string;
+      }
+    | undefined {
     if (!this.hasEmbeddings() || !this.metadata) {
       return undefined;
     }
 
-    return this.metadata.embeddingProvider as string;
-  }
+    const providerId = this.metadata.embeddingsProvider as string;
+    const dimensions = this.metadata.embeddingsDimensions as number;
+    const date = this.metadata.embeddingsDate as string;
 
-  /**
-   * Get embedding dimensions
-   */
-  getEmbeddingDimensions(): number | undefined {
-    if (!this.hasEmbeddings() || !this.metadata) {
+    if (!providerId || !dimensions || !date) {
       return undefined;
     }
 
-    return this.metadata.embeddingDimensions as number;
+    return {
+      id: providerId,
+      dimensions: dimensions,
+      date: date,
+    };
   }
 
   /**
@@ -241,24 +242,24 @@ export class ChatCraftFile {
       return false;
     }
 
-    return this.chunks?.some((chunk) => chunk.embeddings.length > 0);
+    return this.chunks?.every((chunk) => chunk.embeddings.length > 0);
   }
 
   /**
    * Generate embeddings for all chunks
    */
-  async generateEmbeddings(providerType?: EmbeddingProviderType): Promise<void> {
+  async generateEmbeddings(providerType?: EmbeddingsProviderType): Promise<void> {
     if (!this.hasChunks()) {
       throw new Error("File has no chunks to generate embeddings for");
     }
 
     const settings = getSettings();
-    const provider = getEmbeddingProvider(providerType || settings.embeddingProvider);
+    const provider = getEmbeddingsProvider(providerType || settings.embeddingsProvider);
     const chunks = this.chunks!;
 
     console.log(`Generating embeddings for ${chunks.length} chunks using ${provider.name}...`);
 
-    const BATCH_SIZE = settings.embeddingMaxBatchSize || 128;
+    const BATCH_SIZE = settings.embeddingsBatchSize || 128;
 
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
       const batch = chunks.slice(i, i + BATCH_SIZE);
@@ -280,9 +281,9 @@ export class ChatCraftFile {
         throw error;
       }
     }
-    this.setMetadata("embeddingProvider", provider.id);
-    this.setMetadata("embeddingDimensions", provider.dimensions);
-    this.setMetadata("embeddingDate", new Date().toISOString());
+    this.setMetadata("embeddingsProvider", provider.id);
+    this.setMetadata("embeddingsDimensions", provider.dimensions);
+    this.setMetadata("embeddingsDate", new Date().toISOString());
     await this.setChunks(chunks);
     console.log(`Successfully generated embeddings for all ${chunks.length} chunks`);
   }
