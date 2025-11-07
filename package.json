@@ -15,15 +15,6 @@
     "format": "prettier --write .",
     "test": "vitest"
   },
-  "pnpm": {
-    "packageExtensions": {
-      "rollup@4.53.0": {
-        "scripts": {
-          "postinstall": ""
-        }
-      }
-    }
-  },
   "dependencies": {
     "@antonz/runno": "^0.6.1",
     "@chakra-ui/react": "^2.10.9",
