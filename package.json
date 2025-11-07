@@ -35,7 +35,7 @@
     "@eslint/compat": "^1.4.1",
     "@szhsin/react-menu": "^4.5.0",
     "@uiw/react-codemirror": "^4.25.3",
-    "apache-arrow": "^21.1.0",
+    "apache-arrow": "17.0.0",
     "browser-image-compression": "^2.0.2",
     "compromise": "^14.14.4",
     "cookie": "^1.0.2",

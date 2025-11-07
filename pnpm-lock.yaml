@@ -41,8 +41,8 @@ importers:
         specifier: ^4.25.3
         version: 4.25.3(@babel/runtime@7.28.4)(@codemirror/autocomplete@6.19.1)(@codemirror/language@6.11.3)(@codemirror/lint@6.9.2)(@codemirror/search@6.5.6)(@codemirror/state@6.5.2)(@codemirror/theme-one-dark@6.1.2)(@codemirror/view@6.38.6)(codemirror@6.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       apache-arrow:
-        specifier: ^21.1.0
-        version: 21.1.0
+        specifier: 17.0.0
+        version: 17.0.0
       browser-image-compression:
         specifier: ^2.0.2
         version: 2.0.2
@@ -2369,10 +2369,6 @@ packages:
     resolution: {integrity: sha512-X0p7auzdnGuhYMVKYINdQssS4EcKec9TCXyez/qtJt32DrIMGbzqiaMiQ0X6fQlQpw8Fl0Qygcv4dfRAr5Gu9Q==}
     hasBin: true
 
-  apache-arrow@21.1.0:
-    resolution: {integrity: sha512-kQrYLxhC+NTVVZ4CCzGF6L/uPVOzJmD1T3XgbiUnP7oTeVFOFgEUu6IKNwCDkpFoBVqDKQivlX4RUFqqnWFlEA==}
-    hasBin: true
-
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
 
@@ -2718,15 +2714,6 @@ packages:
   command-line-args@5.2.1:
     resolution: {integrity: sha512-H4UfQhZyakIjC74I9d34fGYDwk3XpSr17QhEd0Q3I9Xq1CETHo4Hcuo87WyWHpAF1aSLjLRf5lD9ZGX2qStUvg==}
     engines: {node: '>=4.0.0'}
-
-  command-line-args@6.0.1:
-    resolution: {integrity: sha512-Jr3eByUjqyK0qd8W0SGFW1nZwqCaNCtbXjRo2cRJC1OYxWl3MZ5t1US3jq+cO4sPavqgw4l9BMGX0CBe+trepg==}
-    engines: {node: '>=12.20'}
-    peerDependencies:
-      '@75lb/nature': latest
-    peerDependenciesMeta:
-      '@75lb/nature':
-        optional: true
 
   command-line-usage@7.0.3:
     resolution: {integrity: sha512-PqMLy5+YGwhMh1wS04mVG44oqDsgyLRSKJBdOo1bnYhMKBW65gZF1dRp2OZRhiTjgUHljy99qkO7bsctLaw35Q==}
@@ -3465,15 +3452,6 @@ packages:
     resolution: {integrity: sha512-6Tb2myMioCAgv5kfvP5/PkZZ/ntTpVK39fHY7WkWBgvbeE+VHd/tZuZ4mrC+bxh4cfOZeYKVPaJIZtZXV7GNCQ==}
     engines: {node: '>=4.0.0'}
 
-  find-replace@5.0.2:
-    resolution: {integrity: sha512-Y45BAiE3mz2QsrN2fb5QEtO4qb44NcS7en/0y9PEVsg351HsLeVclP8QPMH79Le9sH3rs5RSwJu99W0WPZO43Q==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@75lb/nature': latest
-    peerDependenciesMeta:
-      '@75lb/nature':
-        optional: true
-
   find-root@1.1.0:
     resolution: {integrity: sha512-NKfW6bec6GfKc0SGx1e07QZY9PE99u0Bft/0rzSD5k3sO/vwkVUpDUKVm5Gpp5Ue3YfShPFTX2070tDs5kB9Ng==}
 
@@ -3490,9 +3468,6 @@ packages:
 
   flatbuffers@24.12.23:
     resolution: {integrity: sha512-dLVCAISd5mhls514keQzmEG6QHmUUsNuWsb4tFafIUwvvgDjXhtfAYSKOzt5SWOy+qByV5pbsDZ+Vb7HUOBEdA==}
-
-  flatbuffers@25.9.23:
-    resolution: {integrity: sha512-MI1qs7Lo4Syw0EOzUl0xjs2lsoeqFku44KpngfIduHBYvzm8h2+7K8YMQh1JtVVVrUvhLpNwqVi4DERegUJhPQ==}
 
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
@@ -8333,20 +8308,6 @@ snapshots:
       json-bignum: 0.0.3
       tslib: 2.8.1
 
-  apache-arrow@21.1.0:
-    dependencies:
-      '@swc/helpers': 0.5.17
-      '@types/command-line-args': 5.2.3
-      '@types/command-line-usage': 5.0.4
-      '@types/node': 24.10.0
-      command-line-args: 6.0.1
-      command-line-usage: 7.0.3
-      flatbuffers: 25.9.23
-      json-bignum: 0.0.3
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - '@75lb/nature'
-
   argparse@1.0.10:
     dependencies:
       sprintf-js: 1.0.3
@@ -8763,13 +8724,6 @@ snapshots:
       find-replace: 3.0.0
       lodash.camelcase: 4.3.0
       typical: 4.0.0
-
-  command-line-args@6.0.1:
-    dependencies:
-      array-back: 6.2.2
-      find-replace: 5.0.2
-      lodash.camelcase: 4.3.0
-      typical: 7.3.0
 
   command-line-usage@7.0.3:
     dependencies:
@@ -9719,8 +9673,6 @@ snapshots:
     dependencies:
       array-back: 3.1.0
 
-  find-replace@5.0.2: {}
-
   find-root@1.1.0: {}
 
   find-up@5.0.0:
@@ -9738,8 +9690,6 @@ snapshots:
       keyv: 4.5.4
 
   flatbuffers@24.12.23: {}
-
-  flatbuffers@25.9.23: {}
 
   flatted@3.3.3: {}
 
