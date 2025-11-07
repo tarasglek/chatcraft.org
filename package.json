@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "prettier": "pnpm run format",
     "format": "prettier --write .",
-    "test": "vitest"
+    "test": "vitest",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@antonz/runno": "^0.6.1",
@@ -92,6 +93,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
     "patch-package": "^8.0.1",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "3.5.3",
     "rollup-plugin-visualizer": "^5.14.0",
     "typescript": "5.8.2",
