@@ -21,8 +21,8 @@ importers:
         specifier: ^6.1.2
         version: 6.1.2
       '@duckdb/duckdb-wasm':
-        specifier: ^1.30.0
-        version: 1.30.0
+        specifier: ^1.31.0
+        version: 1.31.0
       '@emotion/react':
         specifier: ^11.14.0
         version: 11.14.0(@types/react@18.3.26)(react@18.3.1)
@@ -938,8 +938,8 @@ packages:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
 
-  '@duckdb/duckdb-wasm@1.30.0':
-    resolution: {integrity: sha512-9aWrm+4ayl4sTlvGtl/b+LxrUyXaac3yyVqkoJ3F7Vkd62PoS8PcQIRJ/KjXBW36LP1CnPY5jjvFyIcTFLtcXA==}
+  '@duckdb/duckdb-wasm@1.31.0':
+    resolution: {integrity: sha512-HcR5XFmNpi7ua0IFohO2dFDNh0LkZgnkfkiD5BDlP8SAmhhcHe+zfOPD1izpmuBxLel25LHO608NY/3RolwztQ==}
 
   '@emnapi/runtime@1.7.0':
     resolution: {integrity: sha512-oAYoQnCYaQZKVS53Fq23ceWMRxq5EhQsE0x0RdQ55jT7wagMu5k+fS39v1fiSLrtrLQlXwVINenqhLMtTrV/1Q==}
@@ -6960,7 +6960,7 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
 
-  '@duckdb/duckdb-wasm@1.30.0':
+  '@duckdb/duckdb-wasm@1.31.0':
     dependencies:
       apache-arrow: 17.0.0
 
