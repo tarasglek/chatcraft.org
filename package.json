@@ -13,8 +13,7 @@
     "lint": "eslint .",
     "prettier": "pnpm run format",
     "format": "prettier --write .",
-    "test": "vitest",
-    "postinstall": "patch-package"
+    "test": "vitest"
   },
   "dependencies": {
     "@antonz/runno": "^0.6.1",
