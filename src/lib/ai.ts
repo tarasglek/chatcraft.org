@@ -438,7 +438,8 @@ export const generateImage = async ({
       response_format: "b64_json",
     });
 
-    const imageUrls = response.data.map(({ b64_json }) => `data:image/jpeg;base64,${b64_json}`);
+    const imageUrls =
+      response.data?.map(({ b64_json }) => `data:image/jpeg;base64,${b64_json}`) ?? [];
     return imageUrls;
   } catch (error: any) {
     throw new Error(error);
